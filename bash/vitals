@@ -1,0 +1,20 @@
+#!/bin/bash
+
+get_system_metrics() {
+    # 1. CPU USAGE (via vmstat)
+    cpu_usage=$(vmstat 1 2 | tail -1 | awk '{print 100 - $15}')
+
+    # 2. MEMORY USAGE (via free)
+    mem_usage=$(free -m | awk '/Mem:/ { printf("%.1f", $3/$2 * 100) }')
+
+    # 3. OUTPUT
+    echo "------------------------"
+    echo " System Snaphot"
+    echo "------------------------"
+    echo " CPU Usage : ${cpu_usage}%"
+    echo " RAM Usage : ${mem_usage}%"
+    echo "------------------------"
+}
+
+# Call the function
+get_system_metrics
