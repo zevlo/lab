@@ -1,3 +1,5 @@
+#!/bin/bash
+
 df -BM --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs | awk '
 NR > 1 {
   gsub("M", "", $2); size += $2;
