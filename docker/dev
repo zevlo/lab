@@ -1,0 +1,5 @@
+# Mount current directory into container
+docker run -it \
+  -v $(pwd):/app \
+  --name dev \
+  ubuntu:24.04 bash
