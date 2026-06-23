@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0015 — Persistent Volumes &amp; Claims</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0015 · Kubernetes Fundamentals</p>
+  <h1>Persistent Volumes &amp; Claims</h1>
+  <p class="subtitle">Pods come and go — PVCs keep the data.</p>
+</header>
+
+<p class="mission">Lesson <a href="0001-desired-state-and-the-control-loop.html">0001</a> taught that pods are ephemeral — replaced, not healed. Lesson <a href="0006-configmaps-and-secrets.html">0006</a> mounted ConfigMaps as volumes, but those hold <em>configuration</em>, not durable app data. When you <code>helm install</code> Postgres in the homelab (<a href="0014-helm-charts-and-releases.html">0014</a>), the chart creates a <strong><a href="../reference/core-glossary.html#persistentvolumeclaim">PersistentVolumeClaim</a></strong>. At work, any database, upload store, or queue that must survive a pod restart depends on this layer. This lesson is the storage half of "stateful workloads."</p>
+
+<h2>The Idea</h2>
+
+<p>Three objects, one binding dance <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">[PV docs]</a>:</p>
+
+<table>
+  <tr><th>Object</th><th>Scope</th><th>Role</th></tr>
+  <tr><td><strong><a href="../reference/core-glossary.html#persistentvolume">PersistentVolume (PV)</a></strong></td><td>Cluster</td><td>The actual storage — a disk, NFS export, or host directory.</td></tr>
+  <tr><td><strong><a href="../reference/core-glossary.html#persistentvolumeclaim">PersistentVolumeClaim (PVC)</a></strong></td><td>Namespace</td><td>Your app's request: "I need 1 Gi, RWO, from storage class X."</td></tr>
+  <tr><td><strong><a href="../reference/core-glossary.html#storageclass">StorageClass</a></strong></td><td>Cluster</td><td>Provisioner template — creates PVs automatically when PVCs arrive.</td></tr>
+</table>
+
+<pre><code>Pod spec
+  volumes[].persistentVolumeClaim.claimName: data
+       ↓ mounts
+PVC "data"  ──binds──▶  PV (actual bytes on disk)
+       ↑
+StorageClass "local-path" provisions the PV</code></pre>
+
+<p>A pod wires storage the same way it mounts a ConfigMap — <code>volumes</code> + <code>volumeMounts</code> — but the backing object is a PVC, not a ConfigMap:</p>
+
+<pre><code><span class="k">spec:</span>
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> app
+    <span class="k">volumeMounts:</span>
+    - <span class="k">name:</span> data
+      <span class="k">mountPath:</span> /data
+  <span class="k">volumes:</span>
+  - <span class="k">name:</span> data
+    <span class="k">persistentVolumeClaim:</span>
+      <span class="k">claimName:</span> data</code></pre>
+
+<p>Delete the pod → PVC and PV remain. A replacement pod mounting the same claim sees the same files. That is the whole point.</p>
+
+<p><strong>Not the same as <code>emptyDir</code>:</strong> <code>emptyDir</code> is scratch space tied to the pod lifecycle — gone when the pod is deleted. ConfigMap volumes hold settings that can update live (<a href="0006-configmaps-and-secrets.html">0006</a>). PVCs hold <em>application state</em> that must outlive any single pod.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> PVC is the contract; PV is the disk; the pod is temporary — mount the claim, never bake state into the container layer.
+</div>
+
+<p><strong>Access modes</strong> matter when binding: <code>ReadWriteOnce</code> (RWO) — one node at a time, typical for databases. <code>ReadWriteMany</code> (RWX) — shared read/write, needs a shared filesystem (NFS, EFS). PVC and PV must agree on mode and size.</p>
+
+<p><strong><code>WaitForFirstConsumer</code>:</strong> many local StorageClasses (including OrbStack's <code>local-path</code>) defer provisioning until a pod that uses the PVC is scheduled. A lone PVC may sit <code>Pending</code> — that is normal until you apply the pod.</p>
+
+<h2>Lab — Provision, Persist, Break, Fix (~30 min)</h2>
+
+<p>OrbStack. You'll install a local provisioner if needed, bind a PVC, prove data survives pod replacement, then break binding with a wrong StorageClass name. Working directory e.g. <code>~/storage-lab/</code>.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient — StorageClass.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl get storageclass</code></pre>
+<p class="expect">If the list is empty, install the local-path provisioner once:</p>
+<pre><code>kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.30/deploy/local-path-storage.yaml
+kubectl get storageclass</code></pre>
+<p class="expect">Expect StorageClass <code>local-path</code> with provisioner <code>rancher.io/local-path</code>. If OrbStack K8s is stopped, run <code>orb start k8s</code> first.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Create namespace and PVC.</strong> Save as <code>storage-lab.yaml</code>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Namespace
+<span class="k">metadata:</span>
+  <span class="k">name:</span> storage-lab
+---
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> PersistentVolumeClaim
+<span class="k">metadata:</span>
+  <span class="k">name:</span> data
+  <span class="k">namespace:</span> storage-lab
+<span class="k">spec:</span>
+  <span class="k">accessModes:</span>
+  - ReadWriteOnce
+  <span class="k">storageClassName:</span> local-path
+  <span class="k">resources:</span>
+    <span class="k">requests:</span>
+      <span class="k">storage:</span> 64Mi</code></pre>
+<pre><code>kubectl apply -f storage-lab.yaml
+kubectl get pvc -n storage-lab</code></pre>
+<p class="expect">Expect PVC <code>data</code> with status <code>Pending</code> — normal for <code>WaitForFirstConsumer</code>. No pod yet, so nothing to bind to.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Write data — pod mounts PVC.</strong> Append to the same file (or save as <code>writer-pod.yaml</code>):</p>
+<pre><code>---
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  <span class="k">name:</span> writer
+  <span class="k">namespace:</span> storage-lab
+<span class="k">spec:</span>
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> app
+    <span class="k">image:</span> busybox:1.36
+    <span class="k">command:</span> ["/bin/sh", "-c", "echo persisted-$(date +%s) > /data/message.txt && sleep 3600"]
+    <span class="k">volumeMounts:</span>
+    - <span class="k">name:</span> data
+      <span class="k">mountPath:</span> /data
+  <span class="k">volumes:</span>
+  - <span class="k">name:</span> data
+    <span class="k">persistentVolumeClaim:</span>
+      <span class="k">claimName:</span> data</code></pre>
+<pre><code>kubectl apply -f storage-lab.yaml   <span class="c"># or writer-pod.yaml if split</span>
+kubectl get pvc,pod -n storage-lab
+kubectl exec -n storage-lab writer -- cat /data/message.txt</code></pre>
+<p class="expect">Expect PVC <code>Bound</code> once the pod schedules; pod <code>Running</code>; message file like <code>persisted-1718822400</code>. Note the timestamp — you will need it in step 4.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Prove persistence — kill the pod, not the claim.</strong></p>
+<pre><code>kubectl delete pod writer -n storage-lab
+kubectl get pvc -n storage-lab</code></pre>
+<p class="expect">Expect pod gone; PVC <code>data</code> still <code>Bound</code>. Create a reader pod (append to your yaml or apply inline):</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  <span class="k">name:</span> reader
+  <span class="k">namespace:</span> storage-lab
+<span class="k">spec:</span>
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> app
+    <span class="k">image:</span> busybox:1.36
+    <span class="k">command:</span> ["/bin/sh", "-c", "cat /data/message.txt && sleep 3600"]
+    <span class="k">volumeMounts:</span>
+    - <span class="k">name:</span> data
+      <span class="k">mountPath:</span> /data
+  <span class="k">volumes:</span>
+  - <span class="k">name:</span> data
+    <span class="k">persistentVolumeClaim:</span>
+      <span class="k">claimName:</span> data</code></pre>
+<pre><code>kubectl apply -f reader-pod.yaml
+kubectl exec -n storage-lab reader -- cat /data/message.txt</code></pre>
+<p class="expect">Expect the <strong>same</strong> message from step 3 — identical timestamp. Data lived on the PV, not in the pod.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break — wrong StorageClass.</strong> Create a PVC the cluster cannot provision:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> PersistentVolumeClaim
+<span class="k">metadata:</span>
+  <span class="k">name:</span> bad-data
+  <span class="k">namespace:</span> storage-lab
+<span class="k">spec:</span>
+  <span class="k">accessModes:</span>
+  - ReadWriteOnce
+  <span class="k">storageClassName:</span> typo-path
+  <span class="k">resources:</span>
+    <span class="k">requests:</span>
+      <span class="k">storage:</span> 64Mi</code></pre>
+<p>And a pod that needs it:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  <span class="k">name:</span> broken
+  <span class="k">namespace:</span> storage-lab
+<span class="k">spec:</span>
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> app
+    <span class="k">image:</span> busybox:1.36
+    <span class="k">command:</span> ["sleep", "3600"]
+    <span class="k">volumeMounts:</span>
+    - <span class="k">name:</span> data
+      <span class="k">mountPath:</span> /data
+  <span class="k">volumes:</span>
+  - <span class="k">name:</span> data
+    <span class="k">persistentVolumeClaim:</span>
+      <span class="k">claimName:</span> bad-data</code></pre>
+<pre><code>kubectl apply -f bad-pvc.yaml -f broken-pod.yaml
+kubectl get pvc bad-data -n storage-lab
+kubectl get pod broken -n storage-lab
+kubectl describe pvc bad-data -n storage-lab | tail -n 8</code></pre>
+<p class="expect">Expect PVC stuck <code>Pending</code> (events mention missing StorageClass or no provisioner). Pod stuck <code>Pending</code> with reason like <code>unbound immediate PersistentVolumeClaims</code>. The good PVC <code>data</code> and reader pod are unaffected — watch which object you diagnose.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Fix and clean up.</strong></p>
+<pre><code>kubectl delete pod broken -n storage-lab
+kubectl delete pvc bad-data -n storage-lab
+kubectl delete namespace storage-lab</code></pre>
+<p class="expect">Expect namespace and all PVCs removed. On OrbStack, local-path data may linger on disk until cluster restart — a known local-path quirk, not a lesson failure.</p>
+</div>
+
+<div class="warn">
+  <strong>Two diagnostic habits:</strong> PVC <code>Pending</code> → <code>describe pvc</code> events first (wrong StorageClass? waiting for a pod?). Pod <code>Pending</code> with volumes → check whether every PVC is <code>Bound</code>. Same pattern as endpoints for Services — find the binding gap, not the symptom on the wrong object.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Writer pod deleted; PVC <code>data</code> still Bound. New pod mounts same claim. What happens to <code>/data/message.txt</code>?</p>
+  <button class="opt">File is gone because pod deletion removes all mounted volume contents</button>
+  <button class="opt">File is gone unless the Deployment had at least two replicas running</button>
+  <button class="opt">Same file remains because data lives on the PV bound to the PVC</button>
+  <button class="opt">Same file remains only if the PVC used ReadWriteMany access mode</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. PVC <code>Pending</code> on OrbStack; StorageClass <code>local-path</code> exists; no pod mounts it yet. Most likely cause?</p>
+  <button class="opt">WaitForFirstConsumer binding mode waiting for a scheduled pod</button>
+  <button class="opt">PVC requests must always exceed one gibibyte or binding is rejected</button>
+  <button class="opt">local-path requires Helm install before any PVC can ever bind</button>
+  <button class="opt">ReadWriteOnce forbids binding until two pods request the same claim</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">3. Helm Postgres chart pod Pending; <code>kubectl get pvc</code> shows claim Pending. First diagnostic step?</p>
+  <button class="opt">helm rollback because chart revision always corrupts PVC binding</button>
+  <button class="opt">Delete the namespace and reinstall because Pending PVCs never recover</button>
+  <button class="opt">Scale Deployment to zero because PVCs bind only without running pods</button>
+  <button class="opt">kubectl describe pvc and read events for StorageClass or size errors</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">4. App needs scratch space cleared when the pod exits; no sharing across pods. Best volume type?</p>
+  <button class="opt">PersistentVolumeClaim with ReadWriteOnce and a local-path StorageClass</button>
+  <button class="opt">emptyDir because it is removed automatically when the pod is deleted</button>
+  <button class="opt">ConfigMap volume because it supports the largest file sizes in cluster</button>
+  <button class="opt">PersistentVolumeClaim with ReadWriteMany and a Retain reclaim policy</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. PVC <code>storageClassName: fast-ssd</code> but <code>kubectl get storageclass</code> lists only <code>local-path</code>. Expected PVC status?</p>
+  <button class="opt">Bound immediately using local-path as silent fallback default class</button>
+  <button class="opt">Lost because Kubernetes deletes claims with unknown storage classes</button>
+  <button class="opt">Pending indefinitely until class exists or PVC spec is corrected</button>
+  <button class="opt">Terminating because admission rejects all PVCs at apply time always</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Persistent volumes: <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">Concepts — PV &amp; PVC</a> · StorageClasses: <a href="https://kubernetes.io/docs/concepts/storage/storage-classes/">Storage Classes</a> · Hands-on: <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/">Configure a Pod to Use a PVC</a> · Local provisioner: <a href="https://github.com/rancher/local-path-provisioner">local-path-provisioner</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"What is a StatefulSet?"</em> · <em>"Retain vs Delete reclaim policy?"</em> · <em>"How do cloud disks differ from local-path?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0014-helm-charts-and-releases.html">Lesson 0014 — Helm</a> · Next: <a href="0016-statefulsets-stable-identity.html">Lesson 0016 — StatefulSets</a> · Reference: <a href="../reference/persistent-storage.html">Persistent storage</a> · <a href="../reference/core-glossary.html#persistentvolumeclaim">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

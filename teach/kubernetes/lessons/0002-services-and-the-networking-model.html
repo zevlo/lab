@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 — Services &amp; the Networking Model</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0002 · Kubernetes Fundamentals</p>
+  <h1>Services &amp; the Networking Model</h1>
+  <p class="subtitle">How traffic finds pods that won't sit still.</p>
+</header>
+
+<p class="mission">In <a href="0001-desired-state-and-the-control-loop.html">lesson 0001</a> you killed a pod and the control loop replaced it — <strong>with a different name and a different IP</strong>. That creates the problem this lesson solves: if backends are constantly replaced, what do you point your app (or your browser, in the homelab) at? Get this layer right and you can wire any set of workloads together — at work or on your own cluster.</p>
+
+<h2>The Idea</h2>
+
+<p>A <strong><a href="../reference/core-glossary.html#service">Service</a></strong> is a stable address for an unstable set of pods <a href="https://kubernetes.io/docs/concepts/services-networking/service/">[docs]</a>. It has three moving parts:</p>
+
+<ul>
+  <li><strong>A <a href="../reference/core-glossary.html#label">label selector</a></strong> — a live query, not a list. The Service doesn't know pod names; it asks, continuously, "which pods currently carry the label <code>app=hello</code>?" The system keeps the answer in an <a href="../reference/core-glossary.html#endpointslice">EndpointSlice</a>, updated as pods come and go. This is the control loop again, applied to networking.</li>
+  <li><strong>A stable virtual IP</strong> (the <a href="../reference/core-glossary.html#clusterip">ClusterIP</a>) — allocated once, never changes for the life of the Service. <a href="../reference/core-glossary.html#kube-proxy">kube-proxy</a> programs every node so traffic to that IP gets routed to one of the current backend pods.</li>
+  <li><strong>A DNS name</strong> — <a href="../reference/core-glossary.html#cluster-dns">cluster DNS</a> gives every Service a name. From the same namespace, plain <code>hello</code> works; the full form is <code>hello.default.svc.cluster.local</code> <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">[docs]</a>. In practice, apps talk to <em>names</em> and never see an IP at all.</li>
+</ul>
+
+<p>Two ports matter in every Service spec, and confusing them is the classic beginner bug <a href="https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports">[docs]</a>:</p>
+
+<table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td><code>port</code></td><td>What the Service exposes — what <em>clients</em> connect to.</td></tr>
+  <tr><td><code>targetPort</code></td><td>What the <em>container</em> actually listens on. The Service forwards here.</td></tr>
+</table>
+
+<p>Finally, Services come in <strong>types</strong>, each building on the last <a href="https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types">[docs]</a>:</p>
+
+<table>
+  <tr><th>Type</th><th>Reachable from</th><th>Use for</th></tr>
+  <tr><td><a href="../reference/core-glossary.html#clusterip">ClusterIP</a></td><td>Inside the cluster only</td><td>Service-to-service traffic (the default, and most Services)</td></tr>
+  <tr><td><a href="../reference/core-glossary.html#nodeport">NodePort</a></td><td>Any node's IP, on a high port (30000–32767)</td><td>Quick external access without extra machinery</td></tr>
+  <tr><td><a href="../reference/core-glossary.html#loadbalancer">LoadBalancer</a></td><td>An external IP from the environment</td><td>Real external traffic. In the cloud: a cloud LB. On OrbStack: services are reachable at <code>*.k8s.orb.local</code> from your Mac — which is exactly what your lab uses below.</td></tr>
+</table>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> pods are found by <em>query</em> (labels), reached by <em>name</em> (DNS), and the system maintains the plumbing in between — continuously, like everything else in Kubernetes.
+</div>
+
+<h2>Lab — Wire It Up and Break It (~15 min)</h2>
+
+<p>Against your OrbStack cluster, <strong>two terminals</strong> again.</p>
+
+<div class="step"><span class="n">1</span>
+<p>Confirm the cluster, then recreate our deployment:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl create deployment hello --image=nginx --replicas=3</code></pre>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>See the problem first-hand. List pod IPs, then kill one:</p>
+<pre><code>kubectl get pods -o wide          <span class="c"># note each pod's IP column</span>
+kubectl delete pod &lt;one-of-them&gt;
+kubectl get pods -o wide          <span class="c"># the replacement has a NEW ip</span></code></pre>
+<p class="expect">Expect: the new pod has a different name <em>and</em> a different IP. Anything hardcoding that old IP is now broken. This is the problem Services exist to solve.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p>Create a Service for the deployment and inspect what got built:</p>
+<pre><code>kubectl expose deployment hello --port=80
+kubectl get service hello                  <span class="c"># note the CLUSTER-IP</span>
+kubectl get endpointslices -l kubernetes.io/service-name=hello -o wide</code></pre>
+<p class="expect">Expect: a stable ClusterIP, and an EndpointSlice listing three pod IPs — the current answer to the selector's query. (<code>kubectl expose</code> copied the selector from the deployment's labels.)</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p>Prove the DNS name works. Launch a throwaway client pod <em>inside</em> the cluster:</p>
+<pre><code>kubectl run client --rm -it --image=busybox -- sh
+<span class="c"># now inside the pod:</span>
+wget -qO- http://hello | head -n 4
+nslookup hello
+exit</code></pre>
+<p class="expect">Expect: the nginx welcome HTML, fetched by the bare name <code>hello</code> — no IP anywhere. <code>nslookup</code> shows the name resolving to the ClusterIP you saw in step 3.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p>Watch the selector behave as a live query. In <strong>terminal 2</strong>:</p>
+<pre><code>kubectl get endpointslices -l kubernetes.io/service-name=hello -o wide -w</code></pre>
+<p>In <strong>terminal 1</strong>, change the world:</p>
+<pre><code>kubectl scale deployment hello --replicas=5
+kubectl delete pod &lt;any-hello-pod&gt;</code></pre>
+<p class="expect">Expect: the EndpointSlice updates within moments each time — IPs added on scale-up, a dead pod's IP swapped for its replacement. The Service never changed; only the query's answer did. (Ctrl-C the watch when done.)</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p>Now reach it from your Mac — the homelab move. Ask for a LoadBalancer:</p>
+<pre><code>kubectl expose deployment hello --name=hello-lb --type=LoadBalancer --port=8080 --target-port=80
+kubectl get service hello-lb</code></pre>
+<p class="expect">Expect: <code>EXTERNAL-IP</code> populates (OrbStack assigns a reachable address via <code>*.k8s.orb.local</code> — in the cloud this would be a real load balancer). Note the port mapping: clients use <code>8080</code>, the container listens on <code>80</code> — <code>port</code> vs <code>targetPort</code>, live.</p>
+<p>Then, in your Mac's browser or terminal:</p>
+<pre><code>curl -s http://hello-lb.k8s.orb.local:8080 | head -n 4</code></pre>
+<p class="expect">Expect: nginx HTML, served from a pod inside the cluster, reached from macOS via OrbStack's wildcard DNS. No <code>kubectl port-forward</code> needed.</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+<p>Clean up:</p>
+<pre><code>kubectl delete deployment hello
+kubectl delete service hello hello-lb</code></pre>
+</div>
+
+<h2>Quiz — No Peeking</h2>
+<p>From memory, as before.</p>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. How does a Service find its backend pods?</p>
+  <button class="opt">Watching each pod's fixed IP address</button>
+  <button class="opt">Reading the deployment's list of pods</button>
+  <button class="opt">Matching labels with a live selector</button>
+  <button class="opt">Tracking the names assigned at creation</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. Why shouldn't your app connect to a pod's IP directly?</p>
+  <button class="opt">Pod IPs change whenever pods are replaced</button>
+  <button class="opt">Pod IPs are only visible to kubelet</button>
+  <button class="opt">Pods share one IP with their node</button>
+  <button class="opt">Pod IPs are encrypted inside the cluster</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">3. In a Service spec, what is <code>targetPort</code>?</p>
+  <button class="opt">The port the service exposes to clients</button>
+  <button class="opt">The port the container actually listens on</button>
+  <button class="opt">The port opened on every cluster node</button>
+  <button class="opt">The port the API server forwards to</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. What does the default Service type, ClusterIP, give you?</p>
+  <button class="opt">A public IP reachable from outside the cluster</button>
+  <button class="opt">A fixed IP assigned to each backend pod</button>
+  <button class="opt">A DNS server running inside every single pod</button>
+  <button class="opt">A stable virtual IP reachable inside the cluster</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. From a pod in the same namespace, how do you address a Service named <code>hello</code>?</p>
+  <button class="opt">By asking kube-proxy for the address</button>
+  <button class="opt">By its DNS name, simply hello</button>
+  <button class="opt">By a static hosts file entry</button>
+  <button class="opt">By querying endpoints through the API</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>The official Service concept page is the canonical treatment of everything here: <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Service — kubernetes.io</a>. Pair it with the hands-on tutorial <a href="https://kubernetes.io/docs/tutorials/services/connect-applications-service/">Connecting Applications with Services</a>, which extends this lab.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"What actually happens to a packet sent to a ClusterIP?"</em> · <em>"When do I need an Ingress instead of a LoadBalancer?"</em> · <em>"How does this map to exposing services on my homelab?"</em> Report your quiz score — it steers lesson 0003.</p>
+  <p>Previous: <a href="0001-desired-state-and-the-control-loop.html">Lesson 0001 — Desired State &amp; the Control Loop</a> · Reference: <a href="../reference/core-glossary.html#clusterip">Core Glossary — Service Networking</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

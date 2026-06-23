@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Configuration Patterns — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  pre code { background: none; padding: 0; color: inherit; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Configuration Patterns</h1>
+  <p class="subtitle">Quick reference — ConfigMaps, Secrets, and how pods consume them.</p>
+</header>
+
+<h2>Which Object?</h2>
+<table>
+  <tr><th>Data</th><th>Object</th><th>Why</th></tr>
+  <tr><td>Log level, feature flags, nginx.conf, HTML templates</td><td><a href="core-glossary.html#configmap">ConfigMap</a></td><td>Non-confidential; safe in manifests and logs</td></tr>
+  <tr><td>Passwords, API tokens, TLS private keys, registry creds</td><td><a href="core-glossary.html#secret">Secret</a></td><td>Confidential; kept out of images and pod specs</td></tr>
+</table>
+
+<div class="note">
+  <strong>Secrets are not magic encryption.</strong> Values are base64-encoded at rest in etcd by default — readable by anyone with API or etcd access. Use RBAC, encryption at rest, and external secret stores in production.
+</div>
+
+<h2>Consumption Patterns</h2>
+<table>
+  <tr><th>Mechanism</th><th>YAML hook</th><th>Updates without pod restart?</th></tr>
+  <tr><td>Single env var</td><td><code>env[].valueFrom.configMapKeyRef</code> / <code>secretKeyRef</code></td><td><strong>No</strong></td></tr>
+  <tr><td>All keys as env vars</td><td><code>envFrom[].configMapRef</code> / <code>secretRef</code></td><td><strong>No</strong></td></tr>
+  <tr><td>Files in a directory</td><td><code>volumes[].configMap</code> + <code>volumeMounts</code></td><td><strong>Yes</strong> (eventually; kubelet sync interval)</td></tr>
+  <tr><td>Single file via subPath</td><td>volume mount with <code>subPath:</code></td><td><strong>No</strong> (frozen at mount time)</td></tr>
+</table>
+
+<h2>Minimal YAML Snippets</h2>
+
+<p><strong>ConfigMap</strong> — key/value and multi-line file content:</p>
+<pre><code>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  LOG_LEVEL: info
+  app.properties: |
+    cache.ttl=300
+    retries=3</code></pre>
+
+<p><strong>Secret</strong> — values must be base64 (or use <code>kubectl create secret generic</code>):</p>
+<pre><code>apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+type: Opaque
+stringData:          # plain text; API encodes for you
+  API_TOKEN: s3cr3t</code></pre>
+
+<p><strong>Env var from ConfigMap key:</strong></p>
+<pre><code>env:
+- name: LOG_LEVEL
+  valueFrom:
+    configMapKeyRef:
+      name: app-config
+      key: LOG_LEVEL</code></pre>
+
+<p><strong>Volume mount (live-updating files):</strong></p>
+<pre><code>volumeMounts:
+- name: config-vol
+  mountPath: /etc/app
+  readOnly: true
+volumes:
+- name: config-vol
+  configMap:
+    name: app-config</code></pre>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td><code>CreateContainerConfigError</code></td><td>Missing ConfigMap/Secret or wrong key name</td><td><code>kubectl describe pod</code> → Events</td></tr>
+  <tr><td>Env var empty but pod Running</td><td>Key marked <code>optional: true</code> and missing</td><td><code>kubectl exec … -- printenv</code></td></tr>
+  <tr><td>File changed in ConfigMap, pod stale</td><td>Mounted via <code>subPath</code>, or env var not volume</td><td>Check mount spec; restart if env-based</td></tr>
+  <tr><td>Config change didn't trigger rollout</td><td>Expected behavior — only template changes roll out</td><td><code>kubectl rollout restart</code> if env-based</td></tr>
+  <tr><td>Bad config ref but site still works</td><td>Rollout stalled; old pods still serving (containment)</td><td><code>kubectl get pods</code> — look for <code>CreateContainerConfigError</code>, not curl</td></tr>
+</table>
+
+<footer>
+  Introduced in <a href="../lessons/0006-configmaps-and-secrets.html">Lesson 0006</a> · Glossary: <a href="core-glossary.html#configmap">ConfigMap</a>, <a href="core-glossary.html#secret">Secret</a>
+</footer>
+</body>
+</html>

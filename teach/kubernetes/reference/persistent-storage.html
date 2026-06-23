@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Persistent Storage — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Persistent Storage</h1>
+  <p class="subtitle">Quick reference — PV, PVC, StorageClass, binding.</p>
+</header>
+
+<h2>What it is</h2>
+<p>Pods are ephemeral — a container's root filesystem is recreated on every restart. <a href="core-glossary.html#persistentvolumeclaim">PersistentVolumeClaims</a> request durable storage that outlives any single pod. A <a href="core-glossary.html#storageclass">StorageClass</a> tells the cluster <em>how</em> to provision that storage dynamically.</p>
+
+<h2>Three objects</h2>
+<table>
+  <tr><th>Object</th><th>Scope</th><th>Role</th></tr>
+  <tr><td><a href="core-glossary.html#persistentvolume">PersistentVolume (PV)</a></td><td>Cluster</td><td>Actual storage chunk (NFS, cloud disk, hostPath…)</td></tr>
+  <tr><td><a href="core-glossary.html#persistentvolumeclaim">PersistentVolumeClaim (PVC)</a></td><td>Namespace</td><td>App's request: size, access mode, storage class</td></tr>
+  <tr><td><a href="core-glossary.html#storageclass">StorageClass</a></td><td>Cluster</td><td>Provisioner + defaults (reclaim policy, binding mode)</td></tr>
+</table>
+
+<h2>Binding flow</h2>
+<pre><code>PVC created  →  controller finds matching PV
+              OR  StorageClass provisioner creates PV  →  Bound
+Pod mounts PVC via volumes.persistentVolumeClaim.claimName</code></pre>
+
+<h2>Pod wiring</h2>
+<pre><code>spec:
+  containers:
+  - name: app
+    volumeMounts:
+    - name: data
+      mountPath: /var/lib/data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: my-pvc</code></pre>
+
+<h2>Access modes</h2>
+<table>
+  <tr><th>Mode</th><th>Abbrev</th><th>Meaning</th></tr>
+  <tr><td>ReadWriteOnce</td><td>RWO</td><td>One node read/write (most common — databases)</td></tr>
+  <tr><td>ReadOnlyMany</td><td>ROX</td><td>Many nodes read-only</td></tr>
+  <tr><td>ReadWriteMany</td><td>RWX</td><td>Many nodes read/write (needs shared filesystem)</td></tr>
+</table>
+
+<h2>PVC spec (minimal)</h2>
+<pre><code>apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi</code></pre>
+
+<h2>Volume types compared</h2>
+<table>
+  <tr><th>Volume</th><th>Survives pod restart?</th><th>Use for</th></tr>
+  <tr><td><code>emptyDir</code></td><td>No (deleted with pod)</td><td>Scratch space, sidecar handoff</td></tr>
+  <tr><td>ConfigMap / Secret</td><td>N/A (config, not app data)</td><td>Settings files (<a href="configuration-patterns.html">patterns</a>)</td></tr>
+  <tr><td>PVC</td><td>Yes (bound to PV)</td><td>Databases, uploads, app state</td></tr>
+</table>
+
+<h2>OrbStack / local clusters</h2>
+<pre><code>kubectl get storageclass
+# If empty, install local-path provisioner once:
+kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.30/deploy/local-path-storage.yaml</code></pre>
+<p>StorageClass <code>local-path</code> uses <code>WaitForFirstConsumer</code> — PVC stays <code>Pending</code> until a pod that mounts it is scheduled.</p>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>PVC <code>Pending</code> forever</td><td>No StorageClass / wrong name</td><td><code>kubectl describe pvc NAME</code> events</td></tr>
+  <tr><td>PVC <code>Pending</code>, SC exists</td><td><code>WaitForFirstConsumer</code> — no pod yet</td><td>Schedule a pod mounting the PVC</td></tr>
+  <tr><td>Pod <code>Pending</code>, unbound PVCs</td><td>PVC not Bound</td><td><code>kubectl get pvc</code>; fix SC or size</td></tr>
+  <tr><td>Data gone after pod restart</td><td>Used <code>emptyDir</code> not PVC</td><td>Pod spec <code>volumes</code> section</td></tr>
+  <tr><td>Helm chart DB won't start</td><td>PVC can't bind</td><td><code>kubectl get pvc -n RELEASE</code></td></tr>
+</table>
+
+<div class="note">
+  <strong>Rule of thumb:</strong> the PVC is the contract; the PV is the backing store; the pod is temporary — mount the PVC, don't bake state into the container layer.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0015-persistent-volumes-and-claims.html">0015 — Persistent volumes</a> · Next: <a href="statefulsets.html">StatefulSets</a> · Config volumes: <a href="configuration-patterns.html">Configuration patterns</a> · Canonical: <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">kubernetes.io — Persistent volumes</a>
+</footer>
+</body>
+</html>

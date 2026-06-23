@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0014 — Helm: Charts &amp; Releases</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0014 · Kubernetes Fundamentals</p>
+  <h1>Helm: Charts &amp; Releases</h1>
+  <p class="subtitle">Package, parameterize, install — with revision history and rollback.</p>
+</header>
+
+<p class="mission">Lesson <a href="0013-kustomize-base-and-overlays.html">0013</a> layered plain YAML with Kustomize patches. You have already run Helm for Traefik (<a href="0003-ingress-one-door-many-services.html">0003</a>) and metrics-server (<a href="0012-horizontal-pod-autoscaler.html">0012</a>) — but those were one-liners against someone else's chart. At work, Helm is how you install Postgres, Redis, or a vendor monitoring stack without hand-writing every object. In the homelab, it is the fastest path from "I need this add-on" to a tracked, upgradable <strong><a href="../reference/core-glossary.html#helm-release">release</a></strong> you can roll back when an upgrade goes wrong.</p>
+
+<h2>The Idea</h2>
+
+<p>Helm is a package manager for Kubernetes. Three nouns cover almost everything <a href="https://helm.sh/docs/intro/using_helm/">[Helm docs]</a>:</p>
+
+<table>
+  <tr><th>Term</th><th>What it is</th></tr>
+  <tr><td><strong><a href="../reference/core-glossary.html#helm-chart">Chart</a></strong></td><td>A directory (or tarball) of <code>templates/</code> plus default <code>values.yaml</code> — the package, like a Homebrew formula.</td></tr>
+  <tr><td><strong><a href="../reference/core-glossary.html#helm-release">Release</a></strong></td><td>A <em>named instance</em> of a chart running in the cluster. Install the same chart twice → two releases (e.g. <code>postgres-app-a</code> and <code>postgres-app-b</code>).</td></tr>
+  <tr><td><strong><a href="../reference/core-glossary.html#helm-values">Values</a></strong></td><td>Parameters fed into Go templates as <code>{{ .Values.replicaCount }}</code>. Override via <code>values.yaml</code>, <code>-f</code>, or <code>--set</code>.</td></tr>
+</table>
+
+<p>A minimal chart layout (from <code>helm create</code>):</p>
+
+<pre><code>helm-lab/
+├── Chart.yaml          <span class="c"># chart metadata (name, version)</span>
+├── values.yaml         <span class="c"># defaults — edit these, not templates, when possible</span>
+└── templates/
+    ├── deployment.yaml <span class="c"># {{ .Values.image.repository }} …</span>
+    ├── service.yaml
+    └── _helpers.tpl    <span class="c"># shared label/selector snippets</span></code></pre>
+
+<p>Helm renders templates + values into plain manifests, then sends them to the API — same <a href="../reference/core-glossary.html#declarative">declarative</a> end state as <code>kubectl apply</code>. The difference from Kustomize is <em>how</em> you customize: Go templates and packaged charts instead of YAML patches.</p>
+
+<p>Commands that mirror lesson 0013's preview/deploy split:</p>
+
+<pre><code>helm template lab ./helm-lab -n helm-lab    <span class="c"># preview rendered YAML — nothing in cluster</span>
+helm install lab ./helm-lab -n helm-lab --create-namespace   <span class="c"># deploy release "lab"</span>
+helm upgrade lab ./helm-lab -n helm-lab    <span class="c"># new revision on config change</span>
+helm rollback lab 1 -n helm-lab           <span class="c"># revert to revision 1</span>
+helm uninstall lab -n helm-lab            <span class="c"># remove release + its objects</span></pre>
+
+<p>For charts you did not author: add a repo, inspect defaults, install with overrides — exactly what you did for Traefik and metrics-server:</p>
+
+<pre><code>helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+helm show values metrics-server/metrics-server   <span class="c"># read defaults before overriding</span>
+helm upgrade --install metrics-server metrics-server/metrics-server \
+  -n kube-system --set args="{--kubelet-insecure-tls}"</code></pre>
+
+<p><code>upgrade --install</code> is idempotent: create the release if missing, upgrade if present — the usual pattern for cluster add-ons.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> chart is the recipe; values are the knobs; release is the named dinner you actually served — and Helm remembers every revision.
+</div>
+
+<p><strong>Helm vs Kustomize (revisited):</strong> Kustomize patches your YAML — best when env diffs are small and you want zero <code>{{ }}</code>. Helm templates and packages charts — best when installing third-party software, you need conditionals/loops, or you want <code>helm rollback</code>. Many teams use Kustomize for in-house apps and Helm for dependencies. Both end in Kubernetes objects managed by the same control loops.</p>
+
+<h2>Lab — Scaffold, Template, Install, Break, Rollback (~30 min)</h2>
+
+<p>OrbStack. You will scaffold a chart with <code>helm create</code>, preview with <code>helm template</code>, install a release, break a Service selector in a template (the lesson <a href="0010-manifest-authoring-workflow.html">0010</a>/<a href="0013-kustomize-base-and-overlays.html">0013</a> wiring bug, via Helm), then roll back. Working directory e.g. <code>~/helm-lab/</code>.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong></p>
+<pre><code>kubectl config use-context orbstack
+helm version
+kubectl cluster-info</code></pre>
+<p class="expect">Expect Helm v3+ (or v4) and control plane at <code>https://127.0.0.1:26443</code>. If connection refused, you are on a stale context — switch to <code>orbstack</code>, not <code>rancher-desktop</code>.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Scaffold a chart.</strong></p>
+<pre><code>mkdir -p ~/helm-lab && cd ~/helm-lab
+helm create helm-lab
+ls helm-lab/</code></pre>
+<p class="expect">Expect <code>Chart.yaml</code>, <code>values.yaml</code>, <code>templates/</code>. Open <code>values.yaml</code> — note <code>replicaCount</code>, <code>image.repository</code>, <code>service.port</code>. These are the knobs; templates reference them with <code>{{ .Values.… }}</code>.</p>
+<p>Edit <code>values.yaml</code> — pin a known nginx tag:</p>
+<pre><code><span class="c"># under image:</span>
+  <span class="k">tag:</span> <span class="c">"1.27"</span></code></pre>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Preview — template only.</strong> Same habit as <code>kubectl kustomize</code> in lesson 0013: render before deploy. <strong>This prints YAML only; nothing reaches the cluster until step 4.</strong></p>
+<pre><code>helm template lab ./helm-lab -n helm-lab --create-namespace \
+  | grep -E '^(kind:|  name:|  replicas:|    image:|    app\.kubernetes\.io/name:)'</code></pre>
+<p class="expect">Expect Deployment and Service named <code>lab-helm-lab</code> (release name + chart name); replicas <code>1</code>; image <code>nginx:1.27</code>. If <code>kubectl get deploy -n helm-lab</code> is empty here, that is normal — you have not installed yet.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Install the release.</strong> This is the step that actually creates objects:</p>
+<pre><code>helm install lab ./helm-lab -n helm-lab --create-namespace
+kubectl rollout status deployment/lab-helm-lab -n helm-lab
+kubectl get pods,svc,endpoints -n helm-lab
+helm list -n helm-lab</code></pre>
+<p class="expect">Expect <code>STATUS: deployed</code>, <code>REVISION: 1</code>. One Running/Ready pod; Service <code>lab-helm-lab</code>; endpoints list a pod IP. <code>helm list</code> shows release <code>lab</code>.</p>
+<pre><code>kubectl port-forward -n helm-lab svc/lab-helm-lab 8080:80
+curl -s localhost:8080 | head -n 1</code></pre>
+<p class="expect">Expect nginx HTML.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break — bad selector in template.</strong> Edit <code>helm-lab/templates/service.yaml</code>. Replace the <code>selector:</code> block (the lines using <code>selectorLabels</code>) with a hard-coded typo:</p>
+<pre><code>  <span class="k">selector:</span>
+    <span class="k">app.kubernetes.io/name:</span> typo</code></pre>
+<p>Upgrade the release — Helm applies the new render:</p>
+<pre><code>helm upgrade lab ./helm-lab -n helm-lab
+helm history lab -n helm-lab
+kubectl get endpoints lab-helm-lab -n helm-lab
+curl -s --connect-timeout 2 localhost:8080 | head -n 1</code></pre>
+<p class="expect">Expect: upgrade succeeds — revision 2. Endpoints empty (<code>&lt;none&gt;</code>). Curl fails or hangs. Pods still Running — wiring bug, not pod health. Preview catches it:</p>
+<pre><code>helm template lab ./helm-lab -n helm-lab | grep -E 'selector:|app\.kubernetes\.io/name:'</code></pre>
+<p class="expect">Expect: Service selector <code>typo</code>, pod labels still <code>helm-lab</code> — mismatch visible in rendered output before upgrade, if you look.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Rollback and clean up.</strong> Restore the template selector (put back the <code>selectorLabels</code> helper), or roll back without editing:</p>
+<pre><code>helm rollback lab 1 -n helm-lab
+kubectl get endpoints lab-helm-lab -n helm-lab
+curl -s localhost:8080 | head -n 1</code></pre>
+<p class="expect">Expect: revision 3 (rollback counts as a new revision); endpoints repopulated; curl works. Inspect history:</p>
+<pre><code>helm history lab -n helm-lab</code></pre>
+<p class="expect">Expect three rows — deploy, broken upgrade, rollback. Remove everything:</p>
+<pre><code>helm uninstall lab -n helm-lab
+kubectl get all -n helm-lab</code></pre>
+<p class="expect">Expect namespace empty (or only leftover resources if any). Optional: <code>kubectl delete namespace helm-lab</code>.</p>
+</div>
+
+<div class="warn">
+  <strong>Two preview habits:</strong> step 3 — <code>helm template</code> before <code>helm install</code> (same trap as previewing Kustomize without <code>apply -k</code>). step 5 — a template edit can break selectors while pods stay healthy; rendered output shows the wiring, <code>get endpoints</code> confirms it on the cluster. <code>helm rollback</code> is the safety net Kustomize does not give you out of the box.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="1">
+  <p class="stem">1. You run <code>helm template lab ./helm-lab -n helm-lab</code>, then <code>kubectl get deploy -n helm-lab</code> shows nothing. Why?</p>
+  <button class="opt">Chart failed lint so Helm refused to render any manifests to stdout</button>
+  <button class="opt">helm template renders locally only; cluster changes need helm install</button>
+  <button class="opt">Namespace helm-lab must exist before template can reach the API server</button>
+  <button class="opt">OrbStack blocks template output unless metrics-server is installed first</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. Team installs the same Postgres chart twice for two apps in one cluster. What distinguishes them?</p>
+  <button class="opt">Two separate releases each with its own name and revision history</button>
+  <button class="opt">Two separate charts because one chart cannot install more than once</button>
+  <button class="opt">Two values files merged automatically into a single shared release</button>
+  <button class="opt">Two repositories required because repos map one-to-one with releases</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">3. After <code>helm upgrade</code>, pods are Ready but the Service has no endpoints. First check?</p>
+  <button class="opt">Run helm rollback immediately because upgrade always corrupts selectors</button>
+  <button class="opt">Delete the release and switch to Kustomize because Helm cannot patch Services</button>
+  <button class="opt">Reinstall with helm install because upgrade cannot modify existing objects</button>
+  <button class="opt">Render with helm template and compare Service selector to pod labels</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">4. metrics-server was installed with <code>helm upgrade --install</code>. What does <code>--install</code> add?</p>
+  <button class="opt">Skips template rendering and applies manifests with kubectl apply instead</button>
+  <button class="opt">Pins chart version permanently so later upgrades cannot change it</button>
+  <button class="opt">Creates the release on first run if it does not already exist in cluster</button>
+  <button class="opt">Installs only into kube-system regardless of context or namespace flags</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. Same three-environment problem as lesson 0013. When is Helm the better fit?</p>
+  <button class="opt">When env diffs are three fields and you want zero templating syntax ever</button>
+  <button class="opt">When you install vendor charts or need conditionals and release rollback</button>
+  <button class="opt">When you want plain YAML patches only with no packaged tarballs ever</button>
+  <button class="opt">When Kustomize cannot target Deployments Services or ConfigMaps at all</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Helm intro: <a href="https://helm.sh/docs/intro/using_helm/">Using Helm</a> · Chart anatomy: <a href="https://helm.sh/docs/topics/charts/">Charts</a> · Values: <a href="https://helm.sh/docs/chart_best_practices/values/">Chart values files</a> · You already used repo charts: <a href="https://github.com/kubernetes-sigs/metrics-server/tree/master/charts/metrics-server">metrics-server chart</a>, <a href="https://github.com/traefik/traefik-helm-chart">Traefik chart</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"How do Helm hooks work?"</em> · <em>"What is a Helm subchart?"</em> · <em>"Can I combine Helm and Kustomize?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0013-kustomize-base-and-overlays.html">Lesson 0013 — Kustomize</a> · Next: <a href="0015-persistent-volumes-and-claims.html">Lesson 0015 — Persistent volumes</a> · Reference: <a href="../reference/helm.html">Helm patterns</a> · <a href="../reference/kustomize.html">Kustomize vs Helm</a> · <a href="../reference/core-glossary.html#helm-chart">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0005 — Probes: Catching the Quiet Failures</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0005 · Kubernetes Fundamentals</p>
+  <h1>Probes: Catching the Quiet Failures</h1>
+  <p class="subtitle">Teaching the control loop what "healthy" actually means.</p>
+</header>
+
+<p class="mission">Lesson 0004 ended with a warning: the stuck rollout was contained only because the failure was <em>loud</em> — the image wouldn't even pull. A version that starts cleanly but serves garbage sails straight through, and Kubernetes happily sends it your users. The fix is to give the system a definition of healthy it can check for itself. At work, that's the difference between a bad deploy being a non-event and a pager going off. In the homelab, it's services that heal themselves at 3&nbsp;a.m. — the same promise as lesson 0001, extended from "running" to "actually working."</p>
+
+<h2>The Idea</h2>
+
+<p>Out of the box, Kubernetes has one health signal: <em>is the process running?</em> Probes let the <a href="../reference/core-glossary.html#kubelet">kubelet</a> ask better questions, on a schedule, per container <a href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/">[docs]</a>. The two main ones ask different questions and trigger <strong>very</strong> different consequences — confusing them causes real outages:</p>
+
+<table>
+  <tr><th>Probe</th><th>Question</th><th>On failure</th></tr>
+  <tr><td><a href="../reference/core-glossary.html#readiness-probe">Readiness</a></td><td>"Can this pod take traffic <em>right now</em>?"</td><td><strong>Quarantine.</strong> Pod is pulled from the Service's <a href="../reference/core-glossary.html#endpointslice">EndpointSlice</a>. Nothing is restarted. When the probe passes again, it rejoins.</td></tr>
+  <tr><td><a href="../reference/core-glossary.html#liveness-probe">Liveness</a></td><td>"Is this container beyond saving?"</td><td><strong>Restart.</strong> The kubelet kills and restarts the container.</td></tr>
+</table>
+
+<p>Two consequences worth internalizing before the lab:</p>
+
+<ul>
+  <li><strong>Readiness is what closes lesson 0004's gap.</strong> During a rollout, the controller only continues once new pods are <em>Ready</em>. Give your pods a real readiness check, and a version that starts-but-doesn't-work stalls the rollout with old pods still serving — the same containment you saw with the bad image tag, now extended to quiet failures.</li>
+  <li><strong>Liveness must never check dependencies.</strong> A readiness probe may reasonably check "can I reach my database?" — backing out of traffic while a dependency is down is correct. Put that same check in a <em>liveness</em> probe and a ten-minute database outage becomes every one of your pods restart-looping: an external problem converted into a self-inflicted storm <a href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/#liveness-probe">[docs]</a>. Liveness checks the container itself, nothing else.</li>
+</ul>
+
+<p>Mechanically, a probe is one of three checks — <code>httpGet</code> (2xx/3xx passes), <code>tcpSocket</code> (connection passes), <code>exec</code> (exit 0 passes) — run every <code>periodSeconds</code>, acting after <code>failureThreshold</code> consecutive failures <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">[docs]</a>. (There's a third probe type, <a href="../reference/core-glossary.html#startup-probe">startup</a>, for slow-booting apps — know it exists; we won't lab it today.)</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> readiness controls <em>membership</em> (am I in the Service?), liveness controls <em>existence</em> (do I get restarted?) — quarantine vs. defibrillator.
+</div>
+
+<h2>Lab — Quarantine, Stall, Self-Heal (~25 min)</h2>
+
+<p>Against OrbStack, <strong>two terminals</strong>. You'll write one manifest and evolve it through three stages.</p>
+
+<div class="step"><span class="n">1</span>
+<p>Create <code>web.yaml</code> — a Deployment <em>and</em> its Service in one file (the <code>---</code> separates documents; this is how related resources usually travel together):</p>
+<pre><code><span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> web
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> 3
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> web
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> web
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> nginx
+        <span class="k">image:</span> nginx:1.29
+        <span class="k">readinessProbe:</span>
+          <span class="k">httpGet:</span>
+            <span class="k">path:</span> /
+            <span class="k">port:</span> 80
+          <span class="k">periodSeconds:</span> 2
+          <span class="k">failureThreshold:</span> 2
+---
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Service
+<span class="k">metadata:</span>
+  <span class="k">name:</span> web
+<span class="k">spec:</span>
+  <span class="k">selector:</span>
+    <span class="k">app:</span> web
+  <span class="k">ports:</span>
+  - <span class="k">port:</span> 80</code></pre>
+<p>Read it first — you should recognize every line by now. Note the Deployment's <code>selector</code>/<code>template.labels</code> pair (what <code>kubectl create deployment</code> was generating for you all along) and the readiness probe: HTTP GET on <code>/</code>, every 2 seconds, two strikes and you're out. Apply and verify:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl apply -f web.yaml
+kubectl get pods
+kubectl get endpointslices -l kubernetes.io/service-name=web -o wide</code></pre>
+<p class="expect">Expect: three pods <code>1/1 Running</code>, three IPs in the EndpointSlice. The <code>1/1</code> means 1 of 1 containers <em>Ready</em> — that column is the readiness probe talking.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>In <strong>terminal 2</strong>, keep watch for the whole lab:</p>
+<pre><code>kubectl get pods -w</code></pre>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Quarantine.</strong> Quietly break one pod — make nginx unable to serve <code>/</code> without touching the process (pick any pod name):</p>
+<pre><code>kubectl exec &lt;pod-name&gt; -- mv /usr/share/nginx/html/index.html /tmp/</code></pre>
+<p class="expect">Within ~4 seconds, terminal 2 shows that pod drop to <code>0/1</code> — Running, but not Ready. Now check the damage and the containment:</p>
+<pre><code>kubectl get endpointslices -l kubernetes.io/service-name=web -o wide
+kubectl describe pod &lt;pod-name&gt;   <span class="c"># events: "Readiness probe failed: ... 403"</span></code></pre>
+<p class="expect">Expect: the EndpointSlice marks that pod's IP not-ready — traffic flows only to the two healthy pods. <code>RESTARTS</code> is still 0: readiness <em>quarantines</em>, it never restarts. The process is fine; it's just benched. Now heal it:</p>
+<pre><code>kubectl exec &lt;pod-name&gt; -- mv /tmp/index.html /usr/share/nginx/html/</code></pre>
+<p class="expect">Back to <code>1/1</code> within seconds, IP back in rotation. Quarantine, release.</p>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>The quiet failure that 0004 couldn't catch.</strong> Ship a version that starts cleanly but serves nothing. In <code>web.yaml</code>, add a <code>command</code> to the container that replaces nginx with an idle process:</p>
+<pre><code>      <span class="k">containers:</span>
+      - <span class="k">name:</span> nginx
+        <span class="k">image:</span> nginx:1.29
+        <span class="k">command:</span> ["sleep", "infinity"]   <span class="c"># &lt;-- add this line</span>
+        <span class="k">readinessProbe:</span> ...</code></pre>
+<pre><code>kubectl apply -f web.yaml
+kubectl rollout status deployment/web   <span class="c"># let it hang a moment, then Ctrl-C</span></code></pre>
+<p class="expect">Terminal 2: one new pod appears, <code>Running</code>… and stays <code>0/1</code> forever. The container is alive (sleep runs fine — a loud check would pass!) but nothing listens on port 80, so readiness never passes, so the rollout <strong>stalls with all three old pods still serving</strong>. Confirm with <code>kubectl get replicasets</code>: new RS stuck at 1 not-ready pod, old RS still at 3. This is the lesson-0004 caveat, closed. Roll it back and remove the <code>command</code> line from <code>web.yaml</code>:</p>
+<pre><code>kubectl rollout undo deployment/web</code></pre>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Self-healing.</strong> Now add a liveness probe — note it gets a higher threshold than readiness, so quarantine happens before the defibrillator comes out:</p>
+<pre><code>        <span class="k">readinessProbe:</span>
+          <span class="k">httpGet:</span> { <span class="k">path:</span> /, <span class="k">port:</span> 80 }
+          <span class="k">periodSeconds:</span> 2
+          <span class="k">failureThreshold:</span> 2
+        <span class="k">livenessProbe:</span>            <span class="c"># &lt;-- add this block</span>
+          <span class="k">httpGet:</span> { <span class="k">path:</span> /, <span class="k">port:</span> 80 }
+          <span class="k">periodSeconds:</span> 2
+          <span class="k">failureThreshold:</span> 5</code></pre>
+<pre><code>kubectl apply -f web.yaml   <span class="c"># a rollout, of course — watch terminal 2</span></code></pre>
+<p>Once all pods are <code>1/1</code> again, break one the same way as before:</p>
+<pre><code>kubectl exec &lt;pod-name&gt; -- mv /usr/share/nginx/html/index.html /tmp/</code></pre>
+<p class="expect">Watch terminal 2 closely. The sequence: <code>0/1</code> (readiness quarantines it first) … ~10 seconds later, <code>RESTARTS</code> ticks to 1 (liveness gave up and restarted the container) … then back to <code>1/1</code> — because the fresh container has its <code>index.html</code> back. <strong>The pod broke, got benched, got restarted, and rejoined — zero humans involved.</strong> Verify with <code>kubectl describe pod</code>: events show the readiness failures, the liveness failures, then the kill and re-pull.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p>Clean up:</p>
+<pre><code>kubectl delete -f web.yaml</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Why this self-heal worked — and when it wouldn't:</strong> restarting fixed the problem because the damage was inside the container's filesystem, which a restart resets. A liveness restart fixes wedged processes, deadlocks, leaked memory. It does <em>not</em> fix bad config, bad code, or a down database — that's why liveness must only test the container itself, and why it gets a generous <code>failureThreshold</code>. When in doubt, readiness only.
+</div>
+
+<h2>Quiz — Harder This Time</h2>
+<p>Four perfect scores means the training wheels come off: these are scenarios, and the wrong answers are things people actually do.</p>
+
+<div class="q" data-correct="0">
+  <p class="stem">1. A pod's readiness probe starts failing while its liveness probe keeps passing. What does the system do?</p>
+  <button class="opt">Removes it from Service endpoints, no restart</button>
+  <button class="opt">Restarts the container after the failure threshold</button>
+  <button class="opt">Deletes the pod and schedules a replacement</button>
+  <button class="opt">Marks the node unhealthy and drains it</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">2. Your API's liveness probe checks its database connection. The database goes down for ten minutes. What happens to your API pods?</p>
+  <button class="opt">The scheduler moves API pods to other nodes</button>
+  <button class="opt">API pods leave endpoints until the database returns</button>
+  <button class="opt">Every API container gets restarted, again and again</button>
+  <button class="opt">Nothing happens; liveness probes ignore external dependency failures</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">3. You ship a version that starts cleanly but serves only errors on its readiness path. What's the result?</p>
+  <button class="opt">The rollout reverses itself back to last revision</button>
+  <button class="opt">The rollout stalls; old pods keep serving traffic</button>
+  <button class="opt">The rollout completes; users start to see errors</button>
+  <button class="opt">The new pods restart until the path appears</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. Your app needs two minutes of warm-up before it can serve anything. Cleanest way to handle that?</p>
+  <button class="opt">A liveness probe with tight timing</button>
+  <button class="opt">A readiness probe checking the database</button>
+  <button class="opt">A longer terminationGracePeriodSeconds on the pod</button>
+  <button class="opt">A startup probe gating other probes</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. <code>kubectl get pods</code> shows <code>1/1 Running</code> but RESTARTS climbs every few minutes. Which probe is acting, and what's your first diagnostic move?</p>
+  <button class="opt">Liveness; describe the pod and read events</button>
+  <button class="opt">Readiness; check the EndpointSlice for the service</button>
+  <button class="opt">Startup; increase initialDelaySeconds on the deployment spec</button>
+  <button class="opt">Liveness; restart the kubelet on that node</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>The official concept page is excellent and recent: <a href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/">Liveness, Readiness, and Startup Probes — kubernetes.io</a>. For the full configuration syntax: <a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">the companion task page</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"What should a real /healthz endpoint actually check?"</em> · <em>"How do probes interact with terminating pods during a rollout?"</em> · <em>"What timing values are sane defaults in production?"</em> Report your quiz score — it steers lesson 0006.</p>
+  <p>Previous: <a href="0004-rollouts-changing-things-without-downtime.html">Lesson 0004 — Rollouts</a> · Reference: <a href="../reference/core-glossary.html#readiness-probe">Core Glossary — Health &amp; Probes</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

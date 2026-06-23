@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bad-data
+  namespace: storage-lab
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: typo-path
+  resources:
+    requests:
+      storage: 64Mi

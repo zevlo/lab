@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 — Rollouts: Changing Things Without Downtime</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0004 · Kubernetes Fundamentals</p>
+  <h1>Rollouts: Changing Things Without Downtime</h1>
+  <p class="subtitle">The control loop, applied to change itself.</p>
+</header>
+
+<p class="mission">Everything so far kept a <em>steady</em> desired state running. But the most dangerous moment in operations isn't steady state — it's <strong>the deploy</strong>. At work, this lesson is the difference between "we shipped at 2pm" and "we were down at 2pm." In the homelab, it's how you upgrade a service without your apps going dark. The good news: you already know the mechanism. A rollout is just the control loop chasing a <em>moving</em> target.</p>
+
+<h2>The Idea</h2>
+
+<p>Recall from <a href="0001-desired-state-and-the-control-loop.html">lesson 0001</a>: a Deployment doesn't manage pods directly — it manages a <strong><a href="../reference/core-glossary.html#replicaset">ReplicaSet</a></strong>, which manages pods. That extra layer looked like bureaucracy. Rollouts are why it exists.</p>
+
+<p>When you change a Deployment's <em>pod template</em> (the image, an env var — anything inside <code>spec.template</code>), the Deployment controller doesn't touch the existing pods. It creates a <strong>second ReplicaSet</strong> for the new template and starts shifting replicas: new RS 0→1→2→3, old RS 3→2→1→0 <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment">[docs]</a>. Your Service, selecting by label, sends traffic to whichever pods are Ready — old and new alike — so there's never a gap.</p>
+
+<p>The default strategy, <strong><a href="../reference/core-glossary.html#rolling-update">RollingUpdate</a></strong>, has two knobs that bound the shuffle <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment">[docs]</a>:</p>
+
+<ul>
+  <li><code>maxSurge</code> — how many pods <em>above</em> the desired count may exist during the update (default 25%)</li>
+  <li><code>maxUnavailable</code> — how many may be <em>missing</em> (default 25%)</li>
+</ul>
+
+<p>And because the old ReplicaSet isn't deleted — just scaled to zero — it becomes a <strong><a href="../reference/core-glossary.html#revision">revision</a></strong>: a checkpoint. <code>kubectl rollout undo</code> isn't magic; it scales the old ReplicaSet back up and the new one down. Same machinery, run in reverse <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-back-a-deployment">[docs]</a>.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> a rollout is two ReplicaSets and a controller sliding replicas from one to the other — and a rollback is the same slide, backwards.
+</div>
+
+<h2>Lab — Ship It, Break It, Roll It Back (~20 min)</h2>
+
+<p>Against OrbStack, <strong>two terminals</strong>.</p>
+
+<div class="step"><span class="n">1</span>
+<p>Start with a known-good deployment, and note the ReplicaSet behind it:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl create deployment web --image=nginx:1.27 --replicas=3
+kubectl get replicasets</code></pre>
+<p class="expect">Expect: one ReplicaSet, <code>web-&lt;hash&gt;</code>, with 3/3 ready. The hash is computed from the pod template — remember that.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>In <strong>terminal 2</strong>, watch ReplicaSets — this is the best seat in the house for a rollout:</p>
+<pre><code>kubectl get replicasets -w</code></pre>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p>In <strong>terminal 1</strong>, ship a new version — change the image:</p>
+<pre><code>kubectl set image deployment/web nginx=nginx:1.29
+kubectl rollout status deployment/web</code></pre>
+<p class="expect">Watch terminal 2: a <em>second</em> ReplicaSet appears (different hash — different template), and the counts slide: new one climbs to 3, old one drains to 0. <code>rollout status</code> narrates the same story. Note the old ReplicaSet is still listed — at 0. That's your checkpoint.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p>Look at the paper trail:</p>
+<pre><code>kubectl rollout history deployment/web
+kubectl get replicasets</code></pre>
+<p class="expect">Expect: two revisions in the history, two ReplicaSets — one at 3, one at 0. Each revision <em>is</em> a ReplicaSet.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Diagnose and fix.</strong> Now ship a bad deploy — a typo'd image tag that doesn't exist:</p>
+<pre><code>kubectl set image deployment/web nginx=nginx:1.29-tpyo
+kubectl rollout status deployment/web</code></pre>
+<p class="expect"><code>rollout status</code> hangs — the rollout is stuck. Ctrl-C it. Before reading on, diagnose it yourself; you know the tools (<code>get pods</code>, <code>describe</code>). Then compare with:</p>
+<pre><code>kubectl get pods
+kubectl describe pod &lt;the-broken-pod&gt;   <span class="c"># read the Events at the bottom</span></code></pre>
+<p class="expect">Expect: one new pod stuck in <code>ErrImagePull</code> / <a href="../reference/core-glossary.html#imagepullbackoff"><code>ImagePullBackOff</code></a>, and Events saying the image can't be pulled. Now the important part — check what the rollout did to your <em>working</em> pods:</p>
+<pre><code>kubectl get pods   <span class="c"># count the Running ones</span></code></pre>
+<p class="expect">Three old pods are still Running and serving. The rollout halted with the bad version contained, because <code>maxUnavailable</code> wouldn't let the controller tear down healthy pods before replacements were Ready. <strong>A failed deploy did not become an outage.</strong> This is the rolling-update guarantee, seen from the wreckage.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p>Roll it back — and watch terminal 2 while you do:</p>
+<pre><code>kubectl rollout undo deployment/web
+kubectl rollout status deployment/web
+kubectl rollout history deployment/web</code></pre>
+<p class="expect">Expect: the stuck ReplicaSet drains to 0, the previous one is already at 3 — instant recovery, because the good pods never left. The history shows the rolled-back revision moved to the top with a new number. Nothing was deleted; replicas just slid back.</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+<p>Clean up:</p>
+<pre><code>kubectl delete deployment web</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Caveat for real life:</strong> the containment in step 5 worked because the failure was loud (image won't even pull). A new version that <em>starts</em> but is broken will happily receive traffic — guarding against that requires readiness probes, a future lesson. Don't leave today thinking rollouts catch every bad deploy.
+</div>
+
+<h2>Quiz — No Peeking</h2>
+<p>From memory, as always.</p>
+
+<div class="q" data-correct="1">
+  <p class="stem">1. What does the Deployment controller create when you change the pod template?</p>
+  <button class="opt">A patched copy of each running pod</button>
+  <button class="opt">A new ReplicaSet alongside the old one</button>
+  <button class="opt">A snapshot of etcd for safe rollback</button>
+  <button class="opt">A staging namespace for the new version</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">2. During a RollingUpdate, what does <code>maxUnavailable</code> bound?</p>
+  <button class="opt">How many nodes may update at once</button>
+  <button class="opt">How many extra pods may be created</button>
+  <button class="opt">How many pods may be missing simultaneously</button>
+  <button class="opt">How many revisions the history may keep</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. What is a rollout "revision", mechanically?</p>
+  <button class="opt">An old ReplicaSet kept at zero replicas</button>
+  <button class="opt">A YAML backup stored inside the deployment</button>
+  <button class="opt">A git commit recorded by the controller</button>
+  <button class="opt">An etcd snapshot taken before each update</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. You ship an image tag that doesn't exist. What happens to the running pods?</p>
+  <button class="opt">They restart repeatedly until the image appears</button>
+  <button class="opt">They are terminated as the rollout proceeds</button>
+  <button class="opt">They serve traffic but report a warning</button>
+  <button class="opt">They keep running while the rollout stalls</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. A pod shows <code>ImagePullBackOff</code>. Best first move?</p>
+  <button class="opt">Delete the pod so it gets recreated</button>
+  <button class="opt">Describe the pod and read its events</button>
+  <button class="opt">Restart the kubelet on that worker node</button>
+  <button class="opt">Check the API server logs for errors</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>The canonical treatment is the official <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Deployments</a> concept page — specifically the sections on <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment">updating</a> and <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-back-a-deployment">rolling back</a>. It's long; those two sections are the heart.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"What are readiness probes and how do they catch the quiet failures?"</em> · <em>"How do I pause a rollout halfway to canary it?"</em> · <em>"Why did the rollback create a new revision number?"</em> Report your quiz score — it steers lesson 0005.</p>
+  <p>Previous: <a href="0003-ingress-one-door-many-services.html">Lesson 0003 — Ingress: One Door, Many Services</a> · Reference: <a href="../reference/core-glossary.html#rollout">Core Glossary — Rollouts</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

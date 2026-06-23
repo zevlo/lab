@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ingress TLS — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ingress TLS</h1>
+  <p class="subtitle">Quick reference — certificates, Secrets, and HTTPS at the door.</p>
+</header>
+
+<h2>Where TLS terminates</h2>
+<table>
+  <tr><th>Hop</th><th>Encrypted?</th></tr>
+  <tr><td>Client → Ingress controller (Traefik)</td><td><strong>Yes</strong> — TLS terminated here</td></tr>
+  <tr><td>Ingress controller → Service → Pod</td><td><strong>No</strong> — plaintext inside cluster (by default)</td></tr>
+</table>
+
+<h2>TLS Secret</h2>
+<pre><code>kubectl create secret tls my-tls \
+  --cert=tls.crt --key=tls.key -n homelab</code></pre>
+<p>Type <code>kubernetes.io/tls</code>. Required data keys: <code>tls.crt</code>, <code>tls.key</code>. Must live in the <strong>same namespace</strong> as the Ingress.</p>
+
+<h2>Ingress TLS block</h2>
+<pre><code>spec:
+  tls:
+  - hosts:
+    - hello.k8s.orb.local
+    secretName: hello-tls
+  rules:
+  - host: hello.k8s.orb.local
+    http:
+      paths: ...</code></pre>
+<p><code>tls.hosts</code> must match <code>rules.host</code> — SNI selects the certificate by hostname.</p>
+
+<h2>Local homelab cert (self-signed)</h2>
+<pre><code>openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout tls.key -out tls.crt \
+  -subj "/CN=hello.k8s.orb.local" \
+  -addext "subjectAltName=DNS:hello.k8s.orb.local"</code></pre>
+<p>Browsers and <code>curl</code> warn until you trust the CA or use <code>curl -k</code>. Production: <strong>cert-manager</strong> + Let's Encrypt (or your CA).</p>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>Certificate verify failed</td><td>Self-signed or wrong CA</td><td><code>curl -vk https://…</code> — expected locally with <code>-k</code></td></tr>
+  <tr><td>Wrong cert / handshake error</td><td><code>secretName</code> typo or Secret in wrong namespace</td><td><code>kubectl get secret -n &lt;ns&gt;</code>, <code>describe ingress</code></td></tr>
+  <tr><td>HTTPS broken, HTTP still works</td><td>TLS config only; routing rule still valid on :80</td><td>Compare <code>spec.tls</code> vs <code>spec.rules</code></td></tr>
+  <tr><td>Hostname mismatch warning</td><td>Cert CN/SAN doesn't match <code>Host</code> header</td><td>Re-issue cert with correct DNS name</td></tr>
+</table>
+
+<footer>
+  Introduced in <a href="../lessons/0008-tls-on-ingress.html">Lesson 0008</a> · See also <a href="core-glossary.html#ingress">Ingress</a>, <a href="core-glossary.html#secret">Secret</a>
+</footer>
+</body>
+</html>

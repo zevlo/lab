@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0010 — Manifest Authoring: Scaffold, Strip, Apply</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0010 · Kubernetes Fundamentals</p>
+  <h1>Manifest Authoring: Scaffold, Strip, Apply</h1>
+  <p class="subtitle">How engineers actually produce the YAML they commit.</p>
+</header>
+
+<p class="mission">Nine lessons in, you've written plenty of YAML by hand. At work you'll mostly <em>edit</em> manifests someone else wrote. Starting a homelab service from scratch, the usual move is different: <strong>scaffold with kubectl, edit the spec, validate, apply</strong> — the same <a href="../reference/core-glossary.html#declarative">declarative</a> control loop from <a href="0001-desired-state-and-the-control-loop.html">lesson 0001</a>, with a repeatable pipeline in front of it. This lesson makes that pipeline muscle memory.</p>
+
+<h2>The Idea</h2>
+
+<p>Three sources, in order of how often they appear in production <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/object-management/">[docs]</a>:</p>
+
+<table>
+  <tr><th>Source</th><th>Typical use</th></tr>
+  <tr><td><strong>Copy / edit</strong></td><td>Default at work — fork a sibling service, tweak image, probes, resources</td></tr>
+  <tr><td><strong><code>--dry-run=client -o yaml</code></strong></td><td>Scaffold a kind you rarely write; greenfield homelab services</td></tr>
+  <tr><td><strong>Memory</strong></td><td>Small edits to patterns you know — Deployment skeleton, where probes live — not every field</td></tr>
+</table>
+
+<p>The homelab pipeline (what you'll lab today):</p>
+
+<pre><code><span class="c"># 1. Scaffold structure (client-side — no cluster write)</span>
+kubectl create deployment api --image=nginx:1.29 --replicas=2 \
+  --dry-run=client -o yaml &gt; deploy.yaml
+
+<span class="c"># 2. Edit spec by hand — probes, resources, labels</span>
+
+<span class="c"># 3. Validate before committing / applying</span>
+kubectl apply --dry-run=server -f app.yaml
+kubectl diff -f app.yaml
+
+<span class="c"># 4. Declare desired state</span>
+kubectl apply -f app.yaml</code></pre>
+
+<p>Two dry-run modes — confusing names, different jobs:</p>
+
+<table>
+  <tr><th>Mode</th><th>Where it runs</th><th>Purpose</th></tr>
+  <tr><td><code>--dry-run=client</code></td><td>Your machine</td><td>Generate YAML; no API call</td></tr>
+  <tr><td><code>--dry-run=server</code></td><td>API server</td><td>Validate schema + admission; still no persist</td></tr>
+</table>
+
+<p>If you export live objects (<code>kubectl get deploy api -o yaml</code>), you get <strong>server cruft</strong> — <code>status</code>, <code>resourceVersion</code>, <code>managedFields</code>. Strip those before git; you write <code>spec</code>, the system writes <code>status</code> <a href="../reference/core-glossary.html#spec-status">[glossary]</a>. Client dry-run output is usually clean already.</p>
+
+<p><code>kubectl diff</code> shows the gap between your file and the cluster — a preview of what <code>apply</code> would change <a href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_diff/">[docs]</a>. Critical habit: <strong>apply succeeding does not mean the app works</strong> — a typo in a Service selector is valid YAML and a successful apply, but endpoints stay empty (lesson <a href="0002-services-and-the-networking-model.html">0002</a> bites again).</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> dry-run scaffolds shape; you own the spec; server dry-run + diff gate the apply; describe/get diagnose when behavior surprises you.
+</div>
+
+<p>Later at scale: <strong>Helm</strong> and <strong>Kustomize</strong> generate the same YAML with less copy-paste — see <a href="0013-kustomize-base-and-overlays.html">lesson 0013</a> (Kustomize) and <a href="0014-helm-charts-and-releases.html">lesson 0014</a> (Helm); same apply at the end.</p>
+
+<h2>Lab — From Zero to app.yaml (~25 min)</h2>
+
+<p>OrbStack, namespace <code>homelab</code>. You'll build one committed manifest the way an engineer would — not typed from a blank editor.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl create namespace homelab --dry-run=client -o yaml | kubectl apply -f -
+kubectl config set-context --current --namespace=homelab</code></pre>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Scaffold.</strong> Generate Deployment and Service skeletons — nothing hits the cluster yet:</p>
+<pre><code>kubectl create deployment api --image=nginx:1.29 --replicas=2 \
+  --dry-run=client -o yaml &gt; deploy.yaml
+
+kubectl create service clusterip api --tcp=80:80 \
+  --dry-run=client -o yaml &gt; svc.yaml
+
+cat deploy.yaml svc.yaml</code></pre>
+<p><code>kubectl expose deployment</code> looks up the Deployment in the cluster — it fails if you haven't applied yet, even with <code>--dry-run=client</code>. <code>create service clusterip</code> scaffolds locally; kubectl sets <code>selector: app: api</code> to match the Deployment above.</p>
+<p class="expect">Expect: valid <code>apiVersion</code>, <code>kind</code>, <code>spec</code> blocks. Client dry-run may include an empty <code>status:</code> on the Service — drop it when merging. Pod labels (<code>app: api</code>) should match the Service selector.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Edit.</strong> Merge into <code>app.yaml</code> (one file, two documents, <code>---</code> separator — same pattern as <a href="0005-probes-catching-the-quiet-failures.html">lesson 0005</a>). Under the container, add a readiness probe and resources from lessons <a href="0005-probes-catching-the-quiet-failures.html">0005</a> and <a href="0009-resource-requests-and-limits.html">0009</a>:</p>
+<pre><code><span class="k">readinessProbe:</span>
+  <span class="k">httpGet:</span>
+    <span class="k">path:</span> /
+    <span class="k">port:</span> 80
+  <span class="k">periodSeconds:</span> 2
+<span class="k">resources:</span>
+  <span class="k">requests:</span>
+    <span class="k">cpu:</span> <span class="c">"100m"</span>
+    <span class="k">memory:</span> <span class="c">"128Mi"</span>
+  <span class="k">limits:</span>
+    <span class="k">cpu:</span> <span class="c">"500m"</span>
+    <span class="k">memory:</span> <span class="c">"256Mi"</span></code></pre>
+<p>Delete the scratch <code>deploy.yaml</code> and <code>svc.yaml</code> once merged. This edit step is what dry-run <em>cannot</em> do for you.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Validate, then apply.</strong></p>
+<pre><code>kubectl apply --dry-run=server -f app.yaml
+kubectl diff -f app.yaml
+kubectl apply -f app.yaml
+kubectl rollout status deployment/api
+kubectl get pods,endpoints</code></pre>
+<p class="expect">Expect: server dry-run prints object names, no error. First <code>diff</code> shows all resources as new (nothing live yet). After apply: pods <code>Running</code>/<code>Ready</code>; <code>endpoints/api</code> lists pod IPs.</p>
+<pre><code>kubectl port-forward svc/api 8080:80   <span class="c"># terminal 2</span>
+curl -s localhost:8080 | head -n 1</code></pre>
+<p class="expect">Expect: nginx HTML.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p><strong>See what not to commit.</strong> Export the live Deployment — notice server-owned fields:</p>
+<pre><code>kubectl get deployment api -o yaml | grep -E '^(  )?(status|resourceVersion|managedFields|uid):'</code></pre>
+<p class="expect">Expect: lines for <code>status:</code>, <code>resourceVersion:</code>, etc. Your <code>app.yaml</code> should have none of these. If you ever "copy from cluster," strip them first.</p>
+</div>
+
+<div class="step broken"><span class="n">6</span>
+<p><strong>Break it.</strong> In <code>app.yaml</code>, typo the Service selector — change <code>app: api</code> to <code>app: apii</code> under <code>spec.selector</code> only (leave Deployment pod labels as <code>app: api</code>). Apply:</p>
+<pre><code>kubectl apply -f app.yaml
+kubectl get endpoints api
+kubectl port-forward svc/api 8081:80
+curl -s --connect-timeout 2 localhost:8081 | head -n 1</code></pre>
+<p class="expect">Expect: <code>apply</code> reports <code>service/api configured</code> — <strong>no error</strong>. But <code>endpoints/api</code> shows <code>&lt;none&gt;</code> or empty addresses. Port-forward may hang or connection refused — no backends. Valid manifest, broken wiring. Diagnose:</p>
+<pre><code>kubectl describe service api | grep -A3 Selector
+kubectl get pods --show-labels</code></pre>
+<p class="expect">Expect: selector <code>app=apii</code>, pod labels <code>app=api</code> — mismatch.</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+<p><strong>Fix it.</strong> Restore selector <code>app: api</code>. Use diff before re-applying:</p>
+<pre><code>kubectl diff -f app.yaml
+kubectl apply -f app.yaml
+kubectl get endpoints api
+curl -s localhost:8081 | head -n 1</code></pre>
+<p>Clean up:</p>
+<pre><code>kubectl delete -f app.yaml
+kubectl delete namespace homelab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Two different "dry-run" lessons:</strong> step 2 generates YAML locally. step 4 validates against the server. step 6 proves apply success ≠ working service — watch endpoints, not just apply output.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="0">
+  <p class="stem">1. Greenfield Deployment YAML on your homelab. Best bootstrap?</p>
+  <button class="opt">kubectl create deployment using dry-run client output yaml</button>
+  <button class="opt">kubectl apply deployment using dry-run client output yaml</button>
+  <button class="opt">kubectl get deployment using dry-run client output yaml</button>
+  <button class="opt">kubectl delete deployment using dry-run client output yaml</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. Exporting <code>kubectl get deploy -o yaml</code>. Strip before git commit?</p>
+  <button class="opt">status resourceVersion uid and all managedFields fields</button>
+  <button class="opt">spec template labels and all managedFields fields</button>
+  <button class="opt">metadata name namespace and managedFields fields</button>
+  <button class="opt">apiVersion kind metadata and managedFields fields</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. <code>kubectl apply --dry-run=server</code> does what?</p>
+  <button class="opt">apiserver admission check with no persisted cluster changes</button>
+  <button class="opt">local kubeconfig check with no persisted cluster changes</button>
+  <button class="opt">etcd database check with no persisted cluster changes</button>
+  <button class="opt">docker daemon check with no persisted cluster changes</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">4. Service selector typo; pod labels correct. After apply?</p>
+  <button class="opt">apply succeeds yet endpoints stay empty curl fails</button>
+  <button class="opt">apply rejected yet endpoints stay empty curl fails</button>
+  <button class="opt">apply succeeds yet endpoints stay full curl works</button>
+  <button class="opt">apply rejected yet endpoints stay full curl works</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. <code>kubectl diff -f app.yaml</code> shows what?</p>
+  <button class="opt">difference between manifest file and live cluster state</button>
+  <button class="opt">difference between docker image tags and live cluster state</button>
+  <button class="opt">difference between pod log output and live cluster state</button>
+  <button class="opt">difference between helm values file and live cluster state</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Canonical workflow overview: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/object-management/">Object Management using kubectl — kubernetes.io</a>. Dry-run details: <a href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_apply/">kubectl apply</a> · Diff: <a href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_diff/">kubectl diff</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"When should I use Kustomize vs Helm?"</em> · <em>"What is server-side apply?"</em> · <em>"Can diff show changes for a single field?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0009-resource-requests-and-limits.html">Lesson 0009 — Resources</a> · <a href="0001-desired-state-and-the-control-loop.html">Lesson 0001 — Control loop</a> · Reference: <a href="../reference/manifest-authoring.html">Manifest authoring</a> · <a href="../reference/core-glossary.html#dry-run">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

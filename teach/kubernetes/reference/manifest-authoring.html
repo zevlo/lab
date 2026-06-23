@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manifest Authoring — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Manifest Authoring</h1>
+  <p class="subtitle">Quick reference — scaffold, strip, validate, apply.</p>
+</header>
+
+<h2>Where YAML comes from</h2>
+<table>
+  <tr><th>Source</th><th>When</th></tr>
+  <tr><td><strong>Copy/edit</strong> existing repo manifest</td><td>Default at work — sibling service, chart, kustomize base</td></tr>
+  <tr><td><strong><code>--dry-run=client -o yaml</code></strong></td><td>Scaffold a kind you rarely write; homelab greenfield</td></tr>
+  <tr><td><strong>Memory</strong></td><td>Small edits to patterns you already know — not whole files</td></tr>
+</table>
+
+<h2>Scaffold commands</h2>
+<pre><code>kubectl create deployment api --image=nginx:1.29 --replicas=2 \
+  --dry-run=client -o yaml &gt; deployment.yaml
+
+kubectl create service clusterip api --tcp=80:80 \
+  --dry-run=client -o yaml &gt; service.yaml</code></pre>
+<p>Use <code>create service clusterip</code>, not <code>expose deployment</code> — expose requires the Deployment to already exist in the cluster.</p>
+<p>Merge related objects in one file with <code>---</code> between documents. Drop empty <code>status:</code> from client dry-run Service output. Add probes, resources, env — dry-run won't include those.</p>
+
+<h2>Strip before git commit</h2>
+<p>Never commit output from <code>kubectl get … -o yaml</code> blindly. Delete server-owned fields:</p>
+<table>
+  <tr><th>Remove</th><th>Why</th></tr>
+  <tr><td><code>status:</code> (entire block)</td><td>System-written; <a href="core-glossary.html#spec-status">spec/status split</a></td></tr>
+  <tr><td><code>resourceVersion</code>, <code>uid</code>, <code>generation</code></td><td>Identity/version metadata from the API</td></tr>
+  <tr><td><code>creationTimestamp</code></td><td>Set by server on create</td></tr>
+  <tr><td><code>managedFields</code></td><td>Server-side apply bookkeeping</td></tr>
+</table>
+<p>Client dry-run output is usually already clean. Cluster export is not.</p>
+
+<h2>Validate before apply</h2>
+<pre><code>kubectl apply --dry-run=server -f app.yaml   # admission + schema; no write
+kubectl diff -f app.yaml                     # file vs live cluster
+kubectl apply -f app.yaml                    # declarative desired state</code></pre>
+<table>
+  <tr><th>Flag</th><th>Runs where</th><th>Persists?</th></tr>
+  <tr><td><code>--dry-run=client</code></td><td>Local kubectl</td><td>No — generates YAML only</td></tr>
+  <tr><td><code>--dry-run=server</code></td><td>API server</td><td>No — validates against admission</td></tr>
+  <tr><td><code>kubectl diff</code></td><td>API server compare</td><td>No — shows unified diff</td></tr>
+</table>
+
+<h2>Apply succeeded but app broken?</h2>
+<p>Valid YAML + successful apply ≠ working app. Check relationships in the file:</p>
+<table>
+  <tr><th>Symptom</th><th>Likely manifest bug</th><th>Check</th></tr>
+  <tr><td>Service unreachable</td><td>Selector ≠ pod labels</td><td><code>kubectl get endpoints</code>, <code>describe svc</code></td></tr>
+  <tr><td>Rollout stuck</td><td>Probe too strict / bad targetPort</td><td><code>kubectl describe pod</code>, <code>rollout status</code></td></tr>
+  <tr><td>Pending pod</td><td>Resource requests too large</td><td><code>describe pod</code> Events</td></tr>
+</table>
+
+<h2>Next layer (not raw YAML)</h2>
+<p><strong><a href="helm.html">Helm</a></strong> — charts + <code>values.yaml</code> (<a href="../lessons/0014-helm-charts-and-releases.html">lesson 0014</a>). <strong><a href="kustomize.html">Kustomize</a></strong> — base + overlays per env (<a href="../lessons/0013-kustomize-base-and-overlays.html">lesson 0013</a>). Both emit YAML you still <code>apply</code> (or they apply for you). Same control loop; less copy-paste.</p>
+
+<div class="note">
+  <strong>Rule of thumb:</strong> scaffold with dry-run → edit <code>spec</code> → server dry-run + diff → apply → diagnose with describe/get/endpoints if behavior surprises you.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0010-manifest-authoring-workflow.html">0010 — Manifest Authoring Workflow</a> · Canonical: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/object-management/">Object Management</a>
+</footer>
+</body>
+</html>

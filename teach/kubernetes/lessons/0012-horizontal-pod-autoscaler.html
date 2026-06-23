@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0012 — Horizontal Pod Autoscaler: Scale on Signals</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0012 · Kubernetes Fundamentals</p>
+  <h1>Horizontal Pod Autoscaler: Scale on Signals</h1>
+  <p class="subtitle">Let a controller chase load — but only if metrics and requests are wired.</p>
+</header>
+
+<p class="mission">Lesson <a href="0004-rollouts-changing-things-without-downtime.html">0004</a> taught you to change replica counts through a <a href="../reference/core-glossary.html#deployment">Deployment</a>. Lesson <a href="0009-resource-requests-and-limits.html">0009</a> taught <a href="../reference/core-glossary.html#resource-request">CPU requests</a> as scheduling promises. The <strong>Horizontal Pod Autoscaler</strong> (HPA) connects both: a control loop that reads utilization metrics and patches <code>spec.replicas</code> on your workload. At work, this is how a service survives a traffic spike without someone watching Grafana at 3am. In the homelab, it is how a hobby app scales up for a demo and back down so your single OrbStack node breathes again.</p>
+
+<h2>The Idea</h2>
+
+<p>HPA is another <a href="../reference/core-glossary.html#controller">controller</a> <a href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/">[docs]</a>. You declare a target (usually a Deployment), a metric (usually CPU utilization), and bounds (<code>minReplicas</code> / <code>maxReplicas</code>). Every ~15 seconds it:</p>
+
+<ol>
+  <li>Asks <strong>metrics-server</strong> for current pod CPU usage</li>
+  <li>Compares usage against each pod's <strong>CPU request</strong> to compute utilization %</li>
+  <li>Calculates a desired replica count and writes it to the Deployment's <code>spec.replicas</code></li>
+</ol>
+
+<p>The Deployment and ReplicaSet machinery from lesson 0004 does the rest — create pods, run rollouts, respect readiness. HPA never talks to pods directly.</p>
+
+<table>
+  <tr><th>Piece</th><th>Role</th></tr>
+  <tr><td><strong>metrics-server</strong></td><td>Cluster add-on you install on OrbStack. Aggregates usage from kubelets; powers <code>kubectl top</code> and HPA resource metrics. Requires kubelet feature gate <code>PodAndContainerStatsFromCRI</code> on OrbStack for <em>pod</em> metrics.</td></tr>
+  <tr><td><strong>CPU request</strong></td><td>The denominator in utilization math. No request → utilization is <code>&lt;unknown&gt;</code> → HPA cannot scale on CPU.</td></tr>
+  <tr><td><strong>HPA</strong></td><td>Owns replica count while it exists. Manual <code>kubectl scale</code> is temporary — HPA reconciles back toward its bounds.</td></tr>
+</table>
+
+<pre><code><span class="k">apiVersion:</span> autoscaling/v2
+<span class="k">kind:</span> HorizontalPodAutoscaler
+<span class="k">metadata:</span>
+  <span class="k">name:</span> php-apache
+<span class="k">spec:</span>
+  <span class="k">scaleTargetRef:</span>
+    <span class="k">apiVersion:</span> apps/v1
+    <span class="k">kind:</span> Deployment
+    <span class="k">name:</span> php-apache
+  <span class="k">minReplicas:</span> <span class="c">1</span>
+  <span class="k">maxReplicas:</span> <span class="c">5</span>
+  <span class="k">metrics:</span>
+  - <span class="k">type:</span> Resource
+    <span class="k">resource:</span>
+      <span class="k">name:</span> cpu
+      <span class="k">target:</span>
+        <span class="k">type:</span> Utilization
+        <span class="k">averageUtilization:</span> <span class="c">50</span></code></pre>
+
+<p>Three constraints HPA does <em>not</em> override:</p>
+<ul>
+  <li><strong>Scheduler / node capacity.</strong> HPA can ask for five pods; if requests exceed allocatable CPU on your one homelab node, extras stay <code>Pending</code>.</li>
+  <li><strong><a href="../reference/core-glossary.html#resourcequota">ResourceQuota</a>.</strong> From lesson <a href="0011-limitrange-and-resourcequota.html">0011</a>: HPA may desire more replicas than quota allows — ReplicaSet Events show <code>FailedCreate</code>, not HPA errors.</li>
+  <li><strong><code>maxReplicas</code>.</strong> Load can exceed the target forever; HPA stops at the ceiling.</li>
+</ul>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> HPA adjusts the Deployment's desired replica count from metrics; everything downstream is the same control loop you already know.
+</div>
+
+<p>Scale-down is deliberately slower than scale-up (stabilization windows) so a brief lull does not flap replicas. Expect a few minutes after load stops before counts drop — that is policy, not a broken lab.</p>
+
+<h2>Lab — Load, Scale Up, Break Requests (~30 min)</h2>
+
+<p>OrbStack, namespace <code>hpa-lab</code>. Uses the upstream <code>hpa-example</code> image and a synthetic load generator. Copy manifests from <code>yaml/php-apache.yaml</code> and <code>yaml/load-generator.yaml</code> in this repo, or type them from the steps.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient and wire metrics.</strong> OrbStack does not ship metrics-server — you install it once. HPA and <code>kubectl top</code> both depend on it.</p>
+<pre><code>kubectl config use-context orbstack
+kubectl cluster-info</code></pre>
+<p class="expect">Must show <code>https://127.0.0.1:26443</code> (OrbStack). If you see <code>6443</code> and <code>connection refused</code>, your shell is on the old <code>rancher-desktop</code> context — switch with the command above, or start Rancher Desktop if you intentionally use that cluster.</p>
+<pre><code>kubectl create namespace hpa-lab --dry-run=client -o yaml | kubectl apply -f -
+kubectl config set-context --current --namespace=hpa-lab
+kubectl get apiservice v1beta1.metrics.k8s.io</code></pre>
+<p>If that returns <code>NotFound</code>, install metrics-server:</p>
+<pre><code>helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+helm upgrade --install metrics-server metrics-server/metrics-server \
+  --namespace kube-system --create-namespace
+kubectl rollout status deployment/metrics-server -n kube-system</code></pre>
+<p>No Helm? Use the upstream manifest instead:</p>
+<pre><code>kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl rollout status deployment/metrics-server -n kube-system</code></pre>
+<p><strong>OrbStack kubelet gate.</strong> Pod-level metrics need CRI stats, not cAdvisor. In OrbStack → Settings → Kubernetes → <strong>Kubelet Configuration</strong>, paste exactly:</p>
+<pre><code><span class="k">apiVersion:</span> kubelet.config.k8s.io/v1beta1
+<span class="k">kind:</span> KubeletConfiguration
+<span class="k">featureGates:</span>
+  <span class="k">PodAndContainerStatsFromCRI:</span> <span class="c">true</span></code></pre>
+<p class="expect"><code>PodAndContainerStatsFromCRI</code> must sit under <code>featureGates:</code> — a bare top-level line is ignored. After changing this, restart Kubernetes in OrbStack (Settings → Kubernetes → Restart). OrbStack v2.1.1+ may not need the gate; older versions do.</p>
+<p>Verify the pipeline:</p>
+<pre><code>kubectl get apiservice v1beta1.metrics.k8s.io
+kubectl top nodes
+kubectl top pod -A</code></pre>
+<p class="expect">Expect: APIService <code>Available=True</code>; both <code>top</code> commands print CPU/memory columns (values vary). If <code>top nodes</code> works but <code>top pod</code> fails with NotFound, the feature gate is missing or the cluster was not restarted after editing it.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Deploy the target workload.</strong> Create <code>php-apache.yaml</code> (Deployment + Service) — note the <code>resources.requests.cpu: 200m</code>:</p>
+<pre><code><span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> php-apache
+  <span class="k">labels:</span>
+    <span class="k">app:</span> php-apache
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> <span class="c">1</span>
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> php-apache
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> php-apache
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> php-apache
+        <span class="k">image:</span> registry.k8s.io/hpa-example
+        <span class="k">ports:</span>
+        - <span class="k">containerPort:</span> <span class="c">80</span>
+        <span class="k">resources:</span>
+          <span class="k">requests:</span>
+            <span class="k">cpu:</span> 200m
+<span class="c">---</span>
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Service
+<span class="k">metadata:</span>
+  <span class="k">name:</span> php-apache
+<span class="k">spec:</span>
+  <span class="k">ports:</span>
+  - <span class="k">port:</span> <span class="c">80</span>
+  <span class="k">selector:</span>
+    <span class="k">app:</span> php-apache</code></pre>
+<pre><code>kubectl apply -f php-apache.yaml
+kubectl rollout status deployment/php-apache
+kubectl top pod -l app=php-apache</code></pre>
+<p class="expect">Expect: one Running pod; <code>top</code> shows low CPU at idle (often single-digit millicores).</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Attach HPA.</strong></p>
+<pre><code>kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=5
+kubectl get hpa
+watch -n2 kubectl get hpa,deploy,pods</code></pre>
+<p class="expect">Expect: HPA row shows <code>TARGETS</code> like <code>3%/50%</code> or similar — <em>not</em> <code>&lt;unknown&gt;/50%</code>. <code>REPLICAS</code> 1/1. Press Ctrl+C to leave <code>watch</code>.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Generate load and watch scale-up.</strong> Apply a load generator (hammers the Service by DNS name):</p>
+<pre><code><span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> load-generator
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> <span class="c">3</span>
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> load-generator
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> load-generator
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> busybox
+        <span class="k">image:</span> busybox:1.36
+        <span class="k">command:</span> [<span class="c">"/bin/sh"</span>, <span class="c">"-c"</span>, <span class="c">"while true; do wget -q -O- http://php-apache; done"</span>]</code></pre>
+<pre><code>kubectl apply -f load-generator.yaml
+kubectl get hpa -w</code></pre>
+<p class="expect">Expect: over 1–3 minutes, <code>TARGETS</code> CPU rises above 50%, <code>REPLICAS</code> climbs toward 5 (or stops lower if the node runs out of allocatable CPU — check <code>kubectl describe node</code> if stuck below 5). Press Ctrl+C when replicas have increased at least once.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p><strong>Stop load and watch scale-down.</strong></p>
+<pre><code>kubectl scale deployment load-generator --replicas=0
+kubectl get hpa -w</code></pre>
+<p class="expect">Expect: CPU target drops; replica count falls back toward 1, possibly after several minutes (scale-down stabilization). Do not assume instant shrink.</p>
+</div>
+
+<div class="step broken"><span class="n">6</span>
+<p><strong>Break — remove CPU requests.</strong> Patch the Deployment template so containers have limits but no requests:</p>
+<pre><code>kubectl patch deployment php-apache --type=json -p='[
+  {"op": "replace", "path": "/spec/template/spec/containers/0/resources",
+   "value": {"limits": {"cpu": "500m"}}}
+]'
+kubectl rollout status deployment/php-apache
+kubectl get hpa
+kubectl describe hpa php-apache | tail -20</code></pre>
+<p class="expect">Expect: after new pods roll out, HPA <code>TARGETS</code> shows <code>&lt;unknown&gt;/50%</code>. Replica count stops responding to load — HPA has no denominator for utilization. <code>describe hpa</code> may warn about missing resource metrics. This is the most common production HPA misconfiguration.</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+<p><strong>Fix and clean up.</strong> Restore requests, confirm metrics return, then tear down:</p>
+<pre><code>kubectl patch deployment php-apache --type=json -p='[
+  {"op": "replace", "path": "/spec/template/spec/containers/0/resources",
+   "value": {"requests": {"cpu": "200m"}, "limits": {"cpu": "500m"}}}
+]'
+kubectl rollout status deployment/php-apache
+kubectl get hpa
+kubectl delete -f load-generator.yaml -f php-apache.yaml
+kubectl delete hpa php-apache
+kubectl delete namespace hpa-lab
+kubectl config set-context --current --namespace=default</code></pre>
+<p class="expect">Expect: <code>TARGETS</code> numeric again before delete. Namespace gone.</p>
+</div>
+
+<div class="warn">
+  <strong>Three different "stuck" signals:</strong> <code>&lt;unknown&gt;</code> TARGETS — missing CPU requests or metrics-server down. REPLICAS below DESIRED with Pending pods — node allocatable exhausted. REPLICAS below DESIRED with <code>FailedCreate</code> on ReplicaSet — <a href="0011-limitrange-and-resourcequota.html">ResourceQuota</a> cap. Read the right object.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Deployment pods have no <code>resources.requests.cpu</code>. HPA targets 50% CPU utilization. What does <code>kubectl get hpa</code> show in TARGETS?</p>
+  <button class="opt">0%/50% — usage defaults to zero when requests are omitted</button>
+  <button class="opt">50%/50% — HPA assumes one full core per pod without requests</button>
+  <button class="opt">&lt;unknown&gt;/50% — utilization cannot be computed without requests</button>
+  <button class="opt">Pending/50% — HPA waits for the scheduler to inject requests</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. HPA <code>maxReplicas</code> is 8. Namespace ResourceQuota caps <code>pods</code> at 6 and six are running. Heavy load continues. Result?</p>
+  <button class="opt">HPA desires more replicas but ReplicaSet cannot create past quota — partial scale-out</button>
+  <button class="opt">HPA deletes the quota object automatically to honor maxReplicas</button>
+  <button class="opt">HPA scales existing pods vertically by raising CPU limits on each pod</button>
+  <button class="opt">HPA evicts oldest pods to stay within quota while adding new ones</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">3. You run <code>kubectl scale deployment app --replicas=10</code>. An HPA on the same Deployment has <code>minReplicas=2</code> and <code>maxReplicas=5</code>. A few minutes later?</p>
+  <button class="opt">Deployment stays at ten — manual scale overrides HPA permanently</button>
+  <button class="opt">HPA reconciles replicas back toward five — it owns scale within its bounds</button>
+  <button class="opt">HPA deletes itself when manual scale conflicts with maxReplicas</button>
+  <button class="opt">Deployment stays at ten until load drops below the CPU target</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. metrics-server is down. <code>kubectl top pod</code> fails. HPA on CPU utilization is active. Effect?</p>
+  <button class="opt">HPA reads cgroup usage directly from kubelet and keeps scaling normally</button>
+  <button class="opt">HPA scales to maxReplicas immediately as a safe default</button>
+  <button class="opt">HPA scales to minReplicas immediately and deletes excess pods</button>
+  <button class="opt">HPA cannot read metrics — scaling stalls or TARGETS show unknown</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. HPA scales a Deployment from 2 to 4 replicas during load. A ClusterIP Service selects <code>app=web</code>. How do new pods receive traffic?</p>
+  <button class="opt">HPA registers pod IPs directly on the Service spec endpoints field</button>
+  <button class="opt">New pods match the Service selector; EndpointSlices update when readiness passes</button>
+  <button class="opt">kube-proxy polls HPA and opens NodePorts for each new replica</button>
+  <button class="opt">Traffic stays on the original two pods until the rollout completes fully</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Canonical walkthrough: <a href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/">Horizontal Pod Autoscaler Walkthrough — kubernetes.io</a> · Concepts: <a href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/">Horizontal Pod Autoscaling</a> · Metrics pipeline: <a href="https://github.com/kubernetes-sigs/metrics-server">metrics-server</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"Can HPA scale on memory?"</em> · <em>"What is KEDA vs HPA?"</em> · <em>"How do custom metrics work?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0011-limitrange-and-resourcequota.html">Lesson 0011 — LimitRange &amp; ResourceQuota</a> · <a href="0013-kustomize-base-and-overlays.html">Lesson 0013 — Kustomize</a> · Reference: <a href="../reference/horizontal-pod-autoscaler.html">HPA patterns</a> · <a href="../reference/core-glossary.html#hpa">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

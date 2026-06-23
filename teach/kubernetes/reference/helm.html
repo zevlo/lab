@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helm — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Helm</h1>
+  <p class="subtitle">Quick reference — charts, releases, values, rollback.</p>
+</header>
+
+<h2>What it is</h2>
+<p><a href="core-glossary.html#helm-chart">Helm</a> packages Kubernetes manifests as <strong>charts</strong> (Go templates + default <code>values.yaml</code>), installs them as named <strong>releases</strong>, and tracks <strong>revisions</strong> for upgrade/rollback. Renders to plain YAML, then applies via the Kubernetes API — same control loop as <code>kubectl apply</code>.</p>
+
+<h2>Core terms</h2>
+<table>
+  <tr><th>Term</th><th>Meaning</th></tr>
+  <tr><td>Chart</td><td>Package: <code>Chart.yaml</code>, <code>values.yaml</code>, <code>templates/</code></td></tr>
+  <tr><td>Release</td><td>Named installed instance (<code>helm install my-db ./postgres</code>)</td></tr>
+  <tr><td>Values</td><td>Parameters → <code>{{ .Values.field }}</code> in templates</td></tr>
+  <tr><td>Revision</td><td>Incremented on each install/upgrade/rollback</td></tr>
+  <tr><td>Repository</td><td>Index of published charts (<code>helm repo add</code>)</td></tr>
+</table>
+
+<h2>Chart layout</h2>
+<pre><code>my-chart/
+├── Chart.yaml
+├── values.yaml
+└── templates/
+    ├── deployment.yaml
+    ├── service.yaml
+    └── _helpers.tpl</code></pre>
+
+<h2>Preview vs deploy</h2>
+<pre><code>helm template RELEASE ./chart -n NS --create-namespace   # render only
+helm install RELEASE ./chart -n NS --create-namespace    # deploy
+helm upgrade RELEASE ./chart -n NS -f staging.yaml       # new revision
+helm rollback RELEASE 1 -n NS                            # revert
+helm uninstall RELEASE -n NS</code></pre>
+
+<h2>Third-party charts (add-on pattern)</h2>
+<pre><code>helm repo add NAME URL
+helm repo update
+helm show values REPO/CHART              # read defaults first
+helm upgrade --install RELEASE REPO/CHART \
+  -n NAMESPACE -f overrides.yaml --set key=value</code></pre>
+
+<h2>Override precedence</h2>
+<p><code>values.yaml</code> (in chart) → <code>-f</code> files (left to right) → <code>--set</code> (highest). Use <code>helm get values RELEASE -n NS</code> to inspect what a release is running.</p>
+
+<h2>Helm vs Kustomize</h2>
+<table>
+  <tr><th></th><th>Helm</th><th>Kustomize</th></tr>
+  <tr><td>Mechanism</td><td>Go templates + <code>values.yaml</code></td><td>Overlays + patches on YAML</td></tr>
+  <tr><td>Logic</td><td>Conditionals, loops, subcharts</td><td>No template language in core</td></tr>
+  <tr><td>Ship model</td><td>Packaged charts / repos</td><td>Plain dirs in git</td></tr>
+  <tr><td>Lifecycle</td><td>Release history + rollback</td><td>Git history; <code>kubectl apply -k</code></td></tr>
+  <tr><td>Sweet spot</td><td>Vendor charts, complex apps</td><td>Small env diffs on your YAML</td></tr>
+</table>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>Template ran, cluster empty</td><td>Used <code>helm template</code> not <code>install</code></td><td><code>helm list -n NS</code></td></tr>
+  <tr><td>Upgrade OK, endpoints empty</td><td>Rendered selector ≠ pod labels</td><td><code>helm template … | grep selector</code></td></tr>
+  <tr><td><code>connection refused</code> on OrbStack</td><td>Wrong kubeconfig context</td><td><code>kubectl config use-context orbstack</code></td></tr>
+  <tr><td>Image not retagged</td><td>Wrong values path or <code>--set</code> key</td><td><code>helm get values RELEASE -n NS</code></td></tr>
+  <tr><td>Release stuck / wrong config</td><td>Bad upgrade revision</td><td><code>helm history RELEASE -n NS</code> → <code>rollback</code></td></tr>
+</table>
+
+<div class="note">
+  <strong>Rule of thumb:</strong> always <code>helm template</code> (or <code>helm install --dry-run</code>) before <code>install</code>/<code>upgrade</code>. If behavior surprises you, diff the <em>rendered</em> YAML — not just <code>values.yaml</code>.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0014-helm-charts-and-releases.html">0014 — Helm</a> · Compare: <a href="kustomize.html">Kustomize</a> · Canonical: <a href="https://helm.sh/docs/intro/using_helm/">helm.sh — Using Helm</a>
+</footer>
+</body>
+</html>

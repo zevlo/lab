@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resource Requests &amp; Limits — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Resource Requests &amp; Limits</h1>
+  <p class="subtitle">Quick reference — scheduling promises vs runtime ceilings.</p>
+</header>
+
+<h2>Two numbers, two jobs</h2>
+<table>
+  <tr><th>Field</th><th>Who reads it</th><th>Effect</th></tr>
+  <tr><td><code>requests</code></td><td><a href="core-glossary.html#scheduler">Scheduler</a></td><td>Minimum reserved for placement — pod lands only on a node with enough <em>allocatable</em> after subtracting other pods' requests</td></tr>
+  <tr><td><code>limits</code></td><td><a href="core-glossary.html#kubelet">kubelet</a> / cgroup</td><td>Hard ceiling at runtime — enforced on the container process</td></tr>
+</table>
+
+<h2>Manifest shape</h2>
+<pre><code>containers:
+- name: app
+  image: nginx:1.29
+  resources:
+    requests:
+      cpu: "100m"      # 0.1 core
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"</code></pre>
+
+<h2>Units</h2>
+<table>
+  <tr><th>Resource</th><th>Unit</th><th>Example</th></tr>
+  <tr><td>CPU</td><td>Cores or millicores</td><td><code>1</code> = one core, <code>100m</code> = 0.1 core, <code>500m</code> = half a core</td></tr>
+  <tr><td>Memory</td><td>Binary SI (powers of 1024)</td><td><code>128Mi</code>, <code>1Gi</code> — not MB/GB</td></tr>
+</table>
+
+<h2>CPU vs memory when exceeded</h2>
+<table>
+  <tr><th>Resource</th><th>Over limit?</th><th>Symptom</th></tr>
+  <tr><td>CPU</td><td>Throttled (compressible)</td><td>Slower; rarely killed. <code>kubectl top</code> may still show usage near limit</td></tr>
+  <tr><td>Memory</td><td><a href="core-glossary.html#oomkilled">OOMKilled</a> (incompressible)</td><td>Container exit 137; pod may <code>CrashLoopBackOff</code>. <code>describe pod</code> → <code>Reason: OOMKilled</code></td></tr>
+</table>
+
+<h2>QoS classes</h2>
+<table>
+  <tr><th>Class</th><th>Condition</th><th>Eviction order (roughly)</th></tr>
+  <tr><td><strong>Guaranteed</strong></td><td>Every container: limit = request for CPU <em>and</em> memory (both set)</td><td>Last evicted under memory pressure</td></tr>
+  <tr><td><strong>Burstable</strong></td><td>At least one request or limit set; not all Guaranteed</td><td>Middle</td></tr>
+  <tr><td><strong>BestEffort</strong></td><td>No requests or limits on any container</td><td>First evicted</td></tr>
+</table>
+<p>See <code>kubectl get pod -o jsonpath='{.status.qosClass}'</code>.</p>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td><code>Pending</code> + <code>Insufficient cpu/memory</code></td><td>Requests exceed node allocatable</td><td><code>kubectl describe pod</code> Events; <code>kubectl describe node</code> Allocated resources</td></tr>
+  <tr><td><code>OOMKilled</code> / exit 137</td><td>Memory limit too low for workload</td><td><code>kubectl describe pod</code> Last State; raise limit or fix leak</td></tr>
+  <tr><td>Slow under load, not crashing</td><td>CPU throttling at limit</td><td><code>kubectl top pod</code>; compare to <code>limits.cpu</code></td></tr>
+  <tr><td>Node healthy, pod never schedules</td><td>Impossible request (e.g. 999 CPU on one node)</td><td>Events on pod; sum requests vs node capacity</td></tr>
+</table>
+
+<h2>Useful commands</h2>
+<pre><code>kubectl describe node                          # Allocatable + Allocated resources
+kubectl describe pod &lt;name&gt;                    # OOMKilled, FailedScheduling events
+kubectl top pod                                # needs metrics-server
+kubectl get pod -o wide                        # STATUS, RESTARTS</code></pre>
+
+<div class="note">
+  <strong>Homelab note:</strong> on a single-node OrbStack cluster, one pod with huge requests blocks itself — there is nowhere else to schedule. At work, the same manifest might land on a bigger node; the diagnostic flow is identical.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0009-resource-requests-and-limits.html">0009 — Resource Requests &amp; Limits</a> · Namespace guardrails: <a href="namespace-resource-policies.html">LimitRange &amp; ResourceQuota</a> · Autoscaling: <a href="horizontal-pod-autoscaler.html">Horizontal Pod Autoscaler</a> · Canonical: <a href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">Manage Resources for Containers</a>
+</footer>
+</body>
+</html>

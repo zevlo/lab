@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — Desired State &amp; the Control Loop</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; } /* comments */
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .expect { font-size: .92rem; color: var(--faint); }
+  /* quiz */
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0001 · Kubernetes Fundamentals</p>
+  <h1>Desired State &amp; the Control Loop</h1>
+  <p class="subtitle">The one idea everything else in Kubernetes hangs off.</p>
+</header>
+
+<p class="mission">Your homelab node loses power at 3&nbsp;a.m. and reboots. At work, a deploy gets killed mid-rollout. In both cases, minutes later, everything is running again — and nobody typed a command. <strong>This lesson is about why.</strong> If you internalize this one mechanism, most Kubernetes behavior stops being magic and becomes predictable.</p>
+
+<h2>The Idea</h2>
+
+<p>You don't give Kubernetes <em>commands</em>. You give it a <strong><a href="../reference/core-glossary.html#desired-state">desired state</a></strong> — a description of the world you want — and the cluster works <em>continuously and forever</em> to make reality match it.</p>
+
+<p>Every object you create carries two halves <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/#object-spec-and-status">[docs]</a>:</p>
+
+<ul>
+  <li><strong><code>spec</code></strong> — the state you <em>want</em>. You write this.</li>
+  <li><strong><code>status</code></strong> — the state it <em>actually has</em>. The system writes this.</li>
+</ul>
+
+<p>The gap between the two is closed by <strong><a href="../reference/core-glossary.html#controller">controllers</a></strong>: loops that watch state through the <a href="../reference/core-glossary.html#api-server">API server</a>, compare desired with actual, and act to close the difference <a href="https://kubernetes.io/docs/concepts/architecture/controller/">[docs]</a>. The docs use a thermostat analogy: you set the temperature (desired state); the thermostat works whenever needed to hold it (current state). It never "finishes."</p>
+
+<div class="note">
+  <strong>Why pods come back from the dead:</strong> when you declare a Deployment with <code>replicas: 3</code>, that's recorded in <a href="../reference/core-glossary.html#etcd">etcd</a> as desired state. Kill a pod and the count of <em>actual</em> pods (2) no longer matches <em>desired</em> (3) — so the controller creates a replacement. It isn't healing your pod; it's <em>reconciling a number</em>. The old pod is gone forever. Pods are cattle, not pets.
+</div>
+
+<p>One consequence worth saying out loud: <code>kubectl</code> never "does" anything to your containers. It writes desired state to the API server, and the machinery — controllers, the <a href="../reference/core-glossary.html#scheduler">scheduler</a>, the <a href="../reference/core-glossary.html#kubelet">kubelet</a> on each node — takes it from there. That's also why a node reboot is survivable: the desired state never lived on the node. It lives in etcd, and reconciliation resumes the moment the machinery can act again.</p>
+
+<h2>Lab — Watch Reconciliation Happen (~10 min)</h2>
+
+<p>Run this against your local OrbStack cluster. Open <strong>two terminals</strong>.</p>
+
+<div class="step"><span class="n">1</span>
+<p>Make sure OrbStack is running with Kubernetes enabled (OrbStack app → Kubernetes, or <code>orb start k8s</code>), then point kubectl at it and confirm the node is up:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl get nodes</code></pre>
+<p class="expect">Expect: one node named <code>orbstack</code> with status <code>Ready</code> — OrbStack runs your whole cluster inside a single lightweight VM on your Mac. That one machine plays both <a href="../reference/core-glossary.html#control-plane">control plane</a> and worker <a href="../reference/core-glossary.html#node">node</a>.</p>
+<p>Now declare a desired state — 3 replicas of nginx:</p>
+<pre><code>kubectl create deployment hello --image=nginx --replicas=3</code></pre>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>In <strong>terminal 2</strong>, watch pods continuously (leave this running for the whole lab):</p>
+<pre><code>kubectl get pods -w</code></pre>
+<p class="expect">Expect: three pods named <code>hello-&lt;hash&gt;-&lt;hash&gt;</code> progressing to <code>Running</code>.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p>Back in <strong>terminal 1</strong> — be the 3&nbsp;a.m. power cut. Kill a pod (copy a real name from the watch):</p>
+<pre><code>kubectl delete pod hello-xxxxxxxxx-xxxxx</code></pre>
+<p class="expect">Watch terminal 2: the pod goes <code>Terminating</code>, and a <em>new</em> pod with a <em>different name</em> appears almost instantly. You deleted; the controller reconciled. Note that nothing was "restarted" — it was replaced.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p>Now look at the two halves of the Deployment object directly:</p>
+<pre><code>kubectl get deployment hello -o yaml | grep -A4 "^spec:" 
+kubectl get deployment hello -o yaml | grep -A6 "^status:"</code></pre>
+<p class="expect">Find <code>replicas: 3</code> under <code>spec</code> (what you asked for) and <code>readyReplicas: 3</code> under <code>status</code> (what exists). Those two numbers disagreeing, briefly, is what you just watched in step 3.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p>Change desired state and watch the loop chase it:</p>
+<pre><code>kubectl scale deployment hello --replicas=5   <span class="c"># gap: 3 actual vs 5 desired</span>
+kubectl scale deployment hello --replicas=1   <span class="c"># gap: 5 actual vs 1 desired</span></code></pre>
+<p class="expect">Terminal 2 shows pods created, then four terminated. Same mechanism in both directions — you never said "create" or "delete," you only changed a number.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p>Clean up:</p>
+<pre><code>kubectl delete deployment hello</code></pre>
+<p class="expect">All pods terminate — the desired state is now "no deployment," and the loop reconciles to that too.</p>
+</div>
+
+<h2>Quiz — No Peeking</h2>
+<p>Answer from memory. Wrong answers are more valuable than right ones — they show exactly what to revisit.</p>
+
+<div class="q" data-correct="1">
+  <p class="stem">1. What does a Kubernetes controller actually do?</p>
+  <button class="opt">Schedules incoming pods onto the best node</button>
+  <button class="opt">Watches actual state and moves toward desired</button>
+  <button class="opt">Executes user commands directly against cluster nodes</button>
+  <button class="opt">Stores cluster configuration data in etcd database</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">2. You delete a pod that's managed by a Deployment with <code>replicas: 3</code>. What happens?</p>
+  <button class="opt">Kubernetes blocks deletion of managed pods</button>
+  <button class="opt">The deployment now runs two pods</button>
+  <button class="opt">A new replacement pod gets created</button>
+  <button class="opt">The deployment is also deleted automatically</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. Where does the desired state of your cluster live?</p>
+  <button class="opt">In etcd, behind the API server</button>
+  <button class="opt">In the kubelet on each node</button>
+  <button class="opt">In YAML files on your laptop</button>
+  <button class="opt">Inside the scheduler's internal memory store</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. What's the relationship between <code>spec</code> and <code>status</code> on an object?</p>
+  <button class="opt">Spec is current state; status is past history</button>
+  <button class="opt">Spec is read-only; status is what you edit</button>
+  <button class="opt">Spec describes pods; status describes nodes and volumes</button>
+  <button class="opt">Spec is what you want; status is reality</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. Your homelab node reboots overnight. Why do workloads come back without you doing anything?</p>
+  <button class="opt">The kubelet caches and replays your commands</button>
+  <button class="opt">Controllers continuously reconcile actual state toward desired</button>
+  <button class="opt">Kubernetes schedules a reboot recovery job automatically</button>
+  <button class="opt">Etcd automatically restarts every pod it stores</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Read the (short) official page this lesson is built on: <a href="https://kubernetes.io/docs/concepts/architecture/controller/">Controllers — kubernetes.io</a>. Ten minutes, maintainer-written, and the thermostat analogy is theirs. For the spec/status split: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/">Objects in Kubernetes</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent — it's your teacher. Good follow-ups: <em>"What controller actually noticed my deleted pod?"</em> · <em>"What happens if a node dies and never comes back?"</em> · And tell it your quiz score so the next lesson lands in the right place.</p>
+  <p>Reference: <a href="../reference/core-glossary.html">Core Glossary</a> · Next lesson: chosen from your quiz results</p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

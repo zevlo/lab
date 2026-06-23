@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kubernetes Core Glossary — Reference</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5; /* kubernetes blue */
+    --rule: #ddd;
+    --bg: #fffff8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.55;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  dl { margin: 0; }
+  dt { font-weight: 700; margin-top: .9rem; }
+  dt code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .9em; }
+  dd { margin: .1rem 0 0 0; padding-left: 1.25rem; border-left: 2px solid var(--rule); }
+  dd .src { font-size: .85rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print {
+    body { max-width: 100%; padding: 0; font-size: 10.5pt; }
+    a { color: var(--ink); }
+    .note { border: 1px solid #999; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kubernetes Core Glossary</h1>
+  <p class="subtitle">Reference — the working vocabulary for this workspace. Definitions track the <a href="https://kubernetes.io/docs/reference/glossary/?fundamental=true">official glossary</a>.</p>
+</header>
+
+<div class="note">
+  Terms are grouped the way the system is layered: the machinery first, then the objects you declare, then the words used to talk about both.
+</div>
+
+<h2>The Machinery</h2>
+<dl>
+  <dt id="cluster">Cluster</dt>
+  <dd>A set of worker machines (nodes) running containerized applications, managed by a control plane. Every cluster has at least one node. <a class="src" href="https://kubernetes.io/docs/reference/glossary/?all=true#term-cluster">[glossary]</a></dd>
+
+  <dt id="node">Node</dt>
+  <dd>A worker machine (VM or physical) in the cluster. Runs the <a href="#kubelet">kubelet</a> and a container runtime, and hosts <a href="#pod">Pods</a>. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/nodes/">[docs]</a></dd>
+
+  <dt id="control-plane">Control plane</dt>
+  <dd>The container-orchestration layer that exposes the API and makes global decisions about the cluster. Comprises the API server, etcd, the scheduler, and controller managers. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/">[docs]</a></dd>
+
+  <dt id="api-server">API server (<code>kube-apiserver</code>)</dt>
+  <dd>The front door. <em>Every</em> read and write of cluster state — from you, from controllers, from kubelets — goes through it. Nothing talks to etcd directly except the API server. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/#kube-apiserver">[docs]</a></dd>
+
+  <dt id="etcd">etcd</dt>
+  <dd>Consistent, highly-available key-value store holding all cluster data — including every object's desired state. The cluster's memory. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/#etcd">[docs]</a></dd>
+
+  <dt id="scheduler">Scheduler (<code>kube-scheduler</code>)</dt>
+  <dd>Watches for newly created Pods with no assigned node, and picks a node for each based on resources, constraints, and policies. It assigns; the kubelet runs. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/#kube-scheduler">[docs]</a></dd>
+
+  <dt id="controller">Controller</dt>
+  <dd>A control loop that watches the shared state through the API server and makes changes attempting to move <em>current state</em> toward <em>desired state</em>. The central mechanism of Kubernetes. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/controller/">[docs]</a></dd>
+
+  <dt id="kubelet">kubelet</dt>
+  <dd>The agent on each node. Ensures the containers described in PodSpecs assigned to its node are running and healthy. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/#kubelet">[docs]</a></dd>
+</dl>
+
+<h2>The Objects You Declare</h2>
+<dl>
+  <dt id="pod">Pod</dt>
+  <dd>The smallest deployable unit: one or more containers sharing network and storage, always scheduled together onto one node. Pods are <em>ephemeral</em> — they are replaced, not healed. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/pods/">[docs]</a></dd>
+
+  <dt id="deployment">Deployment</dt>
+  <dd>Declares a desired state for a set of identical Pods (image, replica count, update strategy). The Deployment controller manages a <a href="#replicaset">ReplicaSet</a> to make it so, including rolling updates. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">[docs]</a></dd>
+
+  <dt id="replicaset">ReplicaSet</dt>
+  <dd>Maintains a stable set of replica Pods running at any given time. Usually owned by a Deployment — you rarely create one directly. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/">[docs]</a></dd>
+
+  <dt id="service">Service</dt>
+  <dd>A stable network endpoint (name + virtual IP) for a set of Pods selected by labels. Pods come and go; the Service name endures. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/service/">[docs]</a></dd>
+
+  <dt id="namespace">Namespace</dt>
+  <dd>A scope boundary inside one cluster. Most workload objects (Pod, Deployment, Service, ConfigMap, Secret) live in a namespace; names are unique within it, not cluster-wide. Cluster-scoped objects (Node, StorageClass, Namespace itself) have no namespace. Services resolve by short DNS name only within the same namespace — cross-namespace needs FQDN (<code>&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code>). <a class="src" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/">[docs]</a> · <a class="src" href="namespaces-contexts.html">[patterns]</a></dd>
+
+  <dt id="context">Context</dt>
+  <dd>A named entry in kubeconfig binding a <em>cluster</em>, <em>user credentials</em>, and optional <em>default namespace</em>. <code>kubectl</code> uses the current context when you omit <code>-n</code>. Switch with <code>kubectl config use-context</code>; set default namespace with <code>kubectl config set-context --current --namespace=…</code>. <a class="src" href="https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/">[docs]</a> · <a class="src" href="namespaces-contexts.html">[patterns]</a></dd>
+
+  <dt id="kubeconfig">kubeconfig</dt>
+  <dd>The client configuration file (usually <code>~/.kube/config</code>) listing clusters, users, and contexts. Not necessarily named "kubeconfig" — any file can serve. OrbStack ships <code>kubectl</code> and merges cluster config into your kubeconfig. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/">[docs]</a></dd>
+</dl>
+
+<h2>Rollouts</h2>
+<dl>
+  <dt id="rollout">Rollout</dt>
+  <dd>What happens when you change a Deployment's pod template (image, env, etc.): the controller creates a <em>new</em> <a href="#replicaset">ReplicaSet</a> and gradually shifts replica counts from old to new. Driven by the same reconciliation as everything else. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment">[docs]</a></dd>
+
+  <dt id="revision">Revision</dt>
+  <dd>A rollout checkpoint you can return to. Under the hood it is simply an old ReplicaSet kept at zero replicas — <code>kubectl rollout undo</code> just scales it back up. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-back-a-deployment">[docs]</a></dd>
+
+  <dt id="rolling-update">RollingUpdate / <code>maxSurge</code> / <code>maxUnavailable</code></dt>
+  <dd>The default update strategy and its two knobs: <code>maxSurge</code> — how many extra pods may exist above the desired count during the update; <code>maxUnavailable</code> — how many may be missing. Both default to 25%. Together they guarantee capacity during a rollout. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment">[docs]</a></dd>
+
+  <dt id="imagepullbackoff">ImagePullBackOff</dt>
+  <dd>Pod status meaning the kubelet cannot pull the container image (bad tag, missing registry credentials, network) and is retrying with increasing delays. Diagnose with <code>kubectl describe pod</code> → Events. <a class="src" href="https://kubernetes.io/docs/concepts/containers/images/#imagepullbackoff">[docs]</a></dd>
+</dl>
+
+<h2>Configuration</h2>
+<dl>
+  <dt id="configmap">ConfigMap</dt>
+  <dd>Stores non-confidential configuration as key-value pairs (or multi-line file content). Pods consume via env vars or volume mounts. Decouples settings from container images. Not for secrets — no encryption. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/configmap/">[docs]</a> · <a class="src" href="configuration-patterns.html">[patterns]</a></dd>
+
+  <dt id="secret">Secret</dt>
+  <dd>Like a ConfigMap but intended for confidential data (passwords, tokens, keys). Same consumption patterns. Values are base64-encoded in etcd by default — <em>not</em> encrypted unless encryption at rest is enabled. RBAC and external secret stores are production essentials. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/secret/">[docs]</a> · <a class="src" href="configuration-patterns.html">[patterns]</a></dd>
+
+  <dt id="config-consumption">Env var vs volume mount</dt>
+  <dd>Env vars (<code>configMapKeyRef</code>, <code>secretKeyRef</code>, <code>envFrom</code>) are frozen at container start — config changes require pod restart. Volume mounts update files in place on the kubelet sync cycle (except <code>subPath</code> mounts). Choose based on whether the app needs live reload. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/configmap/#configmaps-and-pods">[docs]</a></dd>
+</dl>
+
+<h2>Health &amp; Probes</h2>
+<dl>
+  <dt id="readiness-probe">Readiness probe</dt>
+  <dd>Asks: <em>"can this pod take traffic right now?"</em> While failing, the pod is removed from its Services' <a href="#endpointslice">EndpointSlices</a> — quarantined, not restarted. Also gates rollouts: a new pod that never becomes Ready stalls the rollout. May legitimately check dependencies (DB, cache). <a class="src" href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/#readiness-probe">[docs]</a></dd>
+
+  <dt id="liveness-probe">Liveness probe</dt>
+  <dd>Asks: <em>"is this container beyond saving?"</em> While failing past the threshold, the kubelet <em>restarts the container</em>. Must test only the container itself — never dependencies — or an external outage becomes a cluster-wide restart storm. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/#liveness-probe">[docs]</a></dd>
+
+  <dt id="startup-probe">Startup probe</dt>
+  <dd>Protects slow-starting containers: liveness and readiness checks are suspended until the startup probe first succeeds. Use instead of long <code>initialDelaySeconds</code>. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/#startup-probe">[docs]</a></dd>
+
+  <dt id="probe-mechanics">Probe mechanics</dt>
+  <dd>Three check types: <code>httpGet</code> (2xx/3xx = pass), <code>tcpSocket</code> (connect = pass), <code>exec</code> (exit 0 = pass). Timing knobs: <code>periodSeconds</code> (how often), <code>failureThreshold</code> (consecutive failures before acting), <code>initialDelaySeconds</code> (grace before first check). <a class="src" href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">[docs]</a></dd>
+</dl>
+
+<h2>Resources</h2>
+<dl>
+  <dt id="resource-request">Resource request</dt>
+  <dd>The amount of CPU or memory a container <em>asks to reserve</em> when scheduled. The <a href="#scheduler">scheduler</a> sums requests across pods on a node and only places a new pod where <code>allocatable − allocated ≥ this pod's requests</code>. Does not throttle runtime usage by itself. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits">[docs]</a> · <a class="src" href="resource-management.html">[patterns]</a></dd>
+
+  <dt id="resource-limit">Resource limit</dt>
+  <dd>The maximum CPU or memory a container may consume at runtime, enforced by the <a href="#kubelet">kubelet</a> via cgroups. CPU over limit → throttled (compressible). Memory over limit → <a href="#oomkilled">OOMKilled</a> (incompressible). <a class="src" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits">[docs]</a> · <a class="src" href="resource-management.html">[patterns]</a></dd>
+
+  <dt id="qos-class">QoS class</dt>
+  <dd>Quality of Service tier assigned automatically from requests/limits: <strong>Guaranteed</strong> (limit = request for all containers' CPU and memory), <strong>Burstable</strong> (some resources set), <strong>BestEffort</strong> (none set). Influences eviction order under node memory pressure. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/">[docs]</a></dd>
+
+  <dt id="oomkilled">OOMKilled</dt>
+  <dd>Container terminated because it exceeded its memory <em>limit</em> (or the node ran out of memory). Exit code 137. Diagnose with <code>kubectl describe pod</code> → <code>Last State: Terminated, Reason: OOMKilled</code>. Not the same as a liveness restart — the cgroup hard-stopped the process. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#how-pods-with-resource-limits-are-run">[docs]</a></dd>
+
+  <dt id="allocatable">Allocatable</dt>
+  <dd>Resources on a node available for pods after the system reserves CPU/memory for OS and Kubernetes daemons. What the scheduler compares against when honoring <a href="#resource-request">requests</a>. <code>kubectl describe node</code> → <code>Allocatable</code> and <code>Allocated resources</code>. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/nodes/#capacity">[docs]</a></dd>
+
+  <dt id="resourcequota">ResourceQuota</dt>
+  <dd>Namespace-level cap on aggregate resource consumption — the <em>sum</em> of pod requests/limits (and optionally object counts) across the namespace. Enforced at admission; exceeding <code>spec.hard</code> rejects new pods with <code>403 Forbidden</code> or leaves ReplicaSets in <code>FailedCreate</code>. Does not change already-running pods. When quota covers <code>cpu</code> or <code>memory</code>, new pods must declare requests or limits for that resource (use <a href="#limitrange">LimitRange</a> defaults). <a class="src" href="https://kubernetes.io/docs/concepts/policy/resource-quotas/">[docs]</a> · <a class="src" href="namespace-resource-policies.html">[patterns]</a></dd>
+
+  <dt id="limitrange">LimitRange</dt>
+  <dd>Namespace policy constraining each pod or container: <code>default</code> / <code>defaultRequest</code> injected when resources are omitted; <code>min</code> / <code>max</code> reject out-of-range values at admission. Pairs with ResourceQuota so teams need not set resources on every manifest. Does not retroactively change running pods. <a class="src" href="https://kubernetes.io/docs/concepts/policy/limit-range/">[docs]</a> · <a class="src" href="namespace-resource-policies.html">[patterns]</a></dd>
+</dl>
+
+<h2>Scaling</h2>
+<dl>
+  <dt id="hpa">Horizontal Pod Autoscaler (HPA)</dt>
+  <dd>Controller that adjusts a workload's <code>spec.replicas</code> from metrics — typically CPU or memory utilization via <a href="#metrics-server">metrics-server</a>. Targets a scale reference (usually a <a href="#deployment">Deployment</a>). CPU utilization = usage ÷ <a href="#resource-request">CPU request</a>; pods without CPU requests produce <code>&lt;unknown&gt;</code> metrics. Bounded by <code>minReplicas</code> / <code>maxReplicas</code>; does not bypass <a href="#resourcequota">ResourceQuota</a> or node allocatable. Reconciles over manual <code>kubectl scale</code>. <a class="src" href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/">[docs]</a> · <a class="src" href="horizontal-pod-autoscaler.html">[patterns]</a></dd>
+
+  <dt id="metrics-server">metrics-server</dt>
+  <dd>Cluster add-on that aggregates resource usage from kubelets and exposes the <code>metrics.k8s.io</code> API. Powers <code>kubectl top</code> and resource-based HPA. Not a long-term metrics store — for dashboards use Prometheus or similar. On OrbStack you may need to install it and enable the <code>PodAndContainerStatsFromCRI</code> kubelet feature gate. <a class="src" href="https://github.com/kubernetes-sigs/metrics-server">[project]</a> · <a class="src" href="horizontal-pod-autoscaler.html">[patterns]</a></dd>
+</dl>
+
+<h2>Service Networking</h2>
+<dl>
+  <dt id="clusterip">ClusterIP</dt>
+  <dd>The default Service type: a stable virtual IP reachable only from <em>inside</em> the cluster. The workhorse for service-to-service traffic. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/service/#type-clusterip">[docs]</a></dd>
+
+  <dt id="nodeport">NodePort</dt>
+  <dd>A Service type that additionally opens a fixed port (default range 30000–32767) on <em>every node</em>, forwarding to the Service. A blunt but simple way in from outside. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport">[docs]</a></dd>
+
+  <dt id="loadbalancer">LoadBalancer</dt>
+  <dd>A Service type that asks the environment for an external load balancer (cloud LB in the cloud; on OrbStack, services are reachable at <code>*.k8s.orb.local</code> from your Mac). Builds on NodePort. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer">[docs]</a></dd>
+
+  <dt id="endpointslice">EndpointSlice</dt>
+  <dd>The live, system-maintained list of pod IPs currently backing a Service — the answer to the selector's query, updated as pods come and go. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/endpoint-slices/">[docs]</a></dd>
+
+  <dt id="kube-proxy">kube-proxy</dt>
+  <dd>Runs on each node and programs the packet rules that make a Service's virtual IP actually route to a backend pod. You never talk to it; it makes ClusterIPs work. <a class="src" href="https://kubernetes.io/docs/reference/command-line-tools-reference/kube-proxy/">[docs]</a></dd>
+
+  <dt id="cluster-dns">Cluster DNS (CoreDNS)</dt>
+  <dd>An in-cluster DNS server that gives every Service a name: <code>&lt;service&gt;</code> within the same namespace, <code>&lt;service&gt;.&lt;namespace&gt;.svc.cluster.local</code> in full. Pods use names, not IPs. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">[docs]</a></dd>
+
+  <dt id="port-targetport">port / targetPort / nodePort</dt>
+  <dd>Three different ports in a Service spec: <code>port</code> — what the Service exposes to clients; <code>targetPort</code> — what the container actually listens on; <code>nodePort</code> — the per-node port (NodePort/LoadBalancer types only). <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports">[docs]</a></dd>
+
+  <dt id="ingress">Ingress</dt>
+  <dd>An API object holding HTTP(S) routing rules — "requests for <em>this host/path</em> go to <em>that Service</em>." Pure data: it does nothing without an <a href="#ingress-controller">Ingress controller</a> to act on it. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/ingress/">[docs]</a></dd>
+
+  <dt id="ingress-controller">Ingress controller</dt>
+  <dd>The reverse proxy that watches Ingress objects and configures itself to enforce them — the control loop applied to HTTP routing. Must be installed separately on most clusters, including OrbStack (e.g. Traefik via Helm). <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/">[docs]</a></dd>
+
+  <dt id="ingressclass">IngressClass / <code>ingressClassName</code></dt>
+  <dd>Names which controller should handle a given Ingress (a cluster can run several). On OrbStack: <code>traefik</code>. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-class">[docs]</a></dd>
+
+  <dt id="ingress-tls">Ingress TLS / TLS termination</dt>
+  <dd>HTTPS at the Ingress controller: client→controller is encrypted; controller→Service→Pod is typically plaintext. Cert stored in a <code>kubernetes.io/tls</code> Secret (<code>tls.crt</code>, <code>tls.key</code>), referenced by <code>spec.tls.secretName</code>. <code>tls.hosts</code> must match <code>rules.host</code> for SNI. Secret must be in the same namespace as the Ingress. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">[docs]</a> · <a class="src" href="ingress-tls.html">[patterns]</a></dd>
+</dl>
+
+<h2>The Vocabulary</h2>
+<dl>
+  <dt id="desired-state">Desired state</dt>
+  <dd>What you have told the cluster you want, recorded in each object's <code>spec</code>. Kubernetes works <em>continuously</em> — not once — to make reality match it. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/controller/#desired-vs-current">[docs]</a></dd>
+
+  <dt id="spec-status">spec / status</dt>
+  <dd>Two halves of nearly every object. <code>spec</code>: the state you want (you write it). <code>status</code>: the state it actually has (the system writes it). The gap between them is what controllers exist to close. <a class="src" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/#object-spec-and-status">[docs]</a></dd>
+
+  <dt id="manifest">Manifest</dt>
+  <dd>A YAML (or JSON) file specifying the desired state of one or more objects. Applying a manifest = declaring intent. <a class="src" href="https://kubernetes.io/docs/reference/glossary/?all=true#term-manifest">[glossary]</a></dd>
+
+  <dt id="declarative">Declarative vs imperative</dt>
+  <dd>Declarative: state <em>what</em> you want (<code>kubectl apply -f app.yaml</code>) and let controllers figure out how. Imperative: issue direct commands (<code>kubectl run</code>, <code>kubectl scale</code>). Production work is declarative. <a class="src" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/object-management/">[docs]</a></dd>
+
+  <dt id="label">Label / selector</dt>
+  <dd>Labels are key/value pairs attached to objects; selectors query them. This is how Deployments find their Pods and Services find their backends — loose coupling by query, not by reference. <a class="src" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/">[docs]</a></dd>
+
+  <dt id="reconciliation">Reconciliation</dt>
+  <dd>The act of a controller comparing desired state with observed state and taking action to close the gap. Endless, automatic, level-triggered. <a class="src" href="https://kubernetes.io/docs/concepts/architecture/controller/#controller-pattern">[docs]</a></dd>
+
+  <dt id="kubectl">kubectl</dt>
+  <dd>The command-line client for the Kubernetes API. Everything it does is an API call to the <a href="#api-server">API server</a>. <a class="src" href="https://kubernetes.io/docs/reference/kubectl/quick-reference/">[quick reference]</a></dd>
+
+  <dt id="dry-run">Dry-run (<code>--dry-run=client</code> / <code>server</code>)</dt>
+  <dd>Simulate an operation without persisting (or, for <code>client</code>, without contacting the server at all). <code>--dry-run=client -o yaml</code> scaffolds manifest structure locally; <code>apply --dry-run=server</code> validates against API admission without writing. <a class="src" href="https://kubernetes.io/docs/concepts/overview/working-with-objects/object-management/">[docs]</a> · <a class="src" href="manifest-authoring.html">[patterns]</a></dd>
+
+  <dt id="kubectl-diff">kubectl diff</dt>
+  <dd>Compares a manifest file's desired <code>spec</code> against live cluster state and prints a unified diff. Safe preview before <code>apply</code>; also surfaces what would change on upgrade. Works with rendered Kustomize output via <code>kubectl diff -k</code>. <a class="src" href="https://kubernetes.io/docs/reference/kubectl/generated/kubectl_diff/">[docs]</a> · <a class="src" href="manifest-authoring.html">[patterns]</a></dd>
+</dl>
+
+<h2>Manifest Tooling</h2>
+<dl>
+  <dt id="kustomize">Kustomize</dt>
+  <dd>Built-in manifest customization: a <strong>base</strong> directory of resources plus <strong>overlay</strong> directories that patch or transform them (namespace, <code>namePrefix</code>, <code>replicas</code>, <code>images</code>, strategic-merge patches). No template language — output is plain YAML applied with <code>kubectl apply -k</code>. Patch targets use base resource names before transforms. <a class="src" href="https://kubectl.docs.kubernetes.io/guides/introduction/kustomize/">[docs]</a> · <a class="src" href="kustomize.html">[patterns]</a></dd>
+
+  <dt id="kustomize-base">Kustomize base</dt>
+  <dd>The shared manifest skeleton (<code>base/kustomization.yaml</code> + resource YAML). Environment-agnostic — holds the canonical Deployment, Service, etc. Overlays reference it rather than duplicating files. <a class="src" href="kustomize.html">[patterns]</a></dd>
+
+  <dt id="kustomize-overlay">Kustomize overlay</dt>
+  <dd>An environment-specific <code>kustomization.yaml</code> that lists <code>resources: [../../base]</code> plus transformers and patches. Example: staging gets lower replicas and a different image tag; production references the same base with different deltas. <a class="src" href="kustomize.html">[patterns]</a></dd>
+
+  <dt id="helm">Helm</dt>
+  <dd>Kubernetes package manager: installs <strong>charts</strong> as named <strong>releases</strong>, tracks revision history, supports rollback. Renders Go templates with <code>values.yaml</code> overrides, then applies manifests to the API — same declarative end state as <code>kubectl apply</code>. <a class="src" href="https://helm.sh/docs/intro/using_helm/">[docs]</a> · <a class="src" href="helm.html">[patterns]</a></dd>
+
+  <dt id="helm-chart">Helm chart</dt>
+  <dd>A package of Kubernetes templates (<code>templates/</code>), default values (<code>values.yaml</code>), and metadata (<code>Chart.yaml</code>). Can be a local directory, a tarball, or fetched from a chart repository. One chart can be installed many times as separate releases. <a class="src" href="https://helm.sh/docs/topics/charts/">[docs]</a> · <a class="src" href="helm.html">[patterns]</a></dd>
+
+  <dt id="helm-release">Helm release</dt>
+  <dd>A named, installed instance of a chart in a cluster (e.g. release <code>metrics-server</code> from chart <code>metrics-server/metrics-server</code>). Each <code>install</code>, <code>upgrade</code>, or <code>rollback</code> increments the release revision. Removed with <code>helm uninstall</code>. <a class="src" href="https://helm.sh/docs/intro/using_helm/">[docs]</a> · <a class="src" href="helm.html">[patterns]</a></dd>
+
+  <dt id="helm-values">Helm values (<code>values.yaml</code>)</dt>
+  <dd>Default parameters for a chart, overridden at install/upgrade via <code>-f</code> files or <code>--set</code>. Templates reference them as <code>{{ .Values.field }}</code>. Inspect live values with <code>helm get values RELEASE</code>. <a class="src" href="https://helm.sh/docs/chart_best_practices/values/">[docs]</a> · <a class="src" href="helm.html">[patterns]</a></dd>
+</dl>
+
+<h2>Storage</h2>
+<dl>
+  <dt id="persistentvolume">PersistentVolume (PV)</dt>
+  <dd>Cluster-scoped representation of a storage resource — a chunk of NFS, a cloud disk, a hostPath directory. Created manually or dynamically by a provisioner. Bound to exactly one PVC at a time. <a class="src" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">[docs]</a> · <a class="src" href="persistent-storage.html">[patterns]</a></dd>
+
+  <dt id="persistentvolumeclaim">PersistentVolumeClaim (PVC)</dt>
+  <dd>Namespace-scoped request for storage: size, access mode, optional StorageClass. Pods mount PVCs via <code>volumes.persistentVolumeClaim</code>. Survives pod deletion — new pods reattach the same claim. <a class="src" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims">[docs]</a> · <a class="src" href="persistent-storage.html">[patterns]</a></dd>
+
+  <dt id="storageclass">StorageClass</dt>
+  <dd>Cluster-scoped template for dynamic provisioning — names a <code>provisioner</code> (e.g. <code>rancher.io/local-path</code>), reclaim policy (<code>Delete</code>/<code>Retain</code>), and volume binding mode (<code>Immediate</code> or <code>WaitForFirstConsumer</code>). PVCs reference it via <code>storageClassName</code>. <a class="src" href="https://kubernetes.io/docs/concepts/storage/storage-classes/">[docs]</a> · <a class="src" href="persistent-storage.html">[patterns]</a></dd>
+
+  <dt id="access-mode">Access mode (RWO / ROX / RWX)</dt>
+  <dd>How many nodes may mount a volume simultaneously. <code>ReadWriteOnce</code> (RWO) — one node read/write, typical for databases. PVC access mode must match the bound PV. <a class="src" href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes">[docs]</a> · <a class="src" href="persistent-storage.html">[patterns]</a></dd>
+
+  <dt id="emptydir">emptyDir</dt>
+  <dd>Ephemeral pod volume — created when the pod is scheduled, deleted when the pod is removed. Good for scratch space; <em>not</em> durable storage. Contrast with PVC. <a class="src" href="https://kubernetes.io/docs/concepts/storage/volumes/#emptydir">[docs]</a> · <a class="src" href="persistent-storage.html">[patterns]</a></dd>
+</dl>
+
+<h2>Stateful Workloads</h2>
+<dl>
+  <dt id="statefulset">StatefulSet</dt>
+  <dd>Controller for stateful apps: stable pod names (<code>app-0</code>, <code>app-1</code>), ordered scale-up/down, and <code>volumeClaimTemplates</code> that provision one PVC per ordinal. Requires a headless Service matching <code>spec.serviceName</code>. Deleting pod <code>app-0</code> recreates <code>app-0</code> with the same PVC — unlike a Deployment. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/">[docs]</a> · <a class="src" href="statefulsets.html">[patterns]</a></dd>
+
+  <dt id="headless-service">Headless Service</dt>
+  <dd>A Service with <code>clusterIP: None</code> — no virtual IP, DNS returns individual pod A records. Enables stable per-pod hostnames like <code>db-0.db.namespace.svc.cluster.local</code> for StatefulSet members. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/service/#headless-services">[docs]</a> · <a class="src" href="statefulsets.html">[patterns]</a></dd>
+
+  <dt id="volumeclaimtemplate">volumeClaimTemplate</dt>
+  <dd>A PVC spec embedded in a StatefulSet. The controller creates claims named <code>&lt;templateName&gt;-&lt;statefulsetName&gt;-&lt;ordinal&gt;</code> (e.g. <code>data-db-0</code>). Each pod mounts only its own claim. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#volume-claim-templates">[docs]</a> · <a class="src" href="statefulsets.html">[patterns]</a></dd>
+</dl>
+
+<footer>
+  Workspace reference · grows as lessons add terms · canonical source: <a href="https://kubernetes.io/docs/reference/glossary/?fundamental=true">kubernetes.io glossary</a>
+</footer>
+</body>
+</html>

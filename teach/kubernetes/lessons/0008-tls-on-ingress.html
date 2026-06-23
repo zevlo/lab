@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0008 — TLS on Ingress: Encrypting the Front Door</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0008 · Kubernetes Fundamentals</p>
+  <h1>TLS on Ingress: Encrypting the Front Door</h1>
+  <p class="subtitle">Certificates as Secrets; HTTPS at Traefik.</p>
+</header>
+
+<p class="mission"><a href="0003-ingress-one-door-many-services.html">Lesson 0003</a> gave you HTTP routing through one door. Real homelab services and anything at work expect HTTPS — passwords, cookies, and API tokens shouldn't cross the wire in plaintext. TLS on Ingress is how you bolt encryption onto the routing table you already know, using the <a href="0006-configmaps-and-secrets.html">Secret</a> machinery from lesson 0006 and the namespace discipline from <a href="0007-namespaces-and-contexts.html">lesson 0007</a>.</p>
+
+<h2>The Idea</h2>
+
+<p>Ingress can terminate TLS: the client talks HTTPS to the <a href="../reference/core-glossary.html#ingress-controller">Ingress controller</a> (Traefik on OrbStack); Traefik decrypts and forwards plain HTTP to your Service inside the cluster <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">[docs]</a>. Two hops, two different trust boundaries:</p>
+
+<table>
+  <tr><th>Hop</th><th>Encrypted?</th></tr>
+  <tr><td>Browser → Traefik (<code>hello.k8s.orb.local:443</code>)</td><td><strong>Yes</strong></td></tr>
+  <tr><td>Traefik → Pod</td><td><strong>No</strong> (by default — pod-to-pod TLS is a later topic)</td></tr>
+</table>
+
+<p>The certificate lives in a <strong>TLS Secret</strong> — type <code>kubernetes.io/tls</code>, with keys <code>tls.crt</code> and <code>tls.key</code>. You reference it from the Ingress <code>spec.tls</code> block:</p>
+
+<pre><code><span class="k">spec:</span>
+  <span class="k">tls:</span>
+  - <span class="k">hosts:</span>
+    - hello.k8s.orb.local
+    <span class="k">secretName:</span> hello-tls
+  <span class="k">rules:</span>
+  - <span class="k">host:</span> hello.k8s.orb.local
+    <span class="k">http:</span> ...</code></pre>
+
+<p>Three constraints worth memorizing:</p>
+<ul>
+  <li><strong>Hostname match.</strong> <code>tls.hosts</code> must align with <code>rules.host</code> — the controller picks the cert via SNI (Server Name Indication) using the client's hostname <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">[docs]</a>.</li>
+  <li><strong>Same namespace.</strong> The Secret and Ingress (and the backend Service) must share a namespace — a lesson-0007 gotcha.</li>
+  <li><strong>Port 443.</strong> Ingress TLS assumes HTTPS on 443; Traefik's Service already exposes it (you saw this in lesson 0003).</li>
+</ul>
+
+<p>Locally you'll use a <strong>self-signed</strong> certificate — fine for homelab, browsers will warn. In production or a public homelab, operators use <strong>cert-manager</strong> to obtain and renew real certs (Let's Encrypt). Same Ingress shape; automated Secret creation.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> the Ingress <code>tls</code> block tells Traefik <em>which Secret holds the cert for which hostname</em> — encryption at the door, routing unchanged.
+</div>
+
+<h2>Lab — Cert, Secret, HTTPS (~25 min)</h2>
+
+<p>Against OrbStack. Everything lives in namespace <code>homelab</code>. Work in a scratch directory for cert files (don't commit <code>tls.key</code> to git).</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong> Confirm Traefik still holds ports 80 and 443:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl get svc traefik</code></pre>
+<p class="expect">Expect: <code>LoadBalancer</code> with ports <code>80</code> and <code>443</code>. Set your kubectl aim for this lab:</p>
+<pre><code>kubectl create namespace homelab --dry-run=client -o yaml | kubectl apply -f -
+kubectl config set-context --current --namespace=homelab</code></pre>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>Deploy the backend — same nginx pattern as before:</p>
+<pre><code>kubectl create deployment hello --image=nginx:1.29 --replicas=2
+kubectl expose deployment hello --port=80
+kubectl get pods
+kubectl get svc hello</code></pre>
+<p>Verify the app itself — <strong>not through Traefik yet</strong> (no Ingress exists, so Traefik would return <code>404 page not found</code>). OrbStack lets you reach ClusterIP Services directly from your Mac:</p>
+<pre><code>curl -s http://$(kubectl get svc hello -o jsonpath='{.spec.clusterIP}') | head -n 3</code></pre>
+<p class="expect">Expect: nginx HTML. Your deployment and Service are fine — Traefik simply has no route for <code>hello.k8s.orb.local</code> until step 4 creates the Ingress.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Create a certificate.</strong> In your scratch directory:</p>
+<pre><code>openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout tls.key -out tls.crt \
+  -subj "/CN=hello.k8s.orb.local" \
+  -addext "subjectAltName=DNS:hello.k8s.orb.local"</code></pre>
+<p>Load it into the cluster as a TLS Secret (<a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">[docs]</a>):</p>
+<pre><code>kubectl create secret tls hello-tls --cert=tls.crt --key=tls.key
+kubectl get secret hello-tls</code></pre>
+<p class="expect">Expect: type <code>kubernetes.io/tls</code>, <code>DATA</code> column shows 2 keys. The cert's CN/SAN must match the hostname you'll route — <code>hello.k8s.orb.local</code>.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p>Create <code>ingress-tls.yaml</code> — your lesson-0003 manifest plus a <code>tls</code> block:</p>
+<pre><code><span class="k">apiVersion:</span> networking.k8s.io/v1
+<span class="k">kind:</span> Ingress
+<span class="k">metadata:</span>
+  <span class="k">name:</span> front-door
+<span class="k">spec:</span>
+  <span class="k">ingressClassName:</span> traefik
+  <span class="k">tls:</span>
+  - <span class="k">hosts:</span>
+    - hello.k8s.orb.local
+    <span class="k">secretName:</span> hello-tls
+  <span class="k">rules:</span>
+  - <span class="k">host:</span> hello.k8s.orb.local
+    <span class="k">http:</span>
+      <span class="k">paths:</span>
+      - <span class="k">path:</span> /
+        <span class="k">pathType:</span> Prefix
+        <span class="k">backend:</span>
+          <span class="k">service:</span>
+            <span class="k">name:</span> hello
+            <span class="k">port:</span>
+              <span class="k">number:</span> 80</code></pre>
+<pre><code>kubectl apply -f ingress-tls.yaml
+kubectl get ingress</code></pre>
+<p>Hit HTTPS — <code>-k</code> skips trust verification for your self-signed cert. Now Traefik has a route — test HTTP through the door too:</p>
+<pre><code>curl -sk https://hello.k8s.orb.local/ | head -n 3
+curl -s http://hello.k8s.orb.local/ | head -n 3
+curl -vk https://hello.k8s.orb.local/ 2>&1 | grep -E "subject:|issuer:|SSL connection"</code></pre>
+<p class="expect">Expect: nginx HTML over HTTPS; verbose output shows <code>subject: CN=hello.k8s.orb.local</code> (or similar). Browser: <a href="https://hello.k8s.orb.local">https://hello.k8s.orb.local</a> works after accepting the warning — self-signed, not evil.</p>
+</div>
+
+<div class="warn">
+  <strong>If HTTPS doesn't answer:</strong> same suspects as lesson 0003 — confirm Traefik is running, the Ingress and TLS Secret exist, and the hostname in your cert matches <code>hello.k8s.orb.local</code> exactly. HTTP on the same hostname still working while HTTPS fails often means a TLS/Secret problem, not a broken routing rule.
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break it.</strong> In <code>ingress-tls.yaml</code>, typo the Secret reference — change <code>secretName: hello-tls</code> to <code>secretName: hello-tlss</code> — and apply:</p>
+<pre><code>kubectl apply -f ingress-tls.yaml</code></pre>
+<p>Compare HTTP vs HTTPS — watch the <em>right signal</em> (TLS handshake, not routing):</p>
+<pre><code>curl -s http://hello.k8s.orb.local/ | head -n 1
+curl -vk https://hello.k8s.orb.local/ 2>&1 | tail -15</code></pre>
+<p class="expect">Expect: <strong>HTTP still returns nginx</strong> (routing rule untouched). HTTPS fails or presents Traefik's default certificate — verbose curl may show <code>SSL certificate problem</code>, wrong subject, or handshake errors. The Ingress object still exists; only the TLS binding is broken. Diagnose:</p>
+<pre><code>kubectl describe ingress front-door
+kubectl get secret hello-tlss   <span class="c"># not found</span></code></pre>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Fix it.</strong> Restore <code>secretName: hello-tls</code>, apply, confirm HTTPS again:</p>
+<pre><code>kubectl apply -f ingress-tls.yaml
+curl -sk https://hello.k8s.orb.local/ | head -n 1</code></pre>
+<p>Clean up — delete cert files from disk yourself; remove cluster objects:</p>
+<pre><code>kubectl delete -f ingress-tls.yaml
+kubectl delete deployment hello
+kubectl delete service hello
+kubectl delete secret hello-tls
+kubectl delete namespace homelab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="note">
+  <strong>Production path (not labbed today):</strong> install <a href="https://cert-manager.io/">cert-manager</a>, define a <code>Certificate</code> CR, it writes the TLS Secret, your Ingress references the same <code>secretName</code>. Homelab with a real domain: DNS points at your IP, Let's Encrypt validates, certs auto-renew.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="0">
+  <p class="stem">1. For standard Ingress TLS, where is HTTPS decrypted?</p>
+  <button class="opt">At the ingress controller; pod traffic stays plaintext</button>
+  <button class="opt">Inside each pod; the ingress only routes TCP bytes</button>
+  <button class="opt">At the kubelet on every node in the cluster</button>
+  <button class="opt">Inside etcd; certificates are stored encrypted there</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. A Secret of type <code>kubernetes.io/tls</code> must contain which keys?</p>
+  <button class="opt">tls.crt and tls.key in the secret data map</button>
+  <button class="opt">cert.pem and key.pem in the secret data map</button>
+  <button class="opt">ca.crt and tls.key in the secret data map</button>
+  <button class="opt">tls.crt and tls.password in the secret data map</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. Why must <code>spec.tls.hosts</code> match <code>spec.rules.host</code>?</p>
+  <button class="opt">SNI picks the cert by hostname; a mismatch serves wrong TLS</button>
+  <button class="opt">The API server rejects mismatched host strings at apply time</button>
+  <button class="opt">kube-proxy drops packets when those host strings differ</button>
+  <button class="opt">Services register DNS only when both host strings match</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">4. Your homelab uses a self-signed cert. Why does the browser warn?</p>
+  <button class="opt">The cert is not signed by a trusted public CA</button>
+  <button class="opt">Kubernetes never supports TLS on local Traefik ingress</button>
+  <button class="opt">Secrets of type TLS cannot be used with Ingress objects</button>
+  <button class="opt">Traefik terminates TLS only for LoadBalancer Services</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. Ingress references <code>secretName: wrong-name</code>. HTTP still works. HTTPS symptom?</p>
+  <button class="opt">Handshake fails or a default or wrong certificate appears</button>
+  <button class="opt">Port eighty stops responding for all ingress hostnames</button>
+  <button class="opt">Every pod in the namespace enters a restart loop</button>
+  <button class="opt">The Deployment stalls with ImagePullBackOff errors</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>The TLS section of the Ingress concept page is the canonical reference: <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">Ingress TLS — kubernetes.io</a>. For creating the Secret from files: <a href="https://kubernetes.io/docs/tasks/configmap-secret/managing-secret-using-kubectl/#create-a-secret">Managing Secrets using kubectl</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"How do I set up cert-manager on OrbStack?"</em> · <em>"Can I force HTTP→HTTPS redirect in Traefik?"</em> · <em>"When do I need TLS inside the cluster too?"</em> Report your quiz score — it steers lesson 0009.</p>
+  <p>Previous: <a href="0007-namespaces-and-contexts.html">Lesson 0007 — Namespaces</a> · <a href="0003-ingress-one-door-many-services.html">Lesson 0003 — Ingress</a> · Reference: <a href="../reference/ingress-tls.html">Ingress TLS</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0011 — LimitRange &amp; ResourceQuota: Namespace Guardrails</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0011 · Kubernetes Fundamentals</p>
+  <h1>LimitRange &amp; ResourceQuota: Namespace Guardrails</h1>
+  <p class="subtitle">Caps for the whole namespace; defaults and ceilings per pod.</p>
+</header>
+
+<p class="mission">Lesson <a href="0009-resource-requests-and-limits.html">0009</a> taught per-container <a href="../reference/core-glossary.html#resource-request">requests</a> and <a href="../reference/core-glossary.html#resource-limit">limits</a>. Lesson <a href="0007-namespaces-and-contexts.html">0007</a> taught <a href="../reference/core-glossary.html#namespace">namespaces</a> as scope boundaries. At work, platform teams cap each team's namespace so one deploy cannot starve everyone else. In the homelab, the same objects keep your experiments from accidentally scheduling fifty nginx pods on a single OrbStack node. Two policies, one namespace — this lesson teaches you to read both.</p>
+
+<h2>The Idea</h2>
+
+<p>Think in three layers <a href="https://kubernetes.io/docs/concepts/policy/resource-quotas/">[quota docs]</a> <a href="https://kubernetes.io/docs/concepts/policy/limit-range/">[limit docs]</a>:</p>
+
+<table>
+  <tr><th>Layer</th><th>What</th><th>Question</th></tr>
+  <tr><td>Container spec</td><td><code>resources.requests</code> / <code>limits</code></td><td>How much does <em>this</em> container promise and may use?</td></tr>
+  <tr><td><strong>LimitRange</strong></td><td>Namespace policy on each pod/container</td><td>What defaults apply when omitted? What min/max per container?</td></tr>
+  <tr><td><strong>ResourceQuota</strong></td><td>Namespace aggregate cap</td><td>What is the <em>sum</em> of all pods allowed to consume?</td></tr>
+</table>
+
+<p><strong>ResourceQuota</strong> tracks totals — e.g. <code>requests.cpu: "500m"</code> means the sum of CPU <em>requests</em> across all non-terminal pods in that namespace cannot exceed 500m. Exceed it and new pods are rejected. A Deployment <code>apply</code> may still succeed while its ReplicaSet cannot create pods — watch ReplicaSet Events, not just Deployment status.</p>
+
+<p><strong>LimitRange</strong> acts at admission on individual objects: injects <code>defaultRequest</code> / <code>default</code> when a container omits resources; rejects pods above <code>max</code> or below <code>min</code>. Critical pairing: when a namespace has a ResourceQuota on CPU or memory, <em>every new pod must declare requests or limits</em> for that resource — otherwise admission rejects it. LimitRange defaults are how teams avoid typing resources on every manifest.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> ResourceQuota caps the namespace total; LimitRange shapes each pod (defaults + min/max). Per-pod requests/limits from lesson 0009 still drive scheduling — quotas just add up those promises.
+</div>
+
+<p>One more rule that saves debugging time: <strong>neither policy retrofits running pods</strong>. Tighten a quota and existing pods keep running; only new creates fail. Same as lesson <a href="0001-desired-state-and-the-control-loop.html">0001</a> — admission is the gate, not a retroactive sweep.</p>
+
+<h2>Lab — Quota, Defaults, and Two Breaks (~25 min)</h2>
+
+<p>OrbStack, namespace <code>homelab</code>. You'll install policies, hit quota twice (admission + scale), then break LimitRange max.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl create namespace homelab --dry-run=client -o yaml | kubectl apply -f -
+kubectl config set-context --current --namespace=homelab</code></pre>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Install a tight ResourceQuota.</strong> Create <code>quota.yaml</code>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> ResourceQuota
+<span class="k">metadata:</span>
+  <span class="k">name:</span> homelab-quota
+<span class="k">spec:</span>
+  <span class="k">hard:</span>
+    <span class="k">requests.cpu:</span> <span class="c">"300m"</span>
+    <span class="k">requests.memory:</span> 512Mi
+    <span class="k">pods:</span> <span class="c">"6"</span></code></pre>
+<pre><code>kubectl apply -f quota.yaml
+kubectl describe resourcequota homelab-quota</code></pre>
+<p class="expect">Expect: <code>Hard</code> shows your caps; <code>Used</code> is mostly zero (system may show small usage depending on version — focus on your workloads below).</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break — deploy without resources.</strong> Quota is active; LimitRange is not yet. Create a Deployment with no <code>resources</code> block:</p>
+<pre><code>kubectl create deployment web --image=nginx:1.29 --replicas=2
+kubectl get pods -l app=web
+kubectl describe rs -l app=web | tail -15</code></pre>
+<p class="expect">Expect: Deployment exists but pods do not become Ready — often zero running pods. ReplicaSet Events mention quota and that pods <strong>must specify requests or limits</strong> for cpu/memory. The Deployment looks fine at a glance; the ReplicaSet tells the truth.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Add LimitRange defaults.</strong> Create <code>limits.yaml</code>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> LimitRange
+<span class="k">metadata:</span>
+  <span class="k">name:</span> homelab-limits
+<span class="k">spec:</span>
+  <span class="k">limits:</span>
+  - <span class="k">type:</span> Container
+    <span class="k">default:</span>
+      <span class="k">cpu:</span> 100m
+      <span class="k">memory:</span> 128Mi
+    <span class="k">defaultRequest:</span>
+      <span class="k">cpu:</span> 50m
+      <span class="k">memory:</span> 64Mi
+    <span class="k">max:</span>
+      <span class="k">cpu:</span> 200m
+      <span class="k">memory:</span> 256Mi</code></pre>
+<pre><code>kubectl apply -f limits.yaml
+kubectl delete deployment web
+kubectl create deployment web --image=nginx:1.29 --replicas=2
+kubectl rollout status deployment/web
+kubectl get pod -l app=web -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[0].resources.requests.cpu}{"\n"}{end}'</code></pre>
+<p class="expect">Expect: two Running pods. Requests show <code>50m</code> — injected by LimitRange, not in your imperative command. <code>describe resourcequota</code> now shows <code>requests.cpu</code> Used around <code>100m</code> (2 × 50m).</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break — exceed namespace total.</strong> Scale past the 300m CPU request cap (6 replicas × 50m = 300m is the ceiling):</p>
+<pre><code>kubectl scale deployment web --replicas=7
+kubectl get pods -l app=web
+kubectl describe rs -l app=web | tail -12
+kubectl describe resourcequota homelab-quota | grep -A6 Used</code></pre>
+<p class="expect">Expect: at most six Running pods; seventh not created. ReplicaSet Events: <code>FailedCreate</code> / <code>exceeded quota</code>. Quota <code>Used</code> at the <code>Hard</code> limit. Deployment desired replicas = 7, actual &lt; 7 — another case where <code>apply</code> or <code>scale</code> succeeding ≠ full health.</p>
+</div>
+
+<div class="step broken"><span class="n">6</span>
+<p><strong>Break — exceed LimitRange max.</strong> Create <code>greedy.yaml</code> — one pod asking above the 200m per-container max:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  <span class="k">name:</span> greedy
+<span class="k">spec:</span>
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> pause
+    <span class="k">image:</span> registry.k8s.io/pause:3.9
+    <span class="k">resources:</span>
+      <span class="k">requests:</span>
+        <span class="k">cpu:</span> 500m
+      <span class="k">limits:</span>
+        <span class="k">cpu:</span> 500m</code></pre>
+<pre><code>kubectl apply -f greedy.yaml</code></pre>
+<p class="expect">Expect: <code>Error from server (Forbidden)</code> — admission rejects at the API, before scheduling. Message references maximum CPU on LimitRange. Different from step 5 (quota aggregate) and lesson 0009 Pending (node allocatable).</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+<p><strong>Fix and clean up.</strong> Scale back, delete lab objects:</p>
+<pre><code>kubectl scale deployment web --replicas=2
+kubectl delete -f greedy.yaml 2&gt;/dev/null; true
+kubectl delete deployment web
+kubectl delete -f limits.yaml -f quota.yaml
+kubectl delete namespace homelab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Three different "blocked" signals:</strong> step 3 — no resources declared under quota (must specify requests). step 5 — namespace total exceeded (ReplicaSet <code>FailedCreate</code>). step 6 — single pod over LimitRange max (<code>403 Forbidden</code> on apply). Match the symptom to the policy layer.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Quota caps requests.cpu at 500m. Pods each request 150m. How many schedule?</p>
+  <button class="opt">Five pods run fine; sixth replica stays uncreated due to quota</button>
+  <button class="opt">Four pods run fine; fifth replica OOMKills due to quota</button>
+  <button class="opt">Three pods run fine; fourth replica stays uncreated due to quota</button>
+  <button class="opt">Two pods run fine; third replica stays uncreated due to quota</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">2. Namespace has ResourceQuota and LimitRange with defaults. Deployment omits resources. Result?</p>
+  <button class="opt">Admission rejects pod; team must set explicit resource requests</button>
+  <button class="opt">LimitRange injects defaults; pod creates if within quota totals</button>
+  <button class="opt">Scheduler injects defaults; pod creates if within quota totals</button>
+  <button class="opt">Kubelet injects defaults; pod creates if within quota totals</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. Pod requests 500m CPU. LimitRange max cpu per container is 200m. Symptom?</p>
+  <button class="opt">kubectl apply returns Forbidden; admission blocks invalid manifest</button>
+  <button class="opt">Pod stays Pending; scheduler cannot find five hundred millicores</button>
+  <button class="opt">Pod runs then OOMKilled; kubelet enforces memory limit cap</button>
+  <button class="opt">Pod runs then throttled; kubelet enforces CPU limit cap</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. ResourceQuota versus a single pod's CPU request. Key difference?</p>
+  <button class="opt">Quota throttles runtime CPU usage; request throttles memory usage</button>
+  <button class="opt">Quota caps one container ceiling; request sums across namespace</button>
+  <button class="opt">Quota runs on kubelet only; request runs on scheduler only</button>
+  <button class="opt">Quota caps summed namespace usage; request is one pod promise</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. Tighter ResourceQuota applied to namespace with running pods. Effect?</p>
+  <button class="opt">Existing pods restart; controller reapplies the tighter resource spec</button>
+  <button class="opt">Existing pods evicted; kubelet enforces the new namespace caps</button>
+  <button class="opt">Existing pods unchanged; new creates may fail admission checks</button>
+  <button class="opt">Existing pods go Pending; scheduler waits for new quota headroom</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Canonical policy docs: <a href="https://kubernetes.io/docs/concepts/policy/resource-quotas/">Resource Quotas — kubernetes.io</a> · <a href="https://kubernetes.io/docs/concepts/policy/limit-range/">Limit Ranges — kubernetes.io</a>. Hands-on walkthrough: <a href="https://kubernetes.io/docs/tasks/administer-cluster/manage-resources/quota-memory-cpu-namespace/">Configure Memory and CPU Quotas for a Namespace</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"Can I quota object counts like Deployments?"</em> · <em>"What happens if two LimitRanges disagree?"</em> · <em>"How do quotas interact with HPA?"</em> (see <a href="0012-horizontal-pod-autoscaler.html">lesson 0012</a>). Report your quiz score when done.</p>
+  <p>Previous: <a href="0010-manifest-authoring-workflow.html">Lesson 0010 — Manifest authoring</a> · <a href="0009-resource-requests-and-limits.html">Lesson 0009 — Resources</a> · <a href="0007-namespaces-and-contexts.html">Lesson 0007 — Namespaces</a> · Reference: <a href="../reference/namespace-resource-policies.html">Namespace policies</a> · <a href="../reference/core-glossary.html#resourcequota">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

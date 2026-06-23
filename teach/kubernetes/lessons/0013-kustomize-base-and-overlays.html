@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0013 — Kustomize: Base &amp; Overlays</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0013 · Kubernetes Fundamentals</p>
+  <h1>Kustomize: Base &amp; Overlays</h1>
+  <p class="subtitle">One app definition, many environments — still plain YAML at the end.</p>
+</header>
+
+<p class="mission">Lesson <a href="0010-manifest-authoring-workflow.html">0010</a> taught scaffold → edit → <code>apply</code>. That works until you maintain <code>app-dev.yaml</code>, <code>app-staging.yaml</code>, and <code>app-prod.yaml</code> that differ in three fields. At work, teams use <strong><a href="../reference/core-glossary.html#kustomize">Kustomize</a></strong> or Helm to stop copy-pasting. Kustomize keeps everything as YAML patches — no template language — and ships inside <code>kubectl</code>. In the homelab, a <code>base/</code> plus <code>overlays/staging/</code> is how you deploy the same app to different namespaces with different replica counts and image tags without maintaining three full manifests.</p>
+
+<h2>The Idea</h2>
+
+<p>Kustomize reads a <code>kustomization.yaml</code> entrypoint, loads listed resources, applies <strong>transformers</strong> (prefix, namespace, image tag, replicas, patches), and emits final manifests <a href="https://kubectl.docs.kubernetes.io/guides/introduction/kustomize/">[docs]</a>:</p>
+
+<pre><code>app/
+├── base/                    <span class="c"># shared skeleton</span>
+│   ├── kustomization.yaml
+│   ├── deployment.yaml
+│   └── service.yaml
+└── overlays/
+    └── staging/             <span class="c"># env-specific deltas</span>
+        ├── kustomization.yaml
+        └── resources-patch.yaml</code></pre>
+
+<table>
+  <tr><th>Concept</th><th>Role</th></tr>
+  <tr><td><strong>Base</strong></td><td>Canonical app — Deployment + Service. Checked into git once.</td></tr>
+  <tr><td><strong>Overlay</strong></td><td>References the base via <code>resources: [../../base]</code> and adds only what differs.</td></tr>
+  <tr><td><strong>Transformers</strong></td><td>Built-in fields in overlay <code>kustomization.yaml</code> — <code>replicas</code>, <code>images</code>, <code>namePrefix</code>, <code>namespace</code>, etc.</td></tr>
+  <tr><td><strong>Patches</strong></td><td>Small YAML fragments merged onto base objects — e.g. tighter resources in staging.</td></tr>
+</table>
+
+<p>Two commands matter:</p>
+
+<pre><code>kubectl kustomize overlays/staging    <span class="c"># preview rendered YAML</span>
+kubectl apply -k overlays/staging     <span class="c"># build + apply in one step</span></pre>
+
+<p>The output is normal Kubernetes objects — same <a href="../reference/core-glossary.html#declarative">declarative</a> <code>apply</code> from lesson 0010. Kustomize is not a runtime component; it is a build step in front of the API.</p>
+
+<p>Patch targets use the resource's <strong>base name</strong> (<code>api</code>), not the transformed name after <code>namePrefix</code> (<code>stg-api</code>). The <code>replicas</code> and <code>images</code> fields work the same way — reference <code>api</code> and <code>nginx</code>, not <code>stg-api</code> or <code>nginx:1.29</code>.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> base is truth; overlay is a recipe of diffs; always preview with <code>kubectl kustomize</code> before <code>apply -k</code>.
+</div>
+
+<p><strong>Kustomize vs Helm:</strong> Helm uses Go templates and packaged charts — good when you need conditionals and packaged releases. Kustomize uses patches on plain YAML — good when diffs between environments are small and you want everything readable in git without <code>{{ }}</code>. Many repos use both; start with Kustomize when the problem is "same app, three namespaces."</p>
+
+<h2>Lab — Base, Staging Overlay, Break a Patch (~30 min)</h2>
+
+<p>OrbStack. You'll build a small Kustomize tree, preview it, apply staging, then break the Service selector with a patch — the lesson <a href="0010-manifest-authoring-workflow.html">0010</a> selector bug, reproduced through overlays. Reference copies live in <code>yaml/kustomize-lab/</code> in this repo.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl cluster-info</code></pre>
+<p class="expect">Expect control plane at <code>https://127.0.0.1:26443</code>. Create a working directory, e.g. <code>mkdir -p ~/kustomize-lab/{base,overlays/staging}</code>.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Write the base.</strong> Three files under <code>base/</code>:</p>
+<pre><code><span class="c"># base/kustomization.yaml</span>
+<span class="k">apiVersion:</span> kustomize.config.k8s.io/v1beta1
+<span class="k">kind:</span> Kustomization
+<span class="k">resources:</span>
+- deployment.yaml
+- service.yaml</code></pre>
+<pre><code><span class="c"># base/deployment.yaml</span>
+<span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> api
+  <span class="k">labels:</span>
+    <span class="k">app:</span> api
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> <span class="c">2</span>
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> api
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> api
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> nginx
+        <span class="k">image:</span> nginx:1.29
+        <span class="k">ports:</span>
+        - <span class="k">containerPort:</span> 80
+        <span class="k">readinessProbe:</span>
+          <span class="k">httpGet:</span>
+            <span class="k">path:</span> /
+            <span class="k">port:</span> 80
+          <span class="k">periodSeconds:</span> 2</code></pre>
+<pre><code><span class="c"># base/service.yaml</span>
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Service
+<span class="k">metadata:</span>
+  <span class="k">name:</span> api
+<span class="k">spec:</span>
+  <span class="k">ports:</span>
+  - <span class="k">port:</span> 80
+    <span class="k">targetPort:</span> 80
+  <span class="k">selector:</span>
+    <span class="k">app:</span> api</code></pre>
+<p>Preview the base alone:</p>
+<pre><code>kubectl kustomize base/</code></pre>
+<p class="expect">Expect: two documents (Deployment + Service), names unchanged, image <code>nginx:1.29</code>, replicas 2.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Write the staging overlay.</strong> Under <code>overlays/staging/</code>:</p>
+<pre><code><span class="c"># overlays/staging/kustomization.yaml</span>
+<span class="k">apiVersion:</span> kustomize.config.k8s.io/v1beta1
+<span class="k">kind:</span> Kustomization
+
+<span class="k">namespace:</span> kustomize-lab
+<span class="k">namePrefix:</span> stg-
+
+<span class="k">resources:</span>
+- ../../base
+
+<span class="k">replicas:</span>
+- <span class="k">name:</span> api
+  <span class="k">count:</span> <span class="c">1</span>
+
+<span class="k">images:</span>
+- <span class="k">name:</span> nginx
+  <span class="k">newTag:</span> <span class="c">"1.27"</span>
+
+<span class="k">patches:</span>
+- <span class="k">path:</span> resources-patch.yaml</code></pre>
+<pre><code><span class="c"># overlays/staging/resources-patch.yaml</span>
+<span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> api
+<span class="k">spec:</span>
+  <span class="k">template:</span>
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> nginx
+        <span class="k">resources:</span>
+          <span class="k">requests:</span>
+            <span class="k">cpu:</span> 50m
+            <span class="k">memory:</span> 64Mi
+          <span class="k">limits:</span>
+            <span class="k">cpu:</span> 200m
+            <span class="k">memory:</span> 128Mi</code></pre>
+<p>Preview the full render — read this output carefully before applying. <strong>This command prints YAML only; nothing reaches the cluster until step 4.</strong></p>
+<pre><code>kubectl kustomize overlays/staging | grep -E '^(  )?(kind:|  name:|namespace:|  replicas:|    image:|    app:)'</code></pre>
+<p class="expect">Expect: namespace <code>kustomize-lab</code>; Deployment/Service named <code>stg-api</code>; replicas <code>1</code>; image <code>nginx:1.27</code>; pod labels and Service selector both still <code>app: api</code>. If <code>kubectl get deploy -n kustomize-lab</code> is empty here, that is normal — you have not applied yet.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Apply staging.</strong> This is the step that actually creates objects — <code>kustomize</code> alone does not:</p>
+<pre><code>kubectl apply -k overlays/staging
+kubectl rollout status deployment/stg-api -n kustomize-lab
+kubectl get pods,svc,endpoints -n kustomize-lab</code></pre>
+<p class="expect">Expect: <code>apply</code> prints <code>deployment.apps/stg-api created</code> and <code>service/stg-api created</code> (or <code>configured</code> on re-run). Then one Running/Ready pod; Service <code>stg-api</code>; endpoints list a pod IP. You do not need to <code>create namespace</code> manually — the overlay's <code>namespace:</code> field handles it.</p>
+<pre><code>kubectl port-forward -n kustomize-lab svc/stg-api 8080:80
+curl -s localhost:8080 | head -n 1</code></pre>
+<p class="expect">Expect: nginx HTML.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break — bad selector patch.</strong> Create <code>overlays/staging/break-selector-patch.yaml</code>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Service
+<span class="k">metadata:</span>
+  <span class="k">name:</span> api
+<span class="k">spec:</span>
+  <span class="k">selector:</span>
+    <span class="k">app:</span> api-typo</code></pre>
+<p>Add it to the overlay <code>patches</code> list in <code>kustomization.yaml</code>, then re-apply:</p>
+<pre><code>kubectl apply -k overlays/staging
+kubectl get endpoints stg-api -n kustomize-lab
+curl -s --connect-timeout 2 localhost:8080 | head -n 1</code></pre>
+<p class="expect">Expect: <code>apply</code> succeeds — no error. Endpoints empty (<code>&lt;none&gt;</code>). Curl fails or hangs. Pods still Running — the bug is in rendered wiring, not pod health. Preview catches it:</p>
+<pre><code>kubectl kustomize overlays/staging | grep -A2 'kind: Service' -m1
+kubectl kustomize overlays/staging | grep -E 'selector:|app:'</code></pre>
+<p class="expect">Expect: Service selector <code>app: api-typo</code>, pod template labels <code>app: api</code> — mismatch visible in rendered output before apply, if you look.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Fix and clean up.</strong> Remove the break patch from <code>kustomization.yaml</code> (or fix selector to <code>app: api</code>). Diff, re-apply, verify endpoints:</p>
+<pre><code>kubectl diff -k overlays/staging
+kubectl apply -k overlays/staging
+kubectl get endpoints stg-api -n kustomize-lab
+kubectl delete -k overlays/staging</code></pre>
+<p class="expect">Expect: diff shows selector change; endpoints repopulated; delete removes all overlay resources and namespace.</p>
+</div>
+
+<div class="warn">
+  <strong>Two preview habits:</strong> step 3 — inspect rendered names, tags, and replicas before apply. step 5 — a patch can break selectors while pods stay healthy; <code>kubectl kustomize</code> shows the wiring, <code>get endpoints</code> confirms it on the cluster. Same lesson as 0010, different tool.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Staging needs one replica; production keeps two. Where do you declare that?</p>
+  <button class="opt">Duplicate deployment.yaml in each overlay with different replica fields</button>
+  <button class="opt">Edit base/deployment.yaml before every staging deploy</button>
+  <button class="opt">Staging overlay kustomization.yaml replicas field targeting base name api</button>
+  <button class="opt">kubectl scale after apply -k because Kustomize cannot change replicas</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. Overlay has <code>namePrefix: stg-</code>. Strategic-merge patch metadata.name should be?</p>
+  <button class="opt">api — the base resource name before prefix transform</button>
+  <button class="opt">stg-api — the prefixed name after transform applies</button>
+  <button class="opt">staging-api — a new name combining prefix and base</button>
+  <button class="opt">api-stg — suffix form required when namePrefix is set</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">3. Container image is <code>nginx:1.29</code>. Overlay should retag to 1.27 only in staging. Correct images entry?</p>
+  <button class="opt">name nginx:1.29 with newTag 1.27 in overlay kustomization.yaml</button>
+  <button class="opt">name nginx:1.29 with newName nginx and newTag 1.27 in overlay</button>
+  <button class="opt">name registry.io/nginx with newTag 1.27 in overlay kustomization.yaml</button>
+  <button class="opt">name nginx with newTag 1.27 in overlay kustomization.yaml</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">4. After <code>kubectl apply -k overlays/staging</code>, pods Ready but Service unreachable. First check?</p>
+  <button class="opt">Re-run apply -k because Kustomize apply is eventually consistent</button>
+  <button class="opt">Render with kubectl kustomize and compare Service selector to pod labels</button>
+  <button class="opt">Delete the overlay namespace because patches cannot be rolled back</button>
+  <button class="opt">Switch to Helm because Kustomize cannot patch Service objects</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. Kustomize overlay vs Helm chart for the same three-environment problem. Key difference?</p>
+  <button class="opt">Kustomize runs on cluster; Helm runs only on developer laptops</button>
+  <button class="opt">Kustomize uses Go templates; Helm uses YAML patches only</button>
+  <button class="opt">Kustomize patches plain YAML; Helm templates with values and packaged charts</button>
+  <button class="opt">Kustomize replaces kubectl apply; Helm still requires apply -f manually</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Kustomize intro: <a href="https://kubectl.docs.kubernetes.io/guides/introduction/kustomize/">Introduction to Kustomize — kubectl docs</a> · Overlays: <a href="https://kubectl.docs.kubernetes.io/guides/config_management/offices/">Offices scenario (base + overlay)</a> · Built into kubectl: <code>kubectl apply -k</code> · <a href="https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/">Declarative Management of Kubernetes Objects Using Kustomize</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"How do configMapGenerator hashes work?"</em> · <em>"When would I use JSON6902 patches?"</em> · <em>"Can one overlay reference another overlay?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0010-manifest-authoring-workflow.html">Lesson 0010 — Manifest authoring</a> · Next: <a href="0014-helm-charts-and-releases.html">Lesson 0014 — Helm</a> · Reference: <a href="../reference/kustomize.html">Kustomize patterns</a> · <a href="../reference/core-glossary.html#kustomize">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

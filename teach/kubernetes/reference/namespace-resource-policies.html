@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LimitRange &amp; ResourceQuota — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>LimitRange &amp; ResourceQuota</h1>
+  <p class="subtitle">Quick reference — namespace guardrails above per-pod requests/limits.</p>
+</header>
+
+<h2>Three layers</h2>
+<table>
+  <tr><th>Layer</th><th>Object</th><th>Scope</th><th>Question it answers</th></tr>
+  <tr><td>Pod</td><td><code>resources</code> in container spec</td><td>One container</td><td>How much does <em>this</em> container promise and may use? <a href="resource-management.html">[lesson 0009]</a></td></tr>
+  <tr><td>Namespace</td><td><a href="core-glossary.html#limitrange">LimitRange</a></td><td>Each pod/PVC in namespace</td><td>What defaults apply? What min/max per container?</td></tr>
+  <tr><td>Namespace</td><td><a href="core-glossary.html#resourcequota">ResourceQuota</a></td><td>Sum across namespace</td><td>How much can <em>all workloads here</em> consume in total?</td></tr>
+</table>
+
+<h2>ResourceQuota manifest</h2>
+<pre><code>apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-a-quota
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    pods: "20"
+    count/deployments.apps: "10"</code></pre>
+
+<p>Common <code>hard</code> keys: <code>requests.cpu</code>, <code>requests.memory</code>, <code>limits.cpu</code>, <code>limits.memory</code>, <code>pods</code>, <code>count/&lt;resource&gt;</code> (object counts). <code>cpu</code> is shorthand for <code>requests.cpu</code>; <code>memory</code> for <code>requests.memory</code>.</p>
+
+<h2>LimitRange manifest</h2>
+<pre><code>apiVersion: v1
+kind: LimitRange
+metadata:
+  name: team-a-limits
+spec:
+  limits:
+  - type: Container
+    default:           # injected limit if omitted
+      cpu: 500m
+      memory: 256Mi
+    defaultRequest:    # injected request if omitted
+      cpu: 100m
+      memory: 128Mi
+    max:               # per-container ceiling
+      cpu: "2"
+      memory: 2Gi
+    min:               # per-container floor
+      cpu: 50m
+      memory: 64Mi</code></pre>
+
+<h2>Who enforces what</h2>
+<table>
+  <tr><th>Policy</th><th>When checked</th><th>Typical failure</th></tr>
+  <tr><td>LimitRange</td><td>Pod admission (create/update)</td><td><code>403 Forbidden</code> — exceeds min/max; or defaults injected then validated</td></tr>
+  <tr><td>ResourceQuota</td><td>Pod admission (create/update)</td><td><code>403 Forbidden</code> — would exceed namespace aggregate</td></tr>
+  <tr><td>ResourceQuota (via controller)</td><td>ReplicaSet/Deployment scale-out</td><td>ReplicaSet <code>FailedCreate</code> — quota already at cap; Deployment looks healthy, pods missing</td></tr>
+</table>
+
+<div class="note">
+  <strong>Neither policy retrofits running pods.</strong> Tightening a quota or LimitRange does not restart or evict existing pods — only new creates/updates are blocked. Plan capacity changes accordingly.
+</div>
+
+<h2>Quota + missing resources</h2>
+<p>When a namespace has a ResourceQuota on <code>cpu</code> or <code>memory</code>, every new pod must declare <code>requests</code> or <code>limits</code> for that resource — otherwise admission may reject it. A LimitRange with <code>defaultRequest</code> / <code>default</code> fills the gap so teams do not have to remember on every manifest.</p>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td><code>Forbidden: exceeded quota</code> on apply</td><td>Namespace aggregate would exceed <code>hard</code></td><td><code>kubectl describe resourcequota</code> — <code>Used</code> vs <code>Hard</code></td></tr>
+  <tr><td>Deployment ready but replicas short</td><td>ReplicaSet blocked by quota</td><td><code>kubectl describe rs</code> Events → <code>FailedCreate</code></td></tr>
+  <tr><td><code>Forbidden: maximum cpu</code> on apply</td><td>Pod exceeds LimitRange <code>max</code></td><td><code>kubectl describe limitrange</code></td></tr>
+  <tr><td>Pod rejected: must specify requests</td><td>Quota on cpu/memory but no LimitRange defaults</td><td>Add LimitRange defaults or set resources in manifest</td></tr>
+  <tr><td>Pending + <code>must be ≤ limit</code></td><td>Request &gt; limit after LimitRange default injection</td><td>Set both request and limit explicitly; ensure request ≤ limit</td></tr>
+</table>
+
+<h2>Useful commands</h2>
+<pre><code>kubectl get resourcequota,limitrange
+kubectl describe resourcequota &lt;name&gt;    # Used / Hard
+kubectl describe limitrange &lt;name&gt;     # defaults, min, max
+kubectl describe rs &lt;name&gt;             # FailedCreate from quota
+kubectl describe quota -n &lt;ns&gt;         # shorthand alias</code></pre>
+
+<footer>
+  Lesson: <a href="../lessons/0011-limitrange-and-resourcequota.html">0011 — LimitRange &amp; ResourceQuota</a> · Per-pod resources: <a href="resource-management.html">Resource management</a> · HPA interaction: <a href="horizontal-pod-autoscaler.html">Horizontal Pod Autoscaler</a> · Canonical: <a href="https://kubernetes.io/docs/concepts/policy/resource-quotas/">Resource Quotas</a> · <a href="https://kubernetes.io/docs/concepts/policy/limit-range/">Limit Ranges</a>
+</footer>
+</body>
+</html>

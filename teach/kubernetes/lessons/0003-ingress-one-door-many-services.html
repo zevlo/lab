@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 — Ingress: One Door, Many Services</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0003 · Kubernetes Fundamentals</p>
+  <h1>Ingress: One Door, Many Services</h1>
+  <p class="subtitle">HTTP routing as desired state — and your first hand-written manifest.</p>
+</header>
+
+<p class="mission">In <a href="0002-services-and-the-networking-model.html">lesson 0002</a> you exposed one app with one LoadBalancer on one port. Now scale that thought to your homelab: a dashboard, a media server, a wiki, a Grafana… one LoadBalancer <em>each</em>, every one on its own port you have to remember? In the cloud, each one is a billable load balancer. The grown-up answer is <strong>one door with a routing table</strong> — and that's Ingress.</p>
+
+<h2>The Idea</h2>
+
+<p>An <strong><a href="../reference/core-glossary.html#ingress">Ingress</a></strong> is an API object that holds HTTP routing rules: <em>requests for this hostname (or path) go to that Service</em> <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">[docs]</a>. Two things to hold onto:</p>
+
+<ul>
+  <li><strong>An Ingress is pure data.</strong> By itself it routes nothing — exactly like a Deployment is "pure data" until controllers act on it. The acting part is an <strong><a href="../reference/core-glossary.html#ingress-controller">Ingress controller</a></strong>: a reverse proxy running <em>in</em> the cluster that watches Ingress objects and reconfigures itself to match <a href="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/">[docs]</a>. You already know this shape — it's the <a href="0001-desired-state-and-the-control-loop.html">control loop</a>, applied to HTTP routing. Desired state: your rules. Actual state: the proxy's live config.</li>
+  <li><strong>Ingress routes to Services, not pods.</strong> Each rule's backend names a Service and a port. The Ingress controller gets traffic to the Service; the Service's selector (lesson 0002) takes it from there. Each layer solves one problem.</li>
+</ul>
+
+<p>Most clusters make you install a controller. OrbStack does not ship one — you'll install <strong>Traefik</strong> once via Helm (skip if you already have it from a prior lesson). After install, it gets a LoadBalancer Service reachable at <code>*.k8s.orb.local</code> from your Mac <a href="https://docs.orbstack.dev/kubernetes">[OrbStack docs]</a>.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> Ingress is a routing table stored as desired state; a controller (Traefik) is the thermostat that keeps a real reverse proxy matching it.
+</div>
+
+<h2>Lab — One Door, Two Apps (~20 min)</h2>
+
+<p>Against OrbStack. This lab includes your first hand-written manifest <em>and</em> a deliberately broken stage — you've earned it.</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>One-time setup</strong> — install Traefik if you don't already have an Ingress controller:</p>
+<pre><code>helm repo add traefik https://traefik.github.io/charts
+helm repo update
+helm install traefik traefik/traefik</code></pre>
+<p class="expect">Expect: release <code>traefik</code> deployed. <code>kubectl get svc traefik</code> shows type <code>LoadBalancer</code> with ports <code>80</code> and <code>443</code>.</p>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p>Confirm Traefik is alive and holding the door:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl get pods -l app.kubernetes.io/name=traefik
+kubectl get svc traefik</code></pre>
+<p class="expect">Expect: a running <code>traefik-…</code> pod, and a Service of type <code>LoadBalancer</code> with ports <code>80</code> and <code>443</code>. That's the one door.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>Deploy two different apps, each with a plain ClusterIP Service — no LoadBalancers this time:</p>
+<pre><code>kubectl create deployment hello --image=nginx --replicas=2
+kubectl expose deployment hello --port=80
+
+kubectl create deployment whoami --image=traefik/whoami --replicas=2
+kubectl expose deployment whoami --port=80</code></pre>
+<p class="expect"><code>whoami</code> is a tiny server that echoes back which pod served you — perfect for watching routing and load-balancing happen.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p>Now write your first manifest. Create a file called <code>ingress.yaml</code> (anywhere, e.g. your workspace) with exactly this:</p>
+<pre><code><span class="k">apiVersion:</span> networking.k8s.io/v1
+<span class="k">kind:</span> Ingress
+<span class="k">metadata:</span>
+  <span class="k">name:</span> front-door
+<span class="k">spec:</span>
+  <span class="k">ingressClassName:</span> traefik
+  <span class="k">rules:</span>
+  - <span class="k">host:</span> hello.k8s.orb.local
+    <span class="k">http:</span>
+      <span class="k">paths:</span>
+      - <span class="k">path:</span> /
+        <span class="k">pathType:</span> Prefix
+        <span class="k">backend:</span>
+          <span class="k">service:</span>
+            <span class="k">name:</span> hello
+            <span class="k">port:</span>
+              <span class="k">number:</span> 80
+  - <span class="k">host:</span> whoami.k8s.orb.local
+    <span class="k">http:</span>
+      <span class="k">paths:</span>
+      - <span class="k">path:</span> /
+        <span class="k">pathType:</span> Prefix
+        <span class="k">backend:</span>
+          <span class="k">service:</span>
+            <span class="k">name:</span> whoami
+            <span class="k">port:</span>
+              <span class="k">number:</span> 80</code></pre>
+<p>Read it before applying — per the mission, you should be able to predict what the cluster will do. Two rules, two hostnames, two Service backends. <a href="../reference/core-glossary.html#ingressclass"><code>ingressClassName</code></a> says <em>which</em> controller handles it. Then declare it:</p>
+<pre><code>kubectl apply -f ingress.yaml
+kubectl get ingress</code></pre>
+<p class="expect">Expect: <code>front-door</code> with hosts <code>hello.k8s.orb.local,whoami.k8s.orb.local</code>.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p>Knock on the door. Same port, different hostnames, different apps:</p>
+<pre><code>curl -s http://hello.k8s.orb.local | head -n 4
+curl -s http://whoami.k8s.orb.local
+curl -s http://whoami.k8s.orb.local   <span class="c"># run it a few times</span></code></pre>
+<p class="expect">Expect: nginx HTML from the first; from <code>whoami</code>, a report including <code>Hostname: whoami-…</code> — and across repeated calls, the hostname <em>alternates between the two pods</em>. You're watching Service-level load balancing through the Ingress. OrbStack resolves <code>*.k8s.orb.local</code> on your Mac automatically — <a href="http://hello.k8s.orb.local">http://hello.k8s.orb.local</a> and <a href="http://whoami.k8s.orb.local">http://whoami.k8s.orb.local</a> work in a browser too.</p>
+</div>
+
+<div class="warn">
+  <strong>If <code>hello.k8s.orb.local</code> doesn't answer:</strong> confirm Traefik is running (<code>kubectl get svc traefik</code>), the Ingress exists (<code>kubectl get ingress</code>), and OrbStack Kubernetes is started (<code>orb start k8s</code>). Hostnames must match your Ingress rules exactly — <code>*.k8s.orb.local</code>, not <code>*.localhost</code>.
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Diagnose and fix.</strong> Break it on purpose: in <code>ingress.yaml</code>, change the <code>whoami</code> backend's port <code>number: 80</code> to <code>number: 8080</code>, then re-apply and probe:</p>
+<pre><code>kubectl apply -f ingress.yaml
+curl -s http://whoami.k8s.orb.local</code></pre>
+<p class="expect">Expect: an error from Traefik instead of a pod report. Before reading on — diagnose it yourself with:</p>
+<pre><code>kubectl describe ingress front-door</code></pre>
+<p class="expect">Look at the <code>Backends</code> column: the whoami rule now points at <code>whoami:8080</code>. Depending on your kubectl version it may or may not flag an explicit error — the reliable tell is the <em>mismatch itself</em>. Cross-check with <code>kubectl get svc whoami</code>: the Service exposes no port 8080, so the controller has nowhere to send traffic. The route is only as good as the Service behind it. Fix the port back to <code>80</code>, re-apply, confirm the curl works again. <em>This exact mismatch — Ingress port vs Service port vs container port — is one of the most common real-world Kubernetes tickets.</em></p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p>Clean up (note the symmetry: you declared with a file, you delete with the same file):</p>
+<pre><code>kubectl delete -f ingress.yaml
+kubectl delete deployment hello whoami
+kubectl delete service hello whoami</code></pre>
+</div>
+
+<h2>Quiz — No Peeking</h2>
+<p>From memory, as always.</p>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. With no Ingress controller installed, what does an Ingress object do?</p>
+  <button class="opt">Opens port 80 on every node</button>
+  <button class="opt">Creates a LoadBalancer for each rule</button>
+  <button class="opt">Nothing; it is only routing data</button>
+  <button class="opt">Routes traffic using the API server</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. What's the main advantage of Ingress over a LoadBalancer Service per app?</p>
+  <button class="opt">One entry point routes to many different services</button>
+  <button class="opt">It encrypts all traffic between pods by default</button>
+  <button class="opt">It gives every service its own external IP</button>
+  <button class="opt">It works without any Services existing at all</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">3. On OrbStack, which component actually implements your Ingress rules?</p>
+  <button class="opt">The kube-proxy on each node</button>
+  <button class="opt">The bundled Traefik ingress controller</button>
+  <button class="opt">The API server's routing module</button>
+  <button class="opt">The kubelet's built-in web proxy</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. An Ingress rule's backend points to…</p>
+  <button class="opt">A pod name and its IP</button>
+  <button class="opt">A deployment and its replica count</button>
+  <button class="opt">A node and its external address</button>
+  <button class="opt">A Service name and a port</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. You curl your Ingress host and get an error page from Traefik. Best first move?</p>
+  <button class="opt">Describe the ingress and check its backends</button>
+  <button class="opt">Restart Traefik to reload its routing rules</button>
+  <button class="opt">Delete and recreate the ingress object entirely</button>
+  <button class="opt">Reboot the node to clear stale routes</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>The canonical treatment: <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress — kubernetes.io</a>, with <a href="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/">Ingress Controllers</a> as the short companion. For your specific door: <a href="https://docs.k3s.io/networking/networking-services#traefik-ingress-controller">Traefik on k3s — k3s docs</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"How do I add TLS/HTTPS to this Ingress?"</em> · <em>"How would I use real hostnames for my homelab instead of *.k8s.orb.local?"</em> · <em>"What's the Gateway API and should I care yet?"</em> Report your quiz score — it steers lesson 0004.</p>
+  <p>Previous: <a href="0002-services-and-the-networking-model.html">Lesson 0002 — Services &amp; the Networking Model</a> · Reference: <a href="../reference/core-glossary.html#ingress">Core Glossary — Ingress</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kustomize — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kustomize</h1>
+  <p class="subtitle">Quick reference — base + overlays, no template language.</p>
+</header>
+
+<h2>What it is</h2>
+<p><a href="core-glossary.html#kustomize">Kustomize</a> builds Kubernetes YAML from a <strong>base</strong> plus environment <strong>overlays</strong> — patches, name prefixes, image tags, replica counts — without <code>{{ .Values }}</code> templating. Built into <code>kubectl</code> (<code>-k</code> flag). Output is plain manifests you still <code>apply</code>; same control loop as lesson 0010.</p>
+
+<h2>Directory layout</h2>
+<pre><code>app/
+├── base/
+│   ├── kustomization.yaml    # lists resources
+│   ├── deployment.yaml
+│   └── service.yaml
+└── overlays/
+    ├── staging/
+    │   ├── kustomization.yaml  # references ../../base + transforms
+    │   └── resources-patch.yaml
+    └── production/
+        └── kustomization.yaml</code></pre>
+
+<h2>base/kustomization.yaml</h2>
+<pre><code>apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- deployment.yaml
+- service.yaml</code></pre>
+
+<h2>overlay/kustomization.yaml</h2>
+<pre><code>apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kustomize-lab
+namePrefix: stg-
+
+resources:
+- ../../base
+
+replicas:
+- name: api          # base metadata.name, before prefix
+  count: 1
+
+images:
+- name: nginx        # image name without tag
+  newTag: "1.27"
+
+patches:
+- path: resources-patch.yaml</code></pre>
+
+<h2>Common transformers</h2>
+<table>
+  <tr><th>Field</th><th>Effect</th></tr>
+  <tr><td><code>resources</code></td><td>YAML files or paths to other kustomization directories</td></tr>
+  <tr><td><code>namespace</code></td><td>Set namespace on all resources; creates if missing on apply</td></tr>
+  <tr><td><code>namePrefix</code> / <code>nameSuffix</code></td><td>Prefix/suffix resource names and references</td></tr>
+  <tr><td><code>replicas</code></td><td>Override Deployment/ReplicaSet replica count by base name</td></tr>
+  <tr><td><code>images</code></td><td>Retag (or rename) container images</td></tr>
+  <tr><td><code>patches</code></td><td>Strategic-merge or JSON6902 patches; target base names pre-transform</td></tr>
+  <tr><td><code>configMapGenerator</code></td><td>Build ConfigMaps from files/literals; hash suffix on name</td></tr>
+</table>
+
+<h2>Commands</h2>
+<pre><code>kubectl kustomize overlays/staging          # render to stdout — preview
+kubectl apply -k overlays/staging           # build + apply
+kubectl diff -k overlays/staging            # diff rendered output vs cluster
+kubectl delete -k overlays/staging          # delete what -k would apply</code></pre>
+
+<h2>Patch rules</h2>
+<p>Strategic-merge patches reference the resource's <strong>base</strong> <code>metadata.name</code> (e.g. <code>api</code>), not the prefixed name (<code>stg-api</code>). Kustomize applies transformers first conceptually, but patch targets use pre-transform identifiers.</p>
+
+<h2>Kustomize vs Helm</h2>
+<table>
+  <tr><th></th><th>Kustomize</th><th>Helm</th></tr>
+  <tr><td>Mechanism</td><td>Overlays + patches on YAML</td><td>Go templates + <code>values.yaml</code></td></tr>
+  <tr><td>Logic</td><td>None — no loops/conditionals in core</td><td>Full templating</td></tr>
+  <tr><td>Ship model</td><td>Plain dirs in git</td><td>Charts (packaged tarballs)</td></tr>
+  <tr><td>End state</td><td><code>kubectl apply -k</code></td><td><code>helm install/upgrade</code></td></tr>
+</table>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td><code>kustomize build</code> error: no matches</td><td>Wrong <code>resources</code> path to base</td><td>Path relative to overlay dir</td></tr>
+  <tr><td>Apply OK, endpoints empty</td><td>Patch broke Service selector vs pod labels</td><td><code>kubectl kustomize … | grep -A2 selector</code></td></tr>
+  <tr><td>Image not retagged</td><td><code>images.name</code> doesn't match image repo name</td><td>Render and inspect <code>image:</code> field</td></tr>
+  <tr><td>Replicas unchanged</td><td><code>replicas.name</code> wrong (not base name)</td><td><code>kubectl kustomize</code> output</td></tr>
+</table>
+
+<div class="note">
+  <strong>Rule of thumb:</strong> always <code>kubectl kustomize</code> (preview) before <code>apply -k</code>. If behavior surprises you, diff the <em>rendered</em> YAML — not just the patch files.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0013-kustomize-base-and-overlays.html">0013 — Kustomize</a> · Next: <a href="helm.html">Helm</a> · Prior: <a href="manifest-authoring.html">Manifest authoring</a> · Canonical: <a href="https://kubectl.docs.kubernetes.io/guides/introduction/kustomize/">Kustomize — kubectl docs</a>
+</footer>
+</body>
+</html>

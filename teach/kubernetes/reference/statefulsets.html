@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StatefulSets — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>StatefulSets</h1>
+  <p class="subtitle">Quick reference — stable names, ordered rollout, PVC per pod.</p>
+</header>
+
+<h2>What it is</h2>
+<p>A <a href="core-glossary.html#statefulset">StatefulSet</a> manages pods that need <strong>stable identity</strong> and <strong>stable storage</strong>. Pod names are predictable (<code>web-0</code>, <code>web-1</code>); each ordinal gets its own PVC from <code>volumeClaimTemplates</code>. Contrast with a <a href="core-glossary.html#deployment">Deployment</a>, which treats pods as interchangeable.</p>
+
+<h2>Deployment vs StatefulSet</h2>
+<table>
+  <tr><th></th><th>Deployment</th><th>StatefulSet</th></tr>
+  <tr><td>Pod names</td><td>Random suffix (<code>web-7d4f9-abc12</code>)</td><td>Stable ordinal (<code>web-0</code>, <code>web-1</code>)</td></tr>
+  <tr><td>Storage</td><td>Usually shared PVC or none</td><td><code>volumeClaimTemplates</code> → one PVC per pod</td></tr>
+  <tr><td>Scale order</td><td>Parallel</td><td>Sequential (0, then 1, then 2…)</td></tr>
+  <tr><td>DNS</td><td>Service load-balances to any pod</td><td>Headless Service → per-pod DNS</td></tr>
+  <tr><td>Typical use</td><td>Stateless APIs</td><td>Databases, queues, clustered apps</td></tr>
+</table>
+
+<h2>Required pieces</h2>
+<pre><code>Headless Service          StatefulSet
+clusterIP: None     +     serviceName: &lt;same name&gt;
+                          volumeClaimTemplates: …</code></pre>
+
+<h2>Headless Service</h2>
+<pre><code>apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  clusterIP: None          # required for per-pod DNS
+  selector:
+    app: db
+  ports:
+  - port: 80</code></pre>
+<p>DNS: <code>db-0.db.ss-lab.svc.cluster.local</code> resolves to pod <code>db-0</code>'s IP.</p>
+
+<h2>volumeClaimTemplates</h2>
+<p>Template name <code>data</code> + StatefulSet name <code>db</code> + ordinal <code>0</code> → PVC <code>data-db-0</code>. Scale to 2 → auto-creates <code>data-db-1</code>.</p>
+<pre><code>volumeClaimTemplates:
+- metadata:
+    name: data
+  spec:
+    accessModes: [ReadWriteOnce]
+    storageClassName: local-path
+    resources:
+      requests:
+        storage: 1Gi</code></pre>
+
+<h2>Commands</h2>
+<pre><code>kubectl get statefulset,pod,pvc -n NS
+kubectl delete pod db-0 -n NS          # controller recreates db-0, same PVC
+kubectl scale statefulset/db --replicas=2 -n NS
+kubectl delete statefulset db -n NS     # pods go; PVCs often remain</code></pre>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>Pod Pending, PVC Pending</td><td>StorageClass / binding (<a href="persistent-storage.html">PVC patterns</a>)</td><td><code>describe pvc data-NAME-0</code></td></tr>
+  <tr><td>Pod fails after PVC deleted</td><td>StatefulSet does not auto-recreate deleted PVCs</td><td>Delete SS + reapply, or restore PVC</td></tr>
+  <tr><td>Per-pod DNS fails</td><td>Service not headless or <code>serviceName</code> mismatch</td><td><code>get svc -o wide</code> — CLUSTER-IP must be None</td></tr>
+  <tr><td>Scale stuck at N-1</td><td>Prior ordinal not Ready</td><td><code>get pod NAME-N</code> — ordered rollout waits</td></tr>
+</table>
+
+<div class="note">
+  <strong>Rule of thumb:</strong> if the app cares <em>which</em> pod it is or <em>which</em> disk it owns, use a StatefulSet — not a Deployment with a shared PVC.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0016-statefulsets-stable-identity.html">0016 — StatefulSets</a> · Storage: <a href="persistent-storage.html">Persistent storage</a> · Canonical: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/">kubernetes.io — StatefulSet</a>
+</footer>
+</body>
+</html>

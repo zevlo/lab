@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0009 — Resource Requests &amp; Limits: Promises and Ceilings</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0009 · Kubernetes Fundamentals</p>
+  <h1>Resource Requests &amp; Limits: Promises and Ceilings</h1>
+  <p class="subtitle">What the scheduler reserves vs what the kubelet enforces.</p>
+</header>
+
+<p class="mission">Lesson <a href="0001-desired-state-and-the-control-loop.html">0001</a> introduced the <a href="../reference/core-glossary.html#scheduler">scheduler</a> picking a node for each pod. Lesson <a href="0005-probes-catching-the-quiet-failures.html">0005</a> showed the <a href="../reference/core-glossary.html#kubelet">kubelet</a> enforcing health. Resource requests and limits are the third leg: you declare how much CPU and memory a container needs, and two different components act on those numbers. At work, missing limits let one runaway pod starve everything on a node. In the homelab, a single OrbStack node makes that pain immediate — there is nowhere else to hide.</p>
+
+<h2>The Idea</h2>
+
+<p>Every container can declare two numbers per resource (CPU, memory) inside <code>resources</code> <a href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">[docs]</a>:</p>
+
+<table>
+  <tr><th>Field</th><th>Who uses it</th><th>What it means</th></tr>
+  <tr><td><code>requests</code></td><td><strong>Scheduler</strong></td><td>"I need <em>at least</em> this much to run here." The scheduler subtracts all pods' requests from a node's <a href="../reference/core-glossary.html#allocatable">allocatable</a> capacity before placing yours.</td></tr>
+  <tr><td><code>limits</code></td><td><strong>kubelet</strong> (cgroups)</td><td>"Never let me use more than this." Enforced on the running process.</td></tr>
+</table>
+
+<pre><code><span class="k">resources:</span>
+  <span class="k">requests:</span>
+    <span class="k">cpu:</span> <span class="c">"100m"</span>       <span class="c"># 0.1 core — scheduling promise</span>
+    <span class="k">memory:</span> <span class="c">"128Mi"</span>
+  <span class="k">limits:</span>
+    <span class="k">cpu:</span> <span class="c">"500m"</span>       <span class="c"># ceiling — runtime enforcement</span>
+    <span class="k">memory:</span> <span class="c">"256Mi"</span></code></pre>
+
+<p>The asymmetry that bites people in production:</p>
+
+<table>
+  <tr><th>Resource</th><th>Over the limit</th><th>Typical symptom</th></tr>
+  <tr><td><strong>CPU</strong></td><td>Throttled (compressible)</td><td>Slower; rarely killed</td></tr>
+  <tr><td><strong>Memory</strong></td><td><a href="../reference/core-glossary.html#oomkilled">OOMKilled</a> (incompressible)</td><td>Exit 137; <code>CrashLoopBackOff</code> if the process keeps allocating</td></tr>
+</table>
+
+<p>Three more pieces worth knowing now (details in the <a href="../reference/resource-management.html">reference</a>):</p>
+<ul>
+  <li><strong>Units.</strong> CPU: cores or millicores (<code>100m</code> = 0.1 core). Memory: binary (<code>Mi</code>, <code>Gi</code>) — not MB/GB.</li>
+  <li><strong>QoS class.</strong> Kubernetes assigns Guaranteed / Burstable / BestEffort from how requests and limits relate — affects eviction order under memory pressure <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/">[docs]</a>.</li>
+  <li><strong>Pending vs crashing.</strong> Impossible <em>requests</em> → pod stays <code>Pending</code> (<code>Insufficient cpu</code> in Events). Memory <em>limit</em> too tight → pod runs, then gets OOMKilled. Different fields, different failure modes — watch the right signal.</li>
+</ul>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> <code>requests</code> are a scheduling promise ("fit me on a node with room"); <code>limits</code> are a runtime ceiling ("kill or throttle me if I exceed this").
+</div>
+
+<h2>Lab — Reserve, OOM, and Pending (~25 min)</h2>
+
+<p>Against OrbStack. Namespace <code>homelab</code>. You'll deploy a memory stressor twice — once broken, once fixed — then trigger a scheduling failure.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong> See what your single node actually has to give:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl create namespace homelab --dry-run=client -o yaml | kubectl apply -f -
+kubectl config set-context --current --namespace=homelab
+kubectl get nodes
+kubectl describe node | grep -A6 Allocatable
+kubectl describe node | grep -A12 "Allocated resources"</code></pre>
+<p class="expect">Expect: one node (e.g. <code>orbstack</code>). <code>Allocatable</code> shows CPU (often ~4–8 cores) and memory (often several Gi). <code>Allocated resources</code> sums existing pods' <em>requests</em> — mostly system pods so far.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>Create <code>stress.yaml</code> — a pod that allocates memory on purpose, with a tight limit:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  <span class="k">name:</span> mem-stress
+<span class="k">spec:</span>
+  <span class="k">restartPolicy:</span> Never
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> stress
+    <span class="k">image:</span> polinux/stress
+    <span class="k">command:</span> [<span class="c">"stress"</span>]
+    <span class="k">args:</span> [<span class="c">"--vm"</span>, <span class="c">"1"</span>, <span class="c">"--vm-bytes"</span>, <span class="c">"200M"</span>, <span class="c">"--vm-hang"</span>, <span class="c">"1"</span>]
+    <span class="k">resources:</span>
+      <span class="k">requests:</span>
+        <span class="k">memory:</span> <span class="c">"64Mi"</span>
+        <span class="k">cpu:</span> <span class="c">"100m"</span>
+      <span class="k">limits:</span>
+        <span class="k">memory:</span> <span class="c">"64Mi"</span>   <span class="c"># intentionally too small for 200M allocation</span></code></pre>
+<pre><code>kubectl apply -f stress.yaml
+kubectl get pod mem-stress -w   <span class="c"># Ctrl+C once STATUS settles</span></code></pre>
+<p class="expect">Expect: pod reaches <code>Error</code> or <code>OOMKilled</code> quickly — not <code>Running</code> for long. The container asked for 200M; the cgroup cap is 64Mi.</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Diagnose the OOM.</strong> Watch the <em>container termination reason</em>, not probe state:</p>
+<pre><code>kubectl describe pod mem-stress | tail -20
+kubectl get pod mem-stress -o jsonpath='{.status.containerStatuses[0].lastState.terminated.reason}{"\n"}'</code></pre>
+<p class="expect">Expect: <code>Reason: OOMKilled</code>, exit code <code>137</code>. Events may mention memory limit. This is the kubelet enforcing <code>limits.memory</code> — not a liveness restart, not a scheduling problem.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Fix it.</strong> Raise the memory limit (and request) above what stress allocates — e.g. <code>256Mi</code> — and re-apply. Because <code>restartPolicy: Never</code>, delete first:</p>
+<pre><code>kubectl delete pod mem-stress
+<span class="c"># edit stress.yaml: memory request and limit → 256Mi</span>
+kubectl apply -f stress.yaml
+kubectl get pod mem-stress -w</code></pre>
+<p class="expect">Expect: <code>Running</code> then <code>Completed</code> (stress exits cleanly after hanging). Optional — if metrics-server is installed: <code>kubectl top pod mem-stress</code> while Running.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break scheduling.</strong> Create <code>greedy.yaml</code> — same image, impossible CPU <em>request</em>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Pod
+<span class="k">metadata:</span>
+  <span class="k">name:</span> greedy
+<span class="k">spec:</span>
+  <span class="k">containers:</span>
+  - <span class="k">name:</span> pause
+    <span class="k">image:</span> registry.k8s.io/pause:3.9
+    <span class="k">resources:</span>
+      <span class="k">requests:</span>
+        <span class="k">cpu:</span> <span class="c">"999"</span>   <span class="c"># more cores than any single node has</span></code></pre>
+<pre><code>kubectl apply -f greedy.yaml
+kubectl get pod greedy
+kubectl describe pod greedy | tail -12</code></pre>
+<p class="expect">Expect: <code>Pending</code> indefinitely. Events: <code>FailedScheduling</code> / <code>Insufficient cpu</code>. The scheduler cannot find a node whose <em>allocatable</em> minus existing <em>requests</em> fits 999 CPU. No OOM — the pod never started.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Fix and clean up.</strong> Delete the impossible pod; remove lab objects:</p>
+<pre><code>kubectl delete -f greedy.yaml
+kubectl delete -f stress.yaml
+kubectl delete namespace homelab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Don't confuse the two breaks:</strong> step 3 — pod ran, then <code>OOMKilled</code> (limit too low). step 5 — pod never runs, stays <code>Pending</code> (request too high). Same <code>resources</code> block, different fields, different components.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="0">
+  <p class="stem">1. Which field does the scheduler use when choosing a node?</p>
+  <button class="opt">Scheduler uses requests; limits only cap runtime usage</button>
+  <button class="opt">Scheduler uses limits; requests only cap runtime usage</button>
+  <button class="opt">Scheduler uses status.phase; limits only cap runtime usage</button>
+  <button class="opt">Scheduler uses labels; requests only cap runtime usage</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. A container exceeds its memory limit while running. What happens?</p>
+  <button class="opt">kubelet OOMKills the container; memory is not compressible</button>
+  <button class="opt">scheduler evicts the pod; memory is not compressible</button>
+  <button class="opt">CPU throttling slows it; memory is not compressible</button>
+  <button class="opt">readiness probe fails; memory is not compressible</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. A container keeps hitting its CPU limit under heavy load. Symptom?</p>
+  <button class="opt">Process keeps running but slower; CPU limits are compressible</button>
+  <button class="opt">Process is OOMKilled immediately; CPU limits are compressible</button>
+  <button class="opt">Pod stays Pending forever; CPU limits are compressible</button>
+  <button class="opt">Ingress returns five hundred three; CPU limits are compressible</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">4. Pod is Pending; Events say Insufficient cpu. Likely cause?</p>
+  <button class="opt">Sum of requests exceeds node allocatable CPU capacity</button>
+  <button class="opt">Memory limit is below what the container actually needs</button>
+  <button class="opt">Liveness probe failed past threshold; container keeps restarting</button>
+  <button class="opt">Image tag is wrong; kubelet cannot pull from registry</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. Memory request 128Mi, memory limit 256Mi (CPU unset). QoS class?</p>
+  <button class="opt">Burstable; request and limit differ for this resource</button>
+  <button class="opt">Guaranteed; request and limit match for every resource</button>
+  <button class="opt">BestEffort; no requests or limits appear in spec</button>
+  <button class="opt">Pending; scheduler cannot find any node with capacity</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>The canonical page for this topic: <a href="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/">Manage Resources for Containers — kubernetes.io</a>. QoS classes: <a href="https://kubernetes.io/docs/concepts/workloads/pods/pod-qos/">Pod Quality of Service Classes</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"Should requests always equal limits?"</em> · <em>"What is LimitRange vs ResourceQuota?"</em> · <em>"How do I see CPU throttling in metrics?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0008-tls-on-ingress.html">Lesson 0008 — TLS</a> · <a href="0001-desired-state-and-the-control-loop.html">Lesson 0001 — Control loop</a> · Reference: <a href="../reference/resource-management.html">Resource management</a> · <a href="../reference/core-glossary.html#resource-request">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

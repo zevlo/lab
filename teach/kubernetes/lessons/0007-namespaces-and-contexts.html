@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0007 — Namespaces &amp; Contexts: Knowing Where You Are</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0007 · Kubernetes Fundamentals</p>
+  <h1>Namespaces &amp; Contexts: Knowing Where You Are</h1>
+  <p class="subtitle">Scope on the cluster; aim on the terminal.</p>
+</header>
+
+<p class="mission">Every lesson so far landed in <code>default</code>. That was fine while you were learning mechanics — but a homelab with media, monitoring, and experiments in one undifferentiated bucket becomes a debugging nightmare, and at work "I deployed it" without "to <em>where</em>" is how you overwrite a teammate's service. Namespaces carve the cluster into isolated scopes; contexts tell <code>kubectl</code> which cluster — and which default namespace — you're talking to.</p>
+
+<h2>The Idea</h2>
+
+<p>A <strong><a href="../reference/core-glossary.html#namespace">namespace</a></strong> is a scope boundary inside one cluster <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/">[docs]</a>. Most objects you've met — Pods, Deployments, Services, ConfigMaps, Secrets — are <em>namespaced</em>: their names must be unique within a namespace, but two namespaces can each have a Deployment called <code>web</code> without conflict.</p>
+
+<p>Namespaces are <strong>not</strong> hard security walls by themselves (RBAC does that — later). They <em>are</em> how you organize workloads, avoid naming collisions, and attach policy per team or environment. The official docs recommend not running production in <code>default</code> — for your homelab, think <code>homelab</code>, <code>media</code>, <code>monitoring</code> instead.</p>
+
+<p>Some objects are <strong>cluster-scoped</strong> — they have no namespace. You've interacted with Nodes implicitly; StorageClasses and PersistentVolumes are others. Quick check anytime:</p>
+<pre><code>kubectl api-resources --namespaced=true   <span class="c"># Pod, Deployment, Service, …</span>
+kubectl api-resources --namespaced=false  <span class="c"># Node, Namespace, StorageClass, …</span></code></pre>
+
+<p>This ties back to <a href="0002-services-and-the-networking-model.html">lesson 0002</a>: cluster DNS gives a Service the short name <code>web</code> <em>within its own namespace</em>. From elsewhere you need the FQDN: <code>web.homelab.svc.cluster.local</code> <a href="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/">[docs]</a>. Same config file, different namespaces — that's how dev/staging/prod patterns work.</p>
+
+<p>And <a href="0006-configmaps-and-secrets.html">lesson 0006</a>: ConfigMaps and Secrets are namespace-scoped too. A Pod can only reference a ConfigMap in the <em>same</em> namespace.</p>
+
+<table>
+  <tr><th>Mechanism</th><th>What it controls</th><th>Example</th></tr>
+  <tr><td><code>-n</code> / <code>--namespace</code></td><td>Target for <em>this command</em></td><td><code>kubectl get pods -n homelab</code></td></tr>
+  <tr><td><code>metadata.namespace</code> in YAML</td><td>Where the object <em>lives</em></td><td><code>namespace: homelab</code> on a Deployment</td></tr>
+  <tr><td>Context default namespace</td><td>What <code>kubectl</code> assumes when you omit both</td><td><code>kubectl config set-context --current --namespace=homelab</code></td></tr>
+</table>
+
+<p>A <strong><a href="../reference/core-glossary.html#context">context</a></strong> is a triple: cluster + credentials + default namespace <a href="https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/">[docs]</a>. Stored in your kubeconfig (<code>~/.kube/config</code>; OrbStack also writes cluster config under <code>~/.orbstack/k8s/</code>). Right now you likely have one cluster (<code>orbstack</code>) but you still have a current context — and its default namespace is probably <code>default</code>.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> namespaces are <em>where on the cluster</em>; context (and <code>-n</code>) is <em>where kubectl is looking right now</em>.
+</div>
+
+<h2>Lab — Scope, Aim, Mis-aim (~25 min)</h2>
+
+<p>Against OrbStack. You'll create a <code>homelab</code> namespace, prove isolation, cross a namespace boundary with DNS, then trigger the classic "I deployed it but can't see it" mistake.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong> Before touching anything, know your aim:</p>
+<pre><code>kubectl config use-context orbstack
+kubectl config current-context
+kubectl config view --minify
+kubectl get namespaces</code></pre>
+<p class="expect">Expect: context <code>orbstack</code>, default namespace likely <code>default</code> (or empty, which means default). Four built-in namespaces: <code>default</code>, <code>kube-system</code>, <code>kube-public</code>, <code>kube-node-lease</code>.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p>Create <code>homelab.yaml</code> — a namespace, a Deployment, and a Service, all scoped to <code>homelab</code>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Namespace
+<span class="k">metadata:</span>
+  <span class="k">name:</span> homelab
+---
+<span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> web
+  <span class="k">namespace:</span> homelab
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> 2
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> web
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> web
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> nginx
+        <span class="k">image:</span> nginx:1.29
+---
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Service
+<span class="k">metadata:</span>
+  <span class="k">name:</span> web
+  <span class="k">namespace:</span> homelab
+<span class="k">spec:</span>
+  <span class="k">selector:</span>
+    <span class="k">app:</span> web
+  <span class="k">ports:</span>
+  - <span class="k">port:</span> 80</code></pre>
+<pre><code>kubectl apply -f homelab.yaml
+kubectl get pods
+kubectl get pods -n homelab
+kubectl get pods -A | grep web</code></pre>
+<p class="expect">Expect: plain <code>kubectl get pods</code> shows <strong>nothing new</strong> (you're still aimed at <code>default</code>). <code>-n homelab</code> shows two Running pods. <code>-A</code> shows them with the <code>homelab</code> column — your first move when pods "vanish."</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Set your default aim.</strong> Pin the current context to <code>homelab</code> so you can drop <code>-n</code> for this session:</p>
+<pre><code>kubectl config set-context --current --namespace=homelab
+kubectl config view --minify | grep namespace:
+kubectl get pods</code></pre>
+<p class="expect">Expect: two web pods without typing <code>-n</code>. This is a preference in your kubeconfig — not a cluster change.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Cross-namespace DNS.</strong> Create a second namespace and a probe pod that tries to reach <code>web</code>:</p>
+<pre><code>kubectl create namespace sandbox
+kubectl run probe -n sandbox --image=curlimages/curl --restart=Never --command -- sleep 3600
+kubectl wait -n sandbox --for=condition=Ready pod/probe --timeout=60s</code></pre>
+<p>Short name (resolves inside <code>sandbox</code> only — there is no <code>web</code> Service here):</p>
+<pre><code>kubectl exec -n sandbox probe -- curl -s -o /dev/null -w "%{http_code}" --connect-timeout 2 http://web/ || echo " failed"</code></pre>
+<p>FQDN (reaches <code>homelab</code>'s Service):</p>
+<pre><code>kubectl exec -n sandbox probe -- curl -s -o /dev/null -w "%{http_code}" http://web.homelab.svc.cluster.local/</code></pre>
+<p class="expect">Expect: short name fails or times out; FQDN returns <code>200</code>. Same Service name, different scope — DNS needs the namespace in the path when you cross the boundary.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break it — the invisible deploy.</strong> Reset your context aim to <code>default</code>:</p>
+<pre><code>kubectl config set-context --current --namespace=default</code></pre>
+<p>Create <code>api.yaml</code> — a Deployment named <code>api</code> with <strong>no</strong> <code>metadata.namespace</code> field:</p>
+<pre><code><span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> Deployment
+<span class="k">metadata:</span>
+  <span class="k">name:</span> api
+<span class="k">spec:</span>
+  <span class="k">replicas:</span> 1
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> api
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> api
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> nginx
+        <span class="k">image:</span> nginx:1.29</code></pre>
+<p>You <em>intend</em> this for homelab. Apply, then look where you expect it:</p>
+<pre><code>kubectl apply -f api.yaml
+kubectl get pods -n homelab
+kubectl get deploy -n homelab</code></pre>
+<p class="expect">Expect: nothing named <code>api</code> in <code>homelab</code>. The deploy succeeded — just not where you were looking. Find it:</p>
+<pre><code>kubectl get deploy -A | grep api
+kubectl get pods -A | grep api</code></pre>
+<p class="expect">Expect: <code>api</code> landed in <code>default</code> because both your context default namespace and the YAML omitted an explicit scope. <strong>The cluster did exactly what you asked.</strong> This is the #1 namespace bug in the wild.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Fix it.</strong> Delete the stray deploy and re-create it in the right scope — pick one style and stick to it in your homelab:</p>
+<pre><code>kubectl delete -f api.yaml
+
+<span class="c"># Option A: namespace in YAML</span></code></pre>
+<p>Add <code>namespace: homelab</code> under <code>metadata</code> in <code>api.yaml</code>, then:</p>
+<pre><code>kubectl apply -f api.yaml
+kubectl get deploy -n homelab</code></pre>
+<p>Or <strong>Option B</strong>: keep context aimed at homelab (<code>kubectl config set-context --current --namespace=homelab</code>) and always verify with <code>kubectl config view --minify</code> before applying.</p>
+<p class="expect">Expect: <code>api</code> visible in <code>homelab</code>. Best practice: set <code>metadata.namespace</code> in the manifest <em>and</em> know your current context — belt and suspenders.</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+<p>Clean up. Deleting a namespace deletes everything inside it:</p>
+<pre><code>kubectl delete -f api.yaml
+kubectl delete -f homelab.yaml
+kubectl delete namespace sandbox
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Containment check:</strong> if a co-worker says "the site still works" while a deploy looks missing, you may be looking at the wrong namespace — same class of illusion as lesson 0006 step 4. Run <code>kubectl get pods -A</code> before assuming failure.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="0">
+  <p class="stem">1. Namespace <code>dev</code> and namespace <code>prod</code> each have a Deployment named <code>api</code>. Why is this allowed?</p>
+  <button class="opt">Names must be unique within a namespace, not cluster-wide</button>
+  <button class="opt">Kubernetes auto-renames the second Deployment to api-2</button>
+  <button class="opt">The scheduler places them on different nodes by default</button>
+  <button class="opt">RBAC blocks duplicate Deployment names across namespaces</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. <code>kubectl get pods</code> shows nothing, but your teammate sees Running pods. Best first diagnostic?</p>
+  <button class="opt">Run kubectl get pods across all namespaces next</button>
+  <button class="opt">Restart kubelet on every node in the cluster now</button>
+  <button class="opt">Delete and recreate the default namespace right away</button>
+  <button class="opt">Assume the cluster is empty; redeploy everything now</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">3. A pod in <code>staging</code> must reach Service <code>db</code> in namespace <code>production</code>. Which hostname works?</p>
+  <button class="opt">The short name db resolves correctly from staging</button>
+  <button class="opt">The name db.staging.svc.cluster.local resolves correctly</button>
+  <button class="opt">The name db.production.svc.cluster.local resolves correctly</button>
+  <button class="opt">The ingress path production/db resolves correctly here</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">4. Which of these API objects is never scoped to a namespace?</p>
+  <button class="opt">Deployment objects are always scoped to namespaces</button>
+  <button class="opt">Secret objects are always scoped to namespaces here</button>
+  <button class="opt">Node objects are never scoped to namespaces ever</button>
+  <button class="opt">ConfigMap objects are always scoped to namespaces</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. You want kubectl commands to default to <code>homelab</code> without typing <code>-n</code>. What do you set?</p>
+  <button class="opt">The current context default namespace preference</button>
+  <button class="opt">The Deployment metadata labels namespace field</button>
+  <button class="opt">The Service spec clusterIP namespace field value</button>
+  <button class="opt">The kube-system namespace annotation on every pod</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Read the official concept page first: <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/">Namespaces — kubernetes.io</a>. For hands-on subdivision and DNS behavior: <a href="https://kubernetes.io/docs/tasks/administer-cluster/namespaces/">Share a Cluster with Namespaces</a>. For kubeconfig and contexts: <a href="https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/">Configure Access to Multiple Clusters</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"Should my homelab use one namespace per app or per environment?"</em> · <em>"How does RBAC interact with namespaces?"</em> · <em>"What's the difference between context and KUBECONFIG?"</em> Report your quiz score — it steers lesson 0008.</p>
+  <p>Previous: <a href="0006-configmaps-and-secrets.html">Lesson 0006 — ConfigMaps &amp; Secrets</a> · Reference: <a href="../reference/namespaces-contexts.html">Namespaces &amp; Contexts</a> · <a href="../reference/core-glossary.html#namespace">Core Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

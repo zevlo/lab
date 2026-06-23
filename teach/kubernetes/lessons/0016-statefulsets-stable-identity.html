@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0016 — StatefulSets: Stable Identity</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0016 · Kubernetes Fundamentals</p>
+  <h1>StatefulSets: Stable Identity</h1>
+  <p class="subtitle">Predictable pod names, one disk each, ordered scaling.</p>
+</header>
+
+<p class="mission">Lesson <a href="0015-persistent-volumes-and-claims.html">0015</a> wired a PVC into a bare Pod. That works for a demo — but a Postgres Helm chart does not create loose Pods. It creates a <strong><a href="../reference/core-glossary.html#statefulset">StatefulSet</a></strong>: pod <code>postgres-0</code> always maps to PVC <code>data-postgres-0</code>, and if the pod dies, the replacement is still <code>postgres-0</code> on the same disk. At work, any clustered database, Kafka broker, or etcd member uses this pattern. In the homelab, it is what separates "I mounted a volume once" from "I can run a real database."</p>
+
+<h2>The Idea</h2>
+
+<p>A <a href="../reference/core-glossary.html#deployment">Deployment</a> treats pods as interchangeable — random suffixes, parallel rollouts, any pod can serve traffic. A StatefulSet gives each replica a <strong>stable identity</strong> <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/">[docs]</a>:</p>
+
+<table>
+  <tr><th>Property</th><th>Deployment</th><th>StatefulSet</th></tr>
+  <tr><td>Pod name</td><td><code>web-6d4b8c-x7k2m</code> (random)</td><td><code>web-0</code>, <code>web-1</code> (ordinal)</td></tr>
+  <tr><td>Storage</td><td>You wire PVCs manually; often shared or none</td><td><code>volumeClaimTemplates</code> → PVC per ordinal</td></tr>
+  <tr><td>Scale-up</td><td>All replicas at once</td><td>Ordered: 0 Ready, then 1, then 2…</td></tr>
+  <tr><td>Network identity</td><td>Service load-balances to any pod</td><td><a href="../reference/core-glossary.html#headless-service">Headless Service</a> → DNS per pod</td></tr>
+</table>
+
+<p>Two objects work together:</p>
+
+<pre><code>Headless Service (clusterIP: None)
+       +
+StatefulSet (serviceName: matches Service name)
+  ├── pod db-0  ──▶  PVC data-db-0
+  └── pod db-1  ──▶  PVC data-db-1   (when replicas: 2)</code></pre>
+
+<p><code>volumeClaimTemplates</code> is the StatefulSet superpower from lesson 0015: instead of creating PVCs yourself, the controller creates <code>&lt;templateName&gt;-&lt;statefulsetName&gt;-&lt;ordinal&gt;</code> — e.g. template <code>data</code> + StatefulSet <code>db</code> + pod <code>db-0</code> → PVC <code>data-db-0</code>.</p>
+
+<p>Delete pod <code>db-0</code> → the StatefulSet controller recreates <code>db-0</code> (not <code>db-0-xyz</code>), remounting <code>data-db-0</code>. Delete a Deployment pod → replacement gets a new random name; unless you wired storage carefully, it may not remount the same claim.</p>
+
+<div class="note">
+  <strong>The mental model in one line:</strong> Deployment = cattle; StatefulSet = pets with name tags and their own hard drives.
+</div>
+
+<p>Per-pod DNS (via the headless Service): <code>db-0.db.ss-lab.svc.cluster.local</code> resolves to pod <code>db-0</code>'s IP — peers can find each other by hostname in clustered apps.</p>
+
+<h2>Lab — Headless Service, StatefulSet, Break a PVC (~30 min)</h2>
+
+<p>OrbStack. Needs StorageClass <code>local-path</code> from lesson 0015. You'll deploy a one-replica StatefulSet, prove stable identity + persistence, scale to two, then break by deleting a PVC. Files in e.g. <code>~/ss-lab/</code>.</p>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Orient.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl get storageclass local-path</code></pre>
+<p class="expect">Expect <code>local-path</code> present. If missing, re-run the provisioner install from lesson 0015 step 1.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Deploy headless Service + StatefulSet.</strong> Save as <code>ss-lab.yaml</code>:</p>
+<pre><code><span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Namespace
+<span class="k">metadata:</span>
+  <span class="k">name:</span> ss-lab
+---
+<span class="k">apiVersion:</span> v1
+<span class="k">kind:</span> Service
+<span class="k">metadata:</span>
+  <span class="k">name:</span> db
+  <span class="k">namespace:</span> ss-lab
+<span class="k">spec:</span>
+  <span class="k">clusterIP:</span> None
+  <span class="k">selector:</span>
+    <span class="k">app:</span> db
+  <span class="k">ports:</span>
+  - <span class="k">port:</span> 80
+    <span class="k">name:</span> http
+---
+<span class="k">apiVersion:</span> apps/v1
+<span class="k">kind:</span> StatefulSet
+<span class="k">metadata:</span>
+  <span class="k">name:</span> db
+  <span class="k">namespace:</span> ss-lab
+<span class="k">spec:</span>
+  <span class="k">serviceName:</span> db
+  <span class="k">replicas:</span> 1
+  <span class="k">selector:</span>
+    <span class="k">matchLabels:</span>
+      <span class="k">app:</span> db
+  <span class="k">template:</span>
+    <span class="k">metadata:</span>
+      <span class="k">labels:</span>
+        <span class="k">app:</span> db
+    <span class="k">spec:</span>
+      <span class="k">containers:</span>
+      - <span class="k">name:</span> app
+        <span class="k">image:</span> busybox:1.36
+        <span class="k">command:</span> ["/bin/sh", "-c", "echo ordinal-0-$(date +%s) > /data/id.txt && sleep 3600"]
+        <span class="k">volumeMounts:</span>
+        - <span class="k">name:</span> data
+          <span class="k">mountPath:</span> /data
+  <span class="k">volumeClaimTemplates:</span>
+  - <span class="k">metadata:</span>
+      <span class="k">name:</span> data
+    <span class="k">spec:</span>
+      <span class="k">accessModes:</span>
+      - ReadWriteOnce
+      <span class="k">storageClassName:</span> local-path
+      <span class="k">resources:</span>
+        <span class="k">requests:</span>
+          <span class="k">storage:</span> 64Mi</code></pre>
+<pre><code>kubectl apply -f ss-lab.yaml
+kubectl get svc db -n ss-lab
+kubectl get statefulset,pod,pvc -n ss-lab</code></pre>
+<p class="expect">Expect Service with <code>CLUSTER-IP</code> <code>None</code>. StatefulSet <code>db</code> with <code>READY 1/1</code>. Pod named <code>db-0</code> (not a random suffix). PVC <code>data-db-0</code> Bound.</p>
+<pre><code>kubectl exec -n ss-lab db-0 -- cat /data/id.txt</code></pre>
+<p class="expect">Expect line like <code>ordinal-0-1718822400</code>. Note the timestamp.</p>
+</div>
+
+<div class="step"><span class="n">3</span>
+<p><strong>Stable identity — delete the pod, not the claim.</strong></p>
+<pre><code>kubectl delete pod db-0 -n ss-lab
+kubectl get pod db-0 -n ss-lab -w</code></pre>
+<p class="expect">Expect a new pod still named <code>db-0</code> (watch until Running). Same PVC <code>data-db-0</code> — not recreated.</p>
+<pre><code>kubectl exec -n ss-lab db-0 -- cat /data/id.txt</code></pre>
+<p class="expect">Expect the <strong>same</strong> timestamp as step 2. Contrast with a Deployment: deleted pod would return as <code>db-&lt;new-hash&gt;</code>.</p>
+</div>
+
+<div class="step"><span class="n">4</span>
+<p><strong>Ordered scale-up — one PVC per ordinal.</strong></p>
+<pre><code>kubectl scale statefulset db --replicas=2 -n ss-lab
+kubectl get pod -n ss-lab -w</code></pre>
+<p class="expect">Expect <code>db-1</code> appears only after <code>db-0</code> is Ready — ordered rollout. Two PVCs: <code>data-db-0</code> and <code>data-db-1</code>, each Bound.</p>
+<pre><code>kubectl exec -n ss-lab db-1 -- sh -c 'echo ordinal-1-$(date +%s) > /data/id.txt'
+kubectl exec -n ss-lab db-1 -- cat /data/id.txt</code></pre>
+<p class="expect">Expect <code>ordinal-1-…</code> on <code>db-1</code> only — separate disks per ordinal.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break — delete a StatefulSet PVC.</strong> The controller does not recreate claims you delete manually:</p>
+<pre><code>kubectl delete pvc data-db-1 -n ss-lab
+kubectl get pod db-1 -n ss-lab
+kubectl describe pod db-1 -n ss-lab | tail -n 12</code></pre>
+<p class="expect">Expect pod <code>db-1</code> failing or stuck — events mention missing volume or failed mount. Pod <code>db-0</code> and PVC <code>data-db-0</code> are fine. This is why ops runbooks say: never <code>kubectl delete pvc</code> on StatefulSet storage unless you mean permanent data loss.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Fix and clean up.</strong> Simplest recovery — tear down and redeploy:</p>
+<pre><code>kubectl delete statefulset db -n ss-lab
+kubectl delete pvc --all -n ss-lab
+kubectl delete svc db -n ss-lab
+kubectl delete namespace ss-lab</code></pre>
+<p class="expect">Expect all pods, PVCs, and namespace gone. Re-applying <code>ss-lab.yaml</code> would start fresh with new PVCs.</p>
+</div>
+
+<div class="warn">
+  <strong>StatefulSet storage rule:</strong> PVCs created from <code>volumeClaimTemplates</code> survive StatefulSet deletion by default — data outlives the controller. Scale-down removes pods but keeps their PVCs too. Plan cleanup explicitly; do not assume <code>delete statefulset</code> wipes disks.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="1">
+  <p class="stem">1. Pod <code>db-0</code> deleted. Deployment vs StatefulSet — what name does the replacement get?</p>
+  <button class="opt">Deployment and StatefulSet both recreate a pod named db-0 every time</button>
+  <button class="opt">Deployment gets random suffix; StatefulSet recreates db-0 with same ordinal</button>
+  <button class="opt">StatefulSet gets random suffix; Deployment always keeps ordinal zero</button>
+  <button class="opt">Both controllers refuse to recreate pods; you must scale manually</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">2. StatefulSet <code>db</code> with <code>volumeClaimTemplates</code> name <code>data</code>, two replicas. PVC names?</p>
+  <button class="opt">One shared PVC data bound by both db-0 and db-1 pods together</button>
+  <button class="opt">data-0 and data-1 with no StatefulSet name in the claim name</button>
+  <button class="opt">db-data and db-data-copy created only when the second pod fails</button>
+  <button class="opt">data-db-0 and data-db-1 one claim per ordinal from the template</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. Per-pod DNS <code>db-0.db.ss-lab.svc.cluster.local</code> requires which Service setting?</p>
+  <button class="opt">clusterIP None on a headless Service matching spec serviceName</button>
+  <button class="opt">type LoadBalancer on a Service exposing port eighty externally</button>
+  <button class="opt">type NodePort on a Service with publishNotReadyAddresses false</button>
+  <button class="opt">clusterIP auto assigned on any ClusterIP Service with one selector</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">4. Scale StatefulSet from two replicas to one. What happens to <code>data-db-1</code> PVC?</p>
+  <button class="opt">Kubernetes deletes data-db-1 automatically when db-1 pod terminates</button>
+  <button class="opt">data-db-1 merges into data-db-0 so one pod holds both datasets</button>
+  <button class="opt">PVC usually remains; scale-down removes pod not its claim by default</button>
+  <button class="opt">PVC must be deleted manually before scale-down or API rejects it</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. Helm Postgres pod Pending; <code>data-postgres-0</code> PVC Pending. After lesson 0015 fixes binding, what controller likely owns this pod?</p>
+  <button class="opt">HorizontalPodAutoscaler because databases always autoscale on CPU metrics</button>
+  <button class="opt">StatefulSet because chart gives each replica stable name and own PVC</button>
+  <button class="opt">ReplicaSet directly with no Deployment or StatefulSet wrapper layer</button>
+  <button class="opt">DaemonSet because Postgres must run on every node in the cluster</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>StatefulSet concept: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/">StatefulSet</a> · Headless Services: <a href="https://kubernetes.io/docs/concepts/services-networking/service/#headless-services">Service — headless</a> · Walkthrough: <a href="https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/">Run a Replicated Stateful Application</a> · Volume claim templates: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#volume-claim-templates">StatefulSet storage</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"What happens on StatefulSet rolling update?"</em> · <em>"When is a Deployment with one PVC enough?"</em> · <em>"How do Helm charts set podManagementPolicy?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0015-persistent-volumes-and-claims.html">Lesson 0015 — Persistent volumes</a> · <a href="0014-helm-charts-and-releases.html">Lesson 0014 — Helm</a> · Reference: <a href="../reference/statefulsets.html">StatefulSets</a> · <a href="../reference/persistent-storage.html">Persistent storage</a> · <a href="../reference/core-glossary.html#statefulset">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

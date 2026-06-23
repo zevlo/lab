@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horizontal Pod Autoscaler — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Horizontal Pod Autoscaler</h1>
+  <p class="subtitle">Quick reference — automatic replica count from metrics.</p>
+</header>
+
+<h2>What it does</h2>
+<p><a href="core-glossary.html#hpa">HPA</a> is a controller that watches metrics and patches a workload's <code>spec.replicas</code> to keep utilization near a target. It scales the <em>Deployment</em> (or StatefulSet, etc.) — the Deployment's ReplicaSet then creates or removes pods, same as manual <code>kubectl scale</code>.</p>
+
+<table>
+  <tr><th>Component</th><th>Role</th></tr>
+  <tr><td><strong>HPA controller</strong></td><td>Reads metrics → computes desired replicas → updates workload <code>spec.replicas</code></td></tr>
+  <tr><td><strong>metrics-server</strong></td><td>Aggregates pod CPU/memory usage from kubelets; powers <code>kubectl top</code> and resource metrics for HPA</td></tr>
+  <tr><td><strong>Deployment / ReplicaSet</strong></td><td>Creates pods to match the replica count HPA sets</td></tr>
+  <tr><td><strong>Scheduler</strong></td><td>Places new pods using <a href="core-glossary.html#resource-request">requests</a> — HPA does not bypass allocatable limits</td></tr>
+</table>
+
+<h2>CPU utilization formula</h2>
+<p>For <code>type: Resource</code> / <code>cpu</code> / <code>Utilization</code>:</p>
+<pre><code>utilization = (sum of pod CPU usage) / (sum of pod CPU requests) × 100%</code></pre>
+<p>Every pod in the metric must declare <code>resources.requests.cpu</code>. Missing requests → metrics show <code>&lt;unknown&gt;</code> and HPA cannot scale on CPU.</p>
+
+<h2>Manifest (autoscaling/v2)</h2>
+<pre><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: php-apache
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: php-apache
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50</code></pre>
+
+<p>Imperative shortcut (same object):</p>
+<pre><code>kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=5</code></pre>
+
+<h2>OrbStack setup (one-time)</h2>
+<p>OrbStack does not include metrics-server. Install it, then enable pod-level stats:</p>
+<pre><code>helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+helm upgrade --install metrics-server metrics-server/metrics-server \
+  --namespace kube-system --create-namespace</code></pre>
+<p>Kubelet configuration (OrbStack Settings → Kubernetes → Kubelet Configuration):</p>
+<pre><code>apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+featureGates:
+  PodAndContainerStatsFromCRI: true</code></pre>
+<p>Restart Kubernetes in OrbStack after editing. Verify: <code>kubectl get apiservice v1beta1.metrics.k8s.io</code> → Available; <code>kubectl top pod -A</code> works.</p>
+
+<h2>Prerequisites checklist</h2>
+<table>
+  <tr><th>Requirement</th><th>Verify</th></tr>
+  <tr><td>metrics-server running</td><td><code>kubectl get apiservice v1beta1.metrics.k8s.io</code> → Available; <code>kubectl top nodes</code> works</td></tr>
+  <tr><td>CPU requests on target pods</td><td><code>kubectl get pod -o jsonpath='{.items[0].spec.containers[0].resources.requests.cpu}'</code></td></tr>
+  <tr><td>scaleTargetRef correct</td><td><code>kubectl describe hpa</code> — no <code>FailedGetScale</code> events</td></tr>
+</table>
+
+<h2>HPA vs manual scale</h2>
+<p><code>kubectl scale</code> changes replicas immediately, but HPA reconciles on its loop (default ~15s). If you scale above <code>maxReplicas</code>, HPA scales back down. If you scale below <code>minReplicas</code>, HPA scales back up. Long term, HPA owns replica count while it exists.</p>
+
+<h2>Interactions</h2>
+<table>
+  <tr><th>Policy / object</th><th>Effect on HPA</th></tr>
+  <tr><td><a href="core-glossary.html#resourcequota">ResourceQuota</a> (<code>pods</code> or CPU requests)</td><td>HPA may request more replicas than quota allows — ReplicaSet <code>FailedCreate</code>, partial scale-out</td></tr>
+  <tr><td>Node allocatable</td><td>New pods may stay <code>Pending</code> if requests exceed free capacity — HPA desired &gt; running</td></tr>
+  <tr><td><a href="core-glossary.html#rolling-update">RollingUpdate</a></td><td>Pod template changes do not delete HPA; it keeps adjusting replicas on the new template</td></tr>
+  <tr><td><a href="core-glossary.html#readiness-probe">Readiness</a></td><td>New pods join Service EndpointSlices only when Ready — scale-up ≠ instant traffic capacity</td></tr>
+</table>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>TARGETS <code>&lt;unknown&gt;/50%</code></td><td>Missing CPU requests or metrics-server down</td><td><code>kubectl top pod</code>; pod <code>resources.requests</code></td></tr>
+  <tr><td>REPLICAS stuck below DESIRED</td><td>Quota, scheduling, or image pull</td><td><code>describe rs</code> Events; <code>describe pod</code></td></tr>
+  <tr><td>Load high, no scale-up</td><td>Already at <code>maxReplicas</code>; or stabilization window</td><td><code>kubectl describe hpa</code> Conditions</td></tr>
+  <tr><td><code>kubectl top</code> fails with Metrics API not available</td><td>metrics-server not installed</td><td>Install via Helm or <code>components.yaml</code>; APIService should appear</td></tr>
+  <tr><td><code>top nodes</code> OK, <code>top pod</code> NotFound</td><td>OrbStack kubelet not exposing pod stats</td><td>Add <code>featureGates: PodAndContainerStatsFromCRI: true</code>; restart cluster</td></tr>
+  <tr><td><code>kubectl top</code> fails, APIService exists</td><td>metrics-server pod unhealthy</td><td><code>kubectl get apiservice v1beta1.metrics.k8s.io -o yaml</code>; <code>logs -n kube-system deploy/metrics-server</code></td></tr>
+</table>
+
+<h2>Useful commands</h2>
+<pre><code>kubectl get hpa
+kubectl describe hpa &lt;name&gt;           # Conditions, Events, current metrics
+kubectl top pod                         # sanity-check metrics pipeline
+kubectl get deploy &lt;name&gt; -w            # watch replica count during load
+kubectl autoscale deployment &lt;name&gt; --cpu-percent=50 --min=1 --max=5</code></pre>
+
+<div class="note">
+  <strong>Homelab note:</strong> On OrbStack you may need to install metrics-server and enable the <code>PodAndContainerStatsFromCRI</code> kubelet feature gate. A single node still has finite allocatable CPU — HPA may hit the ceiling before <code>maxReplicas</code>. That is real behavior, not a lab bug.
+</div>
+
+<footer>
+  Lesson: <a href="../lessons/0012-horizontal-pod-autoscaler.html">0012 — Horizontal Pod Autoscaler</a> · Resources: <a href="resource-management.html">Requests &amp; limits</a> · Quotas: <a href="namespace-resource-policies.html">Namespace policies</a> · Canonical: <a href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/">Horizontal Pod Autoscaling</a>
+</footer>
+</body>
+</html>

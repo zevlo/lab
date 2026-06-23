@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Namespaces &amp; Contexts — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Namespaces &amp; Contexts</h1>
+  <p class="subtitle">Quick reference — scope, DNS, and kubectl targeting.</p>
+</header>
+
+<h2>Namespace scope</h2>
+<table>
+  <tr><th>In a namespace</th><th>Cluster-scoped (no namespace)</th></tr>
+  <tr><td>Pod, Deployment, Service, ConfigMap, Secret, Ingress</td><td>Node, Namespace, StorageClass, PersistentVolume, ClusterRole</td></tr>
+</table>
+<p>Names are unique <em>within</em> a namespace, not cluster-wide. Two Deployments can both be named <code>web</code> in different namespaces.</p>
+
+<div class="note">
+  Built-in namespaces: <code>default</code>, <code>kube-system</code>, <code>kube-public</code>, <code>kube-node-lease</code>. Avoid creating namespaces with the <code>kube-</code> prefix.
+</div>
+
+<h2>Cross-namespace DNS</h2>
+<table>
+  <tr><th>From</th><th>To reach Service <code>api</code> in namespace <code>prod</code></th></tr>
+  <tr><td>Same namespace <code>prod</code></td><td><code>api</code> or <code>api.prod.svc.cluster.local</code></td></tr>
+  <tr><td>Different namespace</td><td><code>api.prod.svc.cluster.local</code> (FQDN required)</td></tr>
+</table>
+
+<h2>kubectl targeting</h2>
+<table>
+  <tr><th>Goal</th><th>Command</th></tr>
+  <tr><td>One request</td><td><code>kubectl get pods -n homelab</code></td></tr>
+  <tr><td>All namespaces</td><td><code>kubectl get pods -A</code></td></tr>
+  <tr><td>Default for this shell</td><td><code>kubectl config set-context --current --namespace=homelab</code></td></tr>
+  <tr><td>See current target</td><td><code>kubectl config view --minify</code></td></tr>
+  <tr><td>Switch cluster+defaults</td><td><code>kubectl config use-context orbstack</code></td></tr>
+</table>
+
+<h2>Context = cluster + user + default namespace</h2>
+<pre><code>kubectl config get-contexts
+kubectl config current-context
+kubectl config view --minify</code></pre>
+<p>Config lives in <code>~/.kube/config</code> (OrbStack also writes under <code>~/.orbstack/k8s/</code>). A <strong>context</strong> binds which cluster you talk to, as which user, defaulting to which namespace when you omit <code>-n</code>.</p>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td><code>get pods</code> shows nothing</td><td>Wrong namespace (context default or missing <code>-n</code>)</td><td><code>kubectl get pods -A</code></td></tr>
+  <tr><td><code>not found</code> for ConfigMap/Secret ref</td><td>Object in different namespace than Pod</td><td><code>kubectl get cm,secret -n &lt;ns&gt;</code></td></tr>
+  <tr><td>DNS: connection refused to Service short name</td><td>Service lives in another namespace</td><td>Use FQDN <code>&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code></td></tr>
+  <tr><td>Applied YAML but wrong place</td><td><code>metadata.namespace</code> missing; used context default</td><td><code>kubectl get deploy -A</code></td></tr>
+</table>
+
+<h2>Homelab habit</h2>
+<p>Don't run real workloads in <code>default</code>. Create purpose namespaces (<code>homelab</code>, <code>media</code>, <code>monitoring</code>) and set your context default, or always set <code>metadata.namespace</code> in manifests.</p>
+
+<footer>
+  Introduced in <a href="../lessons/0007-namespaces-and-contexts.html">Lesson 0007</a> · Glossary: <a href="core-glossary.html#namespace">Namespace</a>, <a href="core-glossary.html#context">Context</a>
+</footer>
+</body>
+</html>
