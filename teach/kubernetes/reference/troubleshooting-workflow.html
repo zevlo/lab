@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting Workflow — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Troubleshooting Workflow</h1>
+  <p class="subtitle">Quick reference — SCOPE → STATUS → EVENTS → LOGS → RELATED.</p>
+</header>
+
+<h2>The funnel</h2>
+<p>When something breaks, run the same five steps every time. Do not skip to logs until you know whether a container ever started.</p>
+<pre><code>SCOPE   → Am I looking at the right cluster and namespace?
+STATUS  → What does kubectl get say? (pods, deploy, endpoints)
+EVENTS  → kubectl describe … → Events section (bottom)
+LOGS    → kubectl logs … (add --previous if it crashed)
+RELATED → Upstream/downstream: PVC, Service selector, Ingress, quota</code></pre>
+
+<h2>Scope commands</h2>
+<pre><code>kubectl config current-context
+kubectl get ns
+kubectl get pods -n &lt;ns&gt;
+kubectl get pods -A | grep &lt;name&gt;</code></pre>
+
+<h2>Status vocabulary → first move</h2>
+<table>
+  <tr><th>STATUS / symptom</th><th>Container started?</th><th>First move</th></tr>
+  <tr><td><code>Pending</code></td><td>No</td><td><code>describe pod</code> → scheduler / PVC / quota events</td></tr>
+  <tr><td><code>ImagePullBackOff</code> / <code>ErrImagePull</code></td><td>No</td><td><code>describe pod</code> → image name, registry auth</td></tr>
+  <tr><td><code>CreateContainerConfigError</code></td><td>No</td><td><code>describe pod</code> → missing Secret/ConfigMap, bad mount</td></tr>
+  <tr><td><code>CrashLoopBackOff</code></td><td>Yes, then died</td><td><code>describe</code> → exit code; <code>logs</code> on crashing pod</td></tr>
+  <tr><td><code>OOMKilled</code> (in describe)</td><td>Yes, then killed</td><td><code>describe</code> → memory limit; raise limit or fix leak</td></tr>
+  <tr><td><code>Running</code> but no traffic</td><td>Yes</td><td>EndpointSlice empty → selector vs labels; then Ingress</td></tr>
+  <tr><td>Rollout stuck</td><td>Mixed</td><td><code>rollout status</code> → <code>get rs</code> → describe failing pod</td></tr>
+</table>
+
+<h2>Core commands</h2>
+<pre><code>kubectl get pods -o wide
+kubectl describe pod &lt;pod&gt;
+kubectl logs &lt;pod&gt; [-c &lt;container&gt;] [--previous]
+kubectl get endpointslice -l kubernetes.io/service-name=&lt;svc&gt;
+# get endpoints &lt;svc&gt; — deprecated v1.33+; still works with warning
+kubectl get events --sort-by='.lastTimestamp'
+kubectl rollout status deployment/&lt;name&gt;
+kubectl get rs</code></pre>
+
+<h2>Deploy incidents (after apply/upgrade)</h2>
+<pre><code>kubectl rollout status deployment/&lt;name&gt;   # stuck or progressing?
+kubectl get rs                              # old vs new ReplicaSet
+kubectl describe pod &lt;failing-pod&gt;        # then logs if CrashLoopBackOff</code></pre>
+<p><code>rollout undo</code> recovers fast; production durable fix is usually revert the manifest in Git and <code>apply</code>.</p>
+
+<div class="note">
+  <strong>Golden rule:</strong> if the container never started, there are no application logs — answer is in <code>describe</code> Events. If it started then crashed, <code>describe</code> shows exit code; <code>logs</code> on the crashing pod shows error text.
+</div>
+
+<h2>Diagnose the right object</h2>
+<table>
+  <tr><th>Symptom</th><th>Object to inspect first</th></tr>
+  <tr><td>Pod won't schedule</td><td>Pod <code>describe</code> (scheduler events)</td></tr>
+  <tr><td>Volume won't mount</td><td>PVC <code>describe</code> (binding events)</td></tr>
+  <tr><td>Service returns nothing</td><td>Endpoints / EndpointSlice, then Service selector vs pod labels</td></tr>
+  <tr><td>Ingress 404 / default backend</td><td>Ingress rules + backend Service + endpoints</td></tr>
+  <tr><td>Helm release "failed"</td><td><code>helm status</code> → failing pod → same funnel</td></tr>
+</table>
+
+<h2>Lesson links</h2>
+<p><a href="../lessons/0017-the-troubleshooting-workflow.html">Lesson 0017</a> · <a href="../lessons/0018-pod-failure-modes.html">Lesson 0018</a> · <a href="core-glossary.html#crashloopbackoff">Glossary</a> · <a href="resource-management.html">Resource diagnostics</a> · <a href="persistent-storage.html">Storage diagnostics</a></p>
+
+<footer>
+  Canonical source: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/">Troubleshooting Applications — kubernetes.io</a>
+</footer>
+</body>
+</html>

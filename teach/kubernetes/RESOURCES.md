@@ -50,6 +50,14 @@
   Stable pod identity, ordered deployment, volumeClaimTemplates. Use for: stateful workload controller model.
 - [Task: Run a Replicated Stateful Application](https://kubernetes.io/docs/tasks/run-application/run-replicated-stateful-application/)
   Maintainer MySQL StatefulSet walkthrough (headless Service + templates). Use for: lab design patterns; skip MySQL specifics for fundamentals.
+- [Official Docs: Troubleshooting Applications](https://kubernetes.io/docs/tasks/debug/debug-application/)
+  Hub for debugging containerized apps (not cluster internals). Use for: the canonical troubleshooting task index and links to pod/service/statefulset debug guides.
+- [Task: Debug Pods](https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/)
+  Maintainer walkthrough of pod triage — Pending, crashing, ImagePullBackOff. Use for: lesson design on STATUS → tool mapping.
+- [Task: Determine the Reason for Pod Failure](https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/)
+  How to read termination messages and failure reasons. Use for: CrashLoopBackOff and OOMKilled diagnosis.
+- [Task: Debug Services](https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/)
+  Missing endpoints, selector mismatches, DNS, kube-proxy. Use for: networking-layer troubleshooting lessons.
 - [OrbStack Kubernetes Documentation](https://docs.orbstack.dev/kubernetes)
   Official docs for the user's local cluster environment (service exposure via `*.k8s.orb.local`, kubelet config, Traefik/Ingress setup). Use for: anything specific to how the local lab cluster behaves on macOS.
 - [Kubernetes the Hard Way — Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)

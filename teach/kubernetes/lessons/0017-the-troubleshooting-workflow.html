@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0017 — The Troubleshooting Workflow</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0017 · Kubernetes Fundamentals · Troubleshooting arc</p>
+  <h1>The Troubleshooting Workflow</h1>
+  <p class="subtitle">One repeatable funnel for every incident — pod, service, or rollout.</p>
+</header>
+
+<p class="mission">Sixteen lessons taught you <em>what</em> objects do. At work and in the homelab, the real skill is diagnosing <em>why</em> reality diverged from the manifest — under pressure, often at 2am. This lesson formalizes the workflow scattered across prior labs into a single reflex: <strong>SCOPE → STATUS → EVENTS → LOGS → RELATED</strong>. The next few lessons in this arc drill each layer deeper.</p>
+
+<h2>The Idea</h2>
+
+<p>The official debugging guide starts with triage: <em>what kind of problem is this?</em> <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/">[debug pods]</a> Pods, Services, and rollouts each have different failure modes — but the <strong>inspection order</strong> is the same.</p>
+
+<pre><code>SCOPE   → right cluster? right namespace?
+STATUS  → kubectl get — what does the STATUS column say?
+EVENTS  → kubectl describe → Events (bottom of output)
+LOGS    → kubectl logs (only if a container actually ran)
+RELATED → check the binding: PVC, endpoints, Ingress, quota</code></pre>
+
+<p>Most junior mistakes come from skipping steps or using the wrong tool:</p>
+
+<table>
+  <tr><th>Mistake</th><th>Why it fails</th></tr>
+  <tr><td><code>kubectl logs</code> on a <code>Pending</code> pod</td><td>Container never started — no logs exist</td></tr>
+  <tr><td><code>describe</code> the Service when pods are <code>ImagePullBackOff</code></td><td>Service is fine; the pod is broken</td></tr>
+  <tr><td>Restarting pods when endpoints are empty</td><td>Selector typo — new pods won't help</td></tr>
+  <tr><td>Debugging in <code>default</code> when the app is in <code>staging</code></td><td>Wrong scope — lesson <a href="0007-namespaces-and-contexts.html">0007</a></td></tr>
+</table>
+
+<div class="note">
+  <strong>Golden rule:</strong> read the STATUS column before choosing a tool. <code>ImagePullBackOff</code> and <code>Pending</code> → Events in <code>describe</code>. <code>CrashLoopBackOff</code> → container ran and died → <code>describe</code> shows exit code; <code>logs</code> on the crashing pod shows the error text.
+</div>
+
+<h2>Status vocabulary</h2>
+
+<p>These appear in <code>kubectl get pods</code>. They tell you where in the lifecycle things broke <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/">[docs]</a>:</p>
+
+<table>
+  <tr><th>STATUS</th><th>Meaning</th><th>First move</th></tr>
+  <tr><td><code>Pending</code></td><td>Not scheduled yet (or waiting on volumes)</td><td><code>describe pod</code> → scheduler / PVC events</td></tr>
+  <tr><td><a href="../reference/core-glossary.html#imagepullbackoff"><code>ImagePullBackOff</code></a></td><td>Cannot pull image</td><td><code>describe pod</code> → tag typo, registry auth</td></tr>
+  <tr><td><a href="../reference/core-glossary.html#createcontainerconfigerror"><code>CreateContainerConfigError</code></a></td><td>Missing Secret/ConfigMap or bad mount</td><td><code>describe pod</code> → which ref is missing</td></tr>
+  <tr><td><a href="../reference/core-glossary.html#crashloopbackoff"><code>CrashLoopBackOff</code></a></td><td>Started, crashed, kubelet backing off</td><td><code>describe</code> → exit code; <code>logs</code> on crashing pod</td></tr>
+  <tr><td><code>Running</code> but no traffic</td><td>Container alive; app or routing wrong</td><td><code>logs</code>, then EndpointSlice / endpoints check</td></tr>
+</table>
+
+<p>Full cheat sheet: <a href="../reference/troubleshooting-workflow.html">Troubleshooting Workflow reference</a>.</p>
+
+<h2>Lab — Four breaks, one workflow (~25 min)</h2>
+
+<p>OrbStack, context <code>orbstack</code>. Lab files in <code>yaml/debug-lab/</code>:</p>
+<pre><code>cd ~/projects/teach/kubernetes/yaml/debug-lab
+ls</code></pre>
+<p class="expect">Expect <code>web.yaml</code>, <code>web-bad-image.yaml</code>, <code>web-bad-config.yaml</code>, <code>web-crash.yaml</code>, <code>web-bad-selector.yaml</code>. For each break: run the funnel yourself <em>before</em> reading the fix.</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>SCOPE — confirm cluster, then pin namespace.</strong></p>
+<pre><code>kubectl config current-context
+kubectl get nodes
+kubectl apply -f web.yaml
+kubectl config set-context --current --namespace=debug-lab</code></pre>
+<p class="expect">Expect <code>orbstack</code>. Namespace created; all following commands omit <code>-n</code> because the context default is <code>debug-lab</code>.</p>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Verify healthy app.</strong></p>
+<pre><code>kubectl get pods,svc
+kubectl port-forward svc/web 8080:80 &amp;
+curl -s localhost:8080 | head -n 3</code></pre>
+<p class="expect">Expect pod <code>Running</code>, <code>1/1 Ready</code>. <code>curl</code> returns nginx HTML. Kill port-forward when done (<code>fg</code> then Ctrl-C, or <code>kill %1</code>).</p>
+</div>
+
+<div class="step broken"><span class="n">2</span>
+<p><strong>Break A — bad image tag.</strong> Break via manifest (production-shaped):</p>
+<pre><code>kubectl apply -f web-bad-image.yaml
+kubectl get pods -w</code></pre>
+<p class="expect">Expect STATUS → <code>ImagePullBackOff</code> or <code>ErrImagePull</code>. <strong>Your turn:</strong> run <code>describe</code>, read Events — bad tag or "not found".</p>
+<pre><code>kubectl describe pod -l app=web | tail -n 15</code></pre>
+<p><strong>Fix</strong> — restore working manifest:</p>
+<pre><code>kubectl apply -f web.yaml</code></pre>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break B — missing ConfigMap.</strong></p>
+<pre><code>kubectl apply -f web-bad-config.yaml
+kubectl get pods</code></pre>
+<p class="expect">Expect <code>CreateContainerConfigError</code> or <code>ContainerCreating</code> stuck. <code>describe</code> Events should name <code>missing-config</code>. No useful <code>logs</code> — container never started.</p>
+<pre><code>kubectl describe pod -l app=web | grep -A2 -i configmap</code></pre>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f web.yaml</code></pre>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>Break C — crash on startup.</strong> Changing the Deployment starts a rollout (lesson <a href="0004-rollouts-changing-things-without-downtime.html">0004</a>):</p>
+<pre><code>kubectl apply -f web-crash.yaml
+kubectl get pods</code></pre>
+<p class="expect">Expect a pod in <code>CrashLoopBackOff</code>, RESTARTS climbing. You may briefly see <strong>two pods</strong> — old healthy + new crashing — while the rollout stalls. Triage:</p>
+<pre><code>kubectl rollout status deployment/web
+kubectl get rs</code></pre>
+<p><code>describe</code> on the <em>crashing</em> pod — <code>Last State: Terminated</code>, <code>Exit Code: 1</code>. That is <em>that</em> it died; not the error message.</p>
+<pre><code>kubectl describe pod -l app=web | grep -A5 "Last State:"</code></pre>
+<p><strong>Logs</strong> — copy the NAME of the pod in <code>CrashLoopBackOff</code> from <code>get pods</code>, then:</p>
+<pre><code>kubectl logs web-XXXXXXXXXX-XXXXX</code></pre>
+<p class="expect">Expect <code>boom</code> if logs are available. On OrbStack, <code>--previous</code> may fail on fast exits — plain <code>logs</code> on the crashing pod is fine. If two pods exist, do not use <code>logs deployment/web</code> — it may pick the healthy one.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f web.yaml</code></pre>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break D — Running pods, no traffic.</strong> Break via manifest — wrong Service selector (lesson <a href="0010-manifest-authoring-workflow.html">0010</a>):</p>
+<pre><code>kubectl apply -f web-bad-selector.yaml
+kubectl get pods
+kubectl get endpointslice -l kubernetes.io/service-name=web</code></pre>
+<p class="expect"><strong>Red flag:</strong> pods are <code>Running 1/1</code> but the EndpointSlice has <strong>no ready addresses</strong> (empty <code>endpoints</code> list). That mismatch — healthy pods, dead routing — means look at the Service <em>selector vs pod labels</em>, not the pods themselves. (<code>kubectl get endpoints web</code> still works but prints a deprecation warning on Kubernetes v1.33+; EndpointSlice is the replacement.)</p>
+<pre><code>kubectl get svc web -o yaml | grep -A3 selector
+kubectl get pods --show-labels</code></pre>
+<p class="expect">Selector says <code>app: web-broken</code>; pod labels say <code>app: web</code> — no match, so no backends.</p>
+<p><strong>Fix</strong> — restore selector in <code>web.yaml</code> (or re-apply it):</p>
+<pre><code>kubectl apply -f web.yaml</code></pre>
+<p class="expect">EndpointSlice repopulates with the pod IP; port-forward + <code>curl</code> works again.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Clean up.</strong></p>
+<pre><code>kubectl delete namespace debug-lab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>DevOps habit:</strong> write the STATUS column in your incident notes before touching anything. It picks the tool. "Restarted pod three times" without checking STATUS is how you burn an hour on a selector typo.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Pod STATUS is <code>Pending</code> for five minutes. Teammate suggests <code>kubectl logs</code>. Best response?</p>
+  <button class="opt">Agree — logs always show why a pod is not running yet</button>
+  <button class="opt">Run logs on the Deployment instead of the Pod object</button>
+  <button class="opt">Decline — no container started; describe pod Events first</button>
+  <button class="opt">Decline — delete the pod and let it reschedule fresh</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. STATUS <code>ImagePullBackOff</code>. Where is the root cause most likely written?</p>
+  <button class="opt">describe pod Events mentioning the image name or registry</button>
+  <button class="opt">kubectl logs showing the nginx access log format</button>
+  <button class="opt">kubectl top pod showing zero CPU because it is idle</button>
+  <button class="opt">kubectl get nodes showing the node is NotReady state</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">3. All pods <code>Running 1/1</code>; Service curl fails. First RELATED-layer check?</p>
+  <button class="opt">kubectl delete pods so the Deployment recreates them all</button>
+  <button class="opt">kubectl describe node for disk pressure eviction events</button>
+  <button class="opt">kubectl logs on every pod looking for connection refused</button>
+  <button class="opt">kubectl get endpointslice and compare Service selector to pod labels</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">4. STATUS <code>CrashLoopBackOff</code>, RESTARTS at six. Most useful next command?</p>
+  <button class="opt">kubectl cordon the node so the pod cannot reschedule again</button>
+  <button class="opt">kubectl logs on the crashing pod name from get pods</button>
+  <button class="opt">kubectl delete namespace and redeploy the whole application</button>
+  <button class="opt">kubectl get storageclass because crash loops mean PVC issues</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. You run <code>kubectl get pods</code> — empty. Teammate sees Running pods. SCOPE step?</p>
+  <button class="opt">Assume RBAC denied you and escalate to cluster admin now</button>
+  <button class="opt">Reinstall kubectl because an empty list means client corruption</button>
+  <button class="opt">Check current context and namespace; try get pods -A or -n</button>
+  <button class="opt">Check Ingress rules because empty pods always means DNS failure</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Troubleshooting hub: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/">Troubleshooting Applications</a> · Pod debugging: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/">Debug Pods</a> · Failure reasons: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/">Determine the Reason for Pod Failure</a> · Service path: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/">Debug Services</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"Walk me through debugging a Pending pod with an unbound PVC"</em> · <em>"What's the rollout debugging funnel?"</em> · <em>"When do I use kubectl debug vs exec?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0016-statefulsets-stable-identity.html">Lesson 0016 — StatefulSets</a> · Next: <a href="0018-pod-failure-modes.html">Lesson 0018 — Pod Failure Modes</a> · Reference: <a href="../reference/troubleshooting-workflow.html">Troubleshooting workflow</a> · <a href="../reference/core-glossary.html">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and lesson 0018 goes deeper on pod failure modes.'
+                                   : ' — tell your agent which ones you missed; the next lesson will target them.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

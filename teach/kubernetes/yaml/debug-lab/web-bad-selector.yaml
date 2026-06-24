@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: debug-lab
+spec:
+  selector:
+    app: web-broken
+  ports:
+  - port: 80
+    targetPort: 80

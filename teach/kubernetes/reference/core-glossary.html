@@ -119,7 +119,19 @@
   <dd>The default update strategy and its two knobs: <code>maxSurge</code> — how many extra pods may exist above the desired count during the update; <code>maxUnavailable</code> — how many may be missing. Both default to 25%. Together they guarantee capacity during a rollout. <a class="src" href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment">[docs]</a></dd>
 
   <dt id="imagepullbackoff">ImagePullBackOff</dt>
-  <dd>Pod status meaning the kubelet cannot pull the container image (bad tag, missing registry credentials, network) and is retrying with increasing delays. Diagnose with <code>kubectl describe pod</code> → Events. <a class="src" href="https://kubernetes.io/docs/concepts/containers/images/#imagepullbackoff">[docs]</a></dd>
+  <dd>Pod status meaning the kubelet cannot pull the container image (bad tag, missing registry credentials, network) and is retrying with increasing delays. Container never started — no logs. Diagnose with <code>kubectl describe pod</code> → Events. <a class="src" href="https://kubernetes.io/docs/concepts/containers/images/#imagepullbackoff">[docs]</a> · <a class="src" href="troubleshooting-workflow.html">[workflow]</a></dd>
+
+  <dt id="crashloopbackoff">CrashLoopBackOff</dt>
+  <dd>Pod status meaning the container started, exited with an error, and the kubelet is restarting it with increasing backoff. RESTARTS climbs. Diagnose with <code>kubectl logs &lt;pod&gt; --previous</code> for the crash output; <code>describe</code> for probe failures or <a href="#oomkilled">OOMKilled</a>. <a class="src" href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/#my-pod-is-crashing-or-otherwise-unhealthy">[docs]</a> · <a class="src" href="troubleshooting-workflow.html">[workflow]</a></dd>
+
+  <dt id="createcontainerconfigerror">CreateContainerConfigError</dt>
+  <dd>Pod status meaning the kubelet cannot create the container because configuration is invalid or missing — e.g. <code>configMapKeyRef</code> / <code>secretKeyRef</code> pointing at a non-existent object, or a volume mount the node cannot satisfy. Container never started. Diagnose with <code>kubectl describe pod</code> → Events naming the missing ref. <a class="src" href="https://kubernetes.io/docs/tasks/debug/debug-application/determine-reason-pod-failure/">[docs]</a> · <a class="src" href="troubleshooting-workflow.html">[workflow]</a></dd>
+</dl>
+
+<h2>Troubleshooting</h2>
+<dl>
+  <dt id="troubleshooting-workflow">Troubleshooting workflow (SCOPE → STATUS → EVENTS → LOGS → RELATED)</dt>
+  <dd>Repeatable incident funnel: confirm cluster/namespace (<strong>SCOPE</strong>), read <code>kubectl get</code> STATUS columns (<strong>STATUS</strong>), inspect Events via <code>describe</code> (<strong>EVENTS</strong>), read container output only if a container ran (<strong>LOGS</strong>), then check bindings — PVC, endpoints, Ingress, quota (<strong>RELATED</strong>). Golden rule: no container start → no logs; answer is in Events. <a class="src" href="troubleshooting-workflow.html">[reference]</a> · <a class="src" href="https://kubernetes.io/docs/tasks/debug/debug-application/">[docs]</a></dd>
 </dl>
 
 <h2>Configuration</h2>

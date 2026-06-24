@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 01 — Your GPU and the VRAM Budget</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#6b6b6b; --rule:#e4dfd4; --accent:#7a1705;
+    --paper:#fdfcf8; --code:#f0ece1; --good:#1f6b3b; --bad:#a01b0b; --panel:#f7f4ec;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    color:var(--ink); background:var(--paper);
+    max-width:44rem; margin:0 auto; padding:3.2rem 1.4rem 6rem;
+    line-height:1.6; font-size:1.06rem;
+  }
+  h1{font-size:2.05rem; font-weight:600; line-height:1.15; margin:.2rem 0 .3rem; letter-spacing:-.01em;}
+  h2{font-size:1.35rem; font-weight:600; margin:2.8rem 0 .6rem; letter-spacing:-.01em;}
+  h3{font-size:1.05rem; font-weight:700; margin:1.6rem 0 .3rem;}
+  .kicker{text-transform:uppercase; letter-spacing:.14em; font-size:.72rem; color:var(--accent); font-weight:700; font-family:system-ui,sans-serif;}
+  .sub{color:var(--muted); font-style:italic; margin:.1rem 0 0;}
+  .mission{background:var(--panel); border-left:3px solid var(--accent); padding:.8rem 1rem; margin:1.8rem 0; font-size:.96rem;}
+  .mission b{font-style:normal;}
+  p{margin:.7rem 0;}
+  code{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-size:.88em; background:var(--code); padding:.06em .35em; border-radius:3px;}
+  pre{background:#1e1e1e; color:#e8e8e8; padding:1rem 1.1rem; border-radius:6px; overflow-x:auto; font-size:.8rem; line-height:1.45; font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;}
+  pre .hl{color:#ffd479;}
+  pre .dim{color:#888;}
+  a{color:var(--accent);}
+  .big-idea{border:2px solid var(--ink); padding:1.1rem 1.2rem; margin:1.6rem 0; border-radius:6px; font-size:1.12rem;}
+  .big-idea .eq{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; display:block; margin-top:.6rem; font-size:.95rem; color:var(--accent);}
+  figure{margin:1.4rem 0;}
+  figcaption{color:var(--muted); font-size:.85rem; font-style:italic; margin-top:.4rem;}
+  table{border-collapse:collapse; width:100%; margin:1.2rem 0; font-size:.92rem;}
+  th,td{text-align:left; padding:.45rem .6rem; border-bottom:1px solid var(--rule);}
+  th{font-family:system-ui,sans-serif; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+  td.n{font-family:"SF Mono",ui-monospace,Menlo,monospace;}
+  .calc{background:var(--panel); border:1px solid var(--rule); border-radius:8px; padding:1.2rem 1.3rem; margin:1.4rem 0;}
+  .calc h3{margin-top:0;}
+  .calc label{display:block; font-size:.85rem; color:var(--muted); margin:.7rem 0 .15rem; font-family:system-ui,sans-serif;}
+  .calc input,.calc select{font-size:1rem; padding:.4rem .5rem; border:1px solid #c9c2b2; border-radius:4px; background:#fff; width:100%; font-family:inherit;}
+  .row{display:flex; gap:1rem; flex-wrap:wrap;}
+  .row>div{flex:1; min-width:8rem;}
+  .presets{margin:.9rem 0 0; display:flex; gap:.4rem; flex-wrap:wrap;}
+  .presets button{font-family:system-ui,sans-serif; font-size:.8rem; padding:.35rem .6rem; border:1px solid #c9c2b2; background:#fff; border-radius:20px; cursor:pointer;}
+  .presets button:hover{border-color:var(--accent); color:var(--accent);}
+  .out{margin-top:1.1rem; padding-top:1rem; border-top:1px dashed #c9c2b2; font-size:1rem;}
+  .out .num{font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace; font-weight:700;}
+  .verdict{font-weight:700; padding:.5rem .7rem; border-radius:5px; display:inline-block; margin-top:.5rem;}
+  .verdict.ok{background:#dff0e4; color:var(--good);}
+  .verdict.no{background:#f6dcd8; color:var(--bad);}
+  .quiz{border:1px solid var(--rule); border-radius:8px; padding:1.2rem 1.3rem; margin:1.3rem 0; background:#fff;}
+  .quiz p.q{font-weight:700; margin:.2rem 0 .6rem;}
+  .quiz button{display:block; width:100%; text-align:left; background:var(--paper); border:1px solid #c9c2b2; border-radius:5px; padding:.55rem .7rem; margin:.35rem 0; font-family:inherit; font-size:.97rem; cursor:pointer; color:var(--ink);}
+  .quiz button:hover{border-color:var(--accent);}
+  .quiz button.correct{background:#dff0e4; border-color:var(--good); color:var(--good);}
+  .quiz button.wrong{background:#f6dcd8; border-color:var(--bad); color:var(--bad);}
+  .quiz .fb{font-size:.9rem; margin-top:.5rem; min-height:1.2rem; color:var(--muted);}
+  .checklist{list-style:none; padding:0;}
+  .checklist li{padding:.3rem 0 .3rem 1.8rem; position:relative;}
+  .checklist li:before{content:"\2610"; position:absolute; left:0; font-size:1.1rem;}
+  .src{background:var(--panel); border-radius:8px; padding:1rem 1.2rem; margin:1.6rem 0;}
+  .deeper{border-left:3px solid var(--muted); padding:.2rem 0 .2rem 1rem; margin:1.4rem 0; color:#444; font-size:.96rem;}
+  .footnav{margin-top:3rem; border-top:1px solid var(--rule); padding-top:1rem; font-size:.9rem; color:var(--muted);}
+  sup a{text-decoration:none;}
+  .refs{font-size:.82rem; color:var(--muted); margin-top:2.5rem; border-top:1px solid var(--rule); padding-top:1rem;}
+  .refs li{margin:.3rem 0;}
+  .ask{background:#fff4e8; border:1px dashed var(--accent); border-radius:8px; padding:.9rem 1.1rem; margin:2rem 0; font-size:.96rem;}
+  @media print{ body{background:#fff;} pre{background:#f0f0f0; color:#000;} a{color:var(--ink);} .calc,.quiz{break-inside:avoid;} }
+</style>
+</head>
+<body>
+
+<p class="kicker">Lesson 01 &middot; Stage 1 &middot; <a href="../reference/curriculum.html">Curriculum</a></p>
+<h1>Your GPU and the VRAM Budget</h1>
+<p class="sub">The one mental model the entire inference stack is built on.</p>
+
+<div class="mission">
+<b>Why this, first?</b> You're building deep mastery of the inference stack — no rush. But there's one idea that everything else hangs from, so we plant it on day one: every advanced topic you'll study (quantization, batching, KV caching, vLLM, autoscaling) is ultimately a strategy for spending <em>one scarce resource</em> — GPU memory. We'll make it concrete on your actual <strong>RTX A2000 6&nbsp;GB</strong>, using small models, so the budget is real and tight enough to <em>feel</em>.
+</div>
+
+<h2>1. The one idea</h2>
+<p>A CPU runs your code against system RAM. A GPU runs its kernels against its <strong>own</strong> memory, called <a href="../reference/glossary.html#vram">VRAM</a>. The iron rule of inference:</p>
+
+<div class="big-idea">
+Everything the model needs to compute must <strong>fit in VRAM at the same time</strong> — and VRAM is small and fixed.
+<span class="eq">VRAM = weights + KV&nbsp;cache + activations/overhead</span>
+</div>
+
+<p>If it fits, the model runs. If it doesn't, you get a CUDA out-of-memory error and nothing runs.<sup><a href="#r4">4</a></sup> Almost every inference-engineering technique exists to make more useful work fit inside that fixed number. So step one is simply: <em>know your number.</em></p>
+
+<h2>2. Hands-on: read your GPU<sup><a href="#r1">1</a></sup></h2>
+<p>On your homelab box (the Dell with the A2000), open a terminal and run:</p>
+<pre>nvidia-smi</pre>
+<p>You should see something like this (annotated for the 6&nbsp;GB card):</p>
+
+<figure>
+<pre><span class="dim">+-----------------------------------------------------------------------------+</span>
+| NVIDIA-SMI 550.xx       Driver Version: 550.xx     CUDA Version: 12.4        |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name          Persist-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan Temp Perf  Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|===============================+======================+======================|
+|  0  NVIDIA RTX A2000      On  | 00000000:01:00.0 Off |                  Off |
+| 30%  41C  P8     8W /  70W   |   <span class="hl">280MiB / 6144MiB</span> |      <span class="hl">0%</span>      Default |
++-------------------------------+----------------------+----------------------+
+<span class="dim">  (Processes: which PIDs currently hold the GPU)</span></pre>
+<figcaption>The two numbers that matter most: <b>Memory-Usage</b> (used / total VRAM, in MiB) and <b>GPU-Util</b> (% of time kernels were actually running). On the 6&nbsp;GB card, total reads <code>6144MiB</code>.<sup><a href="#r2">2</a></sup></figcaption>
+</figure>
+
+<h3>Your first checkpoint</h3>
+<ul class="checklist">
+<li>Run <code>nvidia-smi</code>. Does it print, or error? (If it errors, the NVIDIA driver isn't installed — tell me and we'll fix that as a mini-lesson.)</li>
+<li>Confirm the <b>total</b> VRAM reads ~<b>6144 MiB (6 GB)</b>.</li>
+<li>Notice that even idle, a few hundred MiB are already used (driver + ECC reserve). On a 6&nbsp;GB card that overhead is a bigger <em>fraction</em> of your budget than on a big GPU — every hundred MiB counts here.<sup><a href="#r2">2</a></sup></li>
+</ul>
+<p class="sub">Tip: <code>nvidia-smi --query-gpu=name,memory.total,memory.used,memory.free --format=csv</code> prints just the numbers, script-friendly.</p>
+
+<h2>3. Where the budget goes</h2>
+<p>Three tenants share your 6&nbsp;GB:</p>
+<p><strong>① Weights</strong> — the parameters, always resident. Memory is straightforward:</p>
+<div class="big-idea">
+<span class="eq">weights&nbsp;(bytes) ≈ num_params × bytes_per_param</span>
+</div>
+<p>A <code>3.8B</code> model (Phi-4-mini) at <a href="../reference/glossary.html#precision">FP16</a> (2 bytes each) is <code>3.8e9 × 2 ≈ 7.6 GB</code> — already too big for your 6&nbsp;GB card. That single fact is why <a href="../reference/glossary.html#quantization">quantization</a> exists: store each weight in ~½ byte (INT4) and the same model drops to <code>~1.9 GB</code> and fits with room to spare.<sup><a href="#r5">5</a></sup></p>
+
+<p><strong>② <a href="../reference/glossary.html#kv-cache">KV cache</a></strong> — per-token memory of the conversation so far, so the model never recomputes past tokens. It <em>grows with context length and batch size</em> and competes with weights for space. For a 13B model, one token of cache is ~800 KB; a full 2048-token request can be ~1.6 GB.<sup><a href="#r3">3</a></sup> On 6&nbsp;GB, this is exactly why we pair small weights with sane context limits — a whole lesson on its own later.</p>
+
+<p><strong>③ Activations + overhead</strong> — temporary tensors during the forward pass, plus the CUDA/PyTorch context. You must leave headroom; serving engines reserve a fraction by default (vLLM's <code>gpu_memory_utilization</code> defaults to 0.9 — grab 90%, leave 10%).<sup><a href="#r6">6</a></sup></p>
+
+<h2>4. Calculator: will it fit?</h2>
+<p>Estimate the weights footprint and whether it fits. (Weights only — leave ~20–30% for KV cache + overhead.) Try the model presets.</p>
+
+<div class="calc">
+  <h3>VRAM fit estimator</h3>
+  <div class="row">
+    <div>
+      <label for="params">Model size (billions of params)</label>
+      <input id="params" type="number" value="3.8" min="0.1" step="0.1">
+    </div>
+    <div>
+      <label for="prec">Precision</label>
+      <select id="prec">
+        <option value="4">FP32 — 4 bytes</option>
+        <option value="2">FP16 / BF16 — 2 bytes</option>
+        <option value="1">INT8 — 1 byte</option>
+        <option value="0.5" selected>INT4 — 0.5 byte</option>
+      </select>
+    </div>
+    <div>
+      <label for="vram">Your VRAM (GB)</label>
+      <select id="vram">
+        <option value="6" selected>6 (A2000 — yours)</option>
+        <option value="12">12 (A2000 12GB)</option>
+        <option value="24">24 (cloud L4 / A10)</option>
+        <option value="80">80 (cloud A100 / H100)</option>
+      </select>
+    </div>
+  </div>
+  <div class="presets" id="presets">
+    <button data-p="3.8">Phi-4-mini 3.8B</button>
+    <button data-p="4">Qwen3-4B</button>
+    <button data-p="3">VibeThinker-3B</button>
+    <button data-p="2.6">LFM2-2.6B</button>
+  </div>
+  <div class="out" id="out"></div>
+</div>
+
+<h3>Small models that fit your 6 GB A2000 (real Q4 footprints)</h3>
+<table>
+<thead><tr><th>Model</th><th>Params</th><th>Q4_K_M file</th><th>Fits 6 GB?</th></tr></thead>
+<tbody>
+<tr><td>Phi-4-mini<sup><a href="#r7">7</a></sup></td><td class="n">3.8B</td><td class="n">~2.5 GB</td><td>Yes — easily</td></tr>
+<tr><td>Qwen3-4B<sup><a href="#r7">7</a></sup></td><td class="n">4B</td><td class="n">~2.6 GB</td><td>Yes — easily</td></tr>
+<tr><td>VibeThinker-3B<sup><a href="#r8">8</a></sup></td><td class="n">~3B</td><td class="n">~1.9 GB</td><td>Yes — easily</td></tr>
+<tr><td>LFM2-2.6B<sup><a href="#r9">9</a></sup></td><td class="n">2.6B</td><td class="n">~1.8 GB</td><td>Yes — easily</td></tr>
+</tbody>
+</table>
+<p class="sub">Note the gap between theory and reality: naive INT4 math says 3.8B × 0.5 = 1.9 GB, but the real Phi-4-mini Q4_K_M file is ~2.5 GB. <em>K-quant</em> formats keep some tensors (embeddings, certain layers) at higher precision for accuracy, so files run ~20–40% bigger than the back-of-envelope estimate.<sup><a href="#r7">7</a></sup> Good rule: estimate, then verify.</p>
+
+<h2 id="bandwidth-ceiling">5. The hidden ceiling: bandwidth, not compute</h2>
+<p>Here's the insight that separates people who've <em>run</em> models from people who've only read about them. When generating text one token at a time (the <a href="../reference/glossary.html#prefill-decode">decode</a> phase), the GPU must stream <strong>every weight</strong> out of VRAM for each token. So your single-stream token rate is capped by <a href="../reference/glossary.html#bandwidth">memory bandwidth</a>, not raw compute:<sup><a href="#r5">5</a></sup></p>
+
+<div class="big-idea">
+<span class="eq">max tokens/sec (single stream) ≈ memory_bandwidth ÷ model_bytes</span>
+</div>
+
+<p>Your A2000 moves <strong>288 GB/s</strong>. A 2.5 GB (Q4) model has a ceiling around <code>288 ÷ 2.5 ≈ 115 tok/s</code> — but that's an <em>optimistic</em> upper bound. Measured rates on small cards land lower (~20–30 tok/s) because attention, sampling, and kernel launches add cost and you never hit 100% of peak bandwidth.<sup><a href="#r7">7</a></sup> The calculator shows the ceiling so you can reason about the gap. This is also <em>why</em> batching matters: serving many requests at once reuses each expensive weight-read, multiplying total throughput without more bandwidth.</p>
+
+<div class="deeper">
+<b>Go deeper (you asked for fundamentals):</b> MiB vs MB matters here — <code>nvidia-smi</code> reports <em>mebibytes</em> (1 MiB = 1024² bytes), while datasheets quote GB in powers of ten. And "288 GB/s" itself comes from <code>memory clock × bus width</code> (the A2000's 192-bit bus × GDDR6 speed). We'll unpack the memory hierarchy properly in <a href="../reference/curriculum.html">Lesson 04</a>.
+</div>
+
+<h2>6. Check yourself</h2>
+<p>No peeking at the text. Retrieval is what builds lasting memory.</p>
+
+<div class="quiz" id="quiz"></div>
+
+<div class="ask">
+<b>I'm your teacher — use me.</b> Stuck on a term, got a weird <code>nvidia-smi</code> output, or want to know why decode is bandwidth-bound but prefill isn't? Ask me right here in the chat. That back-and-forth is part of the lesson.
+</div>
+
+<div class="src">
+<h3>Primary source to go deeper (15 min)</h3>
+<p>Read the <a href="https://modal.com/gpu-glossary">Modal GPU Glossary</a> entries for <a href="https://modal.com/gpu-glossary/host-software/nvidia-smi"><code>nvidia-smi</code></a> and <em>VRAM</em> / <em>memory bandwidth</em>. It's the most precise, no-fluff reference for the vocabulary you'll use daily. Bookmark it.</p>
+</div>
+
+<h3>Your tangible win today</h3>
+<p>You can run <code>nvidia-smi</code>, state your exact 6&nbsp;GB budget, estimate whether a given model + precision fits (and why the real file is a bit bigger), and reason about how fast it'll generate. That's the literal first question in any inference deployment.</p>
+
+<h3>Where we go next</h3>
+<p><strong>Lesson 02 — Run a model on the A2000.</strong> You'll pull one of these small models with Ollama and watch your VRAM budget fill up live in <code>nvidia-smi</code> — turning today's theory into something breathing on your own hardware. See the full <a href="../reference/curriculum.html">curriculum</a> for the road ahead.</p>
+
+<ol class="refs" id="refs">
+  <li id="r1"><a href="https://docs.nvidia.com/deploy/nvidia-smi/index.html">NVIDIA, <i>nvidia-smi documentation</i></a> — monitoring & management for NVIDIA GPUs.</li>
+  <li id="r2"><a href="https://modal.com/gpu-glossary/host-software/nvidia-smi">Modal GPU Glossary, <i>What is nvidia-smi?</i></a> — Memory-Usage (MiB) vs GPU-Util; ECC/driver reserve.</li>
+  <li id="r3"><a href="https://www.cs.usfca.edu/~mmalensek/cs677/schedule/papers/kwon2023efficient.pdf">Kwon et al., <i>Efficient Memory Management for LLM Serving with PagedAttention</i>, SOSP 2023</a> — KV-cache size example (~800 KB/token for OPT-13B).</li>
+  <li id="r4"><a href="https://discuss.vllm.ai/t/what-is-included-in-gpu-memory-utilization/2559">vLLM Forum, <i>What is included in gpu-memory-utilization</i></a> — weights + KV + activations + overhead; OOM if exceeded.</li>
+  <li id="r5"><a href="https://inferenceengineering.tech/">Kiely, <i>Inference Engineering</i> (Baseten, 2026)</a> — GPU memory/bandwidth, why decode is memory-bound, quantization footprints.</li>
+  <li id="r6"><a href="https://docs.vllm.ai/">vLLM documentation</a> — <code>gpu_memory_utilization</code> default 0.9.</li>
+  <li id="r7"><a href="https://tinyweights.dev/posts/run-phi-4-mini-locally/">TinyWeights, <i>Run Phi-4-mini locally</i></a> &amp; <a href="https://inferencerig.com/setup/best-gguf-models-for-4gb-vram-tested-on-low-end-gpus/">InferenceRig, <i>Best GGUF models for 4 GB VRAM</i></a> — measured Q4_K_M file sizes & tok/s on low-end GPUs.</li>
+  <li id="r8"><a href="https://huggingface.co/WeiboAI/VibeThinker-1.5B">WeiboAI / VibeThinker (Hugging Face)</a> — tiny reasoning model (1.5B → 3B), Qwen2.5-Math finetune.</li>
+  <li id="r9"><a href="https://huggingface.co/LiquidAI/LFM2-2.6B">LiquidAI / LFM2-2.6B (Hugging Face)</a> — 2.57B params, hybrid conv+attention architecture, edge-optimized.</li>
+</ol>
+
+<p class="footnav">
+<a href="../reference/curriculum.html">&larr; Curriculum</a> &nbsp;|&nbsp;
+Glossary: <a href="../reference/glossary.html">reference/glossary.html</a> &nbsp;|&nbsp;
+Next: Lesson 02 — Run a model on the A2000 <i>(coming next session)</i>
+</p>
+
+<script>
+(function(){
+  var BW = 288; // GB/s, A2000 memory bandwidth
+  var params = document.getElementById('params');
+  var prec   = document.getElementById('prec');
+  var vram   = document.getElementById('vram');
+  var out    = document.getElementById('out');
+
+  function fmt(x){ return (Math.round(x*100)/100); }
+
+  function recompute(){
+    var p = parseFloat(params.value)||0;
+    var b = parseFloat(prec.value);
+    var v = parseFloat(vram.value);
+    var weights = p * b;                 // GB  (params in B × bytes = GB)
+    var usable = v * 0.9;                // leave 10% for overhead
+    var fits = weights <= usable;
+    var kvRoom = usable - weights;       // GB left for KV cache after weights
+    var ceil = weights > 0 ? BW / weights : 0;
+
+    var verdict = fits
+      ? '<span class="verdict ok">Fits &mdash; with ~' + fmt(kvRoom) + ' GB left for KV cache &amp; overhead</span>'
+      : '<span class="verdict no">Does NOT fit &mdash; need ' + fmt(weights - usable) + ' GB more (quantize, or pick a smaller model)</span>';
+
+    out.innerHTML =
+      '<div>Weights footprint: <span class="num">' + fmt(weights) + ' GB</span> '+
+      '(' + p + 'B \u00d7 ' + b + ' bytes)</div>' +
+      '<div>Usable VRAM (\u224890%): <span class="num">' + fmt(usable) + ' GB</span> of ' + v + ' GB</div>' +
+      '<div style="margin-top:.4rem;">Rough decode ceiling: <span class="num">' + (weights>0?fmt(ceil):'\u2014') + ' tok/s</span> '+
+      '<span style="color:var(--muted);font-size:.85rem;">(288 GB/s \u00f7 ' + fmt(weights) + ' GB, single stream, optimistic)</span></div>' +
+      '<div>' + verdict + '</div>';
+  }
+  [params,prec,vram].forEach(function(el){ el.addEventListener('input', recompute); });
+  document.getElementById('presets').addEventListener('click', function(e){
+    if(e.target.tagName==='BUTTON'){ params.value = e.target.getAttribute('data-p'); recompute(); }
+  });
+  recompute();
+
+  // ---- Quiz ----
+  var questions = [
+    { q: "During decode, what dominates the time to make each new token on a small GPU?",
+      a: ["Reading the model weights from VRAM",
+          "Sending the tokens across the network",
+          "Recomputing the prompt on each step",
+          "Drawing the output onto the display"],
+      correct: 0,
+      fb: "Right \u2014 decode is memory-bandwidth-bound: every weight is streamed from VRAM per token." },
+    { q: "A 3.8B model in FP16 needs roughly how much VRAM just for weights?",
+      a: ["About eight gigabytes for the weights",
+          "About one gigabyte for the weights",
+          "About thirty gigabytes for the weights",
+          "About half a gig for the weights"],
+      correct: 0,
+      fb: "Yes \u2014 3.8e9 \u00d7 2 bytes \u2248 7.6 GB. Too big for 6 GB raw, hence quantization to INT4 (~1.9 GB)." },
+    { q: "Besides weights, what else must fit inside the VRAM budget?",
+      a: ["KV cache plus activations and overhead",
+          "The full training dataset on disk",
+          "The operating system kernel page cache",
+          "The container image layers and logs"],
+      correct: 0,
+      fb: "Correct \u2014 VRAM = weights + KV cache + activations/overhead." },
+    { q: "Why is a real Q4_K_M file bigger than the naive INT4 estimate?",
+      a: ["Some tensors stay at higher precision",
+          "The disk always rounds files upward",
+          "Quantized weights store extra gradients",
+          "Ollama duplicates the model in memory"],
+      correct: 0,
+      fb: "Right \u2014 K-quants keep embeddings/select layers at higher precision for accuracy, so files run ~20\u201340% larger." }
+  ];
+
+  var quiz = document.getElementById('quiz');
+  questions.forEach(function(item, qi){
+    var wrap = document.createElement('div');
+    wrap.style.marginBottom = '1.4rem';
+    var qp = document.createElement('p'); qp.className='q'; qp.textContent=(qi+1)+'. '+item.q;
+    wrap.appendChild(qp);
+    var order = item.a.map(function(_,i){return i;});
+    for(var k=order.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var t=order[k];order[k]=order[j];order[j]=t;}
+    var fb = document.createElement('div'); fb.className='fb';
+    order.forEach(function(idx){
+      var btn = document.createElement('button');
+      btn.textContent = item.a[idx];
+      btn.addEventListener('click', function(){
+        var kids = wrap.querySelectorAll('button');
+        kids.forEach(function(b){ b.disabled = true; });
+        if(idx === item.correct){ btn.className='correct'; fb.style.color='var(--good)'; fb.textContent=item.fb; }
+        else {
+          btn.className='wrong'; fb.style.color='var(--bad)';
+          fb.textContent='Not quite. ' + item.fb;
+          kids.forEach(function(b){ if(b.textContent===item.a[item.correct]) b.className='correct'; });
+        }
+      });
+      wrap.appendChild(btn);
+    });
+    wrap.appendChild(fb);
+    quiz.appendChild(wrap);
+  });
+})();
+</script>
+</body>
+</html>
