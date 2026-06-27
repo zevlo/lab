@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NCP-AIO Depth-First Curriculum</title>
+  <style>
+    :root {
+      --ink: #161616;
+      --muted: #5b6470;
+      --paper: #fbfaf7;
+      --line: #d9d3c7;
+      --accent: #76b900;
+      --soft: #eef5e6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 18px/1.55 ui-serif, Georgia, "Times New Roman", serif;
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 56px 28px 80px;
+    }
+    h1, h2, h3 {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+    }
+    h1 { font-size: clamp(2.4rem, 5vw, 4.6rem); margin: 0 0 12px; }
+    h2 { font-size: 1.65rem; margin: 48px 0 12px; border-top: 1px solid var(--line); padding-top: 24px; }
+    h3 { font-size: 1.08rem; margin: 22px 0 8px; }
+    p { margin: 0 0 16px; }
+    a { color: #2f6f00; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .lede {
+      color: var(--muted);
+      font-size: 1.25rem;
+      max-width: 760px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.035);
+    }
+    .percent {
+      display: inline-block;
+      color: #183800;
+      background: var(--soft);
+      border: 1px solid #cbe4b3;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font: 700 0.85rem/1.6 ui-sans-serif, system-ui, sans-serif;
+    }
+    ul { padding-left: 1.2rem; margin: 8px 0 0; }
+    li { margin: 6px 0; }
+    .track {
+      border-left: 4px solid var(--accent);
+      padding-left: 18px;
+      margin: 24px 0;
+    }
+    .small {
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9em;
+      background: #f0eee9;
+      padding: 0.1em 0.35em;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>NCP-AIO Depth-First Curriculum</h1>
+  <p class="lede">A small-lesson path to become a strong AI Infrastructure Engineer while preparing for the NVIDIA-Certified Professional: AI Operations exam. The official NVIDIA four-domain blueprint is canonical; the method is hardware-first, operations-aware, and hands-on whenever the lab allows it.</p>
+
+  <p class="small">Start here: <a href="./lessons/0001-gpu-baseline-diagnostic.html">Lesson 1: GPU Baseline Diagnostic</a> · Reference: <a href="./reference/glossary.html">Glossary</a> · Sources: <a href="./RESOURCES.md">RESOURCES.md</a></p>
+
+  <h2>Operating Model</h2>
+  <div class="grid">
+    <section class="card">
+      <h3>Depth First</h3>
+      <p>Every operational command should connect to the mechanism beneath it: silicon, memory hierarchy, PCIe, drivers, containers, schedulers, fabric, and failure modes.</p>
+    </section>
+    <section class="card">
+      <h3>Small Wins</h3>
+      <p>Each lesson teaches one tight concept and produces one artifact: a diagnostic result, mental model, mini-runbook, config, or explanation.</p>
+    </section>
+    <section class="card">
+      <h3>Retrieval</h3>
+      <p>Lessons ask you to predict, recall, classify, or diagnose before showing the explanation. Fluency is not mastery; storage strength is the target.</p>
+    </section>
+  </div>
+
+  <h2>Official Exam Domains</h2>
+  <div class="grid">
+    <section class="card">
+      <p><span class="percent">31%</span></p>
+      <h3>Installation and Deployment</h3>
+      <ul>
+        <li>Mission Control and Base Command Manager mental model</li>
+        <li>Cluster bring-up, node categories, firmware, patching, image sync</li>
+        <li>Kubernetes, Slurm, Run:ai installation paths</li>
+        <li>DPU Arm and DOCA services</li>
+        <li>Network settings for nodes, DPUs, and switches</li>
+      </ul>
+    </section>
+    <section class="card">
+      <p><span class="percent">23%</span></p>
+      <h3>Administration</h3>
+      <ul>
+        <li>Slurm, Kubernetes, and Run:ai administration</li>
+        <li>AI data center architecture</li>
+        <li>MIG configuration and why it differs from vGPU and time-slicing</li>
+        <li>Users, roles, quotas, queues, and access boundaries</li>
+      </ul>
+    </section>
+    <section class="card">
+      <p><span class="percent">23%</span></p>
+      <h3>Workload Management</h3>
+      <ul>
+        <li>Inference workloads on Kubernetes and Run:ai</li>
+        <li>Training workloads on Slurm and Run:ai</li>
+        <li>NGC containers and image/runtime requirements</li>
+        <li>Team allocation, scheduling, GPU sharing, and priority</li>
+      </ul>
+    </section>
+    <section class="card">
+      <p><span class="percent">23%</span></p>
+      <h3>Troubleshooting and Optimization</h3>
+      <ul>
+        <li>Docker and container runtime failures</li>
+        <li>Fabric Manager, NVLink, NVSwitch, Magnum IO</li>
+        <li>Storage performance and data path diagnosis</li>
+        <li>BCM and NGC deployment failures</li>
+        <li>DCGM metrics, XID faults, ECC, power, thermals, and utilization</li>
+      </ul>
+    </section>
+  </div>
+
+  <h2>Foundation Strands</h2>
+  <section class="track">
+    <h3>Silicon To Scheduler</h3>
+    <p>GPU architecture, SMs, warps, registers, HBM/GDDR, PCIe, DMA, BAR, NUMA, drivers, CUDA runtime, container device injection, Kubernetes device plugins, Slurm GRES, and scheduler allocation.</p>
+  </section>
+  <section class="track">
+    <h3>Training Infrastructure</h3>
+    <p>Data parallelism, tensor parallelism, pipeline parallelism, optimizer state, activation memory, gradient synchronization, NCCL collectives, topology, stragglers, checkpoint IO, and failure recovery.</p>
+  </section>
+  <section class="track">
+    <h3>Inference Infrastructure</h3>
+    <p>Model loading, weights vs activations vs KV cache, quantization, batching, PagedAttention, Triton, NIM, TensorRT, vLLM as a comparative tool, metrics, latency/throughput tradeoffs, and capacity planning.</p>
+  </section>
+  <section class="track">
+    <h3>Data Center Reality</h3>
+    <p>Rack power, cooling, airflow, node classes, storage, Ethernet/RoCE vs InfiniBand, DPUs, switch topology, cabling, fabric health, maintenance windows, and operational blast radius.</p>
+  </section>
+
+  <h2>Lesson Sequence</h2>
+  <ol>
+    <li><a href="./lessons/0001-gpu-baseline-diagnostic.html">GPU Baseline Diagnostic</a>: prove what the local lab can see from host, container, and Kubernetes.</li>
+    <li>GPU Execution Mental Model: CPU vs GPU, SMs, warps, memory hierarchy, and why AI kernels fit the hardware.</li>
+    <li>Driver To Container Path: kernel driver, user-space libraries, CUDA compatibility, NVIDIA Container Toolkit, and runtime injection.</li>
+    <li>Kubernetes GPU Plumbing: device plugin vs GPU Operator, allocatable resources, pods, node labels, tolerations, and DCGM exporter.</li>
+    <li>Memory Is The First Bottleneck: VRAM budget, quantization, KV cache, batch size, and the A2000 as a constraint lab.</li>
+    <li>NGC And NVIDIA Containers: registry auth, image tags, framework containers, Triton images, and deployment failure modes.</li>
+    <li>Triton Serving Basics: model repository, backends, dynamic batching, metrics, and a tiny local model.</li>
+    <li>NIM As Productized Inference: what it abstracts, what it still depends on, and where it fits in AI Enterprise.</li>
+    <li>Slurm GPU Scheduling: GRES, cgroups, partitions, job requests, fairness, and why HPC scheduling differs from Kubernetes.</li>
+    <li>Run:ai Concepts: queues, quotas, projects, over-quota, GPU fractions, training vs inference workflows.</li>
+    <li>MIG, vGPU, Time-Slicing, DRA: isolation and sharing mechanisms, which are hardware-enforced, and what the exam expects.</li>
+    <li>NCCL And Distributed Training: collectives, all-reduce, topology detection, PCIe/NVLink/IB paths, and failure signatures.</li>
+    <li>AI Fabric And Storage: RoCE vs InfiniBand, congestion, GPUDirect RDMA, GPUDirect Storage, Magnum IO, checkpoint pressure.</li>
+    <li>Facilities For AI: power density, cooling, thermal throttling, rack design, maintenance, and capacity planning.</li>
+    <li>Operations Drill: diagnose a broken GPU workload from symptoms through DCGM, Kubernetes/Slurm, containers, fabric, and storage.</li>
+  </ol>
+
+  <h2>Cloud Rental Triggers</h2>
+  <p>Use cloud only when the real mechanism cannot be exposed locally: MIG profiles, multi-GPU/NVLink, InfiniBand or RoCE fabric behavior, vGPU licensing, large-model memory pressure beyond 6 GB, or hands-on exam-style labs unavailable on the A2000.</p>
+</main>
+</body>
+</html>

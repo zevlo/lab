@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: typo-path
+  storageClassName: local-path
   resources:
     requests:
       storage: 64Mi

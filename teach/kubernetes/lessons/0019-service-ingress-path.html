@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0019 — Service and Ingress Path: When Pods Look Fine</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0019 · Kubernetes Fundamentals · Troubleshooting arc</p>
+  <h1>Service and Ingress Path: When Pods Look Fine</h1>
+  <p class="subtitle">Pods Running — traffic still dead. Walk the binding chain outward.</p>
+</header>
+
+<p class="mission">Lessons <a href="0002-services-and-the-networking-model.html">0002</a> and <a href="0003-ingress-one-door-many-services.html">0003</a> taught Services and Ingress. Lesson <a href="0017-the-troubleshooting-workflow.html">0017</a> Break D showed empty endpoints from a selector typo. Lesson <a href="0018-pod-failure-modes.html">0018</a> drilled pod-layer failures. This lesson is the networking half of the funnel: when <code>kubectl get pods</code> looks healthy but HTTP does not, the answer is rarely "restart the pod." It lives in the <strong>RELATED</strong> layer — Service selector, <code>targetPort</code>, EndpointSlice, then Ingress backend — each hop validated in order <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/">[debug services]</a>.</p>
+
+<h2>The Idea</h2>
+
+<p>Traffic from your browser to a pod crosses four hops on OrbStack:</p>
+
+<pre><code>curl netlab.k8s.orb.local
+  → Traefik (Ingress controller)
+  → Service api:80
+  → EndpointSlice (pod IP + targetPort)
+  → Pod containerPort</code></pre>
+
+<p>Each hop has its own failure mode. The trap: pods can be <code>Running 1/1</code> while every hop above the pod is wrong.</p>
+
+<table>
+  <tr><th>Symptom</th><th>Layer</th><th>What broke</th><th>First move</th></tr>
+  <tr><td>Connection refused / timeout via Service</td><td>Service → pod</td><td>Empty EndpointSlice — selector ≠ pod labels</td><td><code>get endpointslice</code> → compare Service <code>selector</code> to pod labels</td></tr>
+  <tr><td>EndpointSlice has addresses; Service still fails</td><td>Service port map</td><td><code>targetPort</code> ≠ <code>containerPort</code></td><td><code>describe svc</code> → compare ports to pod spec</td></tr>
+  <tr><td>Service works; Ingress host fails</td><td>Ingress → Service</td><td>Wrong backend <code>service.name</code> or <code>port.number</code></td><td><code>describe ingress</code> → cross-check <code>get svc</code></td></tr>
+  <tr><td>Pod <code>Running</code> but <code>0/1 Ready</code></td><td>Readiness</td><td>Probe failing — excluded from endpoints</td><td><code>describe pod</code> → Conditions / probe Events</td></tr>
+</table>
+
+<p>The inspection order when pods look fine:</p>
+
+<pre><code>STATUS  → pods Running? Ready column 1/1?
+RELATED → EndpointSlice for the Service — any ready addresses?
+SCOPE   → port-forward svc/&lt;name&gt; — does the Service layer work?
+RELATED → describe ingress — backend name and port match a real Service port?</code></pre>
+
+<div class="note">
+  <strong>EndpointSlice is the tell.</strong> Lesson 0017 used it for selector breaks. An empty <code>endpoints</code> list with healthy pods means stop looking at the Deployment — fix the Service binding. Addresses present but traffic fails means look at <code>targetPort</code> or the app itself.
+</div>
+
+<p>Requires Traefik from lesson 0003 (<code>kubectl get svc traefik</code>). Hostname <code>netlab.k8s.orb.local</code> resolves on OrbStack automatically.</p>
+
+<h2>Lab — Three breaks, one path (~25 min)</h2>
+
+<p>OrbStack, context <code>orbstack</code>. Lab files in <code>yaml/network-troubleshoot-lab/</code>:</p>
+<pre><code>cd ~/projects/teach/kubernetes/yaml/network-troubleshoot-lab
+ls</code></pre>
+<p class="expect">Expect <code>namespace.yaml</code>, <code>stack.yaml</code>, <code>selector-bad.yaml</code>, <code>selector-fixed.yaml</code>, <code>targetport-bad.yaml</code>, <code>targetport-fixed.yaml</code>, <code>ingress-bad.yaml</code>, <code>ingress-fixed.yaml</code>. For each break: confirm pods are healthy <em>before</em> blaming them.</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>SCOPE — confirm cluster, Traefik, pin namespace.</strong></p>
+<pre><code>kubectl config current-context
+kubectl get svc traefik
+kubectl apply -f namespace.yaml
+kubectl config set-context --current --namespace=network-troubleshoot-lab</code></pre>
+<p class="expect">Expect <code>orbstack</code>. Traefik LoadBalancer on ports 80/443. Namespace created; following commands omit <code>-n</code>.</p>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Baseline — healthy path end to end.</strong></p>
+<pre><code>kubectl apply -f stack.yaml
+kubectl get pods,svc,ingress
+kubectl rollout status deployment/api --timeout=60s
+curl -s http://netlab.k8s.orb.local | head -n 3</code></pre>
+<p class="expect">Expect pod <code>Running 1/1</code>, Service <code>api</code>, Ingress <code>netlab</code> with host <code>netlab.k8s.orb.local</code>. <code>curl</code> returns nginx HTML. Optional Service-only check:</p>
+<pre><code>kubectl port-forward svc/api 8080:80 &amp;
+curl -s localhost:8080 | head -n 3
+kill %1</code></pre>
+<p class="expect">Port-forward works — pods and Service are fine before any break.</p>
+</div>
+
+<div class="step broken"><span class="n">2</span>
+<p><strong>Break A — selector typo; pods innocent.</strong> (Lesson 0017 Break D, now through Ingress.)</p>
+<pre><code>kubectl apply -f selector-bad.yaml
+kubectl get pods
+curl -s -o /dev/null -w "%{http_code}\n" http://netlab.k8s.orb.local</code></pre>
+<p class="expect">Pods still <code>Running 1/1</code>. <code>curl</code> may return <code>502</code> or <code>503</code> from Traefik (exact code varies). <strong>Your turn:</strong> run the funnel — do not open <code>selector-fixed.yaml</code> yet.</p>
+<pre><code>kubectl get endpointslice -l kubernetes.io/service-name=api
+kubectl get svc api -o yaml | grep -A3 selector
+kubectl get pods --show-labels</code></pre>
+<p class="expect">EndpointSlice has <strong>no ready addresses</strong> (empty <code>endpoints</code> list). Selector says <code>app: api-broken</code>; pod labels say <code>app: api</code>. Ingress and Deployment are fine — the Service lost its backends.</p>
+<p><strong>Fix</strong> — restore selector in manifest:</p>
+<pre><code>kubectl apply -f selector-fixed.yaml
+kubectl get endpointslice -l kubernetes.io/service-name=api
+curl -s http://netlab.k8s.orb.local | head -n 3</code></pre>
+<p class="expect">EndpointSlice repopulates; <code>curl</code> returns nginx HTML again.</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break B — wrong <code>targetPort</code>; endpoints misleadingly full.</strong></p>
+<pre><code>kubectl apply -f targetport-bad.yaml
+kubectl get endpointslice -l kubernetes.io/service-name=api
+kubectl port-forward svc/api 8080:80 &amp;
+curl -s -o /dev/null -w "%{http_code}\n" localhost:8080
+kill %1</code></pre>
+<p class="expect">EndpointSlice <strong>still lists the pod IP</strong> — unlike Break A. Port-forward fails or returns <code>000</code>/<code>502</code> because kube-proxy forwards to pod port <code>8080</code>, but nginx listens on <code>80</code>. Diagnose:</p>
+<pre><code>kubectl get svc api -o yaml | grep -E "port:|targetPort:"
+kubectl get pod -l app=api -o yaml | grep containerPort</code></pre>
+<p class="expect"><code>targetPort: 8080</code> vs <code>containerPort: 80</code>. Selector and labels match — the port map is wrong.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f targetport-fixed.yaml
+kubectl port-forward svc/api 8080:80 &amp;
+curl -s localhost:8080 | head -n 3
+kill %1</code></pre>
+<p class="expect">Port-forward and Ingress <code>curl</code> both work again.</p>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>Break C — Ingress points at a Service that does not exist.</strong> (Lesson 0003 port mismatch, different shape.)</p>
+<pre><code>kubectl apply -f ingress-bad.yaml
+curl -s http://netlab.k8s.orb.local</code></pre>
+<p class="expect">Traefik error page or <code>502</code>/<code>503</code> — not nginx HTML. Pods and Service still healthy; port-forward to <code>svc/api</code> still works. <strong>Your turn:</strong></p>
+<pre><code>kubectl describe ingress netlab
+kubectl get svc</code></pre>
+<p class="expect"><code>describe ingress</code> shows backend <code>api-typo:80</code>. <code>get svc</code> lists <code>api</code> only — no Service named <code>api-typo</code>. The break is one hop above the Service.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f ingress-fixed.yaml
+curl -s http://netlab.k8s.orb.local | head -n 3</code></pre>
+<p class="expect">nginx HTML returns. Same class of bug as lesson 0003's wrong backend <code>port.number</code> — always cross-check Ingress backends against <code>kubectl get svc</code>.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p><strong>Clean up.</strong></p>
+<pre><code>kubectl delete namespace network-troubleshoot-lab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Work inside-out:</strong> confirm pods → EndpointSlice → port-forward Service → Ingress host. Skipping to Ingress when endpoints are empty sends you editing hostnames while the selector is wrong. At work, this sequence is the difference between a five-minute fix and an hour of pod restarts.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Pods <code>Running 1/1</code>; Ingress returns 502; EndpointSlice for the backend Service is empty. Best first move?</p>
+  <button class="opt">kubectl logs deployment — the app must be crashing silently</button>
+  <button class="opt">kubectl rollout undo — a bad deploy always clears empty endpoints</button>
+  <button class="opt">Compare Service selector to pod labels; fix the mismatch in the manifest</button>
+  <button class="opt">kubectl describe ingress — empty endpoints always mean a wrong TLS Secret</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. EndpointSlice lists pod IPs; <code>port-forward svc/api</code> fails; pod <code>containerPort: 80</code>. Most likely cause?</p>
+  <button class="opt">Service <code>targetPort</code> does not match the container's listening port</button>
+  <button class="opt">Ingress <code>ingressClassName</code> is missing so Traefik ignores the rule</button>
+  <button class="opt">Scheduler placed the pod on a node without enough CPU requests</button>
+  <button class="opt">PVC is unbound so kube-proxy cannot program routes</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">3. <code>port-forward svc/api</code> returns nginx; <code>curl http://netlab.k8s.orb.local</code> fails. Pods and EndpointSlice healthy. Where next?</p>
+  <button class="opt">Raise memory limits — Ingress failures are usually OOMKilled</button>
+  <button class="opt">Delete the Deployment — the pod labels must be wrong</button>
+  <button class="opt">Install metrics-server — Ingress requires HPA to route traffic</button>
+  <button class="opt">describe ingress; verify backend <code>service.name</code> and <code>port.number</code> exist on a real Service</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">4. Pod STATUS <code>Running</code>, READY <code>0/1</code>; readiness probe failing. Effect on traffic?</p>
+  <button class="opt">kubelet deletes the pod immediately; Ingress returns 404</button>
+  <button class="opt">Pod stays up but is excluded from EndpointSlice until the probe passes</button>
+  <button class="opt">Scheduler moves the pod to another node with more memory</button>
+  <button class="opt">Service selector auto-updates to match the failing probe path</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. Teammate restarts pods three times; Ingress still 502; endpoints were empty the whole time. What should have happened first?</p>
+  <button class="opt">Check application logs — restarts would have fixed a code bug</button>
+  <button class="opt">Scale the Deployment to zero — empty endpoints mean too many replicas</button>
+  <button class="opt">Inspect EndpointSlice and Service selector before touching pods</button>
+  <button class="opt">Recreate the Ingress controller — Traefik lost the routing table</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Debug Services: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/">Debug Services</a> · Debug Ingress: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/#debugging-ingress">Ingress section</a> · Service concepts: <a href="https://kubernetes.io/docs/concepts/services-networking/service/">Services</a> · Ingress concepts: <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Ingress</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"Walk me through readiness vs liveness for endpoints"</em> · <em>"How do I debug Ingress TLS vs backend errors?"</em> · <em>"What's the difference between Service port and targetPort?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0018-pod-failure-modes.html">Lesson 0018 — Pod Failure Modes</a> · Next: <a href="0020-rollout-debugging.html">Lesson 0020 — Rollout and Helm Revision Debugging</a> (planned) · Reference: <a href="../reference/troubleshooting-workflow.html">Troubleshooting workflow</a> · <a href="../reference/core-glossary.html#ingress">Glossary — Ingress</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and lesson 0020 covers rollout and Helm revision debugging.'
+                                   : ' — tell your agent which ones you missed; lesson 0020 will reinforce deploy-incident triage.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

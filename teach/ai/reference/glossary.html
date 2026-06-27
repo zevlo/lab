@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Infrastructure Glossary</title>
+  <style>
+    :root {
+      --ink: #151515;
+      --muted: #64707d;
+      --paper: #fbfaf7;
+      --line: #d9d3c7;
+      --accent: #76b900;
+    }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 17px/1.5 ui-serif, Georgia, "Times New Roman", serif;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 52px 28px 80px;
+    }
+    h1, h2, dt {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: -0.02em;
+    }
+    h1 { font-size: clamp(2.2rem, 5vw, 4.2rem); line-height: 1; margin: 0 0 12px; }
+    h2 { font-size: 1.45rem; margin: 44px 0 14px; border-top: 1px solid var(--line); padding-top: 24px; }
+    p.lede { color: var(--muted); font-size: 1.18rem; max-width: 760px; }
+    dl { display: grid; grid-template-columns: minmax(150px, 220px) 1fr; gap: 12px 22px; }
+    dt { font-weight: 750; color: #214a00; }
+    dd { margin: 0; }
+    a { color: #2f6f00; text-underline-offset: 3px; }
+    .note {
+      border-left: 4px solid var(--accent);
+      background: #f1f7ea;
+      padding: 12px 16px;
+      margin: 22px 0;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 720px) {
+      dl { grid-template-columns: 1fr; }
+      dd { margin-bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>AI Infrastructure Glossary</h1>
+  <p class="lede">A living reference for the terms that must become automatic while studying for NCP-AIO and building real AI infrastructure depth.</p>
+  <p><a href="../curriculum.html">Curriculum</a> · <a href="../lessons/0001-gpu-baseline-diagnostic.html">Lesson 1</a></p>
+
+  <div class="note">Rule: when two terms sound similar, preserve the operational distinction. For example, MIG is hardware partitioning; time-slicing is scheduled sharing; vGPU is mediated virtualization with licensing and a hypervisor boundary.</div>
+
+  <h2>GPU Hardware</h2>
+  <dl>
+    <dt>SM</dt>
+    <dd>Streaming Multiprocessor. The major execution block inside an NVIDIA GPU; it schedules warps and contains CUDA cores, registers, shared memory, and specialized units.</dd>
+    <dt>Warp</dt>
+    <dd>A group of 32 threads scheduled together on NVIDIA GPUs. Warp behavior explains many GPU performance and divergence effects.</dd>
+    <dt>VRAM</dt>
+    <dd>GPU-attached memory used for model weights, activations, KV cache, workspaces, and framework/runtime overhead. On the A2000 this is the tight 6 GB budget.</dd>
+    <dt>Memory Bandwidth</dt>
+    <dd>The rate at which the GPU can move data to and from VRAM. Many AI kernels are limited by memory movement rather than raw arithmetic.</dd>
+    <dt>PCIe</dt>
+    <dd>The host-to-device interconnect in the local workstation. It is slower and higher latency than on-package or GPU-to-GPU links such as NVLink.</dd>
+    <dt>NVLink</dt>
+    <dd>NVIDIA high-bandwidth GPU-to-GPU interconnect used in larger systems. Relevant for distributed training and Fabric Manager topics, but not present on the local A2000 setup.</dd>
+    <dt>NVSwitch</dt>
+    <dd>A switch fabric that connects multiple GPUs with high bandwidth inside systems such as DGX-class servers.</dd>
+  </dl>
+
+  <h2>Software Stack</h2>
+  <dl>
+    <dt>CUDA</dt>
+    <dd>NVIDIA's parallel programming platform and runtime model. Most higher-level AI frameworks ultimately depend on CUDA libraries and driver compatibility.</dd>
+    <dt>cuDNN</dt>
+    <dd>GPU-accelerated primitives for neural networks, including convolution, attention, matmul, pooling, and normalization.</dd>
+    <dt>TensorRT</dt>
+    <dd>NVIDIA inference optimization SDK. It builds optimized execution plans using precision choices, fusion, dynamic shapes, and hardware-specific kernels.</dd>
+    <dt>Triton</dt>
+    <dd>NVIDIA inference server for serving models across multiple backends with HTTP/gRPC, model repositories, dynamic batching, metrics, and production serving features.</dd>
+    <dt>NIM</dt>
+    <dd>NVIDIA Inference Microservice. A productized model-serving container/API layer for supported models, built on NVIDIA runtime components and distributed through NGC.</dd>
+    <dt>NGC</dt>
+    <dd>NVIDIA's catalog and registry for containers, models, Helm charts, and enterprise-supported AI software artifacts.</dd>
+    <dt>AI Enterprise</dt>
+    <dd>NVIDIA's enterprise-supported software suite that packages and supports many AI infrastructure and application-layer components.</dd>
+  </dl>
+
+  <h2>Operations</h2>
+  <dl>
+    <dt>GPU Operator</dt>
+    <dd>Kubernetes operator that manages NVIDIA GPU enablement components such as drivers, container runtime integration, device plugin, MIG management, and DCGM exporter.</dd>
+    <dt>Device Plugin</dt>
+    <dd>Kubernetes integration that advertises GPU resources to the kubelet and makes them allocatable to pods.</dd>
+    <dt>DCGM</dt>
+    <dd>Data Center GPU Manager. NVIDIA's management and telemetry layer for GPU health, metrics, diagnostics, and operational monitoring.</dd>
+    <dt>XID</dt>
+    <dd>NVIDIA driver error code family reported for GPU faults. XIDs are essential signals when diagnosing hardware, driver, or workload instability.</dd>
+    <dt>ECC</dt>
+    <dd>Error-correcting code memory. Correctable and uncorrectable ECC events matter for reliability and node health policy on data-center GPUs.</dd>
+    <dt>Fabric Manager</dt>
+    <dd>NVIDIA service used on NVSwitch/NVLink systems to initialize and manage the GPU fabric.</dd>
+    <dt>Magnum IO</dt>
+    <dd>NVIDIA's family of technologies for accelerated IO across networking and storage, including GPUDirect-related data paths and NCCL context.</dd>
+  </dl>
+
+  <h2>Scheduling And Sharing</h2>
+  <dl>
+    <dt>Slurm</dt>
+    <dd>HPC workload manager used for batch scheduling, GPU resource requests, partitions, accounting, and topology-aware training jobs.</dd>
+    <dt>Run:ai</dt>
+    <dd>NVIDIA workload orchestration platform for AI workloads, commonly using Kubernetes with queues, quotas, projects, and GPU sharing policies.</dd>
+    <dt>GRES</dt>
+    <dd>Generic RESource in Slurm. GPUs are commonly represented as GRES so jobs can request and be constrained to allocated devices.</dd>
+    <dt>MIG</dt>
+    <dd>Multi-Instance GPU. Hardware-backed partitioning on supported data-center GPUs. Not available on the local RTX A2000.</dd>
+    <dt>vGPU</dt>
+    <dd>Virtual GPU. A mediated virtualization model involving hypervisors, guest drivers, and NVIDIA licensing; different from MIG and Kubernetes time-slicing.</dd>
+    <dt>Time-Slicing</dt>
+    <dd>Scheduler-level sharing where multiple workloads take turns on the same physical GPU. It improves access but does not provide MIG-like hardware isolation.</dd>
+    <dt>DRA</dt>
+    <dd>Kubernetes Dynamic Resource Allocation. A newer model for richer device allocation than the older extended-resource path.</dd>
+  </dl>
+
+  <h2>Training And Inference</h2>
+  <dl>
+    <dt>Data Parallelism</dt>
+    <dd>Training strategy where each GPU holds a model replica and processes different data, then synchronizes gradients.</dd>
+    <dt>Tensor Parallelism</dt>
+    <dd>Strategy that splits individual tensor operations or layers across GPUs, commonly needed when a model layer is too large or too slow for one GPU.</dd>
+    <dt>Pipeline Parallelism</dt>
+    <dd>Strategy that splits model layers across devices and moves microbatches through stages like an assembly line.</dd>
+    <dt>NCCL</dt>
+    <dd>NVIDIA Collective Communications Library. Provides optimized collectives such as all-reduce, all-gather, broadcast, and reduce-scatter.</dd>
+    <dt>All-Reduce</dt>
+    <dd>A collective operation where participants reduce values, such as gradients, and all receive the result. It is central to data-parallel training.</dd>
+    <dt>KV Cache</dt>
+    <dd>Transformer inference memory used to store attention keys and values for previous tokens. It grows with batch size and sequence length.</dd>
+    <dt>Quantization</dt>
+    <dd>Using lower-precision representations for weights or activations to reduce memory and bandwidth demand, often trading some quality or complexity.</dd>
+    <dt>Batching</dt>
+    <dd>Grouping requests or inputs to improve GPU utilization. It often improves throughput while increasing queueing latency.</dd>
+  </dl>
+
+  <h2>Networking And Facilities</h2>
+  <dl>
+    <dt>InfiniBand</dt>
+    <dd>Low-latency, high-bandwidth fabric commonly used in AI/HPC clusters, especially for distributed training.</dd>
+    <dt>RoCE</dt>
+    <dd>RDMA over Converged Ethernet. Provides RDMA semantics over Ethernet and requires careful congestion/loss management.</dd>
+    <dt>DPU</dt>
+    <dd>Data Processing Unit, such as NVIDIA BlueField. Offloads and isolates networking, storage, security, and infrastructure services.</dd>
+    <dt>DOCA</dt>
+    <dd>NVIDIA's software framework for programming and operating BlueField DPU services.</dd>
+    <dt>Power Density</dt>
+    <dd>Power draw per rack or area. AI systems can exceed traditional data-center assumptions and drive cooling and facility design.</dd>
+    <dt>Thermal Throttling</dt>
+    <dd>Automatic performance reduction when hardware reaches thermal limits. It can look like a mysterious performance regression unless monitored.</dd>
+  </dl>
+</main>
+</body>
+</html>
