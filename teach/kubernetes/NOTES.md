@@ -38,9 +38,13 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 **Closed arcs:** fundamentals/control loop (0001–0003) · rollouts/probes (0004–0006) · namespaces/TLS (0007–0008) · resources/quota (0009–0011) · HPA (0012) · Kustomize/Helm (0013–0014) · storage/StatefulSets (0015–0016) · troubleshooting (0017–0020).
 
-**Next candidates:** cert-manager · NetworkPolicies. Combined review: `quizzes/combined-scenario-quiz-01.html` (ready).
+**Next candidates:** cert-manager. **Network security:** 0021 NetworkPolicies [ready]. Combined review: `quizzes/combined-scenario-quiz-01.html` ✓ 11/12.
 
 ## Working notes
+
+| Quiz | Score | Notes |
+|------|-------|-------|
+| Combined 01 | 11/12 | Strong cross-arc recall. Q11: conflated resource HPA with Prometheus/custom metrics path. |
 
 | Lesson | Quiz | Notes |
 |--------|------|-------|

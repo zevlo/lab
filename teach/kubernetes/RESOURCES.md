@@ -58,6 +58,8 @@
   How to read termination messages and failure reasons. Use for: CrashLoopBackOff and OOMKilled diagnosis.
 - [Task: Debug Services](https://kubernetes.io/docs/tasks/debug/debug-application/debug-service/)
   Missing endpoints, selector mismatches, DNS, kube-proxy. Use for: networking-layer troubleshooting lessons.
+- [Task: Declare a Network Policy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/)
+  Maintainer walkthrough of isolating pods by ingress rules. Use for: lab design on default-allow vs explicit-allow models.
 - [OrbStack Kubernetes Documentation](https://docs.orbstack.dev/kubernetes)
   Official docs for the user's local cluster environment (service exposure via `*.k8s.orb.local`, kubelet config, Traefik/Ingress setup). Use for: anything specific to how the local lab cluster behaves on macOS.
 - [Kubernetes the Hard Way — Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)

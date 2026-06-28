@@ -228,6 +228,9 @@
 
   <dt id="ingress-tls">Ingress TLS / TLS termination</dt>
   <dd>HTTPS at the Ingress controller: client→controller is encrypted; controller→Service→Pod is typically plaintext. Cert stored in a <code>kubernetes.io/tls</code> Secret (<code>tls.crt</code>, <code>tls.key</code>), referenced by <code>spec.tls.secretName</code>. <code>tls.hosts</code> must match <code>rules.host</code> for SNI. Secret must be in the same namespace as the Ingress. <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">[docs]</a> · <a class="src" href="ingress-tls.html">[patterns]</a></dd>
+
+  <dt id="networkpolicy">NetworkPolicy</dt>
+  <dd>Namespace-scoped firewall rules for pod network traffic. <code>spec.podSelector</code> chooses which pods are <em>protected</em>; <code>ingress[].from</code> / <code>egress[].to</code> declare allowed peers. Default is permit-all until a policy selects a pod for a direction — then only explicit allows pass. Orthogonal to <a href="#service">Services</a> (routing vs permission). Enforced by the CNI / policy controller (kube-router on OrbStack/k3s). <a class="src" href="https://kubernetes.io/docs/concepts/services-networking/network-policies/">[docs]</a> · <a class="src" href="network-policies.html">[patterns]</a></dd>
 </dl>
 
 <h2>The Vocabulary</h2>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0021 — NetworkPolicies: Who May Talk to Whom</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0021 · Kubernetes Fundamentals · Network security</p>
+  <h1>NetworkPolicies: Who May Talk to Whom</h1>
+  <p class="subtitle">Services route traffic. NetworkPolicies permit or deny it.</p>
+</header>
+
+<p class="mission">Lessons <a href="0002-services-and-the-networking-model.html">0002</a> and <a href="0019-service-ingress-path.html">0019</a> taught how traffic <em>finds</em> pods — Services, EndpointSlices, Ingress. By default, every pod in a cluster can reach every other pod. That is fine for learning; it is not fine for production. A <strong><a href="../reference/core-glossary.html#networkpolicy">NetworkPolicy</a></strong> is a firewall rule at the pod network layer: which sources may connect to which destinations, on which ports. At work, this is how you keep the database tier reachable only from the API tier. In the homelab, it is how you practice zero-trust segmentation before a real multi-team cluster.</p>
+
+<h2>The Idea</h2>
+
+<p>NetworkPolicies are opt-in restrictions enforced by the CNI / network-policy controller. OrbStack's Kubernetes (k3s) includes kube-router's policy controller — no extra install <a href="https://docs.k3s.io/networking/networking-services#network-policy-controller">[k3s docs]</a>.</p>
+
+<table>
+  <tr><th>Default (no policies)</th><th>After a policy selects a pod</th></tr>
+  <tr><td>All pod-to-pod traffic allowed</td><td>For each declared direction (<code>Ingress</code> / <code>Egress</code>), <strong>only</strong> explicitly allowed traffic is permitted</td></tr>
+  <tr><td>Services still route normally</td><td>A working Service does <em>not</em> override a deny — if policy blocks the flow, packets never arrive</td></tr>
+</table>
+
+<p>Read a policy in two halves <a href="https://kubernetes.io/docs/concepts/services-networking/network-policies/">[docs]</a>:</p>
+
+<pre><code>spec:
+  podSelector:          # WHO is protected (which pods this policy applies TO)
+    matchLabels:
+      app: backend
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:               # WHO may connect (sources allowed IN)
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 80</code></pre>
+
+<p>The trap: <code>spec.podSelector</code> is <em>not</em> "the pods allowed to connect." It is "the pods being isolated." Sources live under <code>ingress[].from</code> or <code>egress[].to</code>.</p>
+
+<div class="note">
+  <strong>Orthogonal to Services.</strong> A Service answers "which pod IPs should receive traffic for <code>backend</code>?" A NetworkPolicy answers "is this packet allowed to reach that pod at all?" Lesson 0019 debugging still applies — but when policy is the break, pods and EndpointSlices look healthy while connections time out.
+</div>
+
+<p>Common selectors in <code>from</code> / <code>to</code>:</p>
+
+<table>
+  <tr><th>Field</th><th>Matches</th></tr>
+  <tr><td><code>podSelector</code></td><td>Pods in the <em>same namespace</em> with these labels</td></tr>
+  <tr><td><code>namespaceSelector</code></td><td>All pods in namespaces matching these labels</td></tr>
+  <tr><td><code>ipBlock</code></td><td>CIDR ranges outside the cluster (less common in fundamentals)</td></tr>
+</table>
+
+<p>Egress policies bite twice: blocking port 80 to your app <em>and</em> forgetting port 53 to <code>kube-dns</code> in <code>kube-system</code> means DNS resolution fails before TCP ever starts — <code>curl http://backend</code> hangs or reports "Could not resolve host" even when the backend pod is fine.</p>
+
+<h2>Lab — Three breaks, permit/deny (~25 min)</h2>
+
+<p>OrbStack, context <code>orbstack</code>. Lab files in <code>yaml/networkpolicy-lab/</code>:</p>
+<pre><code>cd ~/projects/teach/kubernetes/yaml/networkpolicy-lab
+ls</code></pre>
+<p class="expect">Expect <code>namespace.yaml</code>, <code>stack.yaml</code>, <code>policy-ingress-restrict.yaml</code>, <code>policy-ingress-broken.yaml</code>, <code>policy-egress-broken.yaml</code>, <code>policy-egress-fixed.yaml</code>. Three workloads: <code>frontend</code>, <code>backend</code>, <code>client</code> (curl pod).</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>SCOPE — confirm cluster, pin namespace.</strong></p>
+<pre><code>kubectl config current-context
+kubectl apply -f namespace.yaml
+kubectl config set-context --current --namespace=networkpolicy-lab</code></pre>
+<p class="expect">Expect <code>orbstack</code>. Namespace created; following commands omit <code>-n</code>.</p>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Baseline — open cluster, all paths work.</strong></p>
+<pre><code>kubectl apply -f stack.yaml
+kubectl rollout status deployment/frontend deployment/backend deployment/client --timeout=90s
+kubectl get pods,svc,networkpolicy</code></pre>
+<p class="expect">Expect three Running pods, two Services, no NetworkPolicies yet.</p>
+<pre><code>kubectl exec deploy/client -- curl -s -o /dev/null -w "client→backend: %{http_code}\n" --connect-timeout 3 http://backend
+kubectl exec deploy/frontend -- wget -qO- --timeout=3 http://backend 2&gt;/dev/null | head -n 1</code></pre>
+<p class="expect">Expect HTTP <code>200</code> from client and nginx HTML from frontend. Both can reach <code>backend</code>.</p>
+</div>
+
+<div class="step broken"><span class="n">2</span>
+<p><strong>Break A — ingress restricted: only frontend may reach backend.</strong></p>
+<pre><code>kubectl apply -f policy-ingress-restrict.yaml
+kubectl get networkpolicy</code></pre>
+<p class="expect">Policy <code>backend-ingress</code> exists. Re-test paths:</p>
+<pre><code>kubectl exec deploy/client -- curl -s -o /dev/null -w "client→backend: %{http_code}\n" --connect-timeout 3 http://backend
+kubectl exec deploy/frontend -- wget -qO- --timeout=3 http://backend 2&gt;/dev/null | head -n 1</code></pre>
+<p class="expect">Client: <code>000</code>, timeout, or connection failed (exact message varies). Frontend: still returns nginx HTML. Pods and EndpointSlice unchanged — this is policy, not Service wiring.</p>
+<p><strong>Your turn:</strong> read the policy before moving on.</p>
+<pre><code>kubectl describe networkpolicy backend-ingress
+kubectl get pod -l app=backend --show-labels</code></pre>
+<p class="expect"><code>podSelector: app=backend</code> isolates backend pods. <code>from: app=frontend</code> is the only ingress source allowed on port 80.</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break B — policy exists but selects the wrong pods.</strong></p>
+<pre><code>kubectl delete networkpolicy backend-ingress
+kubectl apply -f policy-ingress-broken.yaml
+kubectl get networkpolicy</code></pre>
+<p class="expect">Policy still listed — looks like protection is on. Test client again:</p>
+<pre><code>kubectl exec deploy/client -- curl -s -o /dev/null -w "client→backend: %{http_code}\n" --connect-timeout 3 http://backend</code></pre>
+<p class="expect">Client returns <code>200</code> again — restriction gone. Diagnose:</p>
+<pre><code>kubectl get networkpolicy backend-ingress -o yaml | grep -A3 podSelector
+kubectl get pod -l app=backend --show-labels</code></pre>
+<p class="expect">Policy <code>podSelector</code> says <code>app: backend-typo</code>; backend pods have <code>app: backend</code>. The policy applies to <strong>zero pods</strong> — backend stays on default-allow. Same class of bug as lesson 0019's Service selector typo, different layer.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f policy-ingress-restrict.yaml
+kubectl exec deploy/client -- curl -s -o /dev/null -w "client→backend: %{http_code}\n" --connect-timeout 3 http://backend</code></pre>
+<p class="expect">Client blocked again (<code>000</code> / timeout).</p>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>Break C — egress policy blocks DNS.</strong> Remove ingress policy first; restrict client egress only.</p>
+<pre><code>kubectl delete networkpolicy backend-ingress
+kubectl apply -f policy-egress-broken.yaml
+kubectl exec deploy/client -- curl -s -o /dev/null -w "client→backend: %{http_code}\n" --connect-timeout 5 http://backend</code></pre>
+<p class="expect">Fails or times out — but backend pod is Running and Service endpoints are populated. The policy allows egress to backend:80 only; DNS to <code>kube-dns</code> on port 53 is missing. Optional confirm:</p>
+<pre><code>kubectl get networkpolicy client-egress -o yaml | grep -A20 egress:
+kubectl get svc -n kube-system -l k8s-app=kube-dns</code></pre>
+<p class="expect">Egress rules list backend only — no UDP/TCP 53 to <code>kube-system</code>. Cluster DNS Service exists in <code>kube-system</code>.</p>
+<p><strong>Fix</strong> — allow DNS, then backend:</p>
+<pre><code>kubectl apply -f policy-egress-fixed.yaml
+kubectl exec deploy/client -- curl -s -o /dev/null -w "client→backend: %{http_code}\n" --connect-timeout 5 http://backend</code></pre>
+<p class="expect">HTTP <code>200</code> returns.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p><strong>Clean up.</strong></p>
+<pre><code>kubectl delete namespace networkpolicy-lab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Debugging policy breaks:</strong> pods Ready + endpoints populated + connection timeout → think NetworkPolicy (RELATED layer), not rollout or selector. Read <code>get networkpolicy</code> and verify <code>spec.podSelector</code> matches the <em>protected</em> pods. For egress, remember DNS before app ports.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. Fresh cluster, zero NetworkPolicy objects. Pod A in namespace <code>dev</code> curls Pod B in namespace <code>prod</code>. Result?</p>
+  <button class="opt">Denied — cross-namespace traffic requires an explicit NetworkPolicy</button>
+  <button class="opt">Denied — namespaces isolate network traffic by default</button>
+  <button class="opt">Allowed — default is permit-all until a policy selects a pod</button>
+  <button class="opt">Allowed only if both pods share the same Service selector</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">2. NetworkPolicy has <code>podSelector: app: backend</code> and one ingress rule from <code>podSelector: app: frontend</code>. What does the top-level <code>podSelector</code> identify?</p>
+  <button class="opt">The pods allowed to send traffic — frontend is the only permitted source</button>
+  <button class="opt">The pods the policy protects — backend pods are isolated for ingress</button>
+  <button class="opt">The pods whose egress is blocked — frontend cannot leave the namespace</button>
+  <button class="opt">The pods excluded from the policy — backend is explicitly opted out</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. After a correct ingress policy, <code>client</code> cannot reach <code>backend</code> but <code>frontend</code> can. Pods and EndpointSlice healthy. Root cause?</p>
+  <button class="opt">NetworkPolicy allows ingress to backend only from frontend-labeled pods</button>
+  <button class="opt">Service selector excludes client pods from the backend EndpointSlice</button>
+  <button class="opt">Readiness probe on backend excludes client connections from endpoints</button>
+  <button class="opt">Ingress controller blocks client namespace at the Traefik layer</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. Egress policy on <code>client</code> allows TCP 80 to <code>backend</code> only. <code>curl http://backend</code> fails; backend pod Running. Most likely missing rule?</p>
+  <button class="opt">Ingress rule allowing client namespace into backend port 443</button>
+  <button class="opt">ClusterIP Service must be type NodePort for egress policies to apply</button>
+  <button class="opt">Readiness probe on client must pass before egress rules take effect</button>
+  <button class="opt">Egress to kube-dns on port 53 — DNS must resolve before TCP connects</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. Teammate says "Service and NetworkPolicy do the same thing — both control who hits the backend." Best correction?</p>
+  <button class="opt">Correct — Service type ClusterIP is a built-in NetworkPolicy with one rule</button>
+  <button class="opt">Correct — kube-proxy and the CNI share one routing table for both objects</button>
+  <button class="opt">Service selects backends for load balancing; NetworkPolicy permits or denies L3/L4 flows — orthogonal layers</button>
+  <button class="opt">NetworkPolicy replaces Service when you need label-based pod selection</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>NetworkPolicies: <a href="https://kubernetes.io/docs/concepts/services-networking/network-policies/">Concepts</a> · <a href="https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/">Declare network policy task</a> · OrbStack/k3s controller: <a href="https://docs.k3s.io/networking/networking-services#network-policy-controller">k3s networking</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"How do I allow traffic from the ingress controller namespace?"</em> · <em>"What's the difference between default-deny ingress and a deny-all policy?"</em> · <em>"Do NetworkPolicies affect traffic from outside the cluster?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0020-rollout-debugging.html">Lesson 0020 — Rollout Debugging</a> · Reference: <a href="../reference/network-policies.html">Network policy patterns</a> · <a href="../reference/core-glossary.html#networkpolicy">Glossary</a> · <a href="../reference/troubleshooting-workflow.html">Troubleshooting workflow</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; we can revisit in a scenario quiz.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

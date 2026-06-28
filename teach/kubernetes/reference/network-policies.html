@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Network Policies — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Network Policies</h1>
+  <p class="subtitle">Quick reference — permit/deny at the pod network layer.</p>
+</header>
+
+<h2>Default behavior</h2>
+<table>
+  <tr><th>State</th><th>Pod-to-pod traffic</th></tr>
+  <tr><td>No NetworkPolicy selects the pod</td><td>All ingress and egress allowed (default permit)</td></tr>
+  <tr><td>At least one policy selects the pod for a direction</td><td>Only traffic explicitly allowed in that direction</td></tr>
+</table>
+
+<div class="note">
+  <strong>Services ≠ policies.</strong> A Service routes to backends; a NetworkPolicy filters whether packets may arrive. Both can be correct while connections still fail.
+</div>
+
+<h2>Policy anatomy</h2>
+<pre><code>spec:
+  podSelector:        # pods this policy APPLIES TO (protected pods)
+    matchLabels: …
+  policyTypes: [Ingress, Egress]
+  ingress:
+  - from:             # allowed sources IN
+    - podSelector: …
+    - namespaceSelector: …
+    ports: [{ protocol: TCP, port: 80 }]
+  egress:
+  - to:               # allowed destinations OUT
+    - podSelector: …
+    ports: …</code></pre>
+
+<h2>Common selectors</h2>
+<table>
+  <tr><th>Field</th><th>Scope</th></tr>
+  <tr><td><code>podSelector</code> in <code>from</code>/<code>to</code></td><td>Pods in the <em>same namespace</em> as the policy</td></tr>
+  <tr><td><code>namespaceSelector</code></td><td>All pods in matching namespaces (e.g. <code>kubernetes.io/metadata.name: kube-system</code>)</td></tr>
+  <tr><td>Combined <code>namespaceSelector</code> + <code>podSelector</code></td><td>Pods with labels in matching namespaces (AND)</td></tr>
+</table>
+
+<h2>Egress checklist</h2>
+<p>When restricting egress, pods usually need:</p>
+<ul>
+  <li>DNS — UDP/TCP port 53 to <code>kube-dns</code> in <code>kube-system</code></li>
+  <li>App dependencies — target Services/pods on their ports</li>
+  <li>Image registry / external APIs — <code>ipBlock</code> or namespace rules if required</li>
+</ul>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>Timeout; pods Ready; endpoints full</td><td>NetworkPolicy deny</td><td><code>kubectl get networkpolicy</code> → verify <code>podSelector</code> on protected pods</td></tr>
+  <tr><td>Policy exists but no effect</td><td><code>podSelector</code> matches zero pods</td><td>Compare policy labels to <code>get pod --show-labels</code></td></tr>
+  <tr><td><code>curl</code> by name fails; by ClusterIP works</td><td>Egress blocks DNS (port 53)</td><td>Read <code>egress</code> rules; add kube-dns allowance</td></tr>
+  <tr><td>Policy never enforces</td><td>Cluster lacks policy controller</td><td>OrbStack/k3s includes one; custom clusters may not</td></tr>
+</table>
+
+<h2>Core commands</h2>
+<pre><code>kubectl get networkpolicy
+kubectl describe networkpolicy &lt;name&gt;
+kubectl get networkpolicy &lt;name&gt; -o yaml
+
+# connectivity test from a tool pod
+kubectl exec deploy/client -- curl -s -o /dev/null -w "%{http_code}\n" --connect-timeout 3 http://backend</code></pre>
+
+<h2>Lesson links</h2>
+<p><a href="../lessons/0021-network-policies.html">Lesson 0021</a> · <a href="core-glossary.html#networkpolicy">Glossary</a> · <a href="troubleshooting-workflow.html">Troubleshooting workflow</a> · <a href="namespaces-contexts.html">Namespaces &amp; DNS</a></p>
+
+<footer>
+  Canonical source: <a href="https://kubernetes.io/docs/concepts/services-networking/network-policies/">Network Policies — kubernetes.io</a>
+</footer>
+</body>
+</html>

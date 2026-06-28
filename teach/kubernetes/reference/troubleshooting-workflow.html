@@ -92,6 +92,7 @@ kubectl describe pod &lt;failing-pod&gt;        # then logs if CrashLoopBackOff<
   <tr><td>Service returns nothing</td><td>Endpoints / EndpointSlice, then Service selector vs pod labels</td></tr>
   <tr><td>Ingress 404 / default backend</td><td>Ingress rules + backend Service + endpoints</td></tr>
   <tr><td>Helm release "failed"</td><td><code>helm status</code> → failing pod → same funnel</td></tr>
+  <tr><td>Timeout; pods Ready; endpoints full</td><td>NetworkPolicy deny</td><td><code>get networkpolicy</code> → verify <code>podSelector</code> on protected pods</td></tr>
 </table>
 
 <h2>Lesson links</h2>
