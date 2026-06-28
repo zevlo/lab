@@ -34,14 +34,17 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 ## Roadmap
 
-**Troubleshooting arc:** 0017 workflow ✓ → 0018 pod failure modes ✓ → 0019 service/ingress path ✓ → 0020 rollout/Helm revision debugging [next].
+**Troubleshooting arc:** 0017–0020 ✓ complete.
 
-**Closed arcs:** fundamentals/control loop (0001–0003) · rollouts/probes (0004–0006) · namespaces/TLS (0007–0008) · resources/quota (0009–0011) · HPA (0012) · Kustomize/Helm (0013–0014) · storage/StatefulSets (0015–0016).
+**Closed arcs:** fundamentals/control loop (0001–0003) · rollouts/probes (0004–0006) · namespaces/TLS (0007–0008) · resources/quota (0009–0011) · HPA (0012) · Kustomize/Helm (0013–0014) · storage/StatefulSets (0015–0016) · troubleshooting (0017–0020).
+
+**Next candidates:** cert-manager · NetworkPolicies. Combined review: `quizzes/combined-scenario-quiz-01.html` (ready).
 
 ## Working notes
 
 | Lesson | Quiz | Notes |
 |--------|------|-------|
+| 0020 | 4/5 | Deploy-incident triage landed. Missed readiness-vs-liveness on wrong probe port (same gap as 0005). Arc complete. |
 | 0019 | 5/5 | Service/Ingress path landed. Inside-out funnel: EndpointSlice → targetPort → Ingress backend. |
 | 0018 | 5/5 | Pod failure modes landed. User validates break/fix via separate YAML or vim edit workflow. |
 | 0017 | 5/5 | Great lesson/lab/quiz. Break C: rollout friction + OrbStack logs valuable. Break D: patch → YAML. Conventions above locked 2026-06-23. |

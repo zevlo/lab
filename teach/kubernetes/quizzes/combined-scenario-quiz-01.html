@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Combined Scenario Quiz 01 — Kubernetes Fundamentals</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  .mission { font-style: italic; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .topics { font-size: .92rem; color: var(--faint); margin: 1rem 0 2rem; }
+  .topics span { display: inline-block; background: #f0f0ea; padding: .15em .5em; border-radius: 3px; margin: .2em .25em .2em 0; font-size: .85rem; }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q .tag { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 0 0 .5rem; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Review · Kubernetes Fundamentals</p>
+  <h1>Combined Scenario Quiz 01</h1>
+  <p class="subtitle">Twelve incidents, no cluster — from memory.</p>
+</header>
+
+<p class="mission">You've closed lessons 0001–0020. This quiz stitches concepts across arcs: troubleshooting funnel, probes, networking, rollouts, Helm, Kustomize, resources, storage, and StatefulSets. Each stem is a mini incident — pick the <em>best first move</em> or <em>root cause</em>, not the fastest-sounding kubectl incantation.</p>
+
+<div class="note">
+  <strong>Probe mnemonic (still worth drilling):</strong> readiness = <em>membership</em> (quarantine, 0/1, rollout stall) · liveness = <em>existence</em> (restart, RESTARTS climb). When in doubt, readiness only.
+</div>
+
+<p class="topics">Coverage: <span>SCOPE</span><span>probes</span><span>networking</span><span>rollouts</span><span>Helm</span><span>Kustomize</span><span>HPA</span><span>storage</span><span>StatefulSets</span></p>
+
+<h2>Quiz — no peeking</h2>
+
+<div class="q" data-correct="2" data-hint="SCOPE first — same cluster, wrong namespace or context, is the cheapest mistake. Lessons 0007, 0017.">
+  <p class="tag">Scope · 0017</p>
+  <p class="stem">1. On-call: <code>kubectl get pods</code> shows nothing in <code>production</code>. Teammate says API pods are Running in <code>staging</code>. Same kubeconfig. Best first move?</p>
+  <button class="opt">kubectl delete deployment api — stale objects block listing in the wrong namespace</button>
+  <button class="opt">helm rollback api — namespace mismatch means the release metadata is corrupt</button>
+  <button class="opt">Verify current context and namespace; switch scope before debugging pods</button>
+  <button class="opt">kubectl logs deployment/api — empty list means logs rotated and pods are gone</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="RESTARTS 0 + readiness failures = quarantine, not restart. Lesson 0005, 0020 Q2.">
+  <p class="tag">Probes · 0005 / 0020</p>
+  <p class="stem">2. Pod <code>Running 0/1</code>, RESTARTS <code>0</code>. Events show readiness probe failures — HTTP GET <code>/health</code> returns 503. Sibling pods Ready and serving traffic. Effect on this pod?</p>
+  <button class="opt">Kubelet restarts the container after each failed probe until HTTP 200</button>
+  <button class="opt">Pod keeps running but is excluded from Service endpoints until the probe passes</button>
+  <button class="opt">Scheduler evicts the pod to a node with lower memory pressure</button>
+  <button class="opt">Deployment auto-scales down because Ready replicas dropped below desired</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="Liveness must not check dependencies — external outage becomes restart storm. Lesson 0005 Q2, 0006 record.">
+  <p class="tag">Probes · 0005 / 0006</p>
+  <p class="stem">3. API liveness probe curls the database. DB maintenance lasts 15 minutes. RESTARTS climb on every API pod. Best fix?</p>
+  <button class="opt">Move the DB check to readiness; liveness tests only the app process itself</button>
+  <button class="opt">Raise liveness failureThreshold so restarts happen less often during outages</button>
+  <button class="opt">Add a startup probe on the database port so liveness waits longer</button>
+  <button class="opt">Convert Deployment to StatefulSet so pods survive dependency outages</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="Pods innocent — empty EndpointSlice means Service binding. Lesson 0017 Break D, 0019.">
+  <p class="tag">Networking · 0019</p>
+  <p class="stem">4. Pods <code>Running 1/1</code>. <code>curl</code> via Service times out. EndpointSlice for <code>api</code> has no ready addresses. Best first move?</p>
+  <button class="opt">kubectl rollout undo — empty endpoints always mean a stuck deploy</button>
+  <button class="opt">kubectl logs deployment/api — healthy pods mean the bug is in application stdout</button>
+  <button class="opt">kubectl describe ingress — Service timeouts require TLS Secret inspection first</button>
+  <button class="opt">Compare Service selector to pod labels in the manifest</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="Full EndpointSlice + dead port-forward = targetPort map, not selector. Lesson 0019 Break B.">
+  <p class="tag">Networking · 0019</p>
+  <p class="stem">5. EndpointSlice lists pod IPs. <code>port-forward svc/api</code> fails. Pods <code>Running 1/1</code>. Pod spec: <code>containerPort: 8080</code>. Service: <code>port: 80</code>, <code>targetPort: 80</code>. Root cause?</p>
+  <button class="opt">Ingress <code>backend.port.number</code> must equal <code>containerPort</code> on every cluster</button>
+  <button class="opt">HPA removed endpoints because CPU requests are missing from the Deployment</button>
+  <button class="opt">Service <code>targetPort</code> does not match the port the container listens on</button>
+  <button class="opt">Readiness probe failing — a full EndpointSlice proves probes are misconfigured</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="OOMKilled before meaningful logs — fix limits, not log diving. Lesson 0018 Break A.">
+  <p class="tag">Pod failures · 0018</p>
+  <p class="stem">6. Pod <code>CrashLoopBackOff</code>. <code>describe</code> shows <code>Last State: OOMKilled</code>, exit 137. Teammate opens application logs first. Best response?</p>
+  <button class="opt">Agree — CrashLoopBackOff always means an uncaught exception in application code</button>
+  <button class="opt">Redirect — memory limit too low; fix limits in manifest or reduce allocation</button>
+  <button class="opt">Redirect — unbound PVC; describe StorageClass before touching limits</button>
+  <button class="opt">Redirect — FailedScheduling; raise CPU requests so the pod can land on a node</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="Pending + unbound PVC → RELATED object is the claim, not scheduler. Lesson 0018 Break C.">
+  <p class="tag">Storage · 0015 / 0018</p>
+  <p class="stem">7. Pod <code>Pending</code> ten minutes. Events: <code>pod has unbound immediate PersistentVolumeClaims</code>. Container never started. First RELATED object to inspect?</p>
+  <button class="opt">kubectl describe pvc referenced by the pod volume mount</button>
+  <button class="opt">kubectl logs pod — Pending means the process crashed before logging started</button>
+  <button class="opt">kubectl get endpointslice — Pending pods are removed from all Service backends</button>
+  <button class="opt">kubectl rollout status — PVC binding requires the Deployment rollout to finish first</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="ImagePullBackOff + old pods Ready = containment. Don't curl-first. Lessons 0004, 0020.">
+  <p class="tag">Rollouts · 0004 / 0020</p>
+  <p class="stem">8. Bad image deploy. <code>rollout status</code> stuck. New pod <code>ImagePullBackOff</code>. Two old pods <code>Running 1/1</code>. HTTP still returns 200. Correct assessment?</p>
+  <button class="opt">Outage in progress — delete all pods to force kubelet to retry the pull</button>
+  <button class="opt">RollingUpdate failed open — maxUnavailable terminated every old pod already</button>
+  <button class="opt">Ingress caches responses — pods are down but Traefik hides the failure</button>
+  <button class="opt">Rollout contained — old ReplicaSet still serves while the new revision cannot start</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="template = preview only, same class as kubectl kustomize. Lessons 0013, 0014.">
+  <p class="tag">Helm · 0014</p>
+  <p class="stem">9. Engineer runs <code>helm template shop ./chart -n shop</code>, then <code>kubectl get deploy -n shop</code> shows nothing. Why?</p>
+  <button class="opt">Chart lint failed so Helm refused to print any YAML to stdout</button>
+  <button class="opt">The shop namespace must exist before helm template can contact the API server</button>
+  <button class="opt">helm template renders locally only; the cluster needs helm install or upgrade</button>
+  <button class="opt">OrbStack blocks Helm renders unless metrics-server is installed in kube-system</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="kustomize build = preview; apply -k = deploy. Lesson 0013.">
+  <p class="tag">Kustomize · 0013</p>
+  <p class="stem">10. <code>kubectl kustomize overlays/staging</code> prints Deployment <code>stg-api</code>. <code>kubectl get deploy stg-api</code> returns NotFound. Explanation?</p>
+  <button class="opt">Kustomize only emits ConfigMaps — Deployments require a Helm chart wrapper</button>
+  <button class="opt">Build printed YAML only; deploy requires <code>kubectl apply -k overlays/staging</code></button>
+  <button class="opt">Staging overlay must be installed with helm upgrade --install, not kubectl</button>
+  <button class="opt">kustomize refuses cluster writes until the target namespace is set on context</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="HPA utilization needs requests + metrics-server. Lesson 0012.">
+  <p class="tag">HPA · 0012</p>
+  <p class="stem">11. HPA shows <code>TARGETS &lt;unknown&gt;/70%</code>. Deployment has three Running pods under load. Most likely missing piece?</p>
+  <button class="opt">CPU requests not set on containers — utilization cannot be computed as a percentage</button>
+  <button class="opt">ResourceQuota blocks HPA — delete the HPA object and recreate with higher maxReplicas</button>
+  <button class="opt">Ingress must expose Prometheus metrics before resource-based HPA can reconcile</button>
+  <button class="opt">metrics-server Running proves HPA works — unknown means only custom metrics are supported</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="StatefulSet ordered rollout — ordinal N waits for N-1 Ready. Lesson 0016.">
+  <p class="tag">StatefulSets · 0016</p>
+  <p class="stem">12. StatefulSet <code>db</code> at 3 replicas. You <code>kubectl scale sts/db --replicas=4</code>. Pod <code>db-3</code> Running Ready. Pod <code>db-4</code> not created yet. Best explanation?</p>
+  <button class="opt">HPA capped the StatefulSet at three replicas because CPU requests are unset</button>
+  <button class="opt">Ordered rollout — controller waits for ordinal N−1 Ready before creating ordinal N</button>
+  <button class="opt">Fourth PVC exceeded namespace ResourceQuota so the binder rejected pod four</button>
+  <button class="opt">Headless Service lost DNS records for ordinal four so the scheduler blocked placement</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<footer>
+  <p><strong>When done:</strong> report your score to your agent — especially which numbers you missed. Scores below 10/12 usually mean one arc to revisit, not starting over.</p>
+  <p>Lessons: <a href="../lessons/0017-the-troubleshooting-workflow.html">0017</a> · <a href="../lessons/0019-service-ingress-path.html">0019</a> · <a href="../lessons/0020-rollout-debugging.html">0020</a> · <a href="../lessons/0005-probes-catching-the-quiet-failures.html">0005</a> · Reference: <a href="../reference/troubleshooting-workflow.html">Troubleshooting workflow</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q, qi) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    var hint = q.dataset.hint || '';
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.' + (hint ? ' ' + hint : '');
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct.' + (hint ? ' ' + hint : '');
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          var msg = 'Score: ' + correct + ' / ' + qs.length;
+          if (correct === qs.length) {
+            msg += ' — clean run. Tell your agent; ready for cert-manager or NetworkPolicies.';
+          } else if (correct >= 10) {
+            msg += ' — strong. Tell your agent which numbers you missed.';
+          } else {
+            msg += ' — tell your agent which ones you missed; we will target those arcs.';
+          }
+          s.textContent = msg;
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

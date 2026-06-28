@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0020 — Rollout and Helm Revision Debugging</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0020 · Kubernetes Fundamentals · Troubleshooting arc (finale)</p>
+  <h1>Rollout and Helm Revision Debugging</h1>
+  <p class="subtitle">After the deploy breaks — triage the rollout, not the homepage.</p>
+</header>
+
+<p class="mission">Lesson <a href="0004-rollouts-changing-things-without-downtime.html">0004</a> taught rollouts and <code>rollout undo</code>. Lesson <a href="0014-helm-charts-and-releases.html">0014</a> taught <code>helm rollback</code>. Lessons <a href="0017-the-troubleshooting-workflow.html">0017</a>–<a href="0019-service-ingress-path.html">0019</a> drilled pod and networking failures. This lesson closes the troubleshooting arc: <strong>deploy incidents</strong> — when someone runs <code>kubectl apply</code> or <code>helm upgrade</code> and traffic degrades. At work, the first question is not "is the site down?" but "is the rollout stuck, and which ReplicaSet is failing?" In the homelab, the same funnel saves you from deleting a healthy Deployment while one bad pod blocks progress.</p>
+
+<h2>The Idea</h2>
+
+<p>A deploy changes the pod template. The Deployment controller spins up a <em>new</em> <a href="../reference/core-glossary.html#replicaset">ReplicaSet</a> and slides replicas. When something goes wrong, you get a <strong>stuck rollout</strong> — old pods may still serve while new ones never become Ready <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#failed-deployment">[failed deployment]</a>.</p>
+
+<p>The deploy-incident funnel (after confirming SCOPE — right cluster and namespace):</p>
+
+<pre><code>STATUS  → kubectl rollout status deployment/&lt;name&gt;   # stuck or progressing?
+RELATED → kubectl get rs                              # old RS still has replicas?
+STATUS  → kubectl get pods                            # which pod is the new one?
+EVENTS  → kubectl describe pod &lt;failing-pod&gt;          # ImagePullBackOff? probe failure?
+RECOVER → rollout undo OR fix manifest + apply        # stop bleeding vs durable fix</code></pre>
+
+<table>
+  <tr><th>What you see</th><th>Likely cause</th><th>Old pods still serving?</th><th>First move</th></tr>
+  <tr><td>Rollout stuck; new pod <code>ImagePullBackOff</code></td><td>Bad image tag / registry</td><td>Usually yes (<code>maxUnavailable</code>)</td><td><code>describe pod</code> Events → fix image in manifest</td></tr>
+  <tr><td>Rollout stuck; new pod <code>Running 0/1</code></td><td>Readiness probe never passes</td><td>Usually yes</td><td><code>describe pod</code> → Conditions / probe path or port</td></tr>
+  <tr><td><code>helm upgrade</code> succeeded; app broken</td><td>Bad values rendered into manifest</td><td>Depends on rollout</td><td><code>helm history</code> → same pod funnel → <code>helm rollback</code></td></tr>
+</table>
+
+<div class="note">
+  <strong>Containment vs diagnosis.</strong> <code>kubectl rollout undo</code> and <code>helm rollback</code> are <em>recovery</em> — they stop the bleeding fast. At work, the durable fix is usually revert the bad commit in Git and <code>apply</code> again. Diagnose first so you know <em>what</em> to revert.
+</div>
+
+<p>During a stuck rollout with two replicas, you may see <strong>three pods</strong> — two old Ready pods plus one new failing pod. That is <code>maxSurge</code> at work (lesson 0004). Do not assume total pod count equals replica count.</p>
+
+<p>Helm adds one layer: each <code>upgrade</code> is a numbered <strong>revision</strong>. <code>helm history RELEASE</code> maps revision numbers to cluster state; <code>helm rollback RELEASE N</code> re-applies revision N's rendered manifests — the Helm equivalent of scaling the old ReplicaSet back up.</p>
+
+<h2>Lab — Three deploy breaks, one funnel (~30 min)</h2>
+
+<p>OrbStack, context <code>orbstack</code>. Lab files in <code>yaml/deploy-incident-lab/</code>:</p>
+<pre><code>cd ~/projects/teach/kubernetes/yaml/deploy-incident-lab
+ls</code></pre>
+<p class="expect">Expect <code>namespace.yaml</code>, <code>baseline.yaml</code>, <code>image-bad.yaml</code>, <code>image-fixed.yaml</code>, <code>probe-bad.yaml</code>, <code>probe-fixed.yaml</code>, and <code>chart/</code> (minimal Helm chart). Two terminals help for Break A — watch ReplicaSets in terminal 2.</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>SCOPE — confirm cluster, pin namespace.</strong></p>
+<pre><code>kubectl config current-context
+kubectl apply -f namespace.yaml
+kubectl config set-context --current --namespace=deploy-incident-lab</code></pre>
+<p class="expect">Expect <code>orbstack</code>. Namespace created; following commands omit <code>-n</code>.</p>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Baseline — healthy Deployment with readiness probe.</strong></p>
+<pre><code>kubectl apply -f baseline.yaml
+kubectl rollout status deployment/api --timeout=60s
+kubectl get pods,rs
+kubectl port-forward svc/api 8080:80 &amp;
+curl -s localhost:8080 | head -n 1
+kill %1</code></pre>
+<p class="expect">Expect two Ready pods, one ReplicaSet at 2/2. Port-forward returns nginx HTML.</p>
+</div>
+
+<div class="step broken"><span class="n">2</span>
+<p><strong>Break A — bad image tag; rollout contained.</strong> (Lesson 0004, now inside the funnel.)</p>
+<p>In <strong>terminal 2</strong>: <code>kubectl get rs -w</code></p>
+<pre><code>kubectl apply -f image-bad.yaml
+kubectl rollout status deployment/api</code></pre>
+<p class="expect"><code>rollout status</code> hangs — Ctrl-C. Terminal 2: second ReplicaSet appears; new pod stuck; old RS still at 2. <strong>Your turn</strong> — do not open fix files yet:</p>
+<pre><code>kubectl get pods
+kubectl get rs
+kubectl describe pod -l pod-template-hash=&lt;new-hash&gt; | tail -n 15</code></pre>
+<p class="expect">Tip: <code>kubectl get rs</code> shows two ReplicaSets — the one with DESIRED 2 and READY 2 is the old good revision; the one with a failing pod is new. New pod: <code>ErrImagePull</code> / <code>ImagePullBackOff</code>. Old pods still <code>Running 1/1</code> — outage contained.</p>
+<p><strong>Recover</strong> — stop the bleeding, then apply the fixed manifest (production pattern):</p>
+<pre><code>kubectl rollout undo deployment/api
+kubectl rollout status deployment/api
+kubectl apply -f image-fixed.yaml
+kubectl get rs</code></pre>
+<p class="expect"><code>rollout undo</code> drains the bad ReplicaSet. <code>image-fixed.yaml</code> restores the correct image declaratively — what you would commit in Git.</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break B — readiness probe on wrong port; quiet failure.</strong> (Lesson 0004's caveat — app "starts" but never becomes Ready.)</p>
+<pre><code>kubectl apply -f probe-bad.yaml
+kubectl rollout status deployment/api</code></pre>
+<p class="expect">Rollout stuck again. This time the new pod may show <code>Running 0/1</code> — not ImagePullBackOff. Diagnose:</p>
+<pre><code>kubectl get pods
+kubectl describe pod -l pod-template-hash=&lt;new-hash&gt; | grep -A8 "Readiness:"
+kubectl describe pod -l pod-template-hash=&lt;new-hash&gt; | grep -A4 "Conditions:"</code></pre>
+<p class="expect">Readiness probe hits port <code>8080</code>; nginx listens on <code>80</code>. Conditions: <code>Ready=False</code>. Old pods still serve traffic.</p>
+<p><strong>Fix</strong> — correct probe in manifest:</p>
+<pre><code>kubectl apply -f probe-fixed.yaml
+kubectl rollout status deployment/api
+kubectl get pods</code></pre>
+<p class="expect">Rollout completes; all pods <code>1/1</code>.</p>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>Break C — Helm upgrade with bad image tag.</strong> (Lesson 0014 revision history.)</p>
+<pre><code>helm install sidecar ./chart
+kubectl rollout status deployment/sidecar-sidecar --timeout=60s
+helm list</code></pre>
+<p class="expect">Release <code>sidecar</code>, revision 1, one Ready pod.</p>
+<pre><code>helm upgrade sidecar ./chart -f chart/values-bad.yaml
+helm history sidecar
+kubectl rollout status deployment/sidecar-sidecar</code></pre>
+<p class="expect">Upgrade "succeeds" — revision 2 — but rollout stuck. Same pod funnel:</p>
+<pre><code>kubectl get pods
+kubectl describe pod -l app.kubernetes.io/instance=sidecar | tail -n 12</code></pre>
+<p class="expect"><code>ImagePullBackOff</code> on image <code>nginx:1.27-broken</code>. Revision 1's ReplicaSet may still have the good pod at zero or one depending on timing.</p>
+<p><strong>Recover:</strong></p>
+<pre><code>helm rollback sidecar 1
+helm history sidecar
+kubectl rollout status deployment/sidecar-sidecar
+kubectl get pods</code></pre>
+<p class="expect">History shows revision 3 (rollback counts as new). Pod back to <code>nginx:1.27-alpine</code>, Ready.</p>
+</div>
+
+<div class="step"><span class="n">5</span>
+<p><strong>Clean up.</strong></p>
+<pre><code>helm uninstall sidecar
+kubectl delete namespace deploy-incident-lab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Do not curl first.</strong> During a stuck rollout, HTTP may still work on old pods while the deploy is broken. Watch <code>rollout status</code> and ReplicaSet counts — the same containment lesson from lesson 0004, now as incident triage. Networking breaks (lesson 0019) come <em>after</em> you confirm the rollout finished.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="2">
+  <p class="stem">1. After <code>kubectl apply</code>, site still works but <code>rollout status</code> is stuck. Two ReplicaSets exist; new pod is <code>ImagePullBackOff</code>. Best first move?</p>
+  <button class="opt">Delete the Deployment and recreate it — stuck rollouts corrupt etcd</button>
+  <button class="opt">Scale replicas to zero — empty ReplicaSets always unblock rollouts</button>
+  <button class="opt">describe the failing new pod; read Events for image pull errors</button>
+  <button class="opt">describe Ingress — ImagePullBackOff means Traefik lost the route</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">2. Rollout stuck; new pod <code>Running 0/1</code>; old pods Ready. <code>describe</code> shows readiness probe failing on port 8080; container listens on 80. Root cause?</p>
+  <button class="opt">Readiness probe misconfigured — pod excluded from endpoints until probe passes</button>
+  <button class="opt">Liveness probe killed the container — raise memory limits first</button>
+  <button class="opt">Service selector typo — empty EndpointSlice blocks readiness</button>
+  <button class="opt">Scheduler Pending — probe port mismatch prevents node placement</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">3. Production incident: bad deploy 10 minutes ago; you need to restore service immediately while a teammate reverts Git. Fastest cluster-side recovery for a kubectl-managed Deployment?</p>
+  <button class="opt">helm rollback — Helm manages all Deployments including plain apply</button>
+  <button class="opt">Delete all pods — the controller will pull the previous image tag</button>
+  <button class="opt">kubectl scale deployment to zero then back to two — forces old ReplicaSet</button>
+  <button class="opt">kubectl rollout undo — scales the previous ReplicaSet back up</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">4. <code>helm upgrade</code> reports success; revision 2; app broken. Pods show <code>ImagePullBackOff</code>. After diagnosing the image tag, what maps to <code>rollout undo</code> for Helm?</p>
+  <button class="opt">helm template — re-render revision 1 locally without touching the cluster</button>
+  <button class="opt">helm rollback RELEASE 1 — re-apply the manifests from revision 1</button>
+  <button class="opt">helm uninstall — removes the broken release so install starts fresh</button>
+  <button class="opt">kubectl delete deployment — Helm cannot roll back Deployments it created</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">5. Two-replica Deployment; stuck rollout; <code>get pods</code> shows three pods — two Ready, one failing. Why three?</p>
+  <button class="opt">HPA scaled up because metrics-server detected high CPU during deploy</button>
+  <button class="opt">ReplicaSet bug — Kubernetes duplicated the old ReplicaSet by mistake</button>
+  <button class="opt">RollingUpdate maxSurge allows an extra pod above desired count during the swap</button>
+  <button class="opt">Readiness failure doubles pod count until the probe passes</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>Failed deployments: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#failed-deployment">Deployment — failed rollout</a> · Rollback: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-back-a-deployment">Rolling back a Deployment</a> · Helm rollback: <a href="https://helm.sh/docs/helm/helm_rollback/">helm rollback</a> · Debug workflow: <a href="https://kubernetes.io/docs/tasks/debug/debug-application/">Troubleshooting applications</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"When should I pause a rollout instead of undo?"</em> · <em>"How does helm rollback differ from reverting values in Git?"</em> · <em>"What's the full incident funnel from alert to root cause?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0019-service-ingress-path.html">Lesson 0019 — Service and Ingress Path</a> · Reference: <a href="../reference/troubleshooting-workflow.html">Troubleshooting workflow</a> · <a href="../reference/helm.html">Helm patterns</a> · <a href="../reference/core-glossary.html#rollout">Glossary — Rollout</a></p>
+  <p><em>Troubleshooting arc complete (0017–0020).</em> Review: <a href="../quizzes/combined-scenario-quiz-01.html">Combined Scenario Quiz 01</a> · Next: cert-manager or NetworkPolicies.</p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before you move on.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent — the troubleshooting arc is complete.'
+                                   : ' — tell your agent which ones you missed; we can revisit in a combined scenario quiz.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
