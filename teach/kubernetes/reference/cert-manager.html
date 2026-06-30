@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cert-manager — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>cert-manager</h1>
+  <p class="subtitle">Quick reference — automated TLS Secrets for Ingress.</p>
+</header>
+
+<h2>Control loop</h2>
+<pre><code>Issuer / ClusterIssuer  →  who signs certs
+Certificate             →  desired DNS names + secretName
+Secret (kubernetes.io/tls)  →  output (tls.crt, tls.key)
+Ingress                 →  spec.tls.secretName (consumer)</code></pre>
+
+<h2>Install (Helm, once per cluster)</h2>
+<pre><code>helm repo add jetstack https://charts.jetstack.io
+helm upgrade --install cert-manager jetstack/cert-manager \
+  -n cert-manager --create-namespace \
+  --set crds.enabled=true</code></pre>
+
+<h2>Lab issuer (local)</h2>
+<pre><code>apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: lab-ca
+  namespace: certmanager-lab
+spec:
+  selfSigned: {}</code></pre>
+
+<h2>Certificate + Ingress wiring</h2>
+<pre><code>apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-tls
+spec:
+  secretName: api-tls          # must match Ingress tls.secretName
+  issuerRef:
+    name: lab-ca
+    kind: Issuer
+  dnsNames:
+  - api.certlab.k8s.orb.local  # must match Ingress tls.hosts + rules.host</code></pre>
+
+<h2>Diagnostics</h2>
+<table>
+  <tr><th>Symptom</th><th>Likely cause</th><th>Check</th></tr>
+  <tr><td>Certificate not Ready</td><td>Bad/missing Issuer</td><td><code>describe certificate</code>, <code>get issuer</code></td></tr>
+  <tr><td>Ready but HTTPS hostname warning</td><td><code>dnsNames</code> ≠ Ingress host</td><td><code>get certificate -o yaml</code> vs <code>describe ingress</code></td></tr>
+  <tr><td>HTTP OK, HTTPS broken</td><td>Ingress <code>secretName</code> typo</td><td><code>get secret</code> — lesson 0008 pattern</td></tr>
+  <tr><td>Let's Encrypt fails on OrbStack</td><td>CA cannot reach <code>*.k8s.orb.local</code></td><td>Use real public DNS for ACME; selfSigned locally</td></tr>
+</table>
+
+<h2>Core commands</h2>
+<pre><code>kubectl get issuer,certificate -n &lt;ns&gt;
+kubectl describe certificate &lt;name&gt; -n &lt;ns&gt;
+kubectl get certificaterequest -n &lt;ns&gt;
+kubectl wait --for=condition=Ready certificate/&lt;name&gt; -n &lt;ns&gt;
+kubectl get secret &lt;secretName&gt; -n &lt;ns&gt;</code></pre>
+
+<div class="note">
+  <strong>Production:</strong> <code>ClusterIssuer</code> with ACME (Let's Encrypt) + HTTP-01 or DNS-01. Optional Ingress annotation <code>cert-manager.io/cluster-issuer: …</code> auto-creates Certificate (ingress-shim).
+</div>
+
+<h2>Lesson links</h2>
+<p><a href="../lessons/0022-cert-manager-automated-tls.html">Lesson 0022</a> · <a href="../lessons/0008-tls-on-ingress.html">Lesson 0008</a> · <a href="ingress-tls.html">Ingress TLS</a> · <a href="core-glossary.html#cert-manager">Glossary</a></p>
+
+<footer>
+  Canonical source: <a href="https://cert-manager.io/docs/">cert-manager.io documentation</a>
+</footer>
+</body>
+</html>

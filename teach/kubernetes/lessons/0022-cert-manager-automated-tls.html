@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0022 — cert-manager: Automated TLS for Ingress</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre .c { color: #7f8a99; }
+  pre .k { color: #61afef; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0022 · Kubernetes Fundamentals · TLS automation</p>
+  <h1>cert-manager: Automated TLS for Ingress</h1>
+  <p class="subtitle">Lesson 0008 by hand — now with renewal and a control loop.</p>
+</header>
+
+<p class="mission">Lesson <a href="0008-tls-on-ingress.html">0008</a> had you run <code>openssl</code>, create a TLS Secret, and point Ingress at <code>secretName</code>. That works once. At work and on a public homelab, certs expire — operators install <strong><a href="https://cert-manager.io/">cert-manager</a></strong> to request, store, and renew certificates automatically. The Ingress shape from 0008 does not change. What changes: something else owns the Secret lifecycle.</p>
+
+<h2>The Idea</h2>
+
+<p>cert-manager is a cluster add-on (like metrics-server in <a href="0012-horizontal-pod-autoscaler.html">0012</a> or Traefik in <a href="0003-ingress-one-door-many-services.html">0003</a>). It watches custom resources and writes standard Kubernetes TLS Secrets <a href="https://cert-manager.io/docs/concepts/">[concepts]</a>:</p>
+
+<table>
+  <tr><th>Resource</th><th>Role</th></tr>
+  <tr><td><strong>Issuer</strong> / <strong>ClusterIssuer</strong></td><td>Where certs come from — Let's Encrypt, a corporate CA, or <code>selfSigned</code> for labs</td></tr>
+  <tr><td><strong>Certificate</strong></td><td>Desired cert: DNS names, target <code>secretName</code>, which Issuer to use</td></tr>
+  <tr><td><strong>Secret</strong> (<code>kubernetes.io/tls</code>)</td><td>Output — same keys as lesson 0008 (<code>tls.crt</code>, <code>tls.key</code>)</td></tr>
+  <tr><td><strong>Ingress</strong></td><td>Consumer — still references <code>spec.tls.secretName</code>; Traefik unchanged</td></tr>
+</table>
+
+<p>The control loop:</p>
+
+<pre><code>Certificate (desired DNS names + secretName)
+  → cert-manager asks Issuer
+  → writes / updates TLS Secret
+  → Ingress reads Secret for HTTPS
+  → cert-manager renews before expiry</code></pre>
+
+<div class="note">
+  <strong>Same TLS rules as 0008.</strong> <code>Certificate.spec.dnsNames</code> must match <code>Ingress.spec.tls.hosts</code> and <code>rules.host</code>. Secret must live in the same namespace as Ingress and Certificate. HTTP routing still works when only TLS binding breaks.
+</div>
+
+<p><strong>Lab vs production issuer:</strong> Let's Encrypt needs a hostname the CA can reach on the public internet (HTTP-01 or DNS-01 challenge). OrbStack's <code>*.k8s.orb.local</code> names resolve on your Mac only — fine for Traefik, invisible to Let's Encrypt. This lab uses a <code>selfSigned</code> <strong>Issuer</strong> so the full cert-manager flow runs locally. Production swaps the Issuer for <code>letsencrypt-prod</code> (ClusterIssuer) — same Certificate and Ingress pattern.</p>
+
+<p>Install once per cluster (Helm, like lesson <a href="0014-helm-charts-and-releases.html">0014</a>):</p>
+
+<pre><code>helm repo add jetstack https://charts.jetstack.io
+helm repo update
+helm upgrade --install cert-manager jetstack/cert-manager \
+  -n cert-manager --create-namespace \
+  --set crds.enabled=true
+kubectl rollout status deployment/cert-manager -n cert-manager --timeout=120s
+kubectl rollout status deployment/cert-manager-webhook -n cert-manager --timeout=120s</code></pre>
+
+<h2>Lab — Issue, mount, break (~30 min)</h2>
+
+<p>OrbStack, context <code>orbstack</code>, Traefik from lesson 0003. Lab files in <code>yaml/certmanager-lab/</code>:</p>
+<pre><code>cd ~/projects/teach/kubernetes/yaml/certmanager-lab
+ls</code></pre>
+<p class="expect">Expect <code>namespace.yaml</code>, <code>stack.yaml</code>, <code>issuer.yaml</code>, <code>tls-stack.yaml</code>, break/fix YAML pairs. Hostname: <code>api.certlab.k8s.orb.local</code>.</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>SCOPE — cluster add-on + lab namespace.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl get crd certificates.cert-manager.io 2&gt;/dev/null || echo "cert-manager not installed"</code></pre>
+<p class="expect">If CRD missing, run the Helm install block above and wait for rollouts. Then:</p>
+<pre><code>kubectl apply -f namespace.yaml
+kubectl config set-context --current --namespace=certmanager-lab</code></pre>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p><strong>Baseline — app without TLS yet.</strong></p>
+<pre><code>kubectl apply -f stack.yaml
+kubectl rollout status deployment/api --timeout=60s
+kubectl get pods,svc</code></pre>
+<p class="expect">One Running pod, Service <code>api</code>. No Ingress yet.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>Issuer + Certificate + Ingress — automated Secret.</strong></p>
+<pre><code>kubectl apply -f issuer.yaml
+kubectl apply -f tls-stack.yaml
+kubectl get issuer,certificate,ingress
+kubectl wait --for=condition=Ready certificate/api-tls --timeout=90s
+kubectl get secret api-tls</code></pre>
+<p class="expect">Issuer <code>lab-ca</code> Ready. Certificate <code>api-tls</code> Ready=True. Secret <code>api-tls</code> type <code>kubernetes.io/tls</code> with 2 data keys. Test HTTPS:</p>
+<pre><code>curl -sk https://api.certlab.k8s.orb.local/ | head -n 1
+curl -s http://api.certlab.k8s.orb.local/ | head -n 1</code></pre>
+<p class="expect">nginx HTML over HTTPS (<code>-k</code> for self-signed) and HTTP. cert-manager created the Secret — you did not run <code>openssl</code>.</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break A — wrong DNS name on Certificate.</strong></p>
+<pre><code>kubectl apply -f certificate-bad-dns.yaml
+kubectl wait --for=condition=Ready certificate/api-tls --timeout=90s
+curl -sk https://api.certlab.k8s.orb.local/ 2&gt;&amp;1 | head -n 5
+curl -vk https://api.certlab.k8s.orb.local/ 2&gt;&amp;1 | grep -i subject</code></pre>
+<p class="expect">Certificate may still show Ready — cert-manager issued <em>a</em> cert, but for <code>api-typo.certlab.k8s.orb.local</code>. HTTPS may handshake with wrong subject or warn on hostname mismatch. HTTP still works.</p>
+<p><strong>Your turn:</strong></p>
+<pre><code>kubectl get certificate api-tls -o yaml | grep -A3 dnsNames
+kubectl describe ingress api | grep -A4 TLS</code></pre>
+<p class="expect"><code>dnsNames</code> typo vs Ingress <code>tls.hosts</code> / <code>rules.host</code> — same SNI mismatch class as lesson 0008, but fix is in the Certificate manifest, not <code>openssl</code>.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f certificate-fixed.yaml
+kubectl wait --for=condition=Ready certificate/api-tls --timeout=90s
+curl -vk https://api.certlab.k8s.orb.local/ 2&gt;&amp;1 | grep -i subject</code></pre>
+<p class="expect">Subject/CN matches <code>api.certlab.k8s.orb.local</code>.</p>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>Break B — Issuer reference typo; Certificate stuck.</strong></p>
+<pre><code>kubectl apply -f certificate-bad-issuer.yaml
+kubectl get certificate api-tls
+kubectl describe certificate api-tls | tail -n 15</code></pre>
+<p class="expect">Certificate not Ready — Events mention Issuer not found (<code>lab-ca-typo</code>). Secret may still hold the <em>previous</em> cert until you fix the Certificate — do not trust HTTPS until Ready again.</p>
+<pre><code>kubectl get certificaterequest 2&gt;/dev/null | tail -n 3</code></pre>
+<p class="expect">Recent CertificateRequest may show Failed or no successful issuance.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f certificate-fixed.yaml
+kubectl wait --for=condition=Ready certificate/api-tls --timeout=90s</code></pre>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break C — Ingress <code>secretName</code> typo (lesson 0008 replay).</strong> Certificate Ready; break only the Ingress binding:</p>
+<pre><code>kubectl apply -f ingress-bad-secret.yaml
+curl -s http://api.certlab.k8s.orb.local/ | head -n 1
+curl -vk https://api.certlab.k8s.orb.local/ 2&gt;&amp;1 | tail -n 10</code></pre>
+<p class="expect">HTTP still nginx HTML. HTTPS fails or shows wrong/default cert — Ingress points at <code>api-tls-typo</code> but Secret is <code>api-tls</code>.</p>
+<pre><code>kubectl get secret api-tls-typo
+kubectl get secret api-tls</code></pre>
+<p class="expect"><code>api-tls-typo</code> NotFound; <code>api-tls</code> exists. cert-manager did its job; Ingress references the wrong name.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f ingress-fixed.yaml
+curl -sk https://api.certlab.k8s.orb.local/ | head -n 1</code></pre>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Clean up lab namespace.</strong> Leave cert-manager installed — cluster add-on for future labs.</p>
+<pre><code>kubectl delete namespace certmanager-lab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Production note:</strong> swap <code>selfSigned</code> Issuer for a <code>ClusterIssuer</code> with <code>acme</code> (Let's Encrypt). You need a real DNS name pointing at your ingress IP and often an Ingress annotation or DNS-01 solver. The Certificate + Ingress wiring you practiced here is the same.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="1">
+  <p class="stem">1. After installing cert-manager, what object does the Ingress still reference for HTTPS?</p>
+  <button class="opt">The Certificate CR directly — Ingress reads cert-manager.io resources</button>
+  <button class="opt">A TLS Secret by secretName — same kubernetes.io/tls Secret as lesson 0008</button>
+  <button class="opt">The Issuer CR — Traefik pulls certs from the Issuer API</button>
+  <button class="opt">A ConfigMap with tls.crt pasted as plain text under data:</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">2. Certificate Ready=True; Ingress host <code>api.example.com</code>; <code>dnsNames</code> lists <code>api-typo.example.com</code>. Likely HTTPS symptom?</p>
+  <button class="opt">HTTP and HTTPS both return 404 — routing rule deleted automatically</button>
+  <button class="opt">Connection refused on port 443 — cert-manager stops Traefik when names mismatch</button>
+  <button class="opt">TLS handshake may succeed but hostname/SNI mismatch or wrong cert subject</button>
+  <button class="opt">Pod enters CrashLoopBackOff — kubelet rejects mismatched Certificate objects</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">3. Certificate stuck; Events say Issuer <code>lab-ca-typo</code> not found. First fix?</p>
+  <button class="opt">Correct issuerRef.name in the Certificate to match an existing Issuer</button>
+  <button class="opt">Delete Traefik — cert-manager replaces the ingress controller when Issuer fails</button>
+  <button class="opt">Re-run openssl manually — cert-manager only works with pre-created Secrets</button>
+  <button class="opt">Scale the Deployment to zero — Issuer errors always mean too many replicas</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. Why does this lab use a selfSigned Issuer instead of Let's Encrypt for <code>*.k8s.orb.local</code>?</p>
+  <button class="opt">OrbStack blocks all TLS unless the Issuer type is selfSigned</button>
+  <button class="opt">Let's Encrypt cannot issue certificates with nginx backends</button>
+  <button class="opt">cert-manager does not support Ingress on local clusters</button>
+  <button class="opt">Public CAs cannot validate hostnames that only resolve on your Mac</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">5. Certificate not Ready; describe shows no Events yet. Useful next objects to inspect?</p>
+  <button class="opt">PersistentVolumeClaim — TLS issuance always waits for PVC binding</button>
+  <button class="opt">CertificateRequest and Issuer status — issuance pipeline after Certificate</button>
+  <button class="opt">HorizontalPodAutoscaler — cert-manager scales Issuers based on CPU</button>
+  <button class="opt">NetworkPolicy — TLS handshakes blocked until policy allows port 443 egress</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary Source</h2>
+<p>cert-manager concepts: <a href="https://cert-manager.io/docs/concepts/certificate/">Certificate</a> · <a href="https://cert-manager.io/docs/configuration/">Issuers</a> · Install: <a href="https://cert-manager.io/docs/installation/helm/">Helm</a> · Ingress TLS (unchanged): <a href="https://kubernetes.io/docs/concepts/services-networking/ingress/#tls">kubernetes.io</a>.</p>
+
+<footer>
+  <p><strong>Stuck or curious?</strong> Ask your agent. Good follow-ups: <em>"How do I set up Let's Encrypt with HTTP-01 on a real domain?"</em> · <em>"What is the cert-manager ingress-shim annotation?"</em> · <em>"How does renewal work before expiry?"</em> Report your quiz score when done.</p>
+  <p>Previous: <a href="0021-network-policies.html">Lesson 0021 — NetworkPolicies</a> · <a href="0008-tls-on-ingress.html">Lesson 0008 — TLS on Ingress</a> · Reference: <a href="../reference/cert-manager.html">cert-manager patterns</a> · <a href="../reference/ingress-tls.html">Ingress TLS</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct. Worth revisiting before the next lesson.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          s.textContent = 'Score: ' + correct + ' / ' + qs.length +
+            (correct === qs.length ? ' — solid. Tell your agent, and it will push further next lesson.'
+                                   : ' — tell your agent which ones you missed; we can revisit in a scenario quiz.');
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

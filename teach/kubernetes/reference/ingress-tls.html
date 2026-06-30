@@ -67,7 +67,7 @@
   -keyout tls.key -out tls.crt \
   -subj "/CN=hello.k8s.orb.local" \
   -addext "subjectAltName=DNS:hello.k8s.orb.local"</code></pre>
-<p>Browsers and <code>curl</code> warn until you trust the CA or use <code>curl -k</code>. Production: <strong>cert-manager</strong> + Let's Encrypt (or your CA).</p>
+<p>Browsers and <code>curl</code> warn until you trust the CA or use <code>curl -k</code>. Automated path: <a href="cert-manager.html">cert-manager</a> (lesson 0022) + Let's Encrypt or <code>selfSigned</code> for local labs.</p>
 
 <h2>Diagnostics</h2>
 <table>
@@ -79,7 +79,7 @@
 </table>
 
 <footer>
-  Introduced in <a href="../lessons/0008-tls-on-ingress.html">Lesson 0008</a> · See also <a href="core-glossary.html#ingress">Ingress</a>, <a href="core-glossary.html#secret">Secret</a>
+  Introduced in <a href="../lessons/0008-tls-on-ingress.html">Lesson 0008</a> · Automated: <a href="../lessons/0022-cert-manager-automated-tls.html">Lesson 0022</a> · See also <a href="core-glossary.html#ingress">Ingress</a>, <a href="core-glossary.html#secret">Secret</a>
 </footer>
 </body>
 </html>

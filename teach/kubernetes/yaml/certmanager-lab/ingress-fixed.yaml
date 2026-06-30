@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api
+  namespace: certmanager-lab
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - api.certlab.k8s.orb.local
+    secretName: api-tls
+  rules:
+  - host: api.certlab.k8s.orb.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api
+            port:
+              number: 80

@@ -60,6 +60,8 @@
   Missing endpoints, selector mismatches, DNS, kube-proxy. Use for: networking-layer troubleshooting lessons.
 - [Task: Declare a Network Policy](https://kubernetes.io/docs/tasks/administer-cluster/declare-network-policy/)
   Maintainer walkthrough of isolating pods by ingress rules. Use for: lab design on default-allow vs explicit-allow models.
+- [cert-manager documentation](https://cert-manager.io/docs/)
+  TLS automation via Certificate/Issuer CRDs; writes standard kubernetes.io/tls Secrets for Ingress. Use for: lesson 0022 lab design and Let's Encrypt vs selfSigned issuer tradeoffs.
 - [OrbStack Kubernetes Documentation](https://docs.orbstack.dev/kubernetes)
   Official docs for the user's local cluster environment (service exposure via `*.k8s.orb.local`, kubelet config, Traefik/Ingress setup). Use for: anything specific to how the local lab cluster behaves on macOS.
 - [Kubernetes the Hard Way — Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)
