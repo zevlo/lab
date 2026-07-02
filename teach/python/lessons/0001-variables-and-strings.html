@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 1 · Variables &amp; Strings</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .bash-note {
+    background: #eef2ee;
+    border-left: 3px solid var(--good);
+    padding: 0.7rem 1.2rem;
+    margin: 1.2rem 0;
+    font-size: 0.95rem;
+  }
+  .bash-note strong { font-variant: small-caps; letter-spacing: 0.05em; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 1 · ~15 min</p>
+<h1>Variables &amp; Strings</h1>
+<p class="lede">The single biggest mental shift from bash: values have types.</p>
+
+<h2>The one idea</h2>
+<p>In bash, everything is a string. <code>n=5</code> stores the <em>characters</em> "5". In Python, values have <strong>types</strong>: <code>5</code> is an integer you can do math with; <code>"5"</code> is a string of one character. They are different things, and Python refuses to silently mix them.</p>
+
+<pre><code>host = "web01"        # a string  (type: str)
+cpu_count = 8         # an integer (type: int)
+load = 2.75           # a decimal  (type: float)
+
+print(host)           # web01
+print(cpu_count * 2)  # 16</code></pre>
+
+<div class="bash-note">
+<strong>Bash bridge</strong> — Three differences from what your fingers know:
+<ol style="margin: 0.4rem 0 0.2rem; padding-left: 1.3rem;">
+  <li><code>host = "web01"</code> — spaces around <code>=</code> are <em>fine</em> in Python (they'd break bash).</li>
+  <li>To use a variable, just name it: <code>print(host)</code>. No <code>$</code>. Ever.</li>
+  <li><code>print(host)</code> with no quotes prints the variable's value; <code>print("host")</code> prints the literal word <code>host</code>.</li>
+</ol>
+</div>
+
+<h2>f-strings: Python's <code>"$var"</code></h2>
+<p>Where bash interpolates with <code>"deploying to $host"</code>, Python uses an <strong>f-string</strong>: put an <code>f</code> before the opening quote, then wrap variables in curly braces.</p>
+
+<pre><code>host = "web01"
+load = 2.75
+
+print(f"load on {host} is {load}")
+# load on web01 is 2.75</code></pre>
+
+<p>Forget the <code>f</code> and Python prints the braces literally — <code>load on {host} is {load}</code>. This is the #1 beginner typo. The braces can hold any expression: <code>f"{cpu_count * 2} threads"</code> works.</p>
+
+<h2>Crossing the type boundary</h2>
+<p>Bash converts strings and numbers silently. Python makes you say it out loud, with <code>int()</code>, <code>float()</code>, and <code>str()</code>:</p>
+
+<pre><code>port = "8080"          # came from a config file, so it's a str
+port + 1               # 💥 TypeError: can only concatenate str to str
+int(port) + 1          # 8081  ✓
+
+uptime_days = 42
+"up for " + str(uptime_days) + " days"   # works, but clunky
+f"up for {uptime_days} days"             # better — f-strings convert for you</code></pre>
+
+<h2>Check yourself</h2>
+<p>Answer from memory — no scrolling up. Getting it wrong here is useful; that's what makes it stick.</p>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> <code>host = "db01"</code> — how do you print <code>connecting to db01</code>?</p>
+  <button class="opt" data-k="a">print("connecting to $host")</button>
+  <button class="opt" data-k="b">print(f"connecting to {host}")</button>
+  <button class="opt" data-k="c">print("connecting to {host}")</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> What does <code>"5" + 1</code> give you?</p>
+  <button class="opt" data-k="a">6, Python converts it</button>
+  <button class="opt" data-k="b">51, strings concatenate</button>
+  <button class="opt" data-k="c">an error, types differ</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> A config value arrives as the string <code>"3"</code>. You need to add 1 to it. Which works?</p>
+  <button class="opt" data-k="a">int("3") + 1</button>
+  <button class="opt" data-k="b">str("3") + 1</button>
+  <button class="opt" data-k="c">num("3") + 1</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>Open a terminal and run <code>python3</code> to get the interactive shell (<code>&gt;&gt;&gt;</code> prompt — it's like typing at a bash prompt, but Python). From memory, no peeking:</p>
+<ol>
+  <li>Make a variable <code>server</code> holding <code>"prod-web-01"</code> and a variable <code>connections</code> holding <code>250</code>.</li>
+  <li>Print exactly: <code>prod-web-01 has 250 connections</code> — using both variables in one f-string.</li>
+  <li>Double it: print <code>at capacity: 500</code> using <code>connections * 2</code> inside the f-string.</li>
+  <li>Break it on purpose: type <code>"5" + 1</code> and read the error message. Interviewers love asking what <code>TypeError</code> means — now you've seen one.</li>
+  <li>Exit with <code>exit()</code>.</li>
+</ol>
+<p>If any step fails, the error message is the feedback — read it, fix it, rerun. That loop <em>is</em> the skill.</p>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source for this lesson: <a href="https://automatetheboringstuff.com/3e/chapter1.html">Automate the Boring Stuff, Chapter 1 — Python Basics</a> (free, written for automation people, ~20 min). The authoritative reference is the <a href="https://docs.python.org/3/tutorial/introduction.html">official Python tutorial, §3</a>.</p>
+
+<div class="footer">
+<p>Reference sheet: <a href="../reference/bash-to-python.html#variables">Bash → Python translation table</a> — this lesson's rows are filled in.</p>
+<p>Stuck, or curious why something works the way it does? Ask your teacher (the agent) — that's what it's for. Follow-up questions are part of the lesson, not an interruption.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>

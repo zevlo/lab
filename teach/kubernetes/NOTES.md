@@ -40,7 +40,7 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 **TLS automation:** 0022 cert-manager ✓. **Network security:** 0021 NetworkPolicies ✓.
 
-**Fundamentals wrap-up:** 0023 ✓ — `lessons/0023-fundamentals-wrap-up-review.html`, `reference/fundamentals-map.html`, sign-off `quizzes/combined-scenario-quiz-02.html`. Prior combined review: `quizzes/combined-scenario-quiz-01.html` ✓ 11/12.
+**Fundamentals track:** ✓ **COMPLETE** (2026-06-30) — lessons 0001–0023. Sign-off: lesson 0023 **10/10**, Combined Quiz 02 **12/12**. Prior Combined Quiz 01: 11/12 (HPA gap remediated on 02).
 
 **OrbStack quirk (0021):** k3s starts with `--disable-network-policy` — policies apply to API only, not enforced. Lab is read-and-predict unless kind/other cluster used.
 
@@ -48,10 +48,12 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 | Quiz | Score | Notes |
 |------|-------|-------|
+| Combined 02 | 12/12 | Fundamentals sign-off. cert-manager, NetworkPolicy, HPA metrics vs requests all clean. |
 | Combined 01 | 11/12 | Strong cross-arc recall. Q11: conflated resource HPA with Prometheus/custom metrics path. |
 
 | Lesson | Quiz | Notes |
 |--------|------|-------|
+| 0023 | 10/10 | Fundamentals wrap-up. Clean integration recall; track sign-off with Quiz 02 12/12. |
 | 0022 | 5/5 | cert-manager landed. Issuer → Certificate → Secret → Ingress; three breaks clean. |
 | 0021 | 5/5 | NetworkPolicy model landed. OrbStack: enforcement off; lab conceptual. |
 | 0020 | 4/5 | Deploy-incident triage landed. Missed readiness-vs-liveness on wrong probe port (same gap as 0005). Arc complete. |
