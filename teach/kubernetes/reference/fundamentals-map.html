@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundamentals Map — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  .layer { margin: 1.5rem 0; padding: .75rem 1rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .layer h3 { margin: 0 0 .4rem; font-size: 1rem; color: var(--accent); }
+  .layer p { margin: 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; font-style: italic; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fundamentals Map</h1>
+  <p class="subtitle">Quick reference — how the 22 lessons stack into one operational picture.</p>
+</header>
+
+<div class="note">
+  <strong>One sentence:</strong> You declare <em>desired state</em> in YAML; <em>controllers</em> reconcile reality; you debug by comparing manifest → API objects → pod events → bindings (Service, PVC, Ingress).
+</div>
+
+<h2>The control loop (everything else hangs on this)</h2>
+<pre><code>YOU write manifest  →  API server stores desired state  →  controller watches
+  →  creates/updates objects  →  kubelet runs containers  →  STATUS reflects reality
+  →  you read STATUS and fix the manifest</code></pre>
+<p>Lesson <a href="../lessons/0001-desired-state-and-the-control-loop.html">0001</a> · Glossary: <a href="core-glossary.html#controller">controller</a>, <a href="core-glossary.html#desired-state">desired state</a></p>
+
+<h2>Layers (bottom → top)</h2>
+
+<div class="layer">
+  <h3>1 · Scope &amp; policy</h3>
+  <p><code>Namespace</code>, <code>context</code>, <code>ResourceQuota</code>, <code>LimitRange</code> — where objects live and what a namespace may consume.</p>
+  <p>Lessons <a href="../lessons/0007-namespaces-and-contexts.html">0007</a>, <a href="../lessons/0011-limitrange-and-resourcequota.html">0011</a> · <a href="namespace-resource-policies.html">namespace policies ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>2 · Workloads</h3>
+  <p><code>Pod</code> (atomic) → <code>Deployment</code> (stateless, rolling updates) · <code>StatefulSet</code> (stable identity, ordered scale, per-pod PVC).</p>
+  <p>Lessons <a href="../lessons/0004-rollouts-changing-things-without-downtime.html">0004</a>, <a href="../lessons/0016-statefulsets-stable-identity.html">0016</a> · <a href="statefulsets.html">StatefulSets ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>3 · Configuration &amp; health</h3>
+  <p><code>ConfigMap</code> / <code>Secret</code> inject env and files. <code>readinessProbe</code> = membership (endpoints). <code>livenessProbe</code> = existence (restart).</p>
+  <p>Lessons <a href="../lessons/0005-probes-catching-the-quiet-failures.html">0005</a>, <a href="../lessons/0006-configmaps-and-secrets.html">0006</a> · <a href="configuration-patterns.html">configuration ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>4 · Resources &amp; scale</h3>
+  <p><code>requests</code> / <code>limits</code> → scheduling &amp; OOM. HPA needs <strong>requests</strong> + metrics-server for CPU %. Quota caps namespace totals.</p>
+  <p>Lessons <a href="../lessons/0009-resource-requests-and-limits.html">0009</a>, <a href="../lessons/0012-horizontal-pod-autoscaler.html">0012</a> · <a href="resource-management.html">resources ref</a> · <a href="horizontal-pod-autoscaler.html">HPA ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>5 · Networking</h3>
+  <p><code>Service</code> (stable VIP → EndpointSlice of pod IPs). <code>Ingress</code> (HTTP host/path → Service port). <code>NetworkPolicy</code> (permit/deny pod traffic — separate from routing).</p>
+  <p>Lessons <a href="../lessons/0002-services-and-the-networking-model.html">0002</a>, <a href="../lessons/0003-ingress-one-door-many-services.html">0003</a>, <a href="../lessons/0019-service-ingress-path.html">0019</a>, <a href="../lessons/0021-network-policies.html">0021</a> · <a href="network-policies.html">NetworkPolicy ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>6 · TLS</h3>
+  <p>Manual: TLS Secret + <code>spec.tls.secretName</code> on Ingress (<a href="../lessons/0008-tls-on-ingress.html">0008</a>). Automated: Issuer → Certificate → Secret → Ingress (<a href="../lessons/0022-cert-manager-automated-tls.html">0022</a>).</p>
+  <p><a href="ingress-tls.html">Ingress TLS ref</a> · <a href="cert-manager.html">cert-manager ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>7 · Storage</h3>
+  <p><code>PVC</code> binds to <code>PV</code> (dynamic via <code>StorageClass</code>). Pending pod + unbound claim → describe PVC first.</p>
+  <p>Lesson <a href="../lessons/0015-persistent-volumes-and-claims.html">0015</a> · <a href="persistent-storage.html">storage ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>8 · Authoring &amp; delivery</h3>
+  <p><code>kubectl apply</code> (declarative). <code>kustomize build</code> / <code>apply -k</code> (layers). <code>helm template</code> (preview) vs <code>helm upgrade --install</code> (release).</p>
+  <p>Lessons <a href="../lessons/0010-manifest-authoring-workflow.html">0010</a>, <a href="../lessons/0013-kustomize-base-and-overlays.html">0013</a>, <a href="../lessons/0014-helm-charts-and-releases.html">0014</a> · <a href="manifest-authoring.html">authoring ref</a></p>
+</div>
+
+<div class="layer">
+  <h3>9 · Operations</h3>
+  <p>Triage funnel: <strong>SCOPE → STATUS → EVENTS → LOGS → RELATED</strong>. Rollout incidents: <code>rollout status</code> → <code>get rs</code> → failing pod.</p>
+  <p>Lessons <a href="../lessons/0017-the-troubleshooting-workflow.html">0017</a>–<a href="../lessons/0020-rollout-debugging.html">0020</a> · <a href="troubleshooting-workflow.html">troubleshooting ref</a></p>
+</div>
+
+<h2>Traffic path (debug inside-out)</h2>
+<pre><code>curl https://app.example.com/path
+  → Ingress (host, path, tls.secretName, backend.service.port)
+  → Service (selector → labels, port → targetPort → containerPort)
+  → Pod (readiness → EndpointSlice membership)
+  → NetworkPolicy (may block even if routing is correct)</code></pre>
+
+<h2>Preview ≠ deploy</h2>
+<table>
+  <tr><th>Command</th><th>Touches cluster?</th></tr>
+  <tr><td><code>kubectl apply -f …</code> / <code>apply -k …</code></td><td>Yes</td></tr>
+  <tr><td><code>kubectl kustomize …</code> / <code>kubectl diff</code></td><td>No (preview)</td></tr>
+  <tr><td><code>helm template …</code></td><td>No (preview)</td></tr>
+  <tr><td><code>helm upgrade --install …</code></td><td>Yes</td></tr>
+</table>
+
+<h2>Lesson index (0001–0022)</h2>
+<table>
+  <tr><th>#</th><th>Topic</th></tr>
+  <tr><td>0001</td><td><a href="../lessons/0001-desired-state-and-the-control-loop.html">Desired state &amp; control loop</a></td></tr>
+  <tr><td>0002</td><td><a href="../lessons/0002-services-and-the-networking-model.html">Services &amp; networking</a></td></tr>
+  <tr><td>0003</td><td><a href="../lessons/0003-ingress-one-door-many-services.html">Ingress</a></td></tr>
+  <tr><td>0004</td><td><a href="../lessons/0004-rollouts-changing-things-without-downtime.html">Rollouts</a></td></tr>
+  <tr><td>0005</td><td><a href="../lessons/0005-probes-catching-the-quiet-failures.html">Probes</a></td></tr>
+  <tr><td>0006</td><td><a href="../lessons/0006-configmaps-and-secrets.html">ConfigMaps &amp; Secrets</a></td></tr>
+  <tr><td>0007</td><td><a href="../lessons/0007-namespaces-and-contexts.html">Namespaces &amp; contexts</a></td></tr>
+  <tr><td>0008</td><td><a href="../lessons/0008-tls-on-ingress.html">TLS on Ingress</a></td></tr>
+  <tr><td>0009</td><td><a href="../lessons/0009-resource-requests-and-limits.html">Requests &amp; limits</a></td></tr>
+  <tr><td>0010</td><td><a href="../lessons/0010-manifest-authoring-workflow.html">Manifest authoring</a></td></tr>
+  <tr><td>0011</td><td><a href="../lessons/0011-limitrange-and-resourcequota.html">LimitRange &amp; ResourceQuota</a></td></tr>
+  <tr><td>0012</td><td><a href="../lessons/0012-horizontal-pod-autoscaler.html">HPA</a></td></tr>
+  <tr><td>0013</td><td><a href="../lessons/0013-kustomize-base-and-overlays.html">Kustomize</a></td></tr>
+  <tr><td>0014</td><td><a href="../lessons/0014-helm-charts-and-releases.html">Helm</a></td></tr>
+  <tr><td>0015</td><td><a href="../lessons/0015-persistent-volumes-and-claims.html">PV &amp; PVC</a></td></tr>
+  <tr><td>0016</td><td><a href="../lessons/0016-statefulsets-stable-identity.html">StatefulSets</a></td></tr>
+  <tr><td>0017</td><td><a href="../lessons/0017-the-troubleshooting-workflow.html">Troubleshooting workflow</a></td></tr>
+  <tr><td>0018</td><td><a href="../lessons/0018-pod-failure-modes.html">Pod failure modes</a></td></tr>
+  <tr><td>0019</td><td><a href="../lessons/0019-service-ingress-path.html">Service/Ingress path</a></td></tr>
+  <tr><td>0020</td><td><a href="../lessons/0020-rollout-debugging.html">Rollout debugging</a></td></tr>
+  <tr><td>0021</td><td><a href="../lessons/0021-network-policies.html">NetworkPolicies</a></td></tr>
+  <tr><td>0022</td><td><a href="../lessons/0022-cert-manager-automated-tls.html">cert-manager</a></td></tr>
+</table>
+
+<footer>
+  Wrap-up lesson: <a href="../lessons/0023-fundamentals-wrap-up-review.html">0023</a> · Extended quiz: <a href="../quizzes/combined-scenario-quiz-02.html">Combined Scenario Quiz 02</a>
+</footer>
+</body>
+</html>

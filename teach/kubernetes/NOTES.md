@@ -40,7 +40,9 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 **TLS automation:** 0022 cert-manager ✓. **Network security:** 0021 NetworkPolicies ✓.
 
-**OrbStack quirk (0021):** k3s starts with `--disable-network-policy` — policies apply to API only, not enforced. Lab is read-and-predict unless kind/other cluster used. Combined review: `quizzes/combined-scenario-quiz-01.html` ✓ 11/12.
+**Fundamentals wrap-up:** 0023 ✓ — `lessons/0023-fundamentals-wrap-up-review.html`, `reference/fundamentals-map.html`, sign-off `quizzes/combined-scenario-quiz-02.html`. Prior combined review: `quizzes/combined-scenario-quiz-01.html` ✓ 11/12.
+
+**OrbStack quirk (0021):** k3s starts with `--disable-network-policy` — policies apply to API only, not enforced. Lab is read-and-predict unless kind/other cluster used.
 
 ## Working notes
 

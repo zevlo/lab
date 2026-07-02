@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Combined Scenario Quiz 02 — Fundamentals Sign-Off</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  .mission { font-style: italic; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .topics { font-size: .92rem; color: var(--faint); margin: 1rem 0 2rem; }
+  .topics span { display: inline-block; background: #f0f0ea; padding: .15em .5em; border-radius: 3px; margin: .2em .25em .2em 0; font-size: .85rem; }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q .tag { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 0 0 .5rem; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Sign-off · Kubernetes Fundamentals</p>
+  <h1>Combined Scenario Quiz 02</h1>
+  <p class="subtitle">Twelve fresh incidents — all arcs, including TLS automation and NetworkPolicy.</p>
+</header>
+
+<p class="mission">Lesson <a href="../lessons/0023-fundamentals-wrap-up-review.html">0023</a> compressed the map. This quiz is the sign-off: new stems, same rules — equal-length options, scenario-first thinking, no cluster required. Target <strong>11/12</strong> before you call fundamentals done.</p>
+
+<div class="note">
+  <strong>cert-manager chain:</strong> Issuer (trust) → Certificate (desired DNS + secretName) → Secret (<code>tls.crt</code>/<code>tls.key</code>) → Ingress (<code>spec.tls.secretName</code>). Break any link → TLS wrong or missing.
+</div>
+
+<p class="topics">Coverage: <span>control loop</span><span>cert-manager</span><span>NetworkPolicy</span><span>probes</span><span>storage</span><span>quota</span><span>Helm</span><span>ingress path</span></p>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="1" data-hint="Certificate references Issuer — wrong issuerRef blocks issuance. Lesson 0022 Break B.">
+  <p class="tag">cert-manager · 0022</p>
+  <p class="stem">1. Certificate <code>web-tls</code> stuck Not Ready. Events: <code>referenced Issuer not found</code>. Secret empty. Ingress unchanged from lesson 0008. First fix?</p>
+  <button class="opt">Recreate the Ingress — cert-manager only watches Ingress objects not Certificate CRDs</button>
+  <button class="opt">Fix issuerRef on the Certificate to match an existing Issuer or ClusterIssuer name</button>
+  <button class="opt">Add a readiness probe on cert-manager pod — Not Ready always means controller crash</button>
+  <button class="opt">Convert Deployment to StatefulSet so TLS Secrets bind with stable pod identity</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="Egress policy on selected pod — DNS/kube-apiserver may need explicit allow. Lesson 0021.">
+  <p class="tag">NetworkPolicy · 0021</p>
+  <p class="stem">2. Policy selects <code>app: worker</code> with egress only to <code>app: redis</code>:6379. Worker pods cannot resolve DNS. Pods not selected by any policy work fine. Cause?</p>
+  <button class="opt">Services automatically allow DNS — worker labels must not match the policy podSelector</button>
+  <button class="opt">Ingress controller blocks DNS until cert-manager writes the TLS Secret for the namespace</button>
+  <button class="opt">ResourceQuota denied CoreDNS pods so cluster DNS is down for every namespace</button>
+  <button class="opt">Egress policy on worker restricts outbound traffic — DNS to kube-system was not allowed</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="Liveness must not check dependencies. Lesson 0005, 0006.">
+  <p class="tag">Probes · 0005</p>
+  <p class="stem">3. API liveness probe HTTP GETs the payment service. Payment outage lasts 20 minutes. Every API pod RESTARTS climbs. Best fix?</p>
+  <button class="opt">Move payment check to readiness; liveness probes only the API process itself</button>
+  <button class="opt">Increase liveness timeoutSeconds so kubelet waits longer before each restart</button>
+  <button class="opt">Add startupProbe on payment port so liveness is disabled until payment recovers</button>
+  <button class="opt">Scale Deployment to zero — liveness failures always mean too many replicas running</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="ResourceQuota = namespace aggregate cap. LimitRange = per-pod/container. Lesson 0011.">
+  <p class="tag">Quota · 0011</p>
+  <p class="stem">4. Namespace <code>prod</code> already holds 40 Gi of bound PVCs. New 10 Gi PVC stays Pending. Quota object limits <code>requests.storage: 50Gi</code>. Explanation?</p>
+  <button class="opt">LimitRange rejected the PVC because each claim must request exactly 5 Gi in prod</button>
+  <button class="opt">StorageClass reclaimPolicy PreventDelete blocks new claims until old pods are deleted</button>
+  <button class="opt">ResourceQuota caps total storage requests — 40 Gi used leaves insufficient headroom for 10 Gi</button>
+  <button class="opt">HPA scaled PVC count above maxReplicas so the binder refused the tenth volume claim</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="CreateContainerConfigError = missing Secret/ConfigMap ref. Lesson 0017 Break C.">
+  <p class="tag">Config · 0006 / 0017</p>
+  <p class="stem">5. Pod STATUS <code>CreateContainerConfigError</code>. Container never started. No logs. Events mention <code>secret &quot;db-creds&quot; not found</code>. First move?</p>
+  <button class="opt">kubectl logs pod — CreateContainerConfigError means the app crashed before logging</button>
+  <button class="opt">Create or fix the Secret reference in the manifest; describe pod confirmed the missing name</button>
+  <button class="opt">kubectl rollout undo — config errors always mean the last Deployment revision is bad</button>
+  <button class="opt">kubectl get endpointslice — missing secrets remove pods from Service backends first</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="Ingress backend.port.number is Service port, not containerPort. Lesson 0019.">
+  <p class="tag">Ingress · 0019</p>
+  <p class="stem">6. <code>curl https://shop.example.com</code> returns 502. Pods Ready. Service <code>shop</code>: <code>port 80</code> → <code>targetPort 8080</code>. Ingress backend <code>port.number: 8080</code>. Cause?</p>
+  <button class="opt">Certificate Not Ready — 502 always means cert-manager failed the TLS handshake</button>
+  <button class="opt">NetworkPolicy denied Ingress — Traefik needs an egress rule to reach pod port 8080</button>
+  <button class="opt">Readiness probe wrong — 502 proves every pod is Running but excluded from endpoints</button>
+  <button class="opt">Ingress backend port must be the Service port (80), not the container targetPort (8080)</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="metrics-server down → top and HPA both suffer. Lesson 0012.">
+  <p class="tag">HPA · 0012</p>
+  <p class="stem">7. HPA shows <code>&lt;unknown&gt;/70%</code>. CPU requests are set on every container. <code>kubectl top pod</code> fails with metrics API unavailable. Fix?</p>
+  <button class="opt">Restore metrics-server (or fix its connectivity) — HPA needs the metrics API pipeline</button>
+  <button class="opt">Add Ingress annotations — resource HPA requires Prometheus scraped through Traefik</button>
+  <button class="opt">Raise ResourceQuota CPU limit — unknown targets mean the namespace cap blocks scaling</button>
+  <button class="opt">Install cert-manager — TLS Secrets must exist before metrics-server can report pod CPU</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="helm upgrade --install is the deploy path; template is preview. Lesson 0014.">
+  <p class="tag">Helm · 0014</p>
+  <p class="stem">8. Engineer edits <code>values.yaml</code>, runs <code>helm template rel ./chart</code>, sees new image tag in output. Cluster still runs the old image. Why?</p>
+  <button class="opt">Helm refuses to render tags not present in the previous release revision history</button>
+  <button class="opt">OrbStack blocks image pulls until NetworkPolicy allows egress to the container registry</button>
+  <button class="opt">helm template only prints YAML locally; cluster needs helm upgrade --install to apply</button>
+  <button class="opt">Kustomize overlays must wrap Helm charts before kubectl can apply rendered manifests</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="Pending + FailedScheduling + quota → describe ResourceQuota. Lesson 0011, 0018.">
+  <p class="tag">Scheduling · 0011</p>
+  <p class="stem">9. Pod <code>Pending</code>. Events: <code>exceeded quota: limits.cpu</code>. No container started. RELATED object to inspect?</p>
+  <button class="opt">kubectl get ingress — Pending pods lose routes when CPU quota is exceeded in namespace</button>
+  <button class="opt">kubectl describe resourcequota — namespace aggregate CPU limit blocked scheduling</button>
+  <button class="opt">kubectl logs pod — quota errors always print to stdout before the scheduler runs</button>
+  <button class="opt">kubectl get certificate — cert-manager pauses scheduling until TLS Secrets are Ready</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="Control loop: desired replicas unchanged — delete is repaired. Lesson 0001.">
+  <p class="tag">Control loop · 0001</p>
+  <p class="stem">10. Deployment desired replicas: 3. You delete one pod. ReplicaSet still shows desired 3, current 3 shortly after. Mechanism?</p>
+  <button class="opt">Kubelet auto-heals deleted pods by restoring the same pod UID from local cache</button>
+  <button class="opt">HPA detected manual delete and incremented replicas to preserve availability SLO</button>
+  <button class="opt">Ingress controller requested a replacement pod because endpoint count dropped below three</button>
+  <button class="opt">ReplicaSet controller recreated a pod to reconcile desired count with actual running pods</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="volumeClaimTemplates create per-ordinal PVCs. Lesson 0016.">
+  <p class="tag">StatefulSets · 0016</p>
+  <p class="stem">11. StatefulSet <code>db</code> uses <code>volumeClaimTemplates</code>. You scale from 2 to 3. Pod <code>db-2</code> Pending. PVC <code>data-db-2</code> Pending. First RELATED check?</p>
+  <button class="opt">kubectl describe pvc data-db-2 — binding failure blocks the third pod from scheduling</button>
+  <button class="opt">kubectl rollout undo sts/db — StatefulSet scale always requires deleting ordinal two first</button>
+  <button class="opt">kubectl get networkpolicy — Pending PVCs mean egress to StorageClass was denied by policy</button>
+  <button class="opt">kubectl get certificate — TLS must be Ready before StatefulSet PVCs bind on OrbStack</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="apply -k deploys; kustomize build previews. Lesson 0013.">
+  <p class="tag">Kustomize · 0013</p>
+  <p class="stem">12. CI runs <code>kubectl kustomize overlays/prod</code> in a dry pipeline. Manifests look correct. Production cluster unchanged after merge. Missing step?</p>
+  <button class="opt">helm upgrade --install — Kustomize output must be piped through a chart template engine</button>
+  <button class="opt">kubectl delete -k — prod overlays require tearing down staging objects before every deploy</button>
+  <button class="opt">kubectl apply -k overlays/prod — build only renders YAML and never writes to the API</button>
+  <button class="opt">cert-manager install — prod overlays refuse to apply until ClusterIssuer exists in kube-system</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<footer>
+  <p><strong>When done:</strong> report your score to your agent. Fundamentals sign-off: 11/12+ on this quiz and lesson 0023 at 9/10+.</p>
+  <p>Lesson: <a href="../lessons/0023-fundamentals-wrap-up-review.html">0023 Wrap-Up</a> · Reference: <a href="../reference/fundamentals-map.html">Fundamentals Map</a> · Prior: <a href="combined-scenario-quiz-01.html">Quiz 01</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    var hint = q.dataset.hint || '';
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.' + (hint ? ' ' + hint : '');
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct.' + (hint ? ' ' + hint : '');
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          var msg = 'Score: ' + correct + ' / ' + qs.length;
+          if (correct >= 11) {
+            msg += ' — fundamentals sign-off. Tell your agent; you are ready for the next mission layer.';
+          } else if (correct >= 9) {
+            msg += ' — close. Tell your agent which numbers you missed for a targeted revisit.';
+          } else {
+            msg += ' — revisit lessons cited in missed tags; retake when ready.';
+          }
+          s.textContent = msg;
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0023 — Fundamentals Wrap-Up Review</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .mission { font-style: italic; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+  .checklist { margin: 1rem 0; padding-left: 1.25rem; }
+  .checklist li { margin: .5rem 0; }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q .tag { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin: 0 0 .5rem; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0023 · Kubernetes Fundamentals · Wrap-up</p>
+  <h1>Fundamentals Wrap-Up Review</h1>
+  <p class="subtitle">Twenty-two lessons, one mental model — prove it from memory.</p>
+</header>
+
+<p class="mission">You set out to deploy, expose, scale, and debug on a real cluster — at work and in a homelab. Twenty-two lessons later, the vocabulary is large but the machinery is small: <strong>declare desired state, let controllers reconcile, debug the gap</strong>. This lesson compresses the arc, drills cross-cutting scenarios, and points you at a longer sign-off quiz. No new objects — only integration.</p>
+
+<h2>The whole system in one pass</h2>
+
+<p>Kubernetes is not a bag of kubectl tricks. It is a <a href="https://kubernetes.io/docs/concepts/architecture/controller/">control-loop platform</a> <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/">[objects]</a>: you write manifests; the API stores desired state; controllers (Deployment, ReplicaSet, HPA, cert-manager, …) continuously nudge reality toward that state; kubelets run containers on nodes. When something looks wrong, you walk the same path in reverse: <strong>SCOPE → STATUS → EVENTS → LOGS → RELATED</strong> (<a href="0017-the-troubleshooting-workflow.html">0017</a>).</p>
+
+<pre><code>Manifest (desired)  →  API object  →  bound resources  →  pod STATUS  →  traffic path
+     ↑___________________________ fix here (Git + apply) _______________________|</code></pre>
+
+<p>Full layer map and lesson index: <a href="../reference/fundamentals-map.html">Fundamentals Map reference</a>. Glossary: <a href="../reference/core-glossary.html">Core Glossary</a>.</p>
+
+<div class="note">
+  <strong>Three mnemonics worth keeping:</strong><br>
+  · <em>Readiness = membership</em> · <em>Liveness = existence</em> (lesson <a href="0005-probes-catching-the-quiet-failures.html">0005</a>)<br>
+  · <em>Preview ≠ deploy</em> — <code>kustomize build</code>, <code>helm template</code> never touch the cluster (<a href="0013-kustomize-base-and-overlays.html">0013</a>, <a href="0014-helm-charts-and-releases.html">0014</a>)<br>
+  · <em>HPA CPU % = usage ÷ requests</em> — no requests → <code>&lt;unknown&gt;</code> (<a href="0012-horizontal-pod-autoscaler.html">0012</a>)
+</div>
+
+<h2>What you can do now (honest checklist)</h2>
+
+<p>Read each line. If any item feels fuzzy, jump to the lesson — do not power through.</p>
+
+<table>
+  <tr><th>Skill</th><th>Lesson</th></tr>
+  <tr><td>Predict what a Deployment spec change will do to pods and ReplicaSets</td><td><a href="0001-desired-state-and-the-control-loop.html">0001</a>, <a href="0004-rollouts-changing-things-without-downtime.html">0004</a></td></tr>
+  <tr><td>Trace HTTP from Ingress → Service → EndpointSlice → containerPort</td><td><a href="0002-services-and-the-networking-model.html">0002</a>, <a href="0019-service-ingress-path.html">0019</a></td></tr>
+  <tr><td>Choose readiness vs liveness and predict rollout behavior</td><td><a href="0005-probes-catching-the-quiet-failures.html">0005</a>, <a href="0020-rollout-debugging.html">0020</a></td></tr>
+  <tr><td>Mount config safely; know when a pod never starts vs crashes</td><td><a href="0006-configmaps-and-secrets.html">0006</a>, <a href="0018-pod-failure-modes.html">0018</a></td></tr>
+  <tr><td>Scope incidents to the right context and namespace</td><td><a href="0007-namespaces-and-contexts.html">0007</a></td></tr>
+  <tr><td>Wire TLS manually and via cert-manager renewal loop</td><td><a href="0008-tls-on-ingress.html">0008</a>, <a href="0022-cert-manager-automated-tls.html">0022</a></td></tr>
+  <tr><td>Set requests/limits; read quota vs LimitRange errors</td><td><a href="0009-resource-requests-and-limits.html">0009</a>, <a href="0011-limitrange-and-resourcequota.html">0011</a></td></tr>
+  <tr><td>Author manifests with apply, diff, Kustomize overlays, Helm releases</td><td><a href="0010-manifest-authoring-workflow.html">0010</a>–<a href="0014-helm-charts-and-releases.html">0014</a></td></tr>
+  <tr><td>Bind PVCs; scale StatefulSets in order</td><td><a href="0015-persistent-volumes-and-claims.html">0015</a>, <a href="0016-statefulsets-stable-identity.html">0016</a></td></tr>
+  <tr><td>Read NetworkPolicy as permit lists on selected pods</td><td><a href="0021-network-policies.html">0021</a></td></tr>
+</table>
+
+<h2>Retrieval quiz — ten scenarios</h2>
+
+<p>No cluster. Equal-length options — pick the <em>best</em> answer, not the most kubectl-heavy one.</p>
+
+<div class="q" data-correct="2" data-hint="Controllers reconcile desired replica count — transient gap is normal. Lesson 0001.">
+  <p class="tag">Control loop · 0001</p>
+  <p class="stem">1. You <code>kubectl scale deployment/api --replicas=5</code>. Deployment spec shows 5. Only three pods exist, all Running. Best explanation?</p>
+  <button class="opt">API server rejected the fifth pod because HPA already owns replica count for api</button>
+  <button class="opt">Kubelet deleted two pods because the node ran out of memory during the scale event</button>
+  <button class="opt">ReplicaSet controller is still creating pods to match the new desired replica count</button>
+  <button class="opt">Scheduler blocked two pods because Ingress requires an even number of ready backends</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="HPA utilization needs requests as denominator. Lessons 0012, combined quiz Q11.">
+  <p class="tag">HPA · 0012</p>
+  <p class="stem">2. HPA targets 70% CPU. <code>kubectl top</code> shows load. HPA column reads <code>&lt;unknown&gt;/70%</code>. Most likely fix?</p>
+  <button class="opt">Add CPU requests to the Deployment container spec so utilization has a denominator</button>
+  <button class="opt">Install Prometheus and point Ingress at it so custom metrics can drive the HPA</button>
+  <button class="opt">Raise maxReplicas on the HPA object because unknown means the cap was exceeded</button>
+  <button class="opt">Delete the HPA and recreate it because unknown always means a stale controller revision</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="Policy selects pod → only declared ingress/egress allowed. Lesson 0021.">
+  <p class="tag">NetworkPolicy · 0021</p>
+  <p class="stem">3. Namespace has one NetworkPolicy selecting <code>app: db</code> with ingress from <code>app: api</code> on port 5432 only. <code>app: frontend</code> pod curls db:5432. Result?</p>
+  <button class="opt">Connection succeeds because Services bypass NetworkPolicy rules for cluster DNS names</button>
+  <button class="opt">Connection blocked — frontend is not in the policy ingress allow list for db pods</button>
+  <button class="opt">Connection succeeds because default-deny only applies when egress rules are also defined</button>
+  <button class="opt">Connection blocked because NetworkPolicy requires a ClusterIssuer before any TCP traffic</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="Certificate writes Secret; Ingress must reference that secretName. Lessons 0008, 0022.">
+  <p class="tag">TLS · 0022</p>
+  <p class="stem">4. Certificate <code>api-tls</code> is Ready. Secret <code>api-tls</code> exists. Ingress still serves the old self-signed cert. Root cause?</p>
+  <button class="opt">Traefik ignores cert-manager Secrets until metrics-server reports healthy pod CPU usage</button>
+  <button class="opt">Certificate Ready only means the Issuer exists — the Secret is not written until renewal</button>
+  <button class="opt">Let's Encrypt certs require NetworkPolicy egress before Ingress can mount the TLS Secret</button>
+  <button class="opt">Ingress <code>spec.tls.secretName</code> points at a different Secret than the Certificate creates</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="RESTARTS 0 + readiness fail = quarantine, not restart. Lessons 0005, 0020.">
+  <p class="tag">Probes · 0005</p>
+  <p class="stem">5. New pod <code>Running 0/1</code>, RESTARTS <code>0</code>. Readiness probe fails. Old pods Ready. Rollout stuck. Effect on this pod?</p>
+  <button class="opt">Kubelet restarts the container until the readiness probe returns HTTP 200 on /health</button>
+  <button class="opt">Deployment deletes the pod because maxUnavailable forces removal of not-ready replicas</button>
+  <button class="opt">Pod stays running but is excluded from Service endpoints until readiness passes</button>
+  <button class="opt">HPA scales up because Ready replicas dropped below the Deployment desired count</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="LimitRange = per-container defaults/min/max. ResourceQuota = namespace totals. Lesson 0011.">
+  <p class="tag">Quota · 0011</p>
+  <p class="stem">6. Platform team wants every pod in <code>staging</code> to declare CPU/memory requests. New pods without requests are rejected. Which object?</p>
+  <button class="opt">LimitRange in staging — enforces per-container request defaults and minimums</button>
+  <button class="opt">ResourceQuota in staging — caps total namespace CPU so requests become mandatory</button>
+  <button class="opt">HorizontalPodAutoscaler in staging — scales only pods that omit resource requests</button>
+  <button class="opt">NetworkPolicy in staging — denies scheduling until requests appear on the pod spec</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-hint="Headless Service → stable per-pod DNS for StatefulSet peers. Lesson 0016.">
+  <p class="tag">StatefulSets · 0016</p>
+  <p class="stem">7. StatefulSet <code>redis</code> with headless Service <code>redis</code>. Why headless instead of a normal ClusterIP Service?</p>
+  <button class="opt">Headless Services store TLS certificates for each ordinal pod in the StatefulSet</button>
+  <button class="opt">Headless gives each pod a stable DNS name peers use for direct pod-to-pod discovery</button>
+  <button class="opt">Headless Services skip NetworkPolicy so Redis replicas can gossip without explicit rules</button>
+  <button class="opt">Headless is required because PVCs cannot bind when a virtual IP sits in front of pods</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-hint="Inside-out: EndpointSlice full → targetPort map. Lesson 0019.">
+  <p class="tag">Networking · 0019</p>
+  <p class="stem">8. Pods <code>Running 1/1</code>. EndpointSlice lists pod IPs. <code>curl</code> via Service times out. Service <code>port: 80</code>, <code>targetPort: 80</code>. App listens on 8080. Cause?</p>
+  <button class="opt">Ingress path rule must match containerPort or kube-proxy drops packets silently</button>
+  <button class="opt">Readiness probe misconfigured — a full EndpointSlice proves every pod failed probes</button>
+  <button class="opt">cert-manager blocked the Service VIP until the Certificate object reaches Ready status</button>
+  <button class="opt">Service targetPort does not match the port the application process listens on</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-hint="kubectl delete pod on Deployment-managed pod → controller recreates. Lesson 0001.">
+  <p class="tag">Control loop · 0001 / 0004</p>
+  <p class="stem">9. You <code>kubectl delete pod api-7xk9m</code> owned by Deployment <code>api</code>. Thirty seconds later a new pod with a different name is Running. Why?</p>
+  <button class="opt">Kubelet resurrected the same pod name because StatefulSet ordering forbids replacement</button>
+  <button class="opt">ReplicaSet scaled up because delete counts as a failed rollout needing extra replicas</button>
+  <button class="opt">Deployment controller recreated a pod to satisfy desired replicas after you removed one</button>
+  <button class="opt">HPA detected the delete event and launched a replacement before metrics-server scraped</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-hint="Rollout undo = recovery; Git revert + apply = durable fix. Lesson 0020.">
+  <p class="tag">Operations · 0020</p>
+  <p class="stem">10. Bad manifest deployed Friday. <code>rollout undo</code> restored service. Monday stand-up asks for the durable fix. Best answer?</p>
+  <button class="opt">Revert the bad change in Git and kubectl apply — undo was emergency recovery only</button>
+  <button class="opt">Run rollout undo again — undo only works once so Monday needs a second invocation</button>
+  <button class="opt">Delete the Deployment and re-apply — undo leaves corrupt ReplicaSet history in etcd</button>
+  <button class="opt">helm rollback forever — Git-tracked YAML cannot replace a Helm release once upgraded</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Sign-off quiz (optional, ~15 min)</h2>
+
+<p>For a longer interleaved review across all arcs (including items not repeated above), open <a href="../quizzes/combined-scenario-quiz-02.html">Combined Scenario Quiz 02</a>. Target: <strong>11/12 or better</strong> before calling fundamentals done. If you already took <a href="../quizzes/combined-scenario-quiz-01.html">Quiz 01</a> at 11/12, Quiz 02 focuses on gaps from 0021–0022 and spaced repeats.</p>
+
+<h2>Homelab capstone (~20 min, optional)</h2>
+
+<p>On OrbStack, run this audit against whatever you have running — no new YAML required. Practice the funnel out loud.</p>
+
+<ol class="checklist">
+  <li><strong>SCOPE:</strong> <code>kubectl config current-context</code> — confirm <code>orbstack</code>.</li>
+  <li><strong>Workloads:</strong> <code>kubectl get deploy,sts,po -A</code> — pick one app namespace; note Ready column vs desired.</li>
+  <li><strong>Networking:</strong> for one Service, <code>kubectl get endpointslice -l kubernetes.io/service-name=&lt;svc&gt;</code> — do ready addresses match Running pods?</li>
+  <li><strong>Ingress:</strong> if Traefik is installed, <code>kubectl get ingress -A</code> — trace host → backend Service → port.</li>
+  <li><strong>Resources:</strong> <code>kubectl top nodes</code> (if metrics-server installed) — if it fails, you know the install gap from lesson 0012.</li>
+  <li><strong>Storage:</strong> <code>kubectl get pvc -A</code> — any Pending? <code>describe pvc</code> if so.</li>
+  <li><strong>Add-ons:</strong> <code>kubectl get pods -n cert-manager</code> / <code>-n kube-system</code> — note what's installed vs not.</li>
+</ol>
+
+<div class="warn">
+  <strong>Fundamentals complete ≠ expert.</strong> Service meshes, operators, cluster bootstrap, and CKA-style multi-cluster ops stay out of scope per <a href="../MISSION.md">MISSION.md</a>. What you have is the foundation to run real workloads and learn the next layer on top.
+</div>
+
+<h2>Primary source</h2>
+
+<p>Re-read the official overview with fresh eyes — it will read differently now: <a href="https://kubernetes.io/docs/concepts/overview/components/">Kubernetes Components</a> and the <a href="https://kubernetes.io/docs/concepts/">Concepts</a> index. Skim what you built in the homelab against each section.</p>
+
+<footer>
+  <p><strong>Questions?</strong> Ask your agent — paste quiz scores, a failing <code>describe</code>, or a manifest. That is what the teaching workspace is for.</p>
+  <p>Reference: <a href="../reference/fundamentals-map.html">Fundamentals Map</a> · <a href="../reference/troubleshooting-workflow.html">Troubleshooting Workflow</a> · <a href="../reference/core-glossary.html">Glossary</a></p>
+  <p>Quizzes: <a href="../quizzes/combined-scenario-quiz-01.html">Combined 01</a> · <a href="../quizzes/combined-scenario-quiz-02.html">Combined 02</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    var hint = q.dataset.hint || '';
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.' + (hint ? ' ' + hint : '');
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'Not quite — the highlighted answer is correct.' + (hint ? ' ' + hint : '');
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          var msg = 'Score: ' + correct + ' / ' + qs.length;
+          if (correct >= 9) {
+            msg += ' — strong fundamentals. Take Combined Quiz 02 for sign-off; tell your agent your score.';
+          } else if (correct >= 7) {
+            msg += ' — solid. Revisit the lessons cited in missed tags; then Combined Quiz 02.';
+          } else {
+            msg += ' — tell your agent which numbers you missed; we will target those arcs.';
+          }
+          s.textContent = msg;
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
