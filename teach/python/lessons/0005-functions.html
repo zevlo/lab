@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 5 · Functions</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 5 · ~15 min</p>
+<h1>Functions</h1>
+<p class="lede">Name a piece of logic once; use it everywhere. The last fundamental.</p>
+
+<h2>Recall first</h2>
+<p>From memory: in an <code>if</code>/<code>elif</code> chain where <em>both</em> conditions are true, which branch runs? And what's the difference between <code>=</code> and <code>==</code>? Answer both, then check the <a href="../reference/python-quick-reference.html#conditionals">reference</a> if unsure.</p>
+
+<h2>Defining and calling</h2>
+<p>A <strong>function</strong> wraps a block of logic behind a name. Define it with <code>def</code> — same shape you know: a header line ending in a colon, an indented body.</p>
+
+<pre><code>def greet(host):
+    print(f"connecting to {host}")
+
+greet("web01")     # connecting to web01
+greet("db01")      # connecting to db01</code></pre>
+
+<p><code>host</code> is a <strong>parameter</strong> — a variable that gets its value from whoever calls the function. Defining the function runs nothing; the body only runs when it's <em>called</em>.</p>
+
+<h2><code>return</code>: the part that matters</h2>
+<p>Printing shows a value to a human and throws it away. <strong>Returning</strong> hands the value back to the calling code, where it can be stored, compared, counted, or written to a file:</p>
+
+<pre><code>def service_report(name, state):
+    if state == "down":
+        return f"ALERT: {name} is down"
+    return f"ok: {name}"
+
+msg = service_report("nginx", "up")   # msg is now "ok: nginx"
+print(msg)</code></pre>
+
+<p>Two things to notice:</p>
+<ul>
+  <li><code>return</code> <strong>ends the function immediately</strong>. If the <code>if</code> branch returns, the second <code>return</code> never runs — so no <code>else</code> is needed. This early-return style is everywhere in real code.</li>
+  <li>A function with no <code>return</code> gives back <code>None</code>. If you write <code>msg = greet("web01")</code>, then <code>msg</code> is <code>None</code> — a classic interview gotcha. <em>Print is not return.</em></li>
+</ul>
+
+<h2>Default parameters</h2>
+<p>A parameter can have a fallback value, making it optional for the caller:</p>
+
+<pre><code>def check(host, retries=3):
+    print(f"checking {host} with {retries} retries")
+
+check("web01")               # checking web01 with 3 retries
+check("web01", retries=5)    # checking web01 with 5 retries</code></pre>
+
+<p>Naming the argument at the call site (<code>retries=5</code>) is optional but makes the intent readable — you'll see this constantly in real scripts and library calls.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> <code>def f(x): print(x * 2)</code> — after <code>result = f(5)</code>, what is <code>result</code>?</p>
+  <button class="opt" data-k="a">10, print gives it back</button>
+  <button class="opt" data-k="b">5, the original input value</button>
+  <button class="opt" data-k="c">None, nothing was returned</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> In <code>service_report</code> above, state is <code>"down"</code>. Does the second <code>return</code> line run?</p>
+  <button class="opt" data-k="a">no, return exits the function</button>
+  <button class="opt" data-k="b">yes, both of them execute</button>
+  <button class="opt" data-k="c">yes, but its value vanishes</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>3.</strong> Which definition lets callers write both <code>ping(host)</code> and <code>ping(host, count=10)</code>?</p>
+  <button class="opt" data-k="a">def ping(host, count):</button>
+  <button class="opt" data-k="b">def ping(host, count=4):</button>
+  <button class="opt" data-k="c">def ping(host, count?):</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>From memory, in a new file <code>report.py</code> — this refactors Lesson 4's health check into function form:</p>
+<ol>
+  <li>Define <code>service_report(name, state)</code>: returns <code>ALERT: postgres is down</code> if the state is <code>"down"</code>, otherwise returns <code>ok: nginx</code>. Use early returns, no <code>else</code>.</li>
+  <li>Below the function, build the dict: <code>"nginx"</code> → <code>"up"</code>, <code>"postgres"</code> → <code>"down"</code>, <code>"redis"</code> → <code>"up"</code>.</li>
+  <li>Loop over it with <code>.items()</code>, call the function for each pair, and print what it returns.</li>
+  <li>Run it and compare with the expected output below.</li>
+  <li>Then add a default parameter: change the definition to <code>service_report(name, state, env="dev")</code> and make the alert line read <code>ALERT: postgres is down in dev</code>. In the loop, call it with <code>env="prod"</code> so the output says <code>in prod</code> — without touching the ok branch.</li>
+</ol>
+<p>Expected output after step 5:</p>
+<pre><code>ok: nginx
+ALERT: postgres is down in prod
+ok: redis</code></pre>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://automatetheboringstuff.com/3e/chapter3.html">Automate the Boring Stuff, Chapter 3 — Functions</a>. Authoritative reference: <a href="https://docs.python.org/3/tutorial/controlflow.html#defining-functions">official tutorial §4.7, defining functions</a>.</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#functions">Python quick reference — functions</a>. Previous: <a href="0004-conditionals.html">Lesson 4 — Conditionals</a>.</p>
+<p>Questions — like when logic deserves its own function, or how multiple return values work — ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>

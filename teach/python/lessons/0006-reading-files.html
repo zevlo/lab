@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 6 · Reading Files</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 6 · ~15 min</p>
+<h1>Reading Files</h1>
+<p class="lede">The DevOps layer begins: open a log, walk its lines, find what matters.</p>
+
+<h2>Recall first</h2>
+<p>From memory: a function has no <code>return</code> statement. What do you get if you assign its result to a variable? And what does <code>return</code> do to the rest of the function body? Check the <a href="../reference/python-quick-reference.html#functions">reference</a> after answering.</p>
+
+<h2>Opening a file: the <code>with</code> block</h2>
+<p>The standard way to read a file uses <code>with open(...)</code> — the same colon-plus-indented-body shape as <code>for</code>, <code>if</code>, and <code>def</code>:</p>
+
+<pre><code>with open("app.log") as f:
+    for line in f:
+        print(line.strip())</code></pre>
+
+<p>Three things happening:</p>
+<ul>
+  <li><code>open("app.log")</code> opens the file; <code>as f</code> names the file object.</li>
+  <li>The <code>with</code> block <strong>closes the file automatically</strong> when the block ends — even if something crashes inside. This is why you'll rarely see a bare <code>open()</code> in professional code.</li>
+  <li>Looping over a file gives you <strong>one line at a time</strong>, so a 10 GB log works as easily as a 10-line one — the file is never loaded whole into memory.</li>
+</ul>
+
+<h2>Why <code>.strip()</code></h2>
+<p>Every line arrives with its trailing newline character (<code>\n</code>) still attached. Print it as-is and you get double spacing; compare it as-is and matches fail. <code>.strip()</code> returns the string with whitespace removed from both ends:</p>
+
+<pre><code>line = "ERROR disk full\n"
+line.strip()          # "ERROR disk full"</code></pre>
+
+<p>Stripping first is a habit worth building — subtle newline bugs are a classic way to lose minutes in an interview.</p>
+
+<h2>Finding and dissecting lines</h2>
+<p>Two string tools do most log-parsing work. <code>in</code>, which you know from lists and dicts, also tests substrings. And <code>.split()</code> cuts a string into a list:</p>
+
+<pre><code>line = "2026-07-04 14:02:11 ERROR disk full on /dev/sda1"
+
+"ERROR" in line       # True
+parts = line.split()  # splits on whitespace:
+# ["2026-07-04", "14:02:11", "ERROR", "disk", "full", "on", "/dev/sda1"]
+parts[2]              # "ERROR"  — the level
+parts[0]              # "2026-07-04"  — the date</code></pre>
+
+<p><code>.split(",")</code> splits on a comma instead — handy for CSV-ish data. Related and often useful: <code>line.startswith("2026-")</code>.</p>
+
+<h2>The skeleton loop</h2>
+<p>Put it together and you get the shape of nearly every log-analysis script ever written:</p>
+
+<pre><code>error_count = 0
+
+with open("app.log") as f:
+    for line in f:
+        line = line.strip()
+        if "ERROR" in line:
+            print(line)
+            error_count = error_count + 1
+
+print(f"{error_count} errors found")</code></pre>
+
+<p>Open, iterate, strip, match, count. Interviewers ask for exactly this, in some costume, more than almost anything else.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> Why prefer <code>with open("f.log") as f:</code> over <code>f = open("f.log")</code>?</p>
+  <button class="opt" data-k="a">it reads the file much faster</button>
+  <button class="opt" data-k="b">it closes the file automatically</button>
+  <button class="opt" data-k="c">it loads the file into memory</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> <code>line = "WARN low memory\n"</code> — what is <code>line.split()[0]</code>?</p>
+  <button class="opt" data-k="a">"WARN low memory" whole thing</button>
+  <button class="opt" data-k="b">"W" just the first letter</button>
+  <button class="opt" data-k="c">"WARN" the first word only</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> What does looping <code>for line in f:</code> over an open file do with memory?</p>
+  <button class="opt" data-k="a">reads one line at a time</button>
+  <button class="opt" data-k="b">loads the whole file first</button>
+  <button class="opt" data-k="c">reads one word at a time</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>First, create the practice log — paste this into a file named <code>app.log</code> (pasting is fine here; the drill is the parser, not the data):</p>
+<pre><code>2026-07-04 13:58:01 INFO service started
+2026-07-04 13:59:14 WARN high latency on /api/users
+2026-07-04 14:02:11 ERROR disk full on /dev/sda1
+2026-07-04 14:02:45 INFO retry scheduled
+2026-07-04 14:03:02 ERROR connection refused to db01
+2026-07-04 14:05:19 INFO recovery complete</code></pre>
+<p>Then, from memory, in a new file <code>parse_log.py</code>:</p>
+<ol>
+  <li>Open <code>app.log</code> with a <code>with</code> block and loop over its lines, stripping each one.</li>
+  <li>If a line contains <code>"ERROR"</code>, print it and count it.</li>
+  <li>After the loop, print <code>2 errors found</code> using the counter — then run it and check against the expected output below.</li>
+  <li>Refine the output: for error lines, print only the time and the message — use <code>.split()</code> and remember you can slice into the resulting list. Aim for <code>14:02:11 — disk full on /dev/sda1</code> style, or simpler: print <code>parts[1]</code> and the original line. Any readable format counts; the goal is using <code>.split()</code> on real data.</li>
+</ol>
+<p>Expected output after step 3:</p>
+<pre><code>2026-07-04 14:02:11 ERROR disk full on /dev/sda1
+2026-07-04 14:03:02 ERROR connection refused to db01
+2 errors found</code></pre>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://automatetheboringstuff.com/3e/chapter9.html">Automate the Boring Stuff, Chapter 9 — Reading and Writing Files</a>. Authoritative reference: <a href="https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files">official tutorial §7.2, reading and writing files</a>.</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#files">Python quick reference — files &amp; string parsing</a>. Previous: <a href="0005-functions.html">Lesson 5 — Functions</a>.</p>
+<p>Questions — like how to write files, or what else <code>.split()</code> can do — ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>

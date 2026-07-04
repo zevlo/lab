@@ -145,5 +145,51 @@ else:
     print("ok")
 # prints: WARNING — first true branch wins</code></pre>
 
+  <h2 id="functions">Functions <span class="note">— Lesson 0005</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Define</td><td><code>def check(host):</code></td><td><code>def</code>, name, parameters in parens, colon, indented body</td></tr>
+    <tr><td>Return a value</td><td><code>return f"ok: {host}"</code></td><td><code>return</code> ends the function immediately</td></tr>
+    <tr><td>Call</td><td><code>msg = check("web01")</code></td><td>the returned value lands in the variable</td></tr>
+    <tr><td>Default parameter</td><td><code>def check(host, retries=3):</code></td><td>caller can omit it: <code>check("web01")</code></td></tr>
+    <tr><td>Named argument</td><td><code>check("web01", retries=5)</code></td><td>clearer at the call site</td></tr>
+    <tr><td>No return statement</td><td><code>def log(msg): print(msg)</code></td><td>returns <code>None</code> — print ≠ return</td></tr>
+  </table>
+
+<pre><code>def service_report(name, state):
+    if state == "down":
+        return f"ALERT: {name} is down"
+    return f"ok: {name}"
+
+msg = service_report("nginx", "up")
+print(msg)                     # ok: nginx</code></pre>
+
+  <p class="note">Key distinction: <code>print()</code> shows a value to a human; <code>return</code> hands a value back to the code that called the function. A function that only prints can't have its result reused, tested, or written to a file.</p>
+
+  <h2 id="files">Reading files &amp; string parsing <span class="note">— Lesson 0006</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Open a file safely</td><td><code>with open("app.log") as f:</code></td><td>auto-closes at the end of the block, even on errors</td></tr>
+    <tr><td>Loop over lines</td><td><code>for line in f:</code></td><td>one line at a time — works on huge files</td></tr>
+    <tr><td>Trim whitespace/newline</td><td><code>line.strip()</code></td><td>every line arrives with a trailing <code>\n</code>; strip it first</td></tr>
+    <tr><td>Substring test</td><td><code>"ERROR" in line</code></td><td><code>in</code> works on strings too</td></tr>
+    <tr><td>Split into pieces</td><td><code>line.split()</code></td><td>splits on whitespace, returns a list</td></tr>
+    <tr><td>Split on a character</td><td><code>line.split(",")</code></td><td>for CSV-ish data</td></tr>
+    <tr><td>Starts with?</td><td><code>line.startswith("2026-")</code></td><td>also <code>.endswith()</code></td></tr>
+  </table>
+
+<pre><code>error_count = 0
+
+with open("app.log") as f:
+    for line in f:
+        line = line.strip()
+        if "ERROR" in line:
+            print(line)
+            error_count = error_count + 1
+
+print(f"{error_count} errors found")</code></pre>
+
+  <p class="note">This loop is the skeleton of nearly every log-parsing task: open, iterate, strip, match, count. Learn it until you can type it without thinking.</p>
+
 </body>
 </html>
