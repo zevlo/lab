@@ -96,10 +96,10 @@
 
 <p class="kicker">Python for DevOps · Lesson 1 · ~15 min</p>
 <h1>Variables &amp; Strings</h1>
-<p class="lede">The single biggest mental shift from bash: values have types.</p>
+<p class="lede">The single biggest idea in Python: every value has a type.</p>
 
 <h2>The one idea</h2>
-<p>In bash, everything is a string. <code>n=5</code> stores the <em>characters</em> "5". In Python, values have <strong>types</strong>: <code>5</code> is an integer you can do math with; <code>"5"</code> is a string of one character. They are different things, and Python refuses to silently mix them.</p>
+<p>Every value in Python has a <strong>type</strong>: <code>5</code> is an integer you can do math with; <code>"5"</code> is a string of one character. They are different things, and Python refuses to silently mix them.</p>
 
 <pre><code>host = "web01"        # a string  (type: str)
 cpu_count = 8         # an integer (type: int)
@@ -108,17 +108,10 @@ load = 2.75           # a decimal  (type: float)
 print(host)           # web01
 print(cpu_count * 2)  # 16</code></pre>
 
-<div class="bash-note">
-<strong>Bash bridge</strong> — Three differences from what your fingers know:
-<ol style="margin: 0.4rem 0 0.2rem; padding-left: 1.3rem;">
-  <li><code>host = "web01"</code> — spaces around <code>=</code> are <em>fine</em> in Python (they'd break bash).</li>
-  <li>To use a variable, just name it: <code>print(host)</code>. No <code>$</code>. Ever.</li>
-  <li><code>print(host)</code> with no quotes prints the variable's value; <code>print("host")</code> prints the literal word <code>host</code>.</li>
-</ol>
-</div>
+<p>To use a variable, just name it: <code>print(host)</code> prints the variable's value, while <code>print("host")</code> prints the literal word <code>host</code>. Quotes make the difference between <em>the thing named host</em> and <em>the text "host"</em>.</p>
 
-<h2>f-strings: Python's <code>"$var"</code></h2>
-<p>Where bash interpolates with <code>"deploying to $host"</code>, Python uses an <strong>f-string</strong>: put an <code>f</code> before the opening quote, then wrap variables in curly braces.</p>
+<h2>f-strings: putting variables inside text</h2>
+<p>To build a string that includes variable values, use an <strong>f-string</strong>: put an <code>f</code> before the opening quote, then wrap variables in curly braces.</p>
 
 <pre><code>host = "web01"
 load = 2.75
@@ -129,7 +122,7 @@ print(f"load on {host} is {load}")
 <p>Forget the <code>f</code> and Python prints the braces literally — <code>load on {host} is {load}</code>. This is the #1 beginner typo. The braces can hold any expression: <code>f"{cpu_count * 2} threads"</code> works.</p>
 
 <h2>Crossing the type boundary</h2>
-<p>Bash converts strings and numbers silently. Python makes you say it out loud, with <code>int()</code>, <code>float()</code>, and <code>str()</code>:</p>
+<p>Python never converts between strings and numbers behind your back. You say it explicitly, with <code>int()</code>, <code>float()</code>, and <code>str()</code>:</p>
 
 <pre><code>port = "8080"          # came from a config file, so it's a str
 port + 1               # 💥 TypeError: can only concatenate str to str
@@ -144,7 +137,7 @@ f"up for {uptime_days} days"             # better — f-strings convert for you<
 
 <div class="quiz" data-answer="b">
   <p class="q"><strong>1.</strong> <code>host = "db01"</code> — how do you print <code>connecting to db01</code>?</p>
-  <button class="opt" data-k="a">print("connecting to $host")</button>
+  <button class="opt" data-k="a">print("connecting to " host)</button>
   <button class="opt" data-k="b">print(f"connecting to {host}")</button>
   <button class="opt" data-k="c">print("connecting to {host}")</button>
   <p class="feedback"></p>
@@ -168,7 +161,7 @@ f"up for {uptime_days} days"             # better — f-strings convert for you<
 
 <h2>Now type it for real</h2>
 <div class="task">
-<p>Open a terminal and run <code>python3</code> to get the interactive shell (<code>&gt;&gt;&gt;</code> prompt — it's like typing at a bash prompt, but Python). From memory, no peeking:</p>
+<p>Open a terminal and run <code>python3</code> to get the interactive shell (the <code>&gt;&gt;&gt;</code> prompt — it runs each line as you type it). From memory, no peeking:</p>
 <ol>
   <li>Make a variable <code>server</code> holding <code>"prod-web-01"</code> and a variable <code>connections</code> holding <code>250</code>.</li>
   <li>Print exactly: <code>prod-web-01 has 250 connections</code> — using both variables in one f-string.</li>
@@ -183,7 +176,7 @@ f"up for {uptime_days} days"             # better — f-strings convert for you<
 <p>Primary source for this lesson: <a href="https://automatetheboringstuff.com/3e/chapter1.html">Automate the Boring Stuff, Chapter 1 — Python Basics</a> (free, written for automation people, ~20 min). The authoritative reference is the <a href="https://docs.python.org/3/tutorial/introduction.html">official Python tutorial, §3</a>.</p>
 
 <div class="footer">
-<p>Reference sheet: <a href="../reference/bash-to-python.html#variables">Bash → Python translation table</a> — this lesson's rows are filled in.</p>
+<p>Reference sheet: <a href="../reference/python-quick-reference.html#variables">Python quick reference — variables, strings &amp; types</a>.</p>
 <p>Stuck, or curious why something works the way it does? Ask your teacher (the agent) — that's what it's for. Follow-up questions are part of the lesson, not an interruption.</p>
 </div>
 

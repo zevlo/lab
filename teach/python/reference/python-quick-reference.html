@@ -68,7 +68,38 @@
 <body>
   <h1>Python Quick Reference</h1>
   <p class="subtitle">Compressed essentials from each lesson. Grows as you learn.</p>
-  <p class="note">Earlier material (variables, strings, lists, loops) lives in the <a href="bash-to-python.html">bash → Python sheet</a>.</p>
+
+  <h2 id="running">Running code</h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Run a script</td><td><code>python3 script.py</code></td><td></td></tr>
+    <tr><td>Interactive shell</td><td><code>python3</code></td><td>exit with <code>exit()</code> or Ctrl-D</td></tr>
+    <tr><td>Print</td><td><code>print("hello")</code></td><td></td></tr>
+  </table>
+
+  <h2 id="variables">Variables, strings &amp; types <span class="note">— Lesson 0001</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Assign</td><td><code>host = "web01"</code></td><td>strings in quotes; <code>n = 5</code> is a real integer</td></tr>
+    <tr><td>Print a variable</td><td><code>print(host)</code></td><td>no quotes — <code>print("host")</code> prints the literal word</td></tr>
+    <tr><td>Interpolate (f-string)</td><td><code>f"on {host} now"</code></td><td>the leading <code>f</code> is required; braces hold any expression</td></tr>
+    <tr><td>String → number</td><td><code>int("5")</code>, <code>float("1.5")</code></td><td><code>"5" + 1</code> is a <code>TypeError</code>, not 6</td></tr>
+    <tr><td>Number → string</td><td><code>str(5)</code></td><td>f-strings convert automatically</td></tr>
+  </table>
+  <p class="note">Every value has a <em>type</em> — <code>"5"</code> (str) and <code>5</code> (int) are different things, and Python refuses to silently mix them.</p>
+
+  <h2 id="lists">Lists &amp; loops <span class="note">— Lesson 0002</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Create</td><td><code>hosts = ["web01", "web02", "db01"]</code></td><td>square brackets, commas</td></tr>
+    <tr><td>First / last element</td><td><code>hosts[0]</code> / <code>hosts[-1]</code></td><td>zero-indexed; negatives count from the end</td></tr>
+    <tr><td>How many</td><td><code>len(hosts)</code></td><td></td></tr>
+    <tr><td>Append</td><td><code>hosts.append("cache01")</code></td><td></td></tr>
+    <tr><td>Membership</td><td><code>"web01" in hosts</code></td><td>gives <code>True</code> / <code>False</code></td></tr>
+    <tr><td>Loop over items</td><td><code>for h in hosts:</code></td><td>colon, then indented body</td></tr>
+    <tr><td>Loop N times</td><td><code>for i in range(5):</code></td><td>0,1,2,3,4 — stops <em>before</em> 5</td></tr>
+  </table>
+  <p class="note">Indentation is syntax: everything indented under the <code>for</code> line is the loop body; the first unindented line is after the loop. No end-of-block keyword.</p>
 
   <h2 id="dicts">Dictionaries <span class="note">— Lesson 0003</span></h2>
   <table>
@@ -80,7 +111,7 @@
     <tr><td>Key exists?</td><td><code>"web01" in status</code></td><td>checks keys, not values</td></tr>
     <tr><td>How many</td><td><code>len(status)</code></td><td>counts key–value pairs</td></tr>
     <tr><td>Loop over pairs</td><td><code>for host, state in status.items():</code></td><td>two loop variables at once</td></tr>
-    <tr><td>Just keys / values</td><td><code>status.keys()</code> / <code>status.values()</code></td><td>plain <code>for k in status:</code> also loops keys</td></tr>
+    <tr><td>Just keys / values</td><td><code>status.keys()</code> / <code>status.values()</code></td><td>plain <code>for k in status:</code> loops keys</td></tr>
   </table>
 
 <pre><code>status = {"web01": "up", "web02": "up", "db01": "down"}
@@ -92,6 +123,27 @@ status["db01"] = "up"            # fixed it
 print(status.get("web09", "unknown"))   # no crash: unknown</code></pre>
 
   <p class="note">Mental model: a dict is a lookup table. Lists answer "what's item number 3?"; dicts answer "what's the value for <em>this name</em>?" — hostnames to states, config keys to settings, container names to images.</p>
+
+  <h2 id="conditionals">Conditionals <span class="note">— Lesson 0004</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Basic if</td><td><code>if state == "down":</code></td><td>colon + indented body, like <code>for</code></td></tr>
+    <tr><td>Equals / not equals</td><td><code>==</code> / <code>!=</code></td><td><code>=</code> assigns, <code>==</code> compares — classic trap</td></tr>
+    <tr><td>Comparisons</td><td><code>&lt;</code> <code>&gt;</code> <code>&lt;=</code> <code>&gt;=</code></td><td>numbers compare as numbers, not text</td></tr>
+    <tr><td>Chain of checks</td><td><code>if … / elif … / else:</code></td><td>first true branch runs; the rest are skipped</td></tr>
+    <tr><td>Combine conditions</td><td><code>and</code>, <code>or</code>, <code>not</code></td><td>spelled-out words</td></tr>
+    <tr><td>Membership as condition</td><td><code>if "web01" in hosts:</code></td><td>works on lists, dict keys, strings</td></tr>
+  </table>
+
+<pre><code>load = 7.5
+
+if load &gt; 10:
+    print("CRITICAL")
+elif load &gt; 5:
+    print("WARNING")
+else:
+    print("ok")
+# prints: WARNING — first true branch wins</code></pre>
 
 </body>
 </html>
