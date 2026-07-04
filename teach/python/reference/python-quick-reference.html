@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Quick Reference</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+    line-height: 1.55;
+  }
+  h1 { font-weight: normal; font-size: 2rem; margin-bottom: 0.2rem; letter-spacing: -0.01em; }
+  .subtitle { color: var(--faint); font-style: italic; margin-top: 0; }
+  h2 {
+    font-weight: normal;
+    font-size: 1.3rem;
+    margin-top: 2.5rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.3rem;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+  th {
+    text-align: left;
+    font-weight: normal;
+    font-style: italic;
+    color: var(--faint);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.4rem 0.6rem;
+  }
+  td { padding: 0.45rem 0.6rem; border-bottom: 1px solid #eee; vertical-align: top; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .note { font-size: 0.9rem; color: var(--faint); font-style: italic; }
+  @media print {
+    body { max-width: none; padding: 0; }
+    h2 { page-break-after: avoid; }
+    table, pre { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <h1>Python Quick Reference</h1>
+  <p class="subtitle">Compressed essentials from each lesson. Grows as you learn.</p>
+  <p class="note">Earlier material (variables, strings, lists, loops) lives in the <a href="bash-to-python.html">bash → Python sheet</a>.</p>
+
+  <h2 id="dicts">Dictionaries <span class="note">— Lesson 0003</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Create</td><td><code>status = {"web01": "up", "db01": "down"}</code></td><td>key: value pairs, curly braces</td></tr>
+    <tr><td>Read a value</td><td><code>status["web01"]</code></td><td><code>KeyError</code> if the key is missing</td></tr>
+    <tr><td>Read safely</td><td><code>status.get("web09", "unknown")</code></td><td>returns the default instead of erroring</td></tr>
+    <tr><td>Add / overwrite</td><td><code>status["cache01"] = "up"</code></td><td>same syntax for new and existing keys</td></tr>
+    <tr><td>Key exists?</td><td><code>"web01" in status</code></td><td>checks keys, not values</td></tr>
+    <tr><td>How many</td><td><code>len(status)</code></td><td>counts key–value pairs</td></tr>
+    <tr><td>Loop over pairs</td><td><code>for host, state in status.items():</code></td><td>two loop variables at once</td></tr>
+    <tr><td>Just keys / values</td><td><code>status.keys()</code> / <code>status.values()</code></td><td>plain <code>for k in status:</code> also loops keys</td></tr>
+  </table>
+
+<pre><code>status = {"web01": "up", "web02": "up", "db01": "down"}
+
+for host, state in status.items():
+    print(f"{host}: {state}")
+
+status["db01"] = "up"            # fixed it
+print(status.get("web09", "unknown"))   # no crash: unknown</code></pre>
+
+  <p class="note">Mental model: a dict is a lookup table. Lists answer "what's item number 3?"; dicts answer "what's the value for <em>this name</em>?" — hostnames to states, config keys to settings, container names to images.</p>
+
+</body>
+</html>

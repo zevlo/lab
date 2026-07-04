@@ -99,5 +99,19 @@
   </table>
   <p class="note">Key mental shift: in bash everything is a string. In Python every value has a <em>type</em> — <code>"5"</code> and <code>5</code> are different things, and <code>"5" + 1</code> is an error, not <code>6</code>.</p>
 
+  <h2 id="lists-loops">Lists &amp; loops <span class="note">— Lesson 0002</span></h2>
+  <table>
+    <tr><th>Task</th><th>Bash</th><th>Python</th></tr>
+    <tr><td>Make a list</td><td><code>hosts=(web01 web02 db01)</code></td><td><code>hosts = ["web01", "web02", "db01"]</code></td></tr>
+    <tr><td>Loop over it</td><td><code>for h in "${hosts[@]}"; do … done</code></td><td><code>for h in hosts:</code> <span class="note">(then indent the body)</span></td></tr>
+    <tr><td>First element</td><td><code>${hosts[0]}</code></td><td><code>hosts[0]</code></td></tr>
+    <tr><td>Last element</td><td><code>${hosts[-1]}</code></td><td><code>hosts[-1]</code></td></tr>
+    <tr><td>How many</td><td><code>${#hosts[@]}</code></td><td><code>len(hosts)</code></td></tr>
+    <tr><td>Append</td><td><code>hosts+=(cache01)</code></td><td><code>hosts.append("cache01")</code></td></tr>
+    <tr><td>Is it in there?</td><td><span class="note">loop + test, painful</span></td><td><code>"web01" in hosts</code> <span class="note">(gives True/False)</span></td></tr>
+    <tr><td>Loop N times</td><td><code>for i in $(seq 0 4); do</code></td><td><code>for i in range(5):</code> <span class="note">(0,1,2,3,4 — stops before 5)</span></td></tr>
+  </table>
+  <p class="note">Key mental shift: no <code>do</code>/<code>done</code>. The colon plus <em>indentation</em> is the block. Everything indented under the <code>for</code> line is the loop body; the first unindented line is after the loop.</p>
+
 </body>
 </html>

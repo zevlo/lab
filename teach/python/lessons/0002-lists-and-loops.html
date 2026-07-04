@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 2 · Lists &amp; Loops</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .bash-note {
+    background: #eef2ee;
+    border-left: 3px solid var(--good);
+    padding: 0.7rem 1.2rem;
+    margin: 1.2rem 0;
+    font-size: 0.95rem;
+  }
+  .bash-note strong { font-variant: small-caps; letter-spacing: 0.05em; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 2 · ~15 min</p>
+<h1>Lists &amp; Loops</h1>
+<p class="lede">Your bash <code>for</code> loop instincts transfer almost perfectly. The block syntax doesn't.</p>
+
+<h2>Recall first</h2>
+<p>Before anything new — from Lesson 1, from memory: a variable <code>env</code> holds <code>"staging"</code>. What one line prints <code>deploying to staging</code> using the variable? Say it out loud or type it, <em>then</em> check the <a href="../reference/bash-to-python.html#variables">reference sheet</a>. (This kind of recall is how it moves to long-term memory.)</p>
+
+<h2>Lists</h2>
+<p>A <strong>list</strong> is Python's array, and it's the workhorse of every DevOps script: hosts to ping, log lines to scan, containers to restart.</p>
+
+<pre><code>hosts = ["web01", "web02", "db01"]
+
+hosts[0]        # "web01"   — first (zero-indexed, like bash arrays)
+hosts[-1]       # "db01"    — last (negative counts from the end)
+len(hosts)      # 3
+hosts.append("cache01")     # now 4 items
+"db01" in hosts # True      — membership test, one keyword</code></pre>
+
+<div class="bash-note">
+<strong>Bash bridge</strong> — <code>hosts=(web01 web02 db01)</code> becomes <code>hosts = ["web01", "web02", "db01"]</code>: square brackets, commas, quotes. And where bash needs <code>"${hosts[@]}"</code> incantations, Python lists are just… normal values. You can print them, pass them around, and put anything in them — strings, numbers, even other lists.
+</div>
+
+<h2>The <code>for</code> loop</h2>
+
+<pre><code>hosts = ["web01", "web02", "db01"]
+
+for h in hosts:
+    print(f"pinging {h}")
+print("done")</code></pre>
+
+<pre><code>pinging web01
+pinging web02
+pinging db01
+done</code></pre>
+
+<p>Compare with what your fingers know: <code>for h in "${hosts[@]}"; do … done</code>. Python drops <code>do</code> and <code>done</code> entirely. Instead:</p>
+<ul>
+  <li>The <code>for</code> line ends with a <strong>colon</strong>.</li>
+  <li>The loop body is everything <strong>indented</strong> underneath (4 spaces is the convention).</li>
+  <li>The first line back at the left margin — <code>print("done")</code> — is <em>outside</em> the loop.</li>
+</ul>
+<p>This is the big one: <strong>in Python, indentation is not style, it's syntax</strong>. Where the indent ends, the block ends. Interviewers watch for this.</p>
+
+<h2>Looping N times: <code>range()</code></h2>
+<p>Bash's <code>for i in $(seq 0 4)</code> becomes:</p>
+
+<pre><code>for i in range(5):
+    print(f"attempt {i}")
+# attempt 0, 1, 2, 3, 4 — five times, stops BEFORE 5</code></pre>
+
+<p><code>range(5)</code> gives 0 through 4. Off-by-one confusion here is the classic beginner trap: <code>range(5)</code> is five numbers, and 5 is not one of them.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> <code>hosts = ["web01", "web02", "db01"]</code> — what is <code>hosts[-1]</code>?</p>
+  <button class="opt" data-k="a">"web01"</button>
+  <button class="opt" data-k="b">"db01"</button>
+  <button class="opt" data-k="c">an error</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> How many lines does this print?
+<pre style="border:none; background:var(--code-bg); margin:0.5rem 0 0;"><code>for i in range(3):
+    print("retry")
+print("gave up")</code></pre></p>
+  <button class="opt" data-k="a">3 — the last is in loop</button>
+  <button class="opt" data-k="b">6 — both lines run 3x</button>
+  <button class="opt" data-k="c">4 — three retry, one gave</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> Which line correctly starts a loop over <code>hosts</code>?</p>
+  <button class="opt" data-k="a">for h in hosts:</button>
+  <button class="opt" data-k="b">for h in hosts do</button>
+  <button class="opt" data-k="c">for h in $hosts:</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>This time, write a <em>script file</em> — like an interview would ask. In a terminal:</p>
+<ol>
+  <li>Create a file: <code>nano ping_check.py</code> (or your editor of choice — but not Cursor's AI, this is a from-memory drill).</li>
+  <li>In it, from memory: make a list <code>servers</code> with <code>"prod-web-01"</code>, <code>"prod-web-02"</code>, <code>"prod-db-01"</code>. Loop over it printing <code>checking prod-web-01 ...</code> for each. After the loop, print <code>checked 3 servers</code> — but use <code>len(servers)</code> in an f-string instead of hardcoding 3.</li>
+  <li>Run it: <code>python3 ping_check.py</code>. Wrong output or an error? Read the message, fix, rerun — that loop is the practice.</li>
+  <li>Stretch: add <code>"prod-cache-01"</code> to the list with <code>.append()</code> <em>after</em> the list is defined, and confirm the final count says 4 without you touching the last print line.</li>
+</ol>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://automatetheboringstuff.com/3e/chapter4.html">Automate the Boring Stuff, Chapter 4 — Lists</a>. Authoritative reference: <a href="https://docs.python.org/3/tutorial/controlflow.html#for-statements">official tutorial §4.2–4.3, for and range</a>.</p>
+
+<div class="footer">
+<p>Reference sheet: <a href="../reference/bash-to-python.html#lists-loops">Bash → Python — lists &amp; loops rows</a>. Previous: <a href="0001-variables-and-strings.html">Lesson 1 — Variables &amp; Strings</a>.</p>
+<p>Anything unclear — why <code>range(5)</code> stops at 4, what else lists can do — ask your teacher (the agent). Follow-up questions are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
