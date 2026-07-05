@@ -1,0 +1,6 @@
+2026-07-04 13:58:01 INFO service started
+2026-07-04 13:59:14 WARN high latency on /api/users
+2026-07-04 14:02:11 ERROR disk full on /dev/sda1
+2026-07-04 14:02:45 INFO retry scheduled
+2026-07-04 14:03:02 ERROR connection refused to db01
+2026-07-04 14:05:19 INFO recovery complete

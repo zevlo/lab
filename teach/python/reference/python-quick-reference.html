@@ -191,5 +191,29 @@ print(f"{error_count} errors found")</code></pre>
 
   <p class="note">This loop is the skeleton of nearly every log-parsing task: open, iterate, strip, match, count. Learn it until you can type it without thinking.</p>
 
+  <h2 id="subprocess">Running commands <span class="note">— Lesson 0007</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Import</td><td><code>import subprocess</code></td><td>stdlib — nothing to install</td></tr>
+    <tr><td>Run a command</td><td><code>subprocess.run(["echo", "hello"])</code></td><td>pass command as a <em>list</em> of strings</td></tr>
+    <tr><td>Capture output</td><td><code>capture_output=True, text=True</code></td><td>output lands in <code>result.stdout</code> as a string</td></tr>
+    <tr><td>Exit code</td><td><code>result.returncode</code></td><td><code>0</code> = success; anything else = failure</td></tr>
+    <tr><td>Fail on error</td><td><code>check=True</code></td><td>raises <code>CalledProcessError</code> if returncode ≠ 0</td></tr>
+    <tr><td>Strip trailing newline</td><td><code>result.stdout.strip()</code></td><td>command output usually ends with <code>\n</code></td></tr>
+  </table>
+
+<pre><code>import subprocess
+
+result = subprocess.run(
+    ["echo", "hello"],
+    capture_output=True,
+    text=True,
+)
+
+print(result.stdout.strip())   # hello
+print(result.returncode)       # 0</code></pre>
+
+  <p class="note">Prefer a list of arguments over <code>shell=True</code>. A list avoids shell-injection bugs and is what interviewers expect.</p>
+
 </body>
 </html>

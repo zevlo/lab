@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 7 · Running Commands</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 7 · ~15 min</p>
+<h1>Running Commands</h1>
+<p class="lede">Call external programs from Python, read their output, check whether they succeeded.</p>
+
+<h2>Recall first</h2>
+<p>From memory: what does <code>with open("app.log") as f:</code> give you that a bare <code>open()</code> doesn't? And why call <code>line.strip()</code> before comparing a line? Check the <a href="../reference/python-quick-reference.html#files">reference</a> after answering.</p>
+
+<h2><code>subprocess.run()</code></h2>
+<p>The standard library's <code>subprocess</code> module runs external commands. The one function you need for most DevOps scripts is <code>subprocess.run()</code>:</p>
+
+<pre><code>import subprocess
+
+result = subprocess.run(["echo", "hello"])
+print(result.returncode)   # 0</code></pre>
+
+<p>Pass the command as a <strong>list of strings</strong> — program name first, then each argument. Python runs it, waits for it to finish, and gives you back a result object. No <code>shell=True</code> needed for simple commands, and a list is safer anyway.</p>
+
+<h2>Capturing output</h2>
+<p>By default, output goes straight to your terminal and Python can't see it. To capture it, add two keyword arguments:</p>
+
+<pre><code>result = subprocess.run(
+    ["echo", "hello"],
+    capture_output=True,
+    text=True,
+)
+
+print(result.stdout)         # "hello\n"
+print(result.stdout.strip()) # "hello"</code></pre>
+
+<ul>
+  <li><code>capture_output=True</code> — grab stdout and stderr instead of printing them.</li>
+  <li><code>text=True</code> — return strings, not bytes. Without it, <code>result.stdout</code> is <code>b"hello\n"</code>.</li>
+</ul>
+
+<p>Command output usually ends with a trailing newline, just like file lines — <code>.strip()</code> again.</p>
+
+<h2>Exit codes</h2>
+<p>Every command exits with a number. <code>0</code> means success; anything else means failure. In Python it's <code>result.returncode</code>:</p>
+
+<pre><code>result = subprocess.run(["false"], capture_output=True)
+print(result.returncode)   # 1 — command failed
+
+if result.returncode != 0:
+    print("command failed")</code></pre>
+
+<p>Add <code>check=True</code> and Python raises <code>CalledProcessError</code> automatically when the exit code isn't zero — useful when failure should stop your script immediately.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> How should you pass <code>echo hello</code> to <code>subprocess.run()</code>?</p>
+  <button class="opt" data-k="a">as one string, no list</button>
+  <button class="opt" data-k="b">as list of two strings</button>
+  <button class="opt" data-k="c">as list with shell=True</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> After <code>run(..., capture_output=True)</code>, where is stdout?</p>
+  <button class="opt" data-k="a">printed to the terminal</button>
+  <button class="opt" data-k="b">in the return value only</button>
+  <button class="opt" data-k="c">in result.stdout attribute</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> A command exits with code 0. What does that mean?</p>
+  <button class="opt" data-k="a">the command succeeded</button>
+  <button class="opt" data-k="b">the command had warnings</button>
+  <button class="opt" data-k="c">the command produced no output</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>From memory, in a new file <code>run_check.py</code>:</p>
+<ol>
+  <li>Import <code>subprocess</code>.</li>
+  <li>Run <code>echo ok</code> with <code>capture_output=True</code> and <code>text=True</code>. Store the result in <code>result</code>.</li>
+  <li>Print the captured output stripped, then print the return code on the next line.</li>
+  <li>Run the script and compare with the expected output below.</li>
+  <li>Then add a second run: execute <code>false</code> (a command that always fails). Capture its output the same way. If <code>result.returncode != 0</code>, print <code>FAILED with code 1</code>. Run again and check.</li>
+</ol>
+<p>Expected output after step 5:</p>
+<pre><code>ok
+0
+FAILED with code 1</code></pre>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/library/subprocess.html#subprocess.run">official docs — <code>subprocess.run()</code></a>. Longer walkthrough: <a href="https://realpython.com/python-subprocess/">Real Python — The subprocess Module</a>.</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#subprocess">Python quick reference — running commands</a>. Previous: <a href="0006-reading-files.html">Lesson 6 — Reading Files</a>.</p>
+<p>Questions — like when to use <code>check=True</code>, or how to pipe one command into another — ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
