@@ -215,5 +215,28 @@ print(result.returncode)       # 0</code></pre>
 
   <p class="note">Prefer a list of arguments over <code>shell=True</code>. A list avoids shell-injection bugs and is what interviewers expect.</p>
 
+  <h2 id="json">JSON <span class="note">— Lesson 0008</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Import</td><td><code>import json</code></td><td>stdlib — nothing to install</td></tr>
+    <tr><td>Parse a string</td><td><code>data = json.loads(text)</code></td><td>API responses arrive as text; use <code>loads</code></td></tr>
+    <tr><td>Parse a file</td><td><code>data = json.load(f)</code></td><td>inside a <code>with open(...)</code> block; use <code>load</code></td></tr>
+    <tr><td>Read a key</td><td><code>data["port"]</code></td><td>after parsing, it's a normal dict</td></tr>
+    <tr><td>Read safely</td><td><code>data.get("timeout", 30)</code></td><td>same <code>.get()</code> you already know</td></tr>
+    <tr><td>Nested key</td><td><code>data["db"]["host"]</code></td><td>chain brackets for nested objects</td></tr>
+    <tr><td>To a string</td><td><code>json.dumps(data)</code></td><td>dict/list → JSON text (writing APIs, configs)</td></tr>
+  </table>
+
+  <p class="note">JSON → Python: <code>{}</code> → dict, <code>[]</code> → list, <code>"text"</code> → str, numbers → int/float, <code>true</code>/<code>false</code> → <code>True</code>/<code>False</code>, <code>null</code> → <code>None</code>. After parsing, use your dict and list skills.</p>
+
+<pre><code>import json
+
+with open("config.json") as f:
+    cfg = json.load(f)
+
+print(cfg["env"])
+for svc in cfg["services"]:
+    print(f"{svc['name']}: {svc['port']}")</code></pre>
+
 </body>
 </html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 8 · JSON</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 8 · ~15 min</p>
+<h1>JSON</h1>
+<p class="lede">Config files and API responses are dicts and lists — written as text.</p>
+
+<h2>Recall first</h2>
+<p>From memory: how do you pass <code>echo hello</code> to <code>subprocess.run()</code>, and where does captured stdout land? Answer both, then check the <a href="../reference/python-quick-reference.html#subprocess">reference</a> if unsure.</p>
+
+<h2>The one idea</h2>
+<p><strong>JSON</strong> is a text format for structured data. Almost every API returns it; most config files use it. The key insight: once parsed, JSON <em>is</em> the Python you already know.</p>
+
+<table style="width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.95rem;">
+  <tr style="border-bottom:1px solid #ddd;"><th style="text-align:left; font-weight:normal; font-style:italic; color:#767676; padding:0.4rem 0.6rem;">JSON</th><th style="text-align:left; font-weight:normal; font-style:italic; color:#767676; padding:0.4rem 0.6rem;">Python</th></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>{"host": "db01"}</code></td><td style="padding:0.45rem 0.6rem;">dict</td></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>["web01", "web02"]</code></td><td style="padding:0.45rem 0.6rem;">list</td></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>"hello"</code></td><td style="padding:0.45rem 0.6rem;">str</td></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>42</code> / <code>3.14</code></td><td style="padding:0.45rem 0.6rem;">int / float</td></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>true</code> / <code>false</code> / <code>null</code></td><td style="padding:0.45rem 0.6rem;"><code>True</code> / <code>False</code> / <code>None</code></td></tr>
+</table>
+
+<p>Parse it, then use dict keys, list loops, <code>.get()</code>, and <code>if</code> — nothing new after the parsing step.</p>
+
+<h2>Two functions: <code>loads</code> vs <code>load</code></h2>
+<p>The names are easy to mix up. The <code>s</code> means <em>string</em>:</p>
+
+<pre><code>import json
+
+# From a string — typical for API response bodies
+text = '{"status": "ok", "count": 3}'
+data = json.loads(text)
+print(data["status"])   # ok
+
+# From a file — typical for config on disk
+with open("config.json") as f:
+    cfg = json.load(f)
+print(cfg["env"])</code></pre>
+
+<p><code>json.loads()</code> takes a string. <code>json.load()</code> takes an open file object — usually inside a <code>with open(...)</code> block, same pattern as reading a log file.</p>
+
+<h2>Working with parsed data</h2>
+<p>Real configs nest objects and arrays. After parsing, walk them with skills you already have:</p>
+
+<pre><code>cfg = {
+    "env": "prod",
+    "timeout": 30,
+    "db": {"host": "db01", "port": 5432},
+    "services": [
+        {"name": "nginx", "port": 80},
+        {"name": "redis", "port": 6379},
+    ],
+}
+
+print(cfg["db"]["host"])              # db01 — nested dict
+print(cfg.get("retries", 3))          # 3 — key missing, default used
+
+for svc in cfg["services"]:
+    print(f"{svc['name']}: {svc['port']}")</code></pre>
+
+<p>In an interview, the task is rarely "parse JSON" in isolation — it's "read this config and do something with these fields." The parsing is one line; the logic is dicts and loops.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> An API returns JSON as a string in <code>response</code>. Which parses it?</p>
+  <button class="opt" data-k="a">data = json.load(response)</button>
+  <button class="opt" data-k="b">data = json.loads(response)</button>
+  <button class="opt" data-k="c">data = json.parse(response)</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> In JSON, <code>null</code> becomes which Python value?</p>
+  <button class="opt" data-k="a">the string "null" in quotes</button>
+  <button class="opt" data-k="b">the number zero, integer type</button>
+  <button class="opt" data-k="c">None, Python's null value</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> After <code>cfg = json.load(f)</code>, how do you read the port inside <code>cfg["db"]</code>?</p>
+  <button class="opt" data-k="a">cfg["db"]["port"] chained brackets</button>
+  <button class="opt" data-k="b">cfg.db.port with dot syntax</button>
+  <button class="opt" data-k="c">cfg.get("db", "port") two keys</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>First, create the config file — paste this into <code>config.json</code>:</p>
+<pre><code>{
+  "env": "prod",
+  "timeout": 30,
+  "db": {
+    "host": "db01",
+    "port": 5432
+  },
+  "services": [
+    {"name": "nginx", "port": 80},
+    {"name": "redis", "port": 6379}
+  ]
+}</code></pre>
+<p>Then, from memory, in a new file <code>read_config.py</code>:</p>
+<ol>
+  <li>Import <code>json</code>. Open <code>config.json</code> with a <code>with</code> block and parse it into <code>cfg</code> using <code>json.load()</code>.</li>
+  <li>Print <code>env: prod</code> using an f-string and <code>cfg["env"]</code>.</li>
+  <li>Print <code>db host: db01</code> by reading the nested <code>db</code> object.</li>
+  <li>Loop over <code>cfg["services"]</code> and print each as <code>nginx: 80</code> style lines.</li>
+  <li>Run it and compare with the expected output below.</li>
+  <li>Then simulate an API response: assign a JSON <em>string</em> to <code>api_text</code> — <code>'{"status": "ok", "healthy": 2}'</code> — parse it with <code>json.loads()</code>, and print <code>status: ok</code>. Run again.</li>
+</ol>
+<p>Expected output after step 6:</p>
+<pre><code>env: prod
+db host: db01
+nginx: 80
+redis: 6379
+status: ok</code></pre>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/library/json.html">official docs — <code>json</code> module</a>. Practical walkthrough: <a href="https://automatetheboringstuff.com/3e/chapter13.html">Automate the Boring Stuff, Chapter 13 — JSON</a>.</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#json">Python quick reference — JSON</a>. Previous: <a href="0007-subprocess.html">Lesson 7 — Running Commands</a>.</p>
+<p>Questions — like how to write JSON back to a file, or what happens with invalid JSON — ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
