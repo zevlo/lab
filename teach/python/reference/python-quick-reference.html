@@ -238,5 +238,28 @@ print(cfg["env"])
 for svc in cfg["services"]:
     print(f"{svc['name']}: {svc['port']}")</code></pre>
 
+  <h2 id="errors">Error handling <span class="note">— Lesson 0009</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Try / except</td><td><code>try: … / except FileNotFoundError:</code></td><td>run fallback code instead of crashing</td></tr>
+    <tr><td>Missing file</td><td><code>except FileNotFoundError:</code></td><td><code>open()</code> on a path that doesn't exist</td></tr>
+    <tr><td>Bad JSON</td><td><code>except json.JSONDecodeError:</code></td><td>malformed text passed to <code>json.load</code> / <code>loads</code></td></tr>
+    <tr><td>Missing dict key</td><td><code>except KeyError:</code></td><td><code>cfg["key"]</code> when key absent — prefer <code>.get()</code> for optional keys</td></tr>
+    <tr><td>Multiple handlers</td><td><code>except A: … / except B: …</code></td><td>first matching type wins; put specific before broad</td></tr>
+  </table>
+
+<pre><code>import json
+
+try:
+    with open("config.json") as f:
+        cfg = json.load(f)
+    print(cfg["env"])
+except FileNotFoundError:
+    print("config missing")
+except json.JSONDecodeError:
+    print("config invalid")</code></pre>
+
+  <p class="note">Use <code>try</code>/<code>except</code> for operations that can fail at runtime (files, parsing, subprocess). Use <code>.get()</code> when a missing key is normal, not exceptional.</p>
+
 </body>
 </html>

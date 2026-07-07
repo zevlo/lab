@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 9 · Error Handling</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 9 · ~15 min</p>
+<h1>Error Handling</h1>
+<p class="lede">Scripts that touch the real world fail — catch predictable errors instead of crashing.</p>
+
+<h2>Recall first</h2>
+<p>From memory: what's the difference between <code>json.load(f)</code> and <code>json.loads(text)</code>? And what Python type does JSON <code>null</code> become? Check the <a href="../reference/python-quick-reference.html#json">reference</a> after answering.</p>
+
+<h2>The one idea</h2>
+<p>When something goes wrong — missing file, bad JSON, wrong dict key — Python <strong>raises an exception</strong> and stops unless you handle it. A <code>try</code>/<code>except</code> block lets you run a fallback instead of crashing.</p>
+
+<pre><code>try:
+    with open("config.json") as f:
+        cfg = json.load(f)
+    print(cfg["env"])
+except FileNotFoundError:
+    print("config missing — using defaults")</code></pre>
+
+<p>Code under <code>try:</code> runs normally. If a matching error happens, Python jumps to the <code>except</code> block and continues after it. If no error, the <code>except</code> block is skipped entirely.</p>
+
+<h2>Catch the error you expect</h2>
+<p>Name the exception type after <code>except</code>. DevOps scripts hit the same few over and over:</p>
+
+<table style="width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.95rem;">
+  <tr style="border-bottom:1px solid #ddd;"><th style="text-align:left; font-weight:normal; font-style:italic; color:#767676; padding:0.4rem 0.6rem;">What went wrong</th><th style="text-align:left; font-weight:normal; font-style:italic; color:#767676; padding:0.4rem 0.6rem;">Exception</th></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>open("missing.json")</code></td><td style="padding:0.45rem 0.6rem;"><code>FileNotFoundError</code></td></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;">Invalid JSON text</td><td style="padding:0.45rem 0.6rem;"><code>json.JSONDecodeError</code></td></tr>
+  <tr style="border-bottom:1px solid #eee;"><td style="padding:0.45rem 0.6rem;"><code>cfg["missing_key"]</code></td><td style="padding:0.45rem 0.6rem;"><code>KeyError</code></td></tr>
+</table>
+
+<p>Multiple <code>except</code> blocks handle different failures with different messages:</p>
+
+<pre><code>import json
+
+try:
+    with open("config.json") as f:
+        cfg = json.load(f)
+    print(f"env: {cfg['env']}")
+except FileNotFoundError:
+    print("error: config file not found")
+except json.JSONDecodeError:
+    print("error: config is not valid JSON")
+except KeyError:
+    print("error: required key missing from config")</code></pre>
+
+<p>Order matters: Python uses the <em>first</em> matching <code>except</code>. Put specific errors before broad ones.</p>
+
+<h2>Prefer prevention when you can</h2>
+<p><code>except</code> is for failures you can't avoid. For optional dict keys, <code>.get()</code> with a default is still cleaner than catching <code>KeyError</code>. Use <code>try</code>/<code>except</code> when the whole operation might fail — opening a file, parsing JSON, calling an external command.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> A <code>try</code> block runs without error. What happens next?</p>
+  <button class="opt" data-k="a">the except block always runs after try</button>
+  <button class="opt" data-k="b">the except block is skipped entirely</button>
+  <button class="opt" data-k="c">the program stops with a traceback</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> <code>open("nope.json")</code> fails. Which exception do you catch?</p>
+  <button class="opt" data-k="a">FileNotFoundError for a missing file</button>
+  <button class="opt" data-k="b">KeyError for a missing dict key</button>
+  <button class="opt" data-k="c">JSONDecodeError for bad JSON text</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>3.</strong> <code>json.load(f)</code> reads broken JSON. Which exception?</p>
+  <button class="opt" data-k="a">FileNotFoundError for a missing file</button>
+  <button class="opt" data-k="b">KeyError for a missing dict key</button>
+  <button class="opt" data-k="c">JSONDecodeError for bad JSON text</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>From memory, create <code>safe_config.py</code>:</p>
+<ol>
+  <li>Import <code>json</code>.</li>
+  <li>Wrap the whole load-and-read in one <code>try</code> block: open <code>config.json</code>, parse with <code>json.load()</code>, print <code>env: prod</code> using <code>cfg["env"]</code>.</li>
+  <li>Add three <code>except</code> blocks — <code>FileNotFoundError</code> → print <code>error: config file not found</code>; <code>json.JSONDecodeError</code> → print <code>error: config is not valid JSON</code>; <code>KeyError</code> → print <code>error: required key missing from config</code>.</li>
+  <li>Run with your good <code>config.json</code> from Lesson 8. Expected: <code>env: prod</code></li>
+  <li>Rename the file to <code>config.json.bak</code> and run again. Expected: <code>error: config file not found</code></li>
+  <li>Restore the file, then replace its contents with <code>{not valid</code> and run. Expected: <code>error: config is not valid JSON</code></li>
+  <li>Restore valid JSON but remove the <code>"env"</code> key and run. Expected: <code>error: required key missing from config</code></li>
+</ol>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/tutorial/errors.html">official tutorial — Errors and Exceptions</a>. Practical walkthrough: <a href="https://automatetheboringstuff.com/3e/chapter3.html#handling-errors-with-try-and-except-statements">Automate the Boring Stuff — try/except</a>.</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#errors">Python quick reference — Error handling</a>. Previous: <a href="0008-json.html">Lesson 8 — JSON</a>.</p>
+<p>Questions — like when to use <code>except Exception</code>, or how <code>finally</code> works — ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '✓ Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '✗ Not quite — think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
