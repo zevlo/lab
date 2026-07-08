@@ -1,0 +1,7 @@
+{
+  "commands": [
+    {"name": "say hi", "argv": ["echo", "hello"]},
+    {"name": "show pwd", "argv": ["pwd"]},
+    {"name": "bad command", "argv": ["python3", "-c", "import sys; sys.exit(1)"]}
+  ]
+}

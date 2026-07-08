@@ -261,5 +261,37 @@ except json.JSONDecodeError:
 
   <p class="note">Use <code>try</code>/<code>except</code> for operations that can fail at runtime (files, parsing, subprocess). Use <code>.get()</code> when a missing key is normal, not exceptional.</p>
 
+  <h2 id="capstone">Capstone pattern <span class="note">— Lesson 0010</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Load config safely</td><td><code>try: ... json.load(f) ... except ...</code></td><td>catch file/JSON problems once, before the loop</td></tr>
+    <tr><td>Run configured command</td><td><code>subprocess.run(item["argv"], ...)</code></td><td><code>argv</code> should already be a list of strings</td></tr>
+    <tr><td>Capture output</td><td><code>capture_output=True, text=True</code></td><td>stdout lands in <code>result.stdout</code></td></tr>
+    <tr><td>Check success</td><td><code>if result.returncode == 0:</code></td><td><code>0</code> means success, nonzero means failure</td></tr>
+    <tr><td>Print output cleanly</td><td><code>result.stdout.strip()</code></td><td>removes trailing newline from command output</td></tr>
+  </table>
+
+<pre><code>import json
+import subprocess
+
+try:
+    with open("commands.json") as f:
+        cfg = json.load(f)
+except FileNotFoundError:
+    print("error: commands file not found")
+except json.JSONDecodeError:
+    print("error: commands file is not valid JSON")
+else:
+    for item in cfg["commands"]:
+        result = subprocess.run(
+            item["argv"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            print(f"{item['name']}: {result.stdout.strip()}")
+        else:
+            print(f"{item['name']}: error code {result.returncode}")</code></pre>
+
 </body>
 </html>

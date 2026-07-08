@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 10 · Command Runner Capstone</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps · Lesson 10 · ~15 min</p>
+<h1>Command Runner Capstone</h1>
+<p class="lede">One small script that reads JSON config, runs commands, and handles failure without blowing up.</p>
+
+<h2>Recall first</h2>
+<p>From memory: where does captured command output land after <code>subprocess.run(..., capture_output=True, text=True)</code>? And which exception catches broken JSON in <code>json.load()</code>? Check the <a href="../reference/python-quick-reference.html#subprocess">reference</a> after answering.</p>
+
+<h2>The one idea</h2>
+<p>Interview tasks rarely test one feature in isolation. They usually ask for a tiny script that combines several basics: read a config file, loop over items, run a command for each one, and handle the failures you can predict.</p>
+
+<pre><code>import json
+import subprocess
+
+with open("commands.json") as f:
+    cfg = json.load(f)
+
+for item in cfg["commands"]:
+    result = subprocess.run(
+        item["argv"],
+        capture_output=True,
+        text=True,
+    )
+    print(result.stdout.strip())</code></pre>
+
+<p>That skeleton is already most of the task. Lesson 0010 is about stitching together pieces you already know, not adding a lot of new syntax.</p>
+
+<h2>The config shape</h2>
+<p>Use JSON to describe what to run. Each command is a dict with a label and an argument list:</p>
+
+<pre><code>{
+  "commands": [
+    {"name": "say hi", "argv": ["echo", "hello"]},
+    {"name": "show pwd", "argv": ["pwd"]}
+  ]
+}</code></pre>
+
+<p>The important detail is <code>argv</code>: it is a list of strings, exactly the shape <code>subprocess.run()</code> expects.</p>
+
+<h2>Success vs failure</h2>
+<p>A command can fail even when Python itself is fine. So this capstone checks <code>result.returncode</code> after each run and prints either the command's stdout or a short error line.</p>
+
+<pre><code>result = subprocess.run(
+    ["echo", "hello"],
+    capture_output=True,
+    text=True,
+)
+
+if result.returncode == 0:
+    print(result.stdout.strip())
+else:
+    print(f"error: command failed with code {result.returncode}")</code></pre>
+
+<p>Use <code>try</code>/<code>except</code> around the config-reading part, then use an <code>if</code> on <code>returncode</code> for each command. That separation is a good mental model: exceptions for Python/runtime failures, return codes for external program failures.</p>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> What shape should <code>argv</code> have before passing it to <code>subprocess.run()</code>?</p>
+  <button class="opt" data-k="a">one long string with spaces inside</button>
+  <button class="opt" data-k="b">a list of strings, one per part</button>
+  <button class="opt" data-k="c">a dict with command and arguments</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> A command runs but exits with status 1. Which Python feature tells you that?</p>
+  <button class="opt" data-k="a">result.stdout contains the exit code</button>
+  <button class="opt" data-k="b">json.load raises a KeyError exception</button>
+  <button class="opt" data-k="c">result.returncode stores the exit code</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> Which part should go inside <code>try</code>/<code>except</code> in this lesson?</p>
+  <button class="opt" data-k="a">opening and parsing the JSON config</button>
+  <button class="opt" data-k="b">every successful print line in the loop</button>
+  <button class="opt" data-k="c">the variable name inside an f-string</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>First, create <code>commands.json</code> with this content:</p>
+<pre><code>{
+  "commands": [
+    {"name": "say hi", "argv": ["echo", "hello"]},
+    {"name": "show pwd", "argv": ["pwd"]},
+    {"name": "bad command", "argv": ["python3", "-c", "import sys; sys.exit(1)"]}
+  ]
+}</code></pre>
+
+<p>Then, from memory, create <code>run_commands.py</code>:</p>
+<ol>
+  <li>Import <code>json</code> and <code>subprocess</code>.</li>
+  <li>Wrap config loading in one <code>try</code> block: open <code>commands.json</code>, parse it with <code>json.load()</code>, store it in <code>cfg</code>.</li>
+  <li>Add two <code>except</code> blocks: <code>FileNotFoundError</code> prints <code>error: commands file not found</code>; <code>json.JSONDecodeError</code> prints <code>error: commands file is not valid JSON</code>.</li>
+  <li>Use an <code>else:</code> block after the exceptions. Inside it, loop over <code>cfg["commands"]</code>.</li>
+  <li>For each item, run <code>item["argv"]</code> with <code>subprocess.run(..., capture_output=True, text=True)</code>.</li>
+  <li>If <code>result.returncode == 0</code>, print <code>&lt;name&gt;: &lt;stdout&gt;</code> using <code>item["name"]</code> and <code>result.stdout.strip()</code>.</li>
+  <li>Otherwise print <code>&lt;name&gt;: error code &lt;number&gt;</code>.</li>
+  <li>Run it and compare with the expected output below.</li>
+</ol>
+
+<p>Expected output:</p>
+<pre><code>say hi: hello
+show pwd: /your/current/directory
+bad command: error code 1</code></pre>
+
+<p>The middle line will differ on your machine. That is fine.</p>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/library/subprocess.html">official docs — <code>subprocess</code></a>. Supporting source: <a href="https://docs.python.org/3/tutorial/errors.html">official tutorial — Errors and Exceptions</a>.</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#capstone">Python quick reference — Capstone pattern</a>. Previous: <a href="0009-error-handling.html">Lesson 9 — Error Handling</a>.</p>
+<p>Questions — like when to use <code>check=True</code>, or whether to catch command startup errors too — ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = 'Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = 'Not quite - think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
