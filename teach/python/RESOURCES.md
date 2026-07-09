@@ -12,6 +12,10 @@
   Production-style scenarios (log correlation, drift detection, secrets rotation). Use for: capstone-style practice near interview readiness.
 - [Python Module of the Day: `subprocess` docs](https://docs.python.org/3/library/subprocess.html)
   The one module every bash person must master. Use for: replacing shell pipelines with Python.
+- [`sys.argv` in the official docs](https://docs.python.org/3/library/sys.html#sys.argv)
+  The list of command-line arguments passed to a script. Use for: making scripts take a filename or other input instead of hardcoding paths.
+- [Automate the Boring Stuff, Chapter 12 — Designing and Deploying Command Line Programs](https://automatetheboringstuff.com/3e/chapter12.html)
+  Practical intro to building CLI programs. Use for: gentler walkthrough after the official `sys.argv` docs.
 
 ## Wisdom (Communities)
 

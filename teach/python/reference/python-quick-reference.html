@@ -293,5 +293,37 @@ else:
         else:
             print(f"{item['name']}: error code {result.returncode}")</code></pre>
 
+  <h2 id="argv">Command-line arguments <span class="note">— Lesson 0011</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Import</td><td><code>import sys</code></td><td>stdlib — nothing to install</td></tr>
+    <tr><td>All arguments</td><td><code>sys.argv</code></td><td>a list of strings; <code>argv[0]</code> is the script name</td></tr>
+    <tr><td>First user argument</td><td><code>sys.argv[1]</code></td><td>e.g. a logfile path passed on the command line</td></tr>
+    <tr><td>Was an arg given?</td><td><code>if len(sys.argv) &lt; 2:</code></td><td>avoids <code>IndexError</code> when nothing was passed</td></tr>
+    <tr><td>Exit with failure</td><td><code>raise SystemExit(1)</code></td><td>stops the script; nonzero means failure</td></tr>
+  </table>
+
+<pre><code>import sys
+
+if len(sys.argv) &lt; 2:
+    print("usage: count_errors.py &lt;logfile&gt;")
+    raise SystemExit(1)
+
+path = sys.argv[1]
+count = 0
+
+try:
+    with open(path) as f:
+        for line in f:
+            if "ERROR" in line:
+                count = count + 1
+except FileNotFoundError:
+    print(f"error: file not found: {path}")
+    raise SystemExit(1)
+
+print(f"{count} errors found")</code></pre>
+
+  <p class="note">Hardcoded filenames make a demo; <code>sys.argv[1]</code> makes a reusable tool. Check length before indexing, then open the path with the same file skills you already have.</p>
+
 </body>
 </html>
