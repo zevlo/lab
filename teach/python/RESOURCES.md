@@ -16,6 +16,10 @@
   The list of command-line arguments passed to a script. Use for: making scripts take a filename or other input instead of hardcoding paths.
 - [Automate the Boring Stuff, Chapter 12 — Designing and Deploying Command Line Programs](https://automatetheboringstuff.com/3e/chapter12.html)
   Practical intro to building CLI programs. Use for: gentler walkthrough after the official `sys.argv` docs.
+- [`pathlib` in the official docs](https://docs.python.org/3/library/pathlib.html)
+  Object-oriented filesystem paths, including `Path.rglob`. Use for: walking directory trees and matching files by pattern.
+- [Real Python: How to Get a List of All Files in a Directory](https://realpython.com/get-all-files-in-directory-python/)
+  Clear comparison of `iterdir`, `glob`, and `rglob`. Use for: choosing the right listing method after the official docs.
 
 ## Wisdom (Communities)
 

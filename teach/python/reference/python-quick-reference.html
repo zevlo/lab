@@ -325,5 +325,34 @@ print(f"{count} errors found")</code></pre>
 
   <p class="note">Hardcoded filenames make a demo; <code>sys.argv[1]</code> makes a reusable tool. Check length before indexing, then open the path with the same file skills you already have.</p>
 
+  <h2 id="pathlib">Walking directories <span class="note">— Lesson 0012</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Import</td><td><code>from pathlib import Path</code></td><td>stdlib — nothing to install</td></tr>
+    <tr><td>Make a Path</td><td><code>root = Path(sys.argv[1])</code></td><td>wrap a string path in a <code>Path</code> object</td></tr>
+    <tr><td>Is it a directory?</td><td><code>root.is_dir()</code></td><td><code>False</code> if missing or a plain file</td></tr>
+    <tr><td>Is it a file?</td><td><code>path.is_file()</code></td><td>use inside the walk loop</td></tr>
+    <tr><td>Recursive match</td><td><code>root.rglob("*.log")</code></td><td>searches root <em>and</em> all subfolders</td></tr>
+  </table>
+
+<pre><code>import sys
+from pathlib import Path
+
+if len(sys.argv) &lt; 2:
+    print("usage: find_logs.py &lt;directory&gt;")
+    raise SystemExit(1)
+
+root = Path(sys.argv[1])
+if not root.is_dir():
+    print(f"error: not a directory: {root}")
+    raise SystemExit(1)
+
+for path in root.rglob("*.log"):
+    if path.is_file():
+        print(path)</code></pre>
+
+  <p class="note"><code>rglob</code> = recursive glob. Pattern <code>"*.ext"</code> means any filename ending in that extension, at any depth under <code>root</code>.</p>
+
 </body>
 </html>
+
