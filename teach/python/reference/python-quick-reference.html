@@ -353,6 +353,47 @@ for path in root.rglob("*.log"):
 
   <p class="note"><code>rglob</code> = recursive glob. Pattern <code>"*.ext"</code> means any filename ending in that extension, at any depth under <code>root</code>.</p>
 
+  <h2 id="http">HTTP GET and JSON <span class="note">— Lesson 0013</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Import</td><td><code>import urllib.request</code></td><td>stdlib — nothing to install</td></tr>
+    <tr><td>Open a URL</td><td><code>urllib.request.urlopen(url)</code></td><td>returns a file-like response</td></tr>
+    <tr><td>Read body</td><td><code>body = response.read()</code></td><td>bytes, not a string</td></tr>
+    <tr><td>Parse JSON</td><td><code>data = json.loads(body)</code></td><td>same <code>loads</code> as with a string</td></tr>
+    <tr><td>HTTP failure</td><td><code>except HTTPError as e:</code></td><td><code>e.code</code> is the status (404, 500, …)</td></tr>
+    <tr><td>Network failure</td><td><code>except URLError:</code></td><td>could not reach the host; catch after <code>HTTPError</code></td></tr>
+  </table>
+
+<pre><code>import json
+import sys
+import urllib.request
+from urllib.error import HTTPError, URLError
+
+if len(sys.argv) &lt; 2:
+    print("usage: fetch_json.py &lt;url&gt;")
+    raise SystemExit(1)
+
+url = sys.argv[1]
+
+try:
+    with urllib.request.urlopen(url) as response:
+        body = response.read()
+        data = json.loads(body)
+except HTTPError as e:
+    print(f"error: HTTP {e.code}")
+    raise SystemExit(1)
+except URLError:
+    print("error: could not reach URL")
+    raise SystemExit(1)
+except json.JSONDecodeError:
+    print("error: response is not valid JSON")
+    raise SystemExit(1)
+
+print(data["title"])</code></pre>
+
+  <p class="note">GET with no <code>data=</code> argument. Response body → <code>json.loads</code> → normal dict/list skills. Prefer stdlib <code>urllib</code> in interviews unless the problem allows installing <code>requests</code>.</p>
+
 </body>
 </html>
+
 
