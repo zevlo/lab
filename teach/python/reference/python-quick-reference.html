@@ -353,6 +353,7 @@ for path in root.rglob("*.log"):
 
   <p class="note"><code>rglob</code> = recursive glob. Pattern <code>"*.ext"</code> means any filename ending in that extension, at any depth under <code>root</code>.</p>
 
+<<<<<<< HEAD
   <h2 id="http">HTTP GET and JSON <span class="note">— Lesson 0013</span></h2>
   <table>
     <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
@@ -371,11 +372,31 @@ from urllib.error import HTTPError, URLError
 
 if len(sys.argv) &lt; 2:
     print("usage: fetch_json.py &lt;url&gt;")
+=======
+  <h2 id="http-json">Fetching JSON from an API <span class="note">— Lesson 0013</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Import fetch</td><td><code>from urllib.request import urlopen</code></td><td>stdlib — nothing to install</td></tr>
+    <tr><td>Import errors</td><td><code>from urllib.error import URLError</code></td><td>raised when the request fails</td></tr>
+    <tr><td>Open a URL</td><td><code>with urlopen(url) as response:</code></td><td>like opening a file over the network</td></tr>
+    <tr><td>Read body as text</td><td><code>response.read().decode()</code></td><td><code>read()</code> returns bytes</td></tr>
+    <tr><td>Parse JSON</td><td><code>json.loads(body)</code></td><td>same skill as parsing a JSON string</td></tr>
+  </table>
+
+<pre><code>import sys
+import json
+from urllib.request import urlopen
+from urllib.error import URLError
+
+if len(sys.argv) &lt; 2:
+    print("usage: fetch_todo.py &lt;url&gt;")
+>>>>>>> 139890b (complete lesson 0013)
     raise SystemExit(1)
 
 url = sys.argv[1]
 
 try:
+<<<<<<< HEAD
     with urllib.request.urlopen(url) as response:
         body = response.read()
         data = json.loads(body)
@@ -392,6 +413,19 @@ except json.JSONDecodeError:
 print(data["title"])</code></pre>
 
   <p class="note">GET with no <code>data=</code> argument. Response body → <code>json.loads</code> → normal dict/list skills. Prefer stdlib <code>urllib</code> in interviews unless the problem allows installing <code>requests</code>.</p>
+=======
+    with urlopen(url) as response:
+        body = response.read().decode()
+        data = json.loads(body)
+except URLError:
+    print(f"error: could not fetch {url}")
+    raise SystemExit(1)
+
+print(f"title: {data['title']}")
+print(f"completed: {data['completed']}")</code></pre>
+
+  <p class="note">Pattern: URL → <code>urlopen</code> → decode → <code>json.loads</code> → use the dict. Catch <code>URLError</code> for network/HTTP failures.</p>
+>>>>>>> 139890b (complete lesson 0013)
 
 </body>
 </html>

@@ -20,12 +20,12 @@
   Object-oriented filesystem paths, including `Path.rglob`. Use for: walking directory trees and matching files by pattern.
 - [Real Python: How to Get a List of All Files in a Directory](https://realpython.com/get-all-files-in-directory-python/)
   Clear comparison of `iterdir`, `glob`, and `rglob`. Use for: choosing the right listing method after the official docs.
-- [HOWTO Fetch Internet Resources Using The urllib Package](https://docs.python.org/3/howto/urllib2.html)
-  Official tutorial for `urlopen`, GET/POST, and exception handling. Use for: authoritative answers on HTTP with the stdlib.
-- [`urllib.request` in the official docs](https://docs.python.org/3/library/urllib.request.html)
-  Reference for `urlopen` and `Request`. Use for: exact signatures and parameters after the HOWTO.
+- [Official HOWTO: Fetch Internet Resources Using urllib](https://docs.python.org/3/howto/urllib2.html)
+  Authoritative intro to `urlopen`, responses, and `URLError`/`HTTPError`. Use for: hitting APIs with the standard library.
+- [`urllib.request` module docs](https://docs.python.org/3/library/urllib.request.html)
+  Full reference for `urlopen` and `Request`. Use for: details beyond the HOWTO.
 - [Real Python: Python’s urllib.request for HTTP Requests](https://realpython.com/urllib-request/)
-  Clear walkthrough of GET, JSON bodies, and common errors. Use for: gentler practice after the official HOWTO.
+  Practical walkthrough including JSON APIs. Use for: a gentler second pass after the official HOWTO.
 
 ## Wisdom (Communities)
 
