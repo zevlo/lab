@@ -353,26 +353,6 @@ for path in root.rglob("*.log"):
 
   <p class="note"><code>rglob</code> = recursive glob. Pattern <code>"*.ext"</code> means any filename ending in that extension, at any depth under <code>root</code>.</p>
 
-<<<<<<< HEAD
-  <h2 id="http">HTTP GET and JSON <span class="note">— Lesson 0013</span></h2>
-  <table>
-    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
-    <tr><td>Import</td><td><code>import urllib.request</code></td><td>stdlib — nothing to install</td></tr>
-    <tr><td>Open a URL</td><td><code>urllib.request.urlopen(url)</code></td><td>returns a file-like response</td></tr>
-    <tr><td>Read body</td><td><code>body = response.read()</code></td><td>bytes, not a string</td></tr>
-    <tr><td>Parse JSON</td><td><code>data = json.loads(body)</code></td><td>same <code>loads</code> as with a string</td></tr>
-    <tr><td>HTTP failure</td><td><code>except HTTPError as e:</code></td><td><code>e.code</code> is the status (404, 500, …)</td></tr>
-    <tr><td>Network failure</td><td><code>except URLError:</code></td><td>could not reach the host; catch after <code>HTTPError</code></td></tr>
-  </table>
-
-<pre><code>import json
-import sys
-import urllib.request
-from urllib.error import HTTPError, URLError
-
-if len(sys.argv) &lt; 2:
-    print("usage: fetch_json.py &lt;url&gt;")
-=======
   <h2 id="http-json">Fetching JSON from an API <span class="note">— Lesson 0013</span></h2>
   <table>
     <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
@@ -390,30 +370,11 @@ from urllib.error import URLError
 
 if len(sys.argv) &lt; 2:
     print("usage: fetch_todo.py &lt;url&gt;")
->>>>>>> 139890b (complete lesson 0013)
     raise SystemExit(1)
 
 url = sys.argv[1]
 
 try:
-<<<<<<< HEAD
-    with urllib.request.urlopen(url) as response:
-        body = response.read()
-        data = json.loads(body)
-except HTTPError as e:
-    print(f"error: HTTP {e.code}")
-    raise SystemExit(1)
-except URLError:
-    print("error: could not reach URL")
-    raise SystemExit(1)
-except json.JSONDecodeError:
-    print("error: response is not valid JSON")
-    raise SystemExit(1)
-
-print(data["title"])</code></pre>
-
-  <p class="note">GET with no <code>data=</code> argument. Response body → <code>json.loads</code> → normal dict/list skills. Prefer stdlib <code>urllib</code> in interviews unless the problem allows installing <code>requests</code>.</p>
-=======
     with urlopen(url) as response:
         body = response.read().decode()
         data = json.loads(body)
@@ -425,7 +386,6 @@ print(f"title: {data['title']}")
 print(f"completed: {data['completed']}")</code></pre>
 
   <p class="note">Pattern: URL → <code>urlopen</code> → decode → <code>json.loads</code> → use the dict. Catch <code>URLError</code> for network/HTTP failures.</p>
->>>>>>> 139890b (complete lesson 0013)
 
   <h2 id="environ">Environment variables <span class="note">— Lesson 0014</span></h2>
   <table>
@@ -449,6 +409,40 @@ print(f"env: {env_name}")
 print(f"url: {api_url}")</code></pre>
 
   <p class="note">Environment values are always strings. Use <code>.get</code> with a default for optional settings; check for <code>None</code> when the script cannot run without the variable.</p>
+
+  <h2 id="tree-errors">Scanning logs across a tree <span class="note">— Lesson 0015</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Find log files</td><td><code>root.rglob("*.log")</code></td><td>same walk as Lesson 0012</td></tr>
+    <tr><td>Open each path</td><td><code>with open(path) as f:</code></td><td><code>Path</code> works with <code>open()</code></td></tr>
+    <tr><td>Count matches</td><td><code>if "ERROR" in line:</code></td><td>same line scan as Lesson 0011</td></tr>
+    <tr><td>Accumulate</td><td><code>total = total + 1</code></td><td>one counter across all files</td></tr>
+  </table>
+
+<pre><code>import sys
+from pathlib import Path
+
+if len(sys.argv) &lt; 2:
+    print("usage: count_tree_errors.py &lt;directory&gt;")
+    raise SystemExit(1)
+
+root = Path(sys.argv[1])
+if not root.is_dir():
+    print(f"error: not a directory: {root}")
+    raise SystemExit(1)
+
+total = 0
+for path in root.rglob("*.log"):
+    if not path.is_file():
+        continue
+    with open(path) as f:
+        for line in f:
+            if "ERROR" in line:
+                total = total + 1
+
+print(f"{total} errors found")</code></pre>
+
+  <p class="note">Interview pattern: walk → open each match → scan lines → one total. No new modules — glue skills you already have.</p>
 
 </body>
 </html>
