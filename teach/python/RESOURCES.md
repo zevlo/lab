@@ -26,6 +26,10 @@
   Full reference for `urlopen` and `Request`. Use for: details beyond the HOWTO.
 - [Real Python: Python’s urllib.request for HTTP Requests](https://realpython.com/urllib-request/)
   Practical walkthrough including JSON APIs. Use for: a gentler second pass after the official HOWTO.
+- [`os.environ` in the official docs](https://docs.python.org/3/library/os.html#os.environ)
+  Mapping of process environment variables. Use for: reading deploy/config settings and secrets from the environment.
+- [`os.getenv` in the official docs](https://docs.python.org/3/library/os.html#os.getenv)
+  Convenience wrapper around `os.environ.get`. Use for: the same pattern with a slightly shorter call.
 
 ## Wisdom (Communities)
 
