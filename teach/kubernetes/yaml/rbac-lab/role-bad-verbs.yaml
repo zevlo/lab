@@ -1,0 +1,10 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: secret-reader
+  namespace: rbac-lab
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  # Break: get alone is not enough for kubectl get secrets (collection → list)
+  verbs: ["get"]

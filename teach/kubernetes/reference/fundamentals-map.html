@@ -107,6 +107,12 @@
   <p>Lessons <a href="../lessons/0017-the-troubleshooting-workflow.html">0017</a>–<a href="../lessons/0020-rollout-debugging.html">0020</a> · <a href="troubleshooting-workflow.html">troubleshooting ref</a></p>
 </div>
 
+<div class="layer">
+  <h3>10 · Identity &amp; API authz (ops hardening)</h3>
+  <p><code>ServiceAccount</code> = who the Pod is. <code>Role</code> / <code>RoleBinding</code> = what the API allows. Diagnose with <code>kubectl auth can-i --as=system:serviceaccount:…</code> — not your admin kubeconfig.</p>
+  <p>Lesson <a href="../lessons/0024-rbac-serviceaccounts.html">0024</a> · <a href="rbac-serviceaccounts.html">RBAC ref</a></p>
+</div>
+
 <h2>Traffic path (debug inside-out)</h2>
 <pre><code>curl https://app.example.com/path
   → Ingress (host, path, tls.secretName, backend.service.port)
@@ -123,7 +129,7 @@
   <tr><td><code>helm upgrade --install …</code></td><td>Yes</td></tr>
 </table>
 
-<h2>Lesson index (0001–0022)</h2>
+<h2>Lesson index (0001–0024)</h2>
 <table>
   <tr><th>#</th><th>Topic</th></tr>
   <tr><td>0001</td><td><a href="../lessons/0001-desired-state-and-the-control-loop.html">Desired state &amp; control loop</a></td></tr>
@@ -148,10 +154,12 @@
   <tr><td>0020</td><td><a href="../lessons/0020-rollout-debugging.html">Rollout debugging</a></td></tr>
   <tr><td>0021</td><td><a href="../lessons/0021-network-policies.html">NetworkPolicies</a></td></tr>
   <tr><td>0022</td><td><a href="../lessons/0022-cert-manager-automated-tls.html">cert-manager</a></td></tr>
+  <tr><td>0023</td><td><a href="../lessons/0023-fundamentals-wrap-up-review.html">Fundamentals wrap-up</a></td></tr>
+  <tr><td>0024</td><td><a href="../lessons/0024-rbac-serviceaccounts.html">RBAC &amp; ServiceAccounts</a></td></tr>
 </table>
 
 <footer>
-  Wrap-up lesson: <a href="../lessons/0023-fundamentals-wrap-up-review.html">0023</a> · Extended quiz: <a href="../quizzes/combined-scenario-quiz-02.html">Combined Scenario Quiz 02</a>
+  Wrap-up (fundamentals): <a href="../lessons/0023-fundamentals-wrap-up-review.html">0023</a> · Ops hardening starts at <a href="../lessons/0024-rbac-serviceaccounts.html">0024</a> · Quiz: <a href="../quizzes/combined-scenario-quiz-02.html">Combined Scenario Quiz 02</a>
 </footer>
 </body>
 </html>

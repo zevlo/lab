@@ -62,6 +62,14 @@
   Maintainer walkthrough of isolating pods by ingress rules. Use for: lab design on default-allow vs explicit-allow models.
 - [cert-manager documentation](https://cert-manager.io/docs/)
   TLS automation via Certificate/Issuer CRDs; writes standard kubernetes.io/tls Secrets for Ingress. Use for: lesson 0022 lab design and Let's Encrypt vs selfSigned issuer tradeoffs.
+- [Official Docs: Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+  Role, ClusterRole, RoleBinding, ClusterRoleBinding, default roles, privilege escalation rules. Use for: any RBAC claim; lesson 0024.
+- [Official Docs: Service Accounts](https://kubernetes.io/docs/concepts/security/service-accounts/)
+  SA identity model, default SA, tokens, cross-namespace grants. Use for: workload identity vs human users.
+- [Task: Configure Service Accounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/)
+  Assigning SAs, automount opt-out, TokenRequest / projected tokens. Use for: lab design and token lifecycle guidance.
+- [Official Docs: Checking API Access](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access)
+  `kubectl auth can-i` and impersonation. Use for: diagnosing whether a ServiceAccount (not your admin user) is allowed a verb.
 - [OrbStack Kubernetes Documentation](https://docs.orbstack.dev/kubernetes)
   Official docs for the user's local cluster environment (service exposure via `*.k8s.orb.local`, kubelet config, Traefik/Ingress setup). Use for: anything specific to how the local lab cluster behaves on macOS.
 - [Kubernetes the Hard Way — Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)

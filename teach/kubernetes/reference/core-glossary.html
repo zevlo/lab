@@ -107,6 +107,24 @@
   <dd>The client configuration file (usually <code>~/.kube/config</code>) listing clusters, users, and contexts. Not necessarily named "kubeconfig" — any file can serve. OrbStack ships <code>kubectl</code> and merges cluster config into your kubeconfig. <a class="src" href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/">[docs]</a></dd>
 </dl>
 
+<h2>Identity &amp; authorization</h2>
+<dl>
+  <dt id="serviceaccount">ServiceAccount</dt>
+  <dd>Namespaced identity for processes in Pods (and other automation) — not a human User. Every namespace has a <code>default</code> SA; Pods without <code>spec.serviceAccountName</code> use it. Credentials are short-lived projected tokens. Permissions come from RBAC bindings, not from the SA object itself. <a class="src" href="https://kubernetes.io/docs/concepts/security/service-accounts/">[docs]</a> · <a class="src" href="rbac-serviceaccounts.html">[patterns]</a></dd>
+
+  <dt id="rbac">RBAC</dt>
+  <dd>Role-based access control for the Kubernetes API. Permissions are additive rules (<code>apiGroups</code> + <code>resources</code> + <code>verbs</code>) with no deny rules. Four objects: Role, ClusterRole, RoleBinding, ClusterRoleBinding. <a class="src" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/">[docs]</a> · <a class="src" href="rbac-serviceaccounts.html">[patterns]</a></dd>
+
+  <dt id="role">Role / ClusterRole</dt>
+  <dd>A permission set. <strong>Role</strong> is namespaced; <strong>ClusterRole</strong> is cluster-scoped (or reusable via RoleBindings). Rules name resources and verbs such as <code>get</code>, <code>list</code>, <code>create</code>. Listing a collection needs <code>list</code>; reading one named object needs <code>get</code>. <a class="src" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole">[docs]</a></dd>
+
+  <dt id="rolebinding">RoleBinding / ClusterRoleBinding</dt>
+  <dd>Attaches a Role or ClusterRole to subjects (User, Group, ServiceAccount). <strong>RoleBinding</strong> grants only in its namespace — even when it references a ClusterRole. <strong>ClusterRoleBinding</strong> grants cluster-wide. <code>roleRef</code> is immutable after create. <a class="src" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding">[docs]</a></dd>
+
+  <dt id="auth-can-i">kubectl auth can-i</dt>
+  <dd>Asks the API server whether a principal may perform a verb on a resource. Use <code>--as=system:serviceaccount:&lt;ns&gt;:&lt;sa&gt;</code> to check a Pod’s identity — your admin kubeconfig answer is not the Pod’s. <a class="src" href="https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access">[docs]</a></dd>
+</dl>
+
 <h2>Rollouts</h2>
 <dl>
   <dt id="rollout">Rollout</dt>

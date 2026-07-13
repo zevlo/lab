@@ -42,6 +42,8 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 **Fundamentals track:** ✓ **COMPLETE** (2026-06-30) — lessons 0001–0023. Sign-off: lesson 0023 **10/10**, Combined Quiz 02 **12/12**. Prior Combined Quiz 01: 11/12 (HPA gap remediated on 02).
 
+**Ops hardening arc (post-fundamentals):** 0024 RBAC + ServiceAccounts ✓. Candidates next: SecurityContext / Pod Security · Jobs/CronJobs · PDBs · enforced NetworkPolicy · public ACME.
+
 **OrbStack quirk (0021):** k3s starts with `--disable-network-policy` — policies apply to API only, not enforced. Lab is read-and-predict unless kind/other cluster used.
 
 ## Working notes
@@ -53,6 +55,7 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 | Lesson | Quiz | Notes |
 |--------|------|-------|
+| 0024 | 5/5 | RBAC + ServiceAccounts landed. auth can-i --as, RoleBinding scope, get vs list clean. |
 | 0023 | 10/10 | Fundamentals wrap-up. Clean integration recall; track sign-off with Quiz 02 12/12. |
 | 0022 | 5/5 | cert-manager landed. Issuer → Certificate → Secret → Ingress; three breaks clean. |
 | 0021 | 5/5 | NetworkPolicy model landed. OrbStack: enforcement off; lab conceptual. |
