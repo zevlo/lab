@@ -444,6 +444,31 @@ print(f"{total} errors found")</code></pre>
 
   <p class="note">Interview pattern: walk → open each match → scan lines → one total. No new modules — glue skills you already have.</p>
 
+  <h2 id="writing">Writing files <span class="note">— Lesson 0016</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Open for write</td><td><code>with open(path, "w") as f:</code></td><td>creates the file, or erases existing contents</td></tr>
+    <tr><td>Write text</td><td><code>f.write("status: ok\n")</code></td><td>you must include <code>\n</code> yourself</td></tr>
+    <tr><td>Append</td><td><code>with open(path, "a") as f:</code></td><td>keeps old contents; adds at the end</td></tr>
+    <tr><td>Read (reminder)</td><td><code>with open(path) as f:</code></td><td>default mode is <code>"r"</code> — do not use <code>"w"</code> to read</td></tr>
+  </table>
+
+<pre><code>import sys
+
+if len(sys.argv) &lt; 2:
+    print("usage: write_report.py &lt;outfile&gt;")
+    raise SystemExit(1)
+
+path = sys.argv[1]
+
+with open(path, "w") as f:
+    f.write("status: ok\n")
+    f.write("checked: 3\n")
+
+print(f"wrote {path}")</code></pre>
+
+  <p class="note"><code>"w"</code> overwrites. <code>"a"</code> appends. Same <code>with</code> auto-close habit as reading.</p>
+
 </body>
 </html>
 

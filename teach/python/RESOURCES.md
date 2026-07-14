@@ -30,6 +30,8 @@
   Mapping of process environment variables. Use for: reading deploy/config settings and secrets from the environment.
 - [`os.getenv` in the official docs](https://docs.python.org/3/library/os.html#os.getenv)
   Convenience wrapper around `os.environ.get`. Use for: the same pattern with a slightly shorter call.
+- [Official Tutorial — Reading and Writing Files](https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files)
+  Modes (`r`/`w`/`a`), `write()`, and why `with` matters. Use for: writing reports and saving script output to disk.
 
 ## Wisdom (Communities)
 
