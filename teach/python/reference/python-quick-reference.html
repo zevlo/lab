@@ -495,6 +495,49 @@ if __name__ == "__main__":
 
   <p class="note">Execute → guard runs. Import → functions are defined, CLI does not run.</p>
 
+  <h2 id="classes">Classes (enough to read) <span class="note">— Lesson 0018</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Define a class</td><td><code>class Host:</code></td><td>blueprint for instances</td></tr>
+    <tr><td>Create an instance</td><td><code>host = Host("web-01", "up")</code></td><td>runs <code>__init__</code></td></tr>
+    <tr><td>Store on the instance</td><td><code>self.name = name</code></td><td>inside <code>__init__</code></td></tr>
+    <tr><td>Call a method</td><td><code>host.summary()</code></td><td>Python passes <code>host</code> as <code>self</code></td></tr>
+  </table>
+
+<pre><code>class Host:
+    def __init__(self, name, status):
+        self.name = name
+        self.status = status
+
+    def summary(self):
+        return f"{self.name}: {self.status}"
+
+host = Host("web-01", "up")
+print(host.summary())</code></pre>
+
+  <p class="note">You already used this shape with <code>Path("app.log")</code> and <code>path.is_file()</code>. Same idea. Skip inheritance for now.</p>
+
+  <h2 id="objects-hold-data">Objects hold data <span class="note">— Lesson 0019</span></h2>
+  <table>
+    <tr><th>Idea</th><th>Meaning</th><th>Like a dict…</th></tr>
+    <tr><td>Class</td><td>Blueprint (<code>Host</code>)</td><td>—</td></tr>
+    <tr><td>Instance</td><td>One concrete object (<code>web</code>)</td><td>one dict value</td></tr>
+    <tr><td>Attribute</td><td>Data on that object (<code>web.name</code>)</td><td><code>host["name"]</code></td></tr>
+    <tr><td><code>self</code> in <code>__init__</code></td><td>The instance being filled</td><td>the dict you are writing into</td></tr>
+  </table>
+
+<pre><code>class Host:
+    def __init__(self, name, status):
+        self.name = name
+        self.status = status
+
+web = Host("web-01", "up")
+db = Host("db-01", "down")
+web.status = "restarting"
+# db.status is still "down" — separate bags of data</code></pre>
+
+  <p class="note">Each <code>Host(...)</code> call makes a new bag. Changing one instance does not change another.</p>
+
 </body>
 </html>
 

@@ -38,6 +38,10 @@
   Authoritative explanation of the idiom and the idiomatic `main()` pattern. Use for: why the guard exists and how to structure scripts.
 - [Real Python: What Does `if __name__ == "__main__"` Do?](https://realpython.com/if-name-main-python/)
   Clear walkthrough with examples. Use for: a gentler second pass after the official tutorial section.
+- [Official Tutorial — A First Look at Classes](https://docs.python.org/3/tutorial/classes.html#a-first-look-at-classes)
+  Authoritative intro to `class`, instances, `__init__`, and methods. Use for: enough OOP to read others' code — stop before inheritance unless needed.
+- [Real Python: Python Classes](https://realpython.com/python-classes/)
+  Practical walkthrough of attributes and methods. Use for: a gentler second pass after the official “first look” section.
 
 ## Wisdom (Communities)
 
