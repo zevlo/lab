@@ -469,7 +469,34 @@ print(f"wrote {path}")</code></pre>
 
   <p class="note"><code>"w"</code> overwrites. <code>"a"</code> appends. Same <code>with</code> auto-close habit as reading.</p>
 
+  <h2 id="entry-point">Script entry point <span class="note">— Lesson 0017</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Run as script</td><td><code>__name__ == "__main__"</code></td><td>true when you <code>python3 file.py</code></td></tr>
+    <tr><td>Import as module</td><td><code>__name__</code> is the module name</td><td>e.g. <code>"show_host"</code> — guard is false</td></tr>
+    <tr><td>Entry guard</td><td><code>if __name__ == "__main__":</code></td><td>put CLI / side effects only here</td></tr>
+    <tr><td>Call entry</td><td><code>main()</code> under the guard</td><td>keep reusable logic in functions</td></tr>
+  </table>
+
+<pre><code>import sys
+
+def status_line(name):
+    return f"host: {name}"
+
+def main():
+    if len(sys.argv) &lt; 2:
+        print("usage: show_host.py &lt;name&gt;")
+        raise SystemExit(1)
+    name = sys.argv[1]
+    print(status_line(name))
+
+if __name__ == "__main__":
+    main()</code></pre>
+
+  <p class="note">Execute → guard runs. Import → functions are defined, CLI does not run.</p>
+
 </body>
 </html>
+
 
 

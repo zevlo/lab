@@ -32,6 +32,12 @@
   Convenience wrapper around `os.environ.get`. Use for: the same pattern with a slightly shorter call.
 - [Official Tutorial — Reading and Writing Files](https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files)
   Modes (`r`/`w`/`a`), `write()`, and why `with` matters. Use for: writing reports and saving script output to disk.
+- [Official Tutorial — Executing modules as scripts](https://docs.python.org/3/tutorial/modules.html#executing-modules-as-scripts)
+  How `__name__` becomes `"__main__"` when a file is run. Use for: the standard script entry-point idiom.
+- [`__main__` — Top-level code environment](https://docs.python.org/3/library/__main__.html)
+  Authoritative explanation of the idiom and the idiomatic `main()` pattern. Use for: why the guard exists and how to structure scripts.
+- [Real Python: What Does `if __name__ == "__main__"` Do?](https://realpython.com/if-name-main-python/)
+  Clear walkthrough with examples. Use for: a gentler second pass after the official tutorial section.
 
 ## Wisdom (Communities)
 
