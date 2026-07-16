@@ -538,6 +538,30 @@ web.status = "restarting"
 
   <p class="note">Each <code>Host(...)</code> call makes a new bag. Changing one instance does not change another.</p>
 
+  <h2 id="methods-read-the-bag">Methods read the bag <span class="note">&mdash; Lesson 0020</span></h2>
+  <table>
+    <tr><th>Idea</th><th>Meaning</th><th>Like outside the class&hellip;</th></tr>
+    <tr><td>Method</td><td>A <code>def</code> inside the class</td><td>a function that takes the object as input</td></tr>
+    <tr><td><code>self</code> (first param)</td><td>The instance the method was called on</td><td>the object before the dot</td></tr>
+    <tr><td><code>self.name</code> in a method</td><td>Reads that instance&rsquo;s data</td><td>same as <code>host.name</code> outside</td></tr>
+    <tr><td><code>host.summary()</code></td><td>Python passes <code>host</code> as <code>self</code></td><td>shorthand for <code>Host.summary(host)</code></td></tr>
+  </table>
+
+<pre><code>class Host:
+    def __init__(self, name, status):
+        self.name = name
+        self.status = status
+
+    def summary(self):
+        return f"{self.name}: {self.status}"
+
+web = Host("web-01", "up")
+db  = Host("db-01", "down")
+print(web.summary())   # web-01: up
+print(db.summary())    # db-01: down  &mdash; same method, different bag</code></pre>
+
+  <p class="note">A method is a function that reads the instance&rsquo;s own data through <code>self</code>. <code>web.summary()</code> and <code>Host.summary(web)</code> are the same call.</p>
+
 </body>
 </html>
 
