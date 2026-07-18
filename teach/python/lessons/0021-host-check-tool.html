@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 21 · Assemble a Host Check Tool</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  .demo {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    background: #fff;
+  }
+  .demo p:first-child { margin-top: 0; }
+  .demo p:last-child { margin-bottom: 0; }
+  .callout {
+    font-size: 0.95rem;
+    color: var(--faint);
+    font-style: italic;
+    margin: 0.8rem 0 0;
+  }
+  .legend {
+    font-size: 0.82rem;
+    color: var(--faint);
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps &middot; Lesson 21 &middot; ~15 min</p>
+<h1>Assemble a Host Check Tool</h1>
+<p class="lede">No new syntax today. You already know every piece &mdash; today you bolt four practiced parts into one runnable script.</p>
+
+<h2>Why this lesson</h2>
+<p>You have been practicing the OOP remediation arc one slice at a time: attributes on an instance (<a href="0019-objects-hold-data.html">Lesson 19</a>), then methods that read those attributes (<a href="0020-methods-read-the-bag.html">Lesson 20</a>). Before that, you locked <code>sys.argv</code> (<a href="0011-command-line-arguments.html">Lesson 11</a>) and the script entry guard (<a href="0017-script-entry-point.html">Lesson 17</a>). Today&rsquo;s only job is to <strong>assemble</strong> those four pieces into one small, runnable, importable tool. Nothing unfamiliar. Just assembly.</p>
+
+<h2>Recall first</h2>
+<p>From memory, jot down answers to these four quick prompts before scrolling further. Each maps to one piece you&rsquo;ll assemble in a minute:</p>
+<ul>
+  <li>What does the body under <code>if __name__ == "__main__":</code> do when you <em>import</em> the file instead of running it?</li>
+  <li>What is the first parameter of every method, and what does it refer to?</li>
+  <li>How do you check that the user passed at least one argument before reading <code>sys.argv[1]</code>?</li>
+  <li>What is the difference, in output, between <code>print(host.summary())</code> and <code>print(host.summary)</code>?</li>
+</ul>
+<p>Check your answers against the <a href="../reference/python-quick-reference.html">quick reference</a> after.</p>
+
+<h2>The four parts on the bench</h2>
+<div class="demo">
+<p>Think of these as four blocks you have already milled. Today you stack them:</p>
+<ol>
+  <li><strong>The class</strong> &mdash; a <code>Host</code> blueprint with <code>__init__</code> (stores data) and <code>summary</code> (reads that data).</li>
+  <li><strong>The argv guard</strong> &mdash; check <code>len(sys.argv)</code> before indexing; exit cleanly if missing.</li>
+  <li><strong>The <code>main()</code> function</code></strong> &mdash; wires argv to the class, then prints.</li>
+  <li><strong>The entry guard</strong> &mdash; <code>if __name__ == "__main__":</code> so importing the file does not run the CLI.</li>
+</ol>
+<p class="callout">No piece here is new. The lesson is just seeing them next to each other in one file.</p>
+</div>
+
+<h2>Read the assembled file</h2>
+<p>Here is the whole script. Each block is tagged with the piece it is &mdash; the same labels from the bench above:</p>
+<pre><code>import sys                                              <span class="legend"># stdlib: argv</span>
+
+class Host:                                             <span class="legend"># &mdash; (1) the class</span>
+    def __init__(self, name, status):
+        self.name = name
+        self.status = status
+
+    def summary(self):
+        return f"{self.name}: {self.status}"
+
+def main():                                             <span class="legend"># &mdash; (3) main()</span>
+    if len(sys.argv) &lt; 3:                               <span class="legend"># &mdash; (2) argv guard</span>
+        print("usage: host_check.py &lt;name&gt; &lt;status&gt;")
+        raise SystemExit(1)
+    host = Host(sys.argv[1], sys.argv[2])
+    print(host.summary())
+
+if __name__ == "__main__":                              <span class="legend"># &mdash; (4) entry guard</span>
+    main()</code></pre>
+<p>Read it top to bottom. The class lives at the top so <code>main()</code> (defined below it) can use it. The entry guard sits at the very bottom &mdash; the last line of the file &mdash; because its only job is to call <code>main()</code> when the file is run directly. Official note on this layout: the Python tutorial puts the <code>if __name__ == "__main__"</code> block at the end of the module so importable definitions sit above it (<a href="https://docs.python.org/3/library/__main__.html">__main__ &mdash; Top-level code environment</a>).</p>
+
+<h2>Why the pieces stay separate</h2>
+<div class="demo">
+<p>Splitting the file this way pays off the moment someone imports it:</p>
+<pre><code>from host_check import Host
+print(Host("db-01", "down").summary())   # db-01: down</code></pre>
+<p>The class is reusable on its own. The <code>usage:</code> message and the exit only fire when you <em>run</em> the file &mdash; never when you import it. That is the whole point of the entry guard.</p>
+<p class="callout">Same file, two modes: <strong>run</strong> it as a CLI, or <strong>import</strong> it as a library. The guard is the switch.</p>
+</div>
+
+<h2>The one trap to remember</h2>
+<div class="demo">
+<p>Last lesson you hit a small snag: calling a method without parentheses. It is worth seeing the difference side by side one more time, because it bites everyone:</p>
+<pre><code>host = Host("web-01", "up")
+
+print(host.summary())   # web-01: up   &larr; the RETURNED string
+print(host.summary)     # &lt;bound method ...&gt;  &larr; the method OBJECT</code></pre>
+<p>Add the parentheses to <em>call</em> the method. Leave them off and you are just reading the method as a value &mdash; like pointing at a function instead of running it. The rule is the same one you already know for <code>print</code> itself: <code>print</code> is the function, <code>print()</code> calls it.</p>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>1.</strong> Where do CLI side-effects (printing usage, exiting) belong?</p>
+  <button class="opt" data-k="a">inside the main function block</button>
+  <button class="opt" data-k="b">inside the class init block</button>
+  <button class="opt" data-k="c">inside the summary method block</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>2.</strong> <code>Host("web-01", "up")</code> evaluates to:</p>
+  <button class="opt" data-k="a">one brand new Host instance</button>
+  <button class="opt" data-k="b">one brand new Host subclass</button>
+  <button class="opt" data-k="c">one brand new Host function</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> <code>print(host.summary)</code> (no parens) prints:</p>
+  <button class="opt" data-k="a">the bound method object itself</button>
+  <button class="opt" data-k="b">the formatted summary string itself</button>
+  <button class="opt" data-k="c">the host status attribute itself</button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>From memory, create <code>host_check.py</code> in <code>exercises/</code>. Use the assembled file above as your guide, then close it and type your own. Required shape:</p>
+<ol>
+  <li><code>import sys</code>.</li>
+  <li>Define <code>class Host</code> with <code>__init__(self, name, status)</code> storing <code>self.name</code> and <code>self.status</code>, plus a <code>summary(self)</code> method that <code>return</code>s <code>f"{self.name}: {self.status}"</code>.</li>
+  <li>Define <code>main()</code>: if <code>len(sys.argv) &lt; 3</code>, print <code>usage: host_check.py &lt;name&gt; &lt;status&gt;</code> and <code>raise SystemExit(1)</code>; otherwise build <code>host = Host(sys.argv[1], sys.argv[2])</code> and <code>print(host.summary())</code>.</li>
+  <li>End the file with the entry guard calling <code>main()</code>.</li>
+  <li>Run these three checks from <code>exercises/</code>:</li>
+</ol>
+<pre><code>python3 host_check.py
+python3 host_check.py web-01 up
+python3 -c "from host_check import Host; print(Host('db-01', 'down').summary())"</code></pre>
+<p>Expected output:</p>
+<pre><code>usage: host_check.py &lt;name&gt; &lt;status&gt;
+web-01: up
+db-01: down</code></pre>
+<p>Then &mdash; the gotcha check &mdash; add one more line to <code>main()</code> <em>before</em> the existing print: <code>print(host.summary)</code> (no parentheses). Re-run <code>python3 host_check.py web-01 up</code> and confirm the first line is a <code>&lt;bound method Host.summary of ...&gt;</code> object, <em>then</em> <code>web-01: up</code>. Once you have seen it, delete that line. That visual is the vaccine against the call-vs-reference bug.</p>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/library/__main__.html">Official docs &mdash; <code>__main__</code>: Top-level code environment</a> (short; explains exactly why the entry guard exists and what <code>__name__</code> is in each mode). Optional second pass: <a href="https://docs.python.org/3/tutorial/modules.html#executing-modules-as-scripts">Tutorial &mdash; Executing modules as scripts</a> (the same guard pattern, framed for modules).</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#classes">Python quick reference &mdash; Classes</a>, <a href="../reference/python-quick-reference.html#entry-point">Entry point</a>, <a href="../reference/python-quick-reference.html#argv">Command-line arguments</a>. Previous: <a href="0020-methods-read-the-bag.html">Lesson 20 &mdash; Methods Read the Bag</a>. Related: <a href="0019-objects-hold-data.html">Lesson 19 &mdash; Objects Hold Data</a>, <a href="0018-classes-enough-to-read.html">Lesson 18 &mdash; Classes Enough to Read</a>, <a href="0017-script-entry-point.html">Lesson 17 &mdash; Script Entry Point</a>, <a href="0011-command-line-arguments.html">Lesson 11 &mdash; Command-Line Arguments</a>.</p>
+<p>Questions &mdash; especially &ldquo;why does the class go at the top?&rdquo; or &ldquo;when would I write a class in an interview vs just functions?&rdquo; &mdash; ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '\u2713 Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '\u2717 Not quite \u2014 think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
