@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — The vim editing grammar</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --hdr-bg: #efe6cf;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.4rem;
+  }
+  h1 {
+    font-size: 2.1rem;
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+  }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 {
+    font-size: 1.25rem;
+    margin: 2.4rem 0 0.8rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 1rem;
+    margin: 1.6rem 0 0.5rem;
+    color: var(--accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.04em;
+  }
+  p { margin: 0.6rem 0; }
+  code, kbd {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.08em 0.35em;
+    border-radius: 3px;
+    font-size: 0.92em;
+  }
+  .grammar {
+    background: var(--hdr-bg);
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    text-align: center;
+    margin: 1rem 0 1.4rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+  }
+  .grammar .lbl { color: var(--muted); font-size: 0.7rem; display: block; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 0.3rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.6rem 0 1.2rem;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  td:first-child {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--code-fg);
+    white-space: nowrap;
+  }
+  .idioms td:first-child { font-weight: 600; }
+  .note {
+    background: var(--code-bg);
+    border-left: 3px solid var(--accent);
+    padding: 0.7rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  a { color: var(--accent); }
+  .print-only { display: none; }
+  @media print {
+    body { max-width: none; margin: 1.5rem; font-size: 11pt; }
+    .print-only { display: block; }
+    a { color: var(--fg); text-decoration: none; }
+    h2 { page-break-after: avoid; }
+    tr, table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · vim</p>
+    <h1>The vim editing grammar</h1>
+    <p class="lede">Operators, motions, and text objects combine into a single sentence. Memorize the parts, compose on the fly — never memorize whole commands.</p>
+  </header>
+
+  <h2>The four modes</h2>
+  <table>
+    <thead><tr><th>Mode</th><th>How you enter it</th><th>What it's for</th></tr></thead>
+    <tbody>
+      <tr><td>Normal</td><td><code>Esc</code> (the default)</td><td>Move and operate on text. Where the grammar lives.</td></tr>
+      <tr><td>Insert</td><td><code>i</code> <code>a</code> <code>I</code> <code>A</code> <code>o</code> <code>O</code></td><td>Type literal characters into the buffer.</td></tr>
+      <tr><td>Visual</td><td><code>v</code> <code>V</code> <code>Ctrl-v</code></td><td>Select a region, then apply an operator to it.</td></tr>
+      <tr><td>Command-line</td><td><code>:</code> <code>/</code> <code>?</code></td><td>Ex commands, search patterns, substitutions.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The grammar</h2>
+  <div class="grammar">
+    [count] &nbsp; operator &nbsp; [count] &nbsp; motion / text-object
+    <span class="lbl">e.g. <code>d3w</code> · <code>2dd</code> · <code>ci"</code> · <code>&gt;ip</code></span>
+  </div>
+  <p>A count may sit on either side of the operator; counts multiply. <code>d3w</code> and <code>3dw</code> are identical. The <em>operator</em> says <strong>what</strong> to do; the <em>motion</em> or <em>text-object</em> says <strong>where</strong>.</p>
+
+  <h2>Operators — what to do</h2>
+  <table>
+    <thead><tr><th>Key</th><th>Action</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>d</code></td><td>delete</td><td>Yanks (copies) into the unnamed register.</td></tr>
+      <tr><td><code>c</code></td><td>change</td><td>Deletes, then enters insert mode.</td></tr>
+      <tr><td><code>y</code></td><td>yank</td><td>Copy without deleting.</td></tr>
+      <tr><td><code>p</code></td><td>put</td><td>Paste after cursor; <code>P</code> pastes before.</td></tr>
+      <tr><td><code>&gt;</code></td><td>indent</td><td>One <code>shiftwidth</code> right.</td></tr>
+      <tr><td><code>&lt;</code></td><td>dedent</td><td>One <code>shiftwidth</code> left.</td></tr>
+      <tr><td><code>=</code></td><td>auto-indent</td><td>Re-formats per filetype rules.</td></tr>
+      <tr><td><code>~</code></td><td>toggle case</td><td>Of each char in the motion.</td></tr>
+      <tr><td><code>gu</code></td><td>lowercase</td><td>Two-key operator.</td></tr>
+      <tr><td><code>gU</code></td><td>uppercase</td><td>Two-key operator.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Motions — where to go</h2>
+
+  <h3>Char &amp; line</h3>
+  <table>
+    <tbody>
+      <tr><td><code>h j k l</code></td><td>left / down / up / right</td></tr>
+      <tr><td><code>0</code></td><td>start of line</td></tr>
+      <tr><td><code>^</code></td><td>first non-blank char of line</td></tr>
+      <tr><td><code>$</code></td><td>end of line</td></tr>
+      <tr><td><code>f{x}</code> / <code>F{x}</code></td><td>next / previous <code>{x}</code> on the line</td></tr>
+      <tr><td><code>t{x}</code> / <code>T{x}</code></td><td>till next / previous <code>{x}</code> (stops one short)</td></tr>
+      <tr><td><code>;</code> / <code>,</code></td><td>repeat / reverse last <code>fFtT</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Word</h3>
+  <table>
+    <tbody>
+      <tr><td><code>w</code> / <code>b</code></td><td>next / previous start of word</td></tr>
+      <tr><td><code>e</code> / <code>ge</code></td><td>next / previous end of word</td></tr>
+      <tr><td><code>W</code> <code>B</code> <code>E</code></td><td>same, but by WORD (whitespace-delimited)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Document</h3>
+  <table>
+    <tbody>
+      <tr><td><code>gg</code></td><td>first line</td></tr>
+      <tr><td><code>G</code></td><td>last line (or <code>{n}G</code> for line <em>n</em>)</td></tr>
+      <tr><td><code>{</code> / <code>}</code></td><td>previous / next blank line (paragraph bound)</td></tr>
+      <tr><td><code>H</code> <code>M</code> <code>L</code></td><td>top / middle / bottom of viewport</td></tr>
+      <tr><td><code>%</code></td><td>matching brace / paren / bracket</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Text objects — a thing rather than a direction</h2>
+  <p>Text objects replace a motion with a structural unit. Use <code>a</code> for "around" (includes delimiters) and <code>i</code> for "inner" (excludes them).</p>
+  <table>
+    <thead><tr><th>Key</th><th>Selects</th></tr></thead>
+    <tbody>
+      <tr><td><code>aw</code> / <code>iw</code></td><td>a / inner word</td></tr>
+      <tr><td><code>aW</code> / <code>iW</code></td><td>a / inner WORD</td></tr>
+      <tr><td><code>as</code> / <code>is</code></td><td>a / inner sentence</td></tr>
+      <tr><td><code>ap</code> / <code>ip</code></td><td>a / inner paragraph</td></tr>
+      <tr><td><code>a"</code> / <code>i"</code></td><td>double-quoted string</td></tr>
+      <tr><td><code>a'</code> / <code>i'</code></td><td>single-quoted string</td></tr>
+      <tr><td><code>a`</code> / <code>i`</code></td><td>backtick-quoted string</td></tr>
+      <tr><td><code>a)</code> / <code>i)</code> (also <code>b</code>)</td><td>parenthesized block</td></tr>
+      <tr><td><code>a]</code> / <code>i]</code></td><td>bracketed block</td></tr>
+      <tr><td><code>a}</code> / <code>i}</code> (also <code>B</code>)</td><td>braced block</td></tr>
+      <tr><td><code>at</code> / <code>it</code></td><td>around / inner HTML/XML tag</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Idioms — composable patterns</h2>
+  <table class="idioms">
+    <thead><tr><th>Command</th><th>Reads as</th></tr></thead>
+    <tbody>
+      <tr><td><code>ciw</code></td><td>change inner word — fastest rename</td></tr>
+      <tr><td><code>ci"</code></td><td>change contents of a string</td></tr>
+      <tr><td><code>ci(</code> / <code>ci{</code></td><td>change arguments / block contents</td></tr>
+      <tr><td><code>da"</code></td><td>delete a string and its quotes</td></tr>
+      <tr><td><code>c$</code> (or <code>C</code>)</td><td>change to end of line</td></tr>
+      <tr><td><code>d0</code></td><td>delete to start of line</td></tr>
+      <tr><td><code>&gt;ip</code></td><td>indent this paragraph</td></tr>
+      <tr><td><code>gg=G</code></td><td>re-indent the entire file</td></tr>
+      <tr><td><code>gUiw</code></td><td>upper-case this word</td></tr>
+      <tr><td><code>~ip</code></td><td>flip case across a paragraph</td></tr>
+      <tr><td><code>dt,</code></td><td>delete up to (but not including) the next comma</td></tr>
+      <tr><td><code>yss)</code> ... no, that's a plugin</td><td><em>Skip plugin-sugar patterns; use <code>vi(</code> + <code>S</code> or operators directly.</em></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <strong>Doubled operators act on the current line.</strong>
+    <code>dd</code>, <code>cc</code>, <code>yy</code>, <code>&gt;&gt;</code>, <code>==</code> all apply to the whole line. <code>3dd</code> deletes three lines.
+  </div>
+
+  <footer>
+    <p>Primary sources: <code>:help operator</code>, <code>:help motion.txt</code>, <code>:help text-objects</code>, <code>:help usr_04.txt</code>. Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 12–14.</p>
+    <p>Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace. Live document — terms and patterns will be revised as understanding deepens.</p>
+  </footer>
+</body>
+</html>

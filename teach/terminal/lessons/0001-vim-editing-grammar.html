@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — The vim editing grammar</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.5rem;
+  }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 {
+    font-size: 2rem;
+    line-height: 1.15;
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+  }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 {
+    font-size: 1.2rem;
+    margin: 2.2rem 0 0.7rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 0.95rem;
+    margin: 1.3rem 0 0.4rem;
+    color: var(--accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.04em;
+  }
+  p { margin: 0.7rem 0; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.08em 0.35em;
+    border-radius: 3px;
+    font-size: 0.92em;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.9rem 1.1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    line-height: 1.5;
+    font-size: 0.92rem;
+  }
+  pre code { background: none; padding: 0; }
+  .grammar {
+    background: #efe6cf;
+    padding: 1rem 1.25rem;
+    border-radius: 6px;
+    text-align: center;
+    margin: 1rem 0 1.4rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+  }
+  .grammar .lbl { color: var(--muted); font-size: 0.7rem; display: block; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 0.4rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.6rem 0 1rem;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  th {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  td:first-child {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--code-fg);
+    white-space: nowrap;
+    width: 6em;
+  }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  li code { font-size: 0.88em; }
+  .drill-answer {
+    margin-top: 0.4rem;
+    padding-left: 1rem;
+    color: var(--muted);
+    font-size: 0.92rem;
+    font-style: italic;
+  }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+
+  .quiz-q {
+    margin: 1.4rem 0 0.4rem;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .quiz-q .num {
+    color: var(--accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    margin-right: 0.5rem;
+  }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option {
+    display: inline-block;
+    margin: 0.25rem 0.4rem 0.25rem 0;
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: #fff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: background 80ms, color 80ms, border-color 80ms;
+    user-select: none;
+  }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score {
+    margin-top: 1.5rem;
+    padding: 0.7rem 1rem;
+    background: #efe6cf;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9rem;
+    display: none;
+  }
+  .score.show { display: block; }
+  .ask {
+    margin-top: 2.5rem;
+    padding: 1.1rem 1.3rem;
+    background: #efe6cf;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+  }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer {
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0001 · <a href="../reference/vim-modal-grammar.html">Phase 2 — vim</a></p>
+    <h1>The vim editing grammar</h1>
+    <p class="lede">Operators, counts, and motions combine into one sentence. Learn the sentence and you stop pressing keys one at a time.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>As a DevOps engineer you edit configs constantly — sometimes locally, often over a flaky SSH session. The dabbler's habit of pressing <code>x</code> eight times, or arrow-keying into position and hitting <code>i</code>, is what separates slow operators from fluent ones. Vim isn't a bag of shortcuts; it's a tiny grammar. Once you internalize it, your edits become single sentences your fingers type at the speed of thought.</p>
+
+  <h2>The grammar</h2>
+  <p>In normal mode, most editing commands have this shape:</p>
+  <div class="grammar">
+    [count] &nbsp; operator &nbsp; [count] &nbsp; motion / text-object
+    <span class="lbl">e.g. <code>d3w</code> &nbsp;·&nbsp; <code>2dd</code> &nbsp;·&nbsp; <code>ci"</code> &nbsp;·&nbsp; <code>&gt;ip</code></span>
+  </div>
+  <p>Read it as a sentence. <code>d3w</code> is "delete three words". The <em>operator</em> (<code>d</code>) says <strong>what</strong>; the <em>motion</em> (<code>3w</code>) says <strong>where</strong>. The count can sit on either side and they multiply: <code>d3w</code> = <code>3dw</code> = delete three words. You never memorize <code>dw</code>, <code>d2w</code>, <code>d3w</code> as separate commands — you compose them on the fly.</p>
+
+  <h2>The three building blocks</h2>
+
+  <h3>Operators — what to do</h3>
+  <table>
+    <tbody>
+      <tr><td><code>d</code></td><td>delete (also yanks)</td></tr>
+      <tr><td><code>c</code></td><td>change — delete, then enter insert</td></tr>
+      <tr><td><code>y</code></td><td>yank (copy)</td></tr>
+      <tr><td><code>p</code> / <code>P</code></td><td>put after / before</td></tr>
+      <tr><td><code>&gt;</code> / <code>&lt;</code></td><td>indent / dedent</td></tr>
+      <tr><td><code>=</code></td><td>auto-indent</td></tr>
+      <tr><td><code>~</code></td><td>toggle case</td></tr>
+      <tr><td><code>gu</code> / <code>gU</code></td><td>lowercase / uppercase</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Motions — where to go</h3>
+  <table>
+    <tbody>
+      <tr><td><code>w</code> / <code>b</code> / <code>e</code></td><td>next start / prev start / end of word</td></tr>
+      <tr><td><code>0</code> / <code>^</code> / <code>$</code></td><td>start / first non-blank / end of line</td></tr>
+      <tr><td><code>gg</code> / <code>G</code></td><td>top / bottom of file</td></tr>
+      <tr><td><code>f{x}</code> / <code>F{x}</code></td><td>next / prev occurrence of <code>{x}</code> on the line</td></tr>
+      <tr><td><code>{</code> / <code>}</code></td><td>prev / next blank line</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Text objects — a thing, not a direction</h3>
+  <p>Use <code>a</code> for "around" (includes delimiters), <code>i</code> for "inner" (excludes them).</p>
+  <table>
+    <tbody>
+      <tr><td><code>aw</code> / <code>iw</code></td><td>a / inner word</td></tr>
+      <tr><td><code>ap</code> / <code>ip</code></td><td>a / inner paragraph</td></tr>
+      <tr><td><code>a"</code> / <code>i"</code></td><td>a / inner double-quoted string</td></tr>
+      <tr><td><code>a(</code> / <code>i(</code></td><td>a / inner parenthesized block</td></tr>
+      <tr><td><code>a{</code> / <code>i{</code></td><td>a / inner braced block</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Worked examples — read each as a sentence</h2>
+  <ul>
+    <li><code>d3w</code> — delete three words forward</li>
+    <li><code>ciw</code> — change inner word (the fastest rename you'll ever learn)</li>
+    <li><code>da"</code> — delete a quoted string <em>including</em> the quotes</li>
+    <li><code>ci(</code> — change everything inside the parens (function args!)</li>
+    <li><code>&gt;ip</code> — indent the current paragraph</li>
+    <li><code>c$</code> (or just <code>C</code>) — change from cursor to end of line</li>
+    <li><code>gg=G</code> — re-indent the entire file</li>
+  </ul>
+
+  <h2>Drill — one sentence per task, no arrow keys (~6 min)</h2>
+  <ol>
+    <li>
+      In your terminal:
+      <pre><code>cd /tmp &amp;&amp; vim drill.yaml</code></pre>
+    </li>
+    <li>
+      Paste in this broken config (in vim: <code>i</code> to insert, paste, <code>Esc</code>):
+      <pre><code>server:
+  host = "localhost"
+  port = "8080"
+  tags = ["prod", "us-east-1", "prod", "primary"]
+  timeout = "30"</code></pre>
+    </li>
+    <li>For each task below, do it with <strong>one vim sentence</strong>, not by arrow-keying in and editing by hand. Reveal the answer only after you've tried.</li>
+  </ol>
+
+  <h3>Tasks</h3>
+  <ol>
+    <li>
+      On <code>localhost</code>, rename it to <code>0.0.0.0</code>.
+      <details><summary>show answer</summary><div class="drill-answer"><code>ciw</code> then type <code>0.0.0.0</code> then <code>Esc</code>. (<code>c</code>hange <code>i</code>nner <code>w</code>ord.)</div></details>
+    </li>
+    <li>
+      On <code>"8080"</code>, strip the quotes so it reads <code>8080</code>.
+      <details><summary>show answer</summary><div class="drill-answer"><code>da"</code> — <code>d</code>elete <code>a</code>round double-quote. The "around" variant removes the quotes too.</div></details>
+    </li>
+    <li>
+      On the first <code>prod</code> in <code>tags</code>, rename to <code>production</code>.
+      <details><summary>show answer</summary><div class="drill-answer"><code>ciw</code> then <code>production</code> then <code>Esc</code>.</div></details>
+    </li>
+    <li>
+      Change the timeout value from <code>30</code> to <code>60</code>.
+      <details><summary>show answer</summary><div class="drill-answer">Cursor inside the quotes, then <code>ci"</code> then <code>60</code> then <code>Esc</code>.</div></details>
+    </li>
+    <li>
+      Indent the entire <code>server:</code> block one shiftwidth to the right.
+      <details><summary>show answer</summary><div class="drill-answer">Cursor anywhere inside the paragraph, then <code>&gt;ip</code> — <code>&gt;</code> indent <code>i</code>nner <code>p</code>aragraph.</div></details>
+    </li>
+    <li>
+      Bonus: re-indent the whole file cleanly.
+      <details><summary>show answer</summary><div class="drill-answer"><code>gg=G</code> — go to top, auto-indent, to bottom. <code>gg</code> and <code>G</code> are motions; <code>=</code> is the operator in the middle.</div></details>
+    </li>
+  </ol>
+  <p>Save and read it back: <code>:w</code> then <code>:e!</code> if you want to verify against the original. If every task took one sentence, you've already doubled your vim speed.</p>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Click an option; feedback is immediate.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Which command changes the inner word and enters insert mode?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">ciw</li>
+      <li class="option">diw</li>
+      <li class="option">yiw</li>
+      <li class="option">&gt;iw</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which operator deletes from the cursor to the end of the line?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">d$</li>
+      <li class="option">dG</li>
+      <li class="option">d0</li>
+      <li class="option">dd</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Which motion moves to the end of the current word?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">e</li>
+      <li class="option">w</li>
+      <li class="option">b</li>
+      <li class="option">$</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>How do you indent the current paragraph?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">&gt;ip</li>
+      <li class="option">&lt;ip</li>
+      <li class="option">=ip</li>
+      <li class="option">dip</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Where did this break? Did <code>ciw</code> feel like magic rather than understanding? Did <code>&gt;ip</code> refuse to indent the way you expected? Anything at all fuzzy — say so, and the next lesson untangles it.</p>
+    <p style="margin-bottom:0">Bring your question to the next session (or write it in <code>NOTES.md</code> now while it's fresh). Your teacher reads those before designing the next lesson.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li>Run <code>:help usr_04.txt</code> inside vim — the canonical "making small changes" chapter.</li>
+      <li>Run <code>:help operator</code> and <code>:help text-objects</code> for the full reference.</li>
+      <li>Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 12–14: "Edit text as if you were speaking it."</li>
+    </ul>
+    <p>Next: <a href="#">Lesson 0002 — Modal audit &amp; navigation</a> (planned). See the <a href="../reference/vim-modal-grammar.html">vim grammar reference</a> for the full cheat-sheet.</p>
+  </footer>
+
+<script>
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Move on to Lesson 0002.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the grammar section and retry the drill before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
