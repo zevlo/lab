@@ -562,6 +562,30 @@ print(db.summary())    # db-01: down  &mdash; same method, different bag</code><
 
   <p class="note">A method is a function that reads the instance&rsquo;s own data through <code>self</code>. <code>web.summary()</code> and <code>Host.summary(web)</code> are the same call.</p>
 
+  <h2 id="sets">Sets <span class="note">&mdash; Lesson 0023</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Dedupe a list</td><td><code>set(hosts)</code></td><td>takes any iterable; duplicates collapse silently</td></tr>
+    <tr><td>Literal</td><td><code>{"web-01", "web-02"}</code></td><td>braces with values, <strong>no colons</strong> &mdash; colons would make it a dict</td></tr>
+    <tr><td>Empty set</td><td><code>set()</code></td><td><code>{}</code> is an empty <strong>dict</strong>, not a set &mdash; the braces were taken first</td></tr>
+    <tr><td>Membership</td><td><code>"web-01" in unique</code></td><td>same <code>in</code> as lists/dict keys; roughly instant even on big sets</td></tr>
+    <tr><td>How many unique</td><td><code>len(set(xs))</code></td><td>common one-liner for &ldquo;count distinct&rdquo;</td></tr>
+    <tr><td>Stable output</td><td><code>for h in sorted(set(xs)):</code></td><td>sets are unordered &mdash; wrap in <code>sorted()</code> before printing or testing</td></tr>
+  </table>
+
+<pre><code>hosts = ["web-01", "web-02", "web-01", "db-01", "web-02"]
+
+unique = set(hosts)
+print(len(unique))             # 3
+
+for host in sorted(unique):    # alphabetical, deterministic
+    print(host)
+# db-01
+# web-01
+# web-02</code></pre>
+
+  <p class="note">A set answers &ldquo;which ones?&rdquo; (dedupe). A dict answers &ldquo;how many of each?&rdquo; (tally). For stable output, wrap a set in <code>sorted()</code> &mdash; raw <code>set(...)</code> order is not guaranteed.</p>
+
 </body>
 </html>
 

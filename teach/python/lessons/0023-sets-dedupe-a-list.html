@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 23 &middot; Sets Dedupe a List</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  .demo {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    background: #fff;
+  }
+  .demo p:first-child { margin-top: 0; }
+  .demo p:last-child { margin-bottom: 0; }
+  .callout {
+    font-size: 0.95rem;
+    color: var(--faint);
+    font-style: italic;
+    margin: 0.8rem 0 0;
+  }
+  .legend {
+    font-size: 0.82rem;
+    color: var(--faint);
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps &middot; Lesson 23 &middot; ~15 min</p>
+<h1>Sets Dedupe a List</h1>
+<p class="lede">One new shape today. A <code>set</code> is a collection that silently throws duplicates away &mdash; exactly what &ldquo;list the unique hosts&rdquo; asks for.</p>
+
+<h2>Why this lesson</h2>
+<p>Last session (<a href="0022-spaced-retrieval-mix.html">Lesson 22</a>) you tallied log levels with a dict &mdash; you needed to know <em>how many</em> of each. Today&rsquo;s question is the other half: <em>which ones</em>, with the count thrown away. &ldquo;List every host that appeared in this log, once.&rdquo; &ldquo;What log levels did we see?&rdquo; &ldquo;Drop duplicate IPs from this list.&rdquo; All the same shape &mdash; and Python has a built-in for it. The <code>set</code> is the interview-correct answer. One new idea, no escalation.</p>
+
+<h2>Recall first</h2>
+<p>From memory, jot answers before scrolling further. Each one is a piece you already have; today just snaps a new piece next to them:</p>
+<ul>
+  <li>After <code>xs = [1, 2, 2, 3]</code>, what is <code>len(xs)</code>?</li>
+  <li>How do you ask &ldquo;is <code>"web-01"</code> in the <code>hosts</code> list?&rdquo; &mdash; one expression.</li>
+  <li>After <code>counts = {}</code>, what type is <code>counts</code>?</li>
+</ul>
+<p>Check your answers against the <a href="../reference/python-quick-reference.html#lists">lists</a> and <a href="../reference/python-quick-reference.html#dicts">dicts</a> rows of the quick reference. The third one matters today &mdash; keep it in mind for the trap section.</p>
+
+<h2>The one idea</h2>
+<p><code>set(xs)</code> returns a new collection built from <code>xs</code> with all duplicates removed. That is the whole pitch.</p>
+<pre><code>hosts = ["web-01", "web-02", "web-01", "db-01", "web-02"]
+
+unique = set(hosts)
+print(unique)         # {'db-01', 'web-01', 'web-02'}  &mdash; dups gone
+print(len(unique))    # 3</code></pre>
+<p>Read it line by line:</p>
+<ul>
+  <li><code>set(hosts)</code> &mdash; takes any iterable (list, tuple, dict keys, file lines) and returns a set.</li>
+  <li>Duplicates collapse silently. You do not have to check &ldquo;is this already in there?&rdquo; before adding.</li>
+  <li>The result prints with curly braces &mdash; which is why the trap below is worth a minute.</li>
+</ul>
+
+<h2>Two ways to spell it</h2>
+<div class="demo">
+<p>You will see both forms in real code:</p>
+<pre><code>set(hosts)              <span class="legend"># &mdash; from an existing iterable</span>
+{"web-01", "web-02"}    <span class="legend"># &mdash; literal: braces, commas, NO colons</span></code></pre>
+<p>The literal looks like a dict literal (<code>{...}</code>) but has no <code>key: value</code> pairs &mdash; just values. If there is a colon inside the braces, it is a dict. If there is not, it is a set.</p>
+<p class="callout">Empty braces <code>{}</code> are a <strong>dict</strong>, not a set. To make an empty set, write <code>set()</code>. There is no <code>{}</code>-for-empty-set spelling &mdash; the braces were taken first.</p>
+</div>
+
+<h2>Membership works the same as lists</h2>
+<div class="demo">
+<p>The <code>in</code> operator you already use on lists and dict keys works on a set too:</p>
+<pre><code>unique = set(hosts)
+if "web-01" in unique:
+    print("saw web-01")</code></pre>
+<p>Two practical differences from <code>in</code> on a list:</p>
+<ul>
+  <li><strong>Speed.</strong> <code>"x" in some_set</code> is roughly instant regardless of size; <code>"x" in some_list</code> scans every element. For thousands of items this is the difference between fast and slow. (Interview trivia interviewers love.)</li>
+  <li><strong>Same syntax.</strong> You do not have to remember a different operator &mdash; just put a set on the right side when membership is what you need.</li>
+</ul>
+</div>
+
+<h2>Read a small script</h2>
+<p>Here is the shape you will type in a minute. Each block is tagged:</p>
+<pre><code>hosts = [                                                <span class="legend"># &mdash; list with repeats</span>
+    "web-01", "web-02", "web-01", "db-01",
+    "web-02", "cache-01", "web-01", "db-01",
+]
+
+unique = set(hosts)                                     <span class="legend"># &mdash; dedupe</span>
+
+print(f"{len(hosts)} total entries")                    <span class="legend"># &mdash; uses list len</span>
+print(f"{len(unique)} unique hosts:")                   <span class="legend"># &mdash; uses set len</span>
+
+for host in sorted(unique):                             <span class="legend"># &mdash; sorted for predictable order</span>
+    print(host)</code></pre>
+<p>Read it top to bottom. The list <code>hosts</code> has 8 entries with repeats. <code>set(hosts)</code> collapses them to 4 unique values. Two <code>len()</code> calls &mdash; one on the list, one on the set &mdash; give you &ldquo;total&rdquo; and &ldquo;unique&rdquo; counts side by side. The report loop wraps the set in <code>sorted()</code> so the output is deterministic; this is the key habit, explained next.</p>
+
+<h2>The one trap to remember</h2>
+<div class="demo">
+<p>Sets are <strong>unordered</strong>. The order things come back from <code>for h in unique:</code> is not the order they went in, and not necessarily the same between Python versions or runs:</p>
+<pre><code>print(set(hosts))                <span class="legend"># {'db-01', 'web-01', 'web-02'} &mdash; maybe. order varies.</span>
+
+for h in set(hosts):             <span class="legend"># &mdash; order NOT guaranteed</span>
+    print(h)
+
+for h in sorted(set(hosts)):     <span class="legend"># &mdash; deterministic: alphabetical here</span>
+    print(h)</code></pre>
+<p>For a one-off glance, raw <code>print(set(...))</code> is fine. For any output a human, a test, or a downstream script will read, wrap the set in <code>sorted()</code> before iterating. The habit is small and it kills a whole class of &ldquo;works on my machine&rdquo; bugs.</p>
+<p class="callout">Need order preserved <em>and</em> dedupe? Look up <code>dict.fromkeys(xs)</code> later &mdash; not today. <code>sorted(set(xs))</code> covers the interview cases.</p>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>1.</strong> <code>set([1, 1, 2, 3, 3])</code> evaluates to a set containing:</p>
+  <button class="opt" data-k="a">five items, including both 1s and both 3s</button>
+  <button class="opt" data-k="b">two items: only the duplicates 1 and 3</button>
+  <button class="opt" data-k="c">three items: 1, 2, and 3 &mdash; duplicates removed</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>2.</strong> You write <code>x = {}</code> at the top of a script. What type is <code>x</code>?</p>
+  <button class="opt" data-k="a">an empty set</button>
+  <button class="opt" data-k="b">an empty dict</button>
+  <button class="opt" data-k="c">a syntax error</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> You want to print every unique hostname, one per line, in a stable order. Which loop?</p>
+  <button class="opt" data-k="a"><code>for h in sorted(set(hosts)): print(h)</code></button>
+  <button class="opt" data-k="b"><code>for h in set(hosts): print(h)</code></button>
+  <button class="opt" data-k="c"><code>for h in hosts: print(h)</code></button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>From memory, create <code>unique_hosts.py</code> in <code>exercises/</code>. Use the small script above as your guide, then close it and type your own. Required shape:</p>
+<ol>
+  <li>Define a list called <code>hosts</code> with <strong>eight</strong> string entries and intentional duplicates: <code>"web-01"</code>, <code>"web-02"</code>, <code>"web-01"</code>, <code>"db-01"</code>, <code>"web-02"</code>, <code>"cache-01"</code>, <code>"web-01"</code>, <code>"db-01"</code>.</li>
+  <li>Build <code>unique = set(hosts)</code>.</li>
+  <li>Print <code>f"{len(hosts)} total entries"</code>.</li>
+  <li>Print <code>f"{len(unique)} unique hosts:"</code>.</li>
+  <li>Loop <code>for host in sorted(unique):</code> and <code>print(host)</code>.</li>
+  <li>Run it from <code>exercises/</code>:</li>
+</ol>
+<pre><code>python3 unique_hosts.py</code></pre>
+<p>Expected output:</p>
+<pre><code>8 total entries
+4 unique hosts:
+cache-01
+db-01
+web-01
+web-02</code></pre>
+<p>Then &mdash; the trap check &mdash; add one extra line at the bottom: <code>print(set(hosts))</code>. Re-run the script and look at that last line. You should see the four hostnames inside braces, but in an order that is <strong>not</strong> alphabetical and may differ from the sorted block above it. That visual is the point: the raw set does not promise you an order. Once you have seen it, delete that line. Wrapping in <code>sorted()</code> &mdash; as your real loop does &mdash; is the vaccine.</p>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/tutorial/datastructures.html#sets">Official Tutorial &mdash; Sets</a> (short; the canonical first read, covers <code>set()</code> and the literal). Optional second pass: <a href="https://realpython.com/python-sets/">Real Python &mdash; Sets in Python</a> (gentler walkthrough; <strong>stop at the set operations section</strong> &mdash; union, intersection, difference are out of scope for today).</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#sets">Python quick reference &mdash; Sets</a>, <a href="../reference/python-quick-reference.html#lists">Lists</a>, <a href="../reference/python-quick-reference.html#dicts">Dictionaries</a>. Previous: <a href="0022-spaced-retrieval-mix.html">Lesson 22 &mdash; Spaced Retrieval Mix</a>. Related: <a href="0002-lists-and-loops.html">Lesson 2</a>, <a href="0003-dictionaries.html">Lesson 3</a>.</p>
+<p>Questions &mdash; especially &ldquo;why is <code>{}</code> a dict and not a set?&rdquo; or &ldquo;when would I reach for a set vs <code>dict.fromkeys()</code> to dedupe?&rdquo; &mdash; ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '\u2713 Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '\u2717 Not quite \u2014 think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>
