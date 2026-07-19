@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 — Substitute &amp; the dot formula</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 9em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0003 · <a href="../reference/vim-substitute.html">Phase 2 — vim</a></p>
+    <h1>Substitute &amp; the dot formula</h1>
+    <p class="lede">Two workflows for changing many things at once: the <code>:s</code> family for bulk, <code>cgn</code> + <code>.</code> for surgical. Both are devops bread and butter.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Renaming a label across a Kubernetes manifest. Updating an image tag in every Deployment. Changing a log-level string everywhere it appears. These come up <em>every shift</em>. Two tools cover ~95% of the cases:</p>
+  <ul>
+    <li><strong>The <code>:s</code> family</strong> — for when you want everything changed (optionally with per-match confirmation).</li>
+    <li><strong>The <code>cgn</code> + <code>.</code> workflow</strong> — for surgical, case-by-case find-and-replace that's faster to apply and easier to undo.</li>
+  </ul>
+
+  <h2>Knowledge 1 — the <code>:s</code> family</h2>
+  <table>
+    <tbody>
+      <tr><td><code>:s/old/new/</code></td><td>First match on current line only</td></tr>
+      <tr><td><code>:s/old/new/g</code></td><td>All matches on current line</td></tr>
+      <tr><td><code>:%s/old/new/g</code></td><td>All matches in whole file</td></tr>
+      <tr><td><code>:%s/old/new/gc</code></td><td>All matches, with per-match confirmation</td></tr>
+    </tbody>
+  </table>
+  <p>The <code>%</code> before <code>s</code> means "every line in the file". The trailing <code>g</code> means "all matches per line, not just the first". The trailing <code>c</code> means "confirm each".</p>
+  <p>The <em>pattern</em> is regex — same metachar gotcha as Lesson 0002: <code>.</code> matches any char, <code>*</code> is a quantifier, etc. To match literally, escape: <code>:%s/db\.internal/db-blue.internal/g</code>.</p>
+
+  <h2>Knowledge 2 — word boundaries: the precision tool</h2>
+  <p>Without anchors, <code>:%s/api/edge/g</code> would change <code>api</code>, <code>api-server</code>, <code>apiV2</code>, and <code>edge-api</code> all at once. Often that's wrong.</p>
+  <p>Use <code>\&lt;</code> and <code>\&gt;</code> to anchor to word boundaries:</p>
+  <table>
+    <tbody>
+      <tr><td><code>\&lt;api\&gt;</code></td><td>Matches <code>api</code> as a whole word only</td></tr>
+      <tr><td><code>\&lt;api</code></td><td>Word starting with <code>api</code></td></tr>
+      <tr><td><code>api\&gt;</code></td><td>Word ending with <code>api</code></td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Real-world gotcha.</strong> If your file already contains <code>production</code> and you run <code>:%s/prod/production/g</code>, vim will replace the <code>prod</code> substring inside <code>production</code> too — leaving <code>productionuction</code>. Always use <code>:%s/\&lt;prod\&gt;/production/g</code> when the pattern is a substring risk.</div>
+
+  <h2>Knowledge 3 — the confirmation prompt</h2>
+  <p>With <code>gc</code>, vim pauses at each match and asks. The keys you'll use:</p>
+  <table>
+    <tbody>
+      <tr><td><code>y</code></td><td>Yes — replace this one, continue</td></tr>
+      <tr><td><code>n</code></td><td>No — skip this one, continue</td></tr>
+      <tr><td><code>a</code></td><td>All — replace all remaining without asking</td></tr>
+      <tr><td><code>q</code></td><td>Quit — stop here</td></tr>
+      <tr><td><code>l</code></td><td>Last — replace this one, then stop</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Knowledge 4 — the dot formula: <code>.</code> + <code>cgn</code></h2>
+  <p>The dot (<code>.</code>) in normal mode repeats the last <em>change</em> — anything that modified the buffer. <code>gn</code> is a motion that targets the next search match. Combined:</p>
+  <ol>
+    <li><code>/old&lt;Enter&gt;</code> — search for the thing</li>
+    <li><code>cgn</code> — <code>c</code>hange the <code>g</code>o-to-<code>n</code>ext-search-match (recall Lesson 0001: operator + motion)</li>
+    <li>type the replacement, <code>Esc</code></li>
+    <li><code>.</code> — repeat at the next match</li>
+    <li><code>n</code> — skip the next match if you don't want to change it</li>
+  </ol>
+  <p>This is Drew Neil's <em>dot formula</em> — "one keystroke to move, one to execute, repeat with <code>.</code>." It's faster than <code>gc</code> for medium-length lists, and each <code>u</code> undoes one change rather than the whole batch.</p>
+
+  <h3>Dot repeat is general</h3>
+  <p><code>.</code> isn't tied to <code>cgn</code>. It repeats the last change <em>as a unit</em>, including any motion that was part of it:</p>
+  <ul>
+    <li><code>x</code>, then <code>j.</code> — delete a char down a column</li>
+    <li><code>dw</code>, then <code>j.j.</code> — delete first word across three lines</li>
+    <li><code>&gt;iw</code>, then <code>j.</code> — indent a word, repeat down</li>
+  </ul>
+
+  <h2>Drill (~8 min)</h2>
+  <p>Create the file from bash (autoindent-safe, per Lesson 0002):</p>
+<pre><code>cat &gt; /tmp/manifest.yaml &lt;&lt;'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+  namespace: production
+  labels:
+    app: api
+    tier: backend
+    env: prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+        tier: backend
+        env: prod
+    spec:
+      containers:
+      - name: api
+        image: registry.example.com/api:v2.4.1
+        env:
+        - name: LOG_LEVEL
+          value: info
+        - name: DB_HOST
+          value: prod-db.internal
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-worker
+  namespace: production
+  labels:
+    app: api
+    tier: worker
+    env: prod
+spec:
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: api
+        env: prod
+    spec:
+      containers:
+      - name: api
+        image: registry.example.com/api:v2.4.1
+        env:
+        - name: LOG_LEVEL
+          value: info
+EOF
+vim /tmp/manifest.yaml</code></pre>
+
+  <h3>Tasks</h3>
+  <ol>
+    <li>
+      Rename every <code>env: prod</code> value to <code>env: production</code>. First <em>try</em> <code>:%s/prod/production/g</code> and observe what happens to <code>namespace: production</code>. Then <code>u</code> to undo, and redo it correctly.
+      <details><summary>show what happens and the fix</summary><div class="drill-answer">
+        <p><code>:%s/prod/production/g</code> will turn <code>namespace: production</code> into <code>namespace: productionuction</code> — because <code>prod</code> is a substring of <code>production</code>.</p>
+        <p>Undo with <code>u</code>. Then use word boundaries: <code>:%s/\&lt;prod\&gt;/production/g</code>. This anchors <code>prod</code> as a whole word, leaving <code>production</code> alone.</p>
+      </div></details>
+    </li>
+    <li>
+      Update both image tags from <code>:v2.4.1</code> to <code>:v2.4.2</code>. The lesson said "use <code>cgn</code>" — but first ask: is this really a <code>cgn</code>-shaped problem? (Hint: it isn't. There are better tools.)
+      <details><summary>show the four options (yes, cgn is overkill here)</summary><div class="drill-answer">
+        <p><strong>Option A — <code>:%s</code> (the right tool here):</strong> <code>:%s/v2.4.1/v2.4.2/g&lt;Enter&gt;</code>. One command, both matches, done. The unescaped <code>.</code> in the search pattern still matches the literal dot — it's more permissive than needed, but in this file there are no false positives.</p>
+        <p><strong>Option B — very-no-magic <code>\V</code> (for <code>cgn</code> fans):</strong> <code>/\Vv2.4.1&lt;Enter&gt;</code> then <code>cgn</code> <code>v2.4.2</code> <code>Esc</code> <code>.</code>. <code>\V</code> disables regex special chars, so dots are literal — no escaping needed. Reach for this when a pattern is regex-heavy (URLs, IPs, file paths).</p>
+        <p><strong>Option C — single-char <code>r</code> + <code>.</code> (for this exact case):</strong> the only difference is the last digit. <code>/v2.4.1&lt;Enter&gt;</code> (no escape needed), <code>$</code> to land on the trailing <code>1</code>, <code>r2</code> to replace the char, then <code>n.</code> to repeat at the next match. About 12 keystrokes.</p>
+        <p><strong>Option D — the canonical <code>cgn</code> workflow (what the lesson originally asked):</strong> <code>/v2\.4\.1&lt;Enter&gt;</code> <code>cgn</code> <code>v2.4.2</code> <code>Esc</code> <code>.</code>. About 20 keystrokes; tedious because the dots need escaping.</p>
+        <p><strong>General principle:</strong> <code>:%s</code> for bulk (all matches), <code>cgn</code> for surgical (some in, some out), <code>r</code>+<code>.</code> for single-char diffs. Match the tool to the task.</p>
+      </div></details>
+    </li>
+    <li>
+      Change <code>LOG_LEVEL</code> value <code>info</code> to <code>debug</code> — but only sometimes. Use <code>:%s/info/debug/gc</code> and practice the prompt keys (<code>y</code>, <code>n</code>, <code>a</code>, <code>q</code>).
+      <details><summary>show what to try</summary><div class="drill-answer">
+        <p>At each match, try <code>y</code> for yes, <code>n</code> for no, then <code>u</code> to undo and try again with <code>a</code> (all). Then <code>u</code> and try <code>q</code> to abort. Get the prompt's reflexes into your fingers.</p>
+      </div></details>
+    </li>
+    <li>
+      Add the suffix <code>-blue</code> to <code>prod-db.internal</code>. Use search to get there (from Lesson 0002) and then a single change.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>/prod-db.internal&lt;Enter&gt;</code> — wait, we just renamed <code>prod</code> in Task 1! So now it's <code>production-db.internal</code>. Adjust your search accordingly: <code>/production-db.internal&lt;Enter&gt;</code>. Then <code>f.</code>, <code>i</code>, <code>-blue</code>, <code>Esc</code>. (Or <code>ci"</code> if you prefer.)</p>
+        <p>This task demonstrates a real-world lesson: substitutions change downstream searches. Always re-verify after a bulk rename.</p>
+      </div></details>
+    </li>
+    <li>
+      Bonus — general dot repeat: cursor on the first <code>tier: backend</code> line. Delete the word <code>backend</code> with <code>dw</code>. Move down with <code>j</code>. Press <code>.</code> to repeat the deletion on the next line if it also says <code>backend</code>. <code>u</code> to undo.
+      <details><summary>show what to expect</summary><div class="drill-answer">
+        <p>Only the first Deployment has <code>tier: backend</code> in two places (top-level labels and template labels). The second Deployment has <code>tier: worker</code> at top-level but no tier under template. So <code>dw</code> + <code>j</code> + <code>.</code> + <code>n</code> navigation lets you sweep through. <code>u</code> walks back.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha">Task 4 captures a real devops lesson: a substitution changes the text downstream searches operate on. The classic version is "I renamed the host, now my SSH alias doesn't resolve." Always re-verify after bulk renames.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Which flag adds per-match confirmation to a substitution?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">c</li>
+      <li class="option">y</li>
+      <li class="option">a</li>
+      <li class="option">q</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which pattern matches <code>api</code> as a whole word only?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">\&lt;api\&gt;</li>
+      <li class="option">\bapi\b</li>
+      <li class="option">^api$</li>
+      <li class="option">[api]</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Which key repeats the last change in normal mode?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">.</li>
+      <li class="option">,</li>
+      <li class="option">;</li>
+      <li class="option">:</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>After <code>/foo&lt;Enter&gt;</code>, which changes the next search match and enters insert mode?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">cgn</li>
+      <li class="option">cfn</li>
+      <li class="option">dgn</li>
+      <li class="option">dfn</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the <code>prod</code> → <code>production</code> substring gotcha surprise you? Did <code>cgn</code> + <code>.</code> feel faster than <code>gc</code>, or did the per-match confirmation feel safer? Where did you reach for <code>u</code>?</p>
+    <p style="margin-bottom:0">Bring concrete observations. The teacher uses them to decide if L0004 (visual &amp; block mode) is next, or whether to detour into registers and clipboard first.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li>Run <code>:help :s</code>, <code>:help pattern</code>, <code>:help cgn</code>, <code>:help single-repeat</code> (the <code>.</code> command).</li>
+      <li>Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 9–11 (the dot formula), Tip 90–93 (substitute).</li>
+    </ul>
+    <p>Previous: <a href="./0002-modal-audit-navigation.html">Lesson 0002 — Audit &amp; navigation</a>. Reference: <a href="../reference/vim-substitute.html">vim substitute</a>. Next: Lesson 0004 — Visual &amp; block mode (or registers, depending on your feedback).</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Substitute and the dot formula are clicking. Move on to Lesson 0004.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the substitute reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

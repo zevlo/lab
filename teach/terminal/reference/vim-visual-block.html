@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — vim visual &amp; block mode</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1rem; margin: 1.6rem 0 0.5rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · vim</p>
+    <h1>Visual &amp; block mode</h1>
+    <p class="lede">When an operator + motion isn't enough — select first, then act. Block mode is the surgical tool for column-shaped edits.</p>
+  </header>
+
+  <h2>Three visual modes</h2>
+  <table>
+    <thead><tr><th>Key</th><th>Mode</th></tr></thead>
+    <tbody>
+      <tr><td><code>v</code></td><td>Char-wise — selects a range of characters</td></tr>
+      <tr><td><code>V</code></td><td>Line-wise — always whole lines</td></tr>
+      <tr><td><code>Ctrl-v</code></td><td>Block-wise — a rectangular column</td></tr>
+    </tbody>
+  </table>
+  <p>Press <code>Esc</code> (or <code>Ctrl-[</code>) to leave any visual mode.</p>
+
+  <h2>Inside visual mode</h2>
+  <table>
+    <tbody>
+      <tr><td><code>o</code></td><td>Move cursor to the other end of the selection (useful when you overshoot)</td></tr>
+      <tr><td><code>O</code></td><td>In block mode: move cursor to the other corner of the rectangle</td></tr>
+      <tr><td><code>gv</code></td><td>Re-select the last visual selection (works from normal mode too)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Operators on a selection — the grammar extends</h2>
+  <p>From <a href="./vim-modal-grammar.html">Lesson 0001</a>, the grammar was <code>operator + motion</code>. Visual mode gives you a second shape: <code>operator + selection</code>. After selecting, apply any operator:</p>
+  <table>
+    <tbody>
+      <tr><td><code>d</code> / <code>x</code></td><td>Delete the selection</td></tr>
+      <tr><td><code>c</code></td><td>Change the selection (delete + insert)</td></tr>
+      <tr><td><code>y</code></td><td>Yank (copy) the selection</td></tr>
+      <tr><td><code>&gt;</code> / <code>&lt;</code></td><td>Indent / dedent</td></tr>
+      <tr><td><code>=</code></td><td>Auto-indent (e.g., format JSON)</td></tr>
+      <tr><td><code>U</code> / <code>u</code></td><td>Uppercase / lowercase</td></tr>
+      <tr><td><code>~</code></td><td>Toggle case of each char</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Text objects as visual selectors</h2>
+  <p>Any text object from the grammar reference doubles as a visual selector — prefix with <code>v</code> to "see before you act":</p>
+  <table>
+    <tbody>
+      <tr><td><code>viw</code> / <code>vaw</code></td><td>Inner / around word</td></tr>
+      <tr><td><code>vi"</code> / <code>va"</code></td><td>Inside / around a quoted string</td></tr>
+      <tr><td><code>vi(</code> / <code>va(</code></td><td>Inside / around parens</td></tr>
+      <tr><td><code>vi{</code> / <code>va{</code></td><td>Inside / around braces</td></tr>
+      <tr><td><code>vip</code> / <code>vap</code></td><td>Inner / around paragraph</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Use <code>vi(...)</code> when you want to <strong>see</strong> the region before operating, or to apply an operator other than <code>c</code>/<code>d</code>/<code>y</code> — e.g., <code>vi(U</code> to uppercase a function's arguments.</div>
+
+  <h2>Block mode — the surgical column tool</h2>
+  <p>Block-wise visual (<code>Ctrl-v</code>) is vim's most distinctive power tool. The selection is a rectangle — the same columns across multiple lines.</p>
+
+  <h3>Block insert / append — propagates to every line</h3>
+  <table>
+    <tbody>
+      <tr><td><code>Ctrl-v</code> … select … <code>I</code></td><td>Insert before the block on every line. Type once; <code>Esc</code> propagates.</td></tr>
+      <tr><td><code>Ctrl-v</code> … select … <code>A</code></td><td>Append after the block on every line</td></tr>
+      <tr><td><code>Ctrl-v</code> … select … <code>c</code></td><td>Change each line's segment; same text on every line after <code>Esc</code></td></tr>
+      <tr><td><code>Ctrl-v</code> … select … <code>r{x}</code></td><td>Replace every char in the rectangle with <code>{x}</code></td></tr>
+      <tr><td><code>Ctrl-v</code> … select … <code>x</code> / <code>d</code></td><td>Delete the rectangle</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Common idiom — comment out a block:</strong> <code>Ctrl-v</code> select the first column of the lines, <code>I# &lt;Esc&gt;</code>. Each line gets <code># </code> prepended. To uncomment: <code>Ctrl-v</code> select the <code>#</code> column, <code>d</code>.</div>
+
+  <h2>Operating on the last selection — <code>'&lt;,'&gt;</code></h2>
+  <p>After leaving visual mode, the markers <code>'&lt;</code> and <code>'&gt;</code> point at the start and end of the last selection. Vim auto-fills the range when you press <code>:</code> from visual mode:</p>
+  <table>
+    <tbody>
+      <tr><td><code>:'&lt;,'&gt;s/old/new/g</code></td><td>Substitute within the last selection only</td></tr>
+      <tr><td><code>:'&lt;,'&gt;!sort</code></td><td>Filter the selected lines through <code>sort</code></td></tr>
+      <tr><td><code>:'&lt;,'&gt;w /tmp/snip.txt</code></td><td>Write just the selection to a file</td></tr>
+      <tr><td><code>gv</code></td><td>Re-select the last region (normal-mode shortcut)</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Use <code>:'&lt;,'&gt;s/.../.../</code> to scope a substitution when <code>:%s</code> would over-match — e.g., rename a key only inside one YAML stanza.</div>
+
+  <div class="beyond" id="beyond-pareto">
+    <h2>Beyond the pareto</h2>
+    <table>
+      <tbody>
+        <tr><td><code>Ctrl-v</code> + <code>$</code></td><td>Block select to varying line ends (each line to its own last char)</td></tr>
+        <tr><td><code>:norm {cmd}</code></td><td>Repeat normal-mode keystrokes across each line of a selection. Powerful for edits <code>:s</code> can't express.</td></tr>
+        <tr><td><code>g Ctrl-g</code></td><td>Count words / lines / chars in the selection</td></tr>
+        <tr><td><code>!</code> in visual</td><td>Filter selection through an external command (<code>Vip!sort</code>)</td></tr>
+        <tr><td><code>p</code> over a block selection</td><td>Paste a register over the rectangle (replaces each line's segment)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Primary sources: <code>:help visual-mode</code>, <code>:help blockwise-examples</code>, <code>:help usr_04.txt</code>, <code>:help gv</code>.</p>
+    <p>Companion: <a href="./vim-modal-grammar.html">the vim editing grammar</a>, <a href="./vim-navigation.html">navigation</a>, <a href="./vim-substitute.html">substitute</a>. Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace.</p>
+  </footer>
+</body>
+</html>

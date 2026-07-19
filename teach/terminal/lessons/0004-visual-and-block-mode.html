@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 — Visual &amp; block mode</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 9em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0004 · <a href="../reference/vim-visual-block.html">Phase 2 — vim</a></p>
+    <h1>Visual &amp; block mode</h1>
+    <p class="lede">When an operator + motion isn't enough — select first, then act. Block mode is the surgical tool for column-shaped edits across many lines.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Devops patterns that visual mode solves cleanly:</p>
+  <ul>
+    <li>Comment out (or uncomment) a YAML stanza you're troubleshooting.</li>
+    <li>Append a suffix to every item in a list (e.g., add <code>-v2</code> to every plugin name).</li>
+    <li>Uppercase / lowercase / case-flip a region without retyping it.</li>
+    <li>Substitute inside one block only — when <code>:%s</code> would over-match elsewhere in the file.</li>
+    <li>Re-indent a JSON blob you just pasted.</li>
+  </ul>
+
+  <h2>Knowledge 1 — three visual modes</h2>
+  <table>
+    <tbody>
+      <tr><td><code>v</code></td><td>Char-wise — a range of characters</td></tr>
+      <tr><td><code>V</code></td><td>Line-wise — always whole lines</td></tr>
+      <tr><td><code>Ctrl-v</code></td><td>Block-wise — a rectangular column</td></tr>
+    </tbody>
+  </table>
+  <p>Move the cursor to extend the selection. Press <code>Esc</code> (or <code>Ctrl-[</code>) to leave.</p>
+  <p>Two essentials inside visual mode:</p>
+  <ul>
+    <li><code>o</code> — move the cursor to the <em>other end</em> of the selection. Use when you overshoot one side and don't want to start over.</li>
+    <li><code>gv</code> — re-select the last visual selection (works from normal mode too).</li>
+  </ul>
+
+  <h2>Knowledge 2 — the grammar extends: operator + selection</h2>
+  <p>Lesson 0001's grammar was <code>operator + motion</code>. Visual mode gives you a second shape: <code>operator + selection</code>. After selecting a region, apply any operator:</p>
+  <table>
+    <tbody>
+      <tr><td><code>d</code> / <code>x</code></td><td>Delete the selection</td></tr>
+      <tr><td><code>c</code></td><td>Change the selection (delete + insert)</td></tr>
+      <tr><td><code>y</code></td><td>Yank (copy)</td></tr>
+      <tr><td><code>&gt;</code> / <code>&lt;</code></td><td>Indent / dedent</td></tr>
+      <tr><td><code>=</code></td><td>Auto-indent (format a JSON paste)</td></tr>
+      <tr><td><code>U</code> / <code>u</code></td><td>Uppercase / lowercase</td></tr>
+      <tr><td><code>~</code></td><td>Toggle case of each char in the selection</td></tr>
+    </tbody>
+  </table>
+  <p>Visual mode lets you <strong>see</strong> the target before the operator lands. Use it when the motion is hard to predict — large ranges, irregular boundaries, or when you're still building intuition.</p>
+
+  <h2>Knowledge 3 — text objects as visual selectors</h2>
+  <p>Any text object from Lesson 0001 doubles as a visual selector — prefix with <code>v</code>:</p>
+  <table>
+    <tbody>
+      <tr><td><code>viw</code></td><td>visually select inner word</td></tr>
+      <tr><td><code>vi"</code></td><td>inside a quoted string</td></tr>
+      <tr><td><code>vi(</code></td><td>inside parens (function args)</td></tr>
+      <tr><td><code>vip</code></td><td>inside paragraph</td></tr>
+    </tbody>
+  </table>
+  <p>Use <code>vi(...)</code> when you want to <em>see</em> the region before acting, or apply an operator other than <code>c</code>/<code>d</code>/<code>y</code> — e.g., <code>vi(U</code> uppercases a function's arguments.</p>
+
+  <h2>Knowledge 4 — block mode: the surgical column tool</h2>
+  <p>Block-wise visual (<code>Ctrl-v</code>) selects a <em>rectangle</em> — the same columns across multiple lines. After selecting:</p>
+  <table>
+    <tbody>
+      <tr><td><code>I</code></td><td>Insert before the block on every line. Type once; <code>Esc</code> propagates to all lines.</td></tr>
+      <tr><td><code>A</code></td><td>Append after the block on every line.</td></tr>
+      <tr><td><code>c</code></td><td>Change each line's segment; same replacement on every line after <code>Esc</code>.</td></tr>
+      <tr><td><code>r{x}</code></td><td>Replace every char in the rectangle with <code>{x}</code>.</td></tr>
+      <tr><td><code>x</code> / <code>d</code></td><td>Delete the rectangle.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gotcha"><strong>The classic idiom — comment out a block:</strong> <code>Ctrl-v</code> select the first column of the lines, <code>I</code>, type <code># </code>, <code>Esc</code>. Each line gets <code># </code> prepended. To uncomment: <code>Ctrl-v</code> select the <code>#</code> column, <code>d</code>.</div>
+
+  <h2>Knowledge 5 — operating on the last selection: <code>'&lt;,'&gt;</code></h2>
+  <p>After leaving visual mode, the markers <code>'&lt;</code> and <code>'&gt;</code> point at the start and end of the last selection. Vim auto-fills the range when you press <code>:</code> from visual mode — so to substitute only inside a region:</p>
+  <ol>
+    <li>Select the region (e.g., <code>V4j</code> for 5 lines)</li>
+    <li>Press <code>:</code> — vim fills in <code>:'&lt;,'&gt;</code></li>
+    <li>Type <code>s/old/new/g&lt;Enter&gt;</code></li>
+  </ol>
+  <p>The substitution applies only inside the selection. This is the scoped version of Lesson 0003's <code>:%s</code>.</p>
+  <p><code>gv</code> re-selects the same region for another operation. <code>:'&lt;,'&gt;!sort</code> sorts the selected lines. <code>:'&lt;,'&gt;w /tmp/snip.txt</code> writes just the selection to a file.</p>
+
+  <h2>Drill (~10 min)</h2>
+  <p>Create the file from bash:</p>
+<pre><code>cat &gt; /tmp/config.yaml &lt;&lt;'EOF'
+service: api
+features:
+  - rate-limiting
+  - auth
+  - logging
+  - metrics
+  - tracing
+  - cache
+  - circuit-breaker
+plugins:
+  - redis
+  - postgres
+  - s3
+EOF
+vim /tmp/config.yaml</code></pre>
+
+  <h3>Tasks</h3>
+  <ol>
+    <li>
+      Comment out the four middle features (<code>auth</code>, <code>logging</code>, <code>metrics</code>, <code>tracing</code>) using block insert. Each line should start with <code># </code>.
+      <details><summary>show two ways — pick the one that fits</summary><div class="drill-answer">
+        <p><strong>Option A — block insert (the classic):</strong> cursor on the <code>-</code> of <code>auth</code> (column 3), press <code>Ctrl-v</code>, extend down with <code>3j</code> to cover all four lines, then <code>I</code> to insert at the start of the block on each line. Type <code># </code> and press <code>Esc</code>. After a brief pause, all four lines get the prefix.</p>
+        <p><strong>Option B — line-wise + substitute:</strong> cursor on <code>auth</code> line, <code>V3j</code> to select 4 lines, press <code>:</code> (vim fills <code>:'&lt;,'&gt;</code>), type <code>s/^/# /&lt;Enter&gt;</code>.</p>
+        <p>Block insert is shorter and the canonical idiom; line-wise + <code>:s</code> is more transparent. Same result, ~6 keystrokes either way once you're fluent.</p>
+      </div></details>
+    </li>
+    <li>
+      Uncomment them again. Use block delete.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Cursor on the <code>#</code> of the first commented line. <code>Ctrl-v</code>, <code>3j</code> to extend down, <code>l</code> to extend right one column (cover <code># </code>). Press <code>d</code>. The two-column block is gone from all four lines.</p>
+      </div></details>
+    </li>
+    <li>
+      Append <code>-v2</code> to every plugin name (redis, postgres, s3).
+      <details><summary>show two ways</summary><div class="drill-answer">
+        <p><strong>Option A — line-wise + substitute:</strong> cursor on <code>redis</code>, <code>V2j</code> to cover all three plugin lines, <code>:</code> (auto-fills <code>:'&lt;,'&gt;</code>), <code>s/$/-v2/&lt;Enter&gt;</code>. <code>$</code> anchors to end of line.</p>
+        <p><strong>Option B — block append:</strong> cursor on the <code>s</code> of <code>redis</code> (last char of the word — but wait, plugin names have different lengths). Block mode struggles here because the rectangle would be uneven. Option A wins decisively for varying-length lines.</p>
+        <p><strong>Takeaway:</strong> block mode shines when the column is consistent; line-wise + <code>:s/$/.../</code> wins when content varies in length.</p>
+      </div></details>
+    </li>
+    <li>
+      Uppercase the word <code>redis</code> using a visual text-object.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Cursor anywhere on <code>redis</code>. <code>viw</code> — visually select inner word. <code>U</code> — uppercase. Result: <code>REDIS-v2</code> (the suffix from Task 3 stays since it's past the cursor).</p>
+        <p>Compare to Lesson 0001's <code>gUiw</code> — same outcome, fewer keystrokes. Visual mode's advantage is <em>seeing</em> the selection before applying the operator.</p>
+      </div></details>
+    </li>
+    <li>
+      Recall the last selection with <code>gv</code> and toggle its case back.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>gv</code> — re-selects <code>REDIS</code>. Press <code>~</code> — toggles case of each char. Result: <code>redis-v2</code> again.</p>
+        <p>This is the canonical "apply a second operator to the same region" pattern.</p>
+      </div></details>
+    </li>
+    <li>
+      Bonus — scoped substitution. Visually select the entire <code>plugins:</code> block and downgrade them all from <code>-v2</code> back to <code>-v1</code>, only inside that selection.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Cursor on <code>redis</code>, <code>V2j</code>, <code>:</code> (auto-fills <code>:'&lt;,'&gt;</code>), <code>s/-v2/-v1/g&lt;Enter&gt;</code>. Only the three plugin lines change; if <code>-v2</code> appeared elsewhere in the file, it would be untouched.</p>
+        <p>This is the scoped version of Lesson 0003's <code>:%s</code> — reach for it when a global substitution would over-match.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Tool-matching recap.</strong> Three ways to comment code: block insert (<code>Ctrl-v I</code>), line-wise + <code>:s/^/# /</code>, or for the whole file <code>:%s/^/# /</code>. Pick by scope (whole file vs region) and shape (consistent column vs varying lengths). There's no "right" answer — only the one that fits.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Which key enters block-wise visual mode?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Ctrl-v</li>
+      <li class="option">Ctrl-b</li>
+      <li class="option">Ctrl-h</li>
+      <li class="option">Ctrl-g</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>After <code>Ctrl-v</code> selecting a column, which inserts text at the start of the block on every line?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">I</li>
+      <li class="option">A</li>
+      <li class="option">i</li>
+      <li class="option">o</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Which re-selects the last visual selection from normal mode?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">gv</li>
+      <li class="option">gV</li>
+      <li class="option">vr</li>
+      <li class="option">vv</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Which visually selects inside the parentheses around the cursor?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">vi(</li>
+      <li class="option">va(</li>
+      <li class="option">vi{</li>
+      <li class="option">vap</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did block insert (<code>Ctrl-v I ... Esc</code>) propagate the way you expected on the first try, or did you have to redo it? Did <code>:'&lt;,'&gt;s</code> feel natural after Lesson 0003, or did the range syntax trip you up?</p>
+    <p style="margin-bottom:0">Bring concrete observations. The teacher uses them to decide if L0005 is <strong>registers &amp; system clipboard</strong> (the natural follow-up — copy/paste between vim and the browser via ghostty) or <strong>marks, macros, and the jump list revisited</strong> (deeper automation).</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li>Run <code>:help visual-mode</code>, <code>:help blockwise-examples</code>, <code>:help gv</code>, <code>:help usr_04.txt</code>.</li>
+      <li>Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 20–26 (visual mode), Tip 28 (block insert).</li>
+    </ul>
+    <p>Previous: <a href="./0003-substitute-and-dot-formula.html">Lesson 0003 — Substitute &amp; the dot formula</a>. Reference: <a href="../reference/vim-visual-block.html">vim visual &amp; block mode</a>. Next: Lesson 0005 — Registers &amp; system clipboard, OR marks/macros (depending on your feedback).</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Visual & block mode clicking. Move on to Lesson 0005.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the visual reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

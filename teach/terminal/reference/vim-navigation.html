@@ -13,7 +13,6 @@
     --rule: #d8d2c4;
     --code-bg: #f3ecdd;
     --code-fg: #4a3327;
-    --hdr-bg: #efe6cf;
   }
   * { box-sizing: border-box; }
   html { background: var(--bg); }
@@ -83,6 +82,14 @@
     margin: 1rem 0;
     font-size: 0.92rem;
   }
+  .beyond {
+    margin-top: 2.5rem;
+    padding: 1rem 1.25rem;
+    background: #f0eee7;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
   footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
   a { color: var(--accent); }
   @media print {
@@ -97,84 +104,88 @@
   <header>
     <p class="kicker">Reference · vim</p>
     <h1>Navigation</h1>
-    <p class="lede">Stop crawling with <code>hjkl</code>. The commands on this page get you anywhere in a buffer in three keystrokes or fewer.</p>
+    <p class="lede">The pareto set: search, char-find, brace jump, marks, and the back button. Everything else is in <a href="#beyond-pareto">Beyond the pareto</a> at the bottom.</p>
   </header>
 
-  <h2>Char on a line — <code>f</code> <code>F</code> <code>t</code> <code>T</code> + <code>;</code> <code>,</code></h2>
-  <p>The fastest way to land on a specific column. <code>f</code>inds and <code>t</code>ills, forward and backward.</p>
+  <h2>Search — <code>/pattern</code> <code>n</code> <code>N</code></h2>
+  <p>The single highest-leverage motion in vim. Get somewhere by name, not by counting lines.</p>
   <table>
     <thead><tr><th>Key</th><th>Action</th></tr></thead>
     <tbody>
-      <tr><td><code>f{x}</code></td><td>Forward to next <code>{x}</code>, cursor ON it</td></tr>
-      <tr><td><code>F{x}</code></td><td>Backward to previous <code>{x}</code>, cursor ON it</td></tr>
-      <tr><td><code>t{x}</code></td><td>Forward till next <code>{x}</code>, cursor one BEFORE</td></tr>
-      <tr><td><code>T{x}</code></td><td>Backward till previous <code>{x}</code>, one AFTER</td></tr>
-      <tr><td><code>;</code></td><td>Repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> in same direction</td></tr>
-      <tr><td><code>,</code></td><td>Repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> in reverse direction</td></tr>
+      <tr><td><code>/{pattern}&lt;Enter&gt;</code></td><td>Search forward; cursor on first match</td></tr>
+      <tr><td><code>?{pattern}&lt;Enter&gt;</code></td><td>Search backward</td></tr>
+      <tr><td><code>n</code></td><td>Next match in current direction</td></tr>
+      <tr><td><code>N</code></td><td>Next match in reverse direction</td></tr>
+      <tr><td><code>*</code></td><td>Search forward for the word under cursor</td></tr>
+      <tr><td><code>#</code></td><td>Search backward for the word under cursor</td></tr>
     </tbody>
   </table>
-  <div class="note">Operators compose with these as motions. <code>dt,</code> deletes to the next comma. <code>cf"</code> changes forward to the next quote. <code>yt;</code> yanks to the next occurrence of the last <code>f</code> target.</div>
+  <div class="note"><strong>Pattern gotcha:</strong> <code>.</code>, <code>*</code>, <code>[</code>, <code>^</code>, <code>$</code>, <code>\</code> are regex metacharacters. To find a literal <code>db.internal</code>, escape the dot: <code>/db\.internal&lt;Enter&gt;</code>. In practice, the unescaped version often matches anyway (since <code>.</code> matches any char <em>including</em> a literal dot) — but escape it when precision matters.</div>
+  <p>Search composes as a motion. <code>d/search&lt;Enter&gt;</code> deletes from cursor to the next match. <code>c?error&lt;Enter&gt;</code> changes backward to "error".</p>
+
+  <h2>Char on a line — <code>f</code> + <code>;</code></h2>
+  <p>For landing on a specific column on the current line.</p>
+  <table>
+    <tbody>
+      <tr><td><code>f{x}</code></td><td>Forward to next <code>{x}</code>, cursor ON it</td></tr>
+      <tr><td><code>;</code></td><td>Repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> (same direction)</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Operators compose: <code>df,</code> deletes forward through the next comma. <code>cf"</code> changes forward to the next quote.</div>
 
   <h2>Brace matching — <code>%</code></h2>
-  <p>From any of <code>(</code> <code>[</code> <code>{</code> <code>)</code> <code>]</code> <code>}</code>, jump to its match. From a non-brace char, jumps to the next brace on the line. Indispensable for JSON, embedded code blocks, and function calls.</p>
+  <p>From a brace (<code>(</code> <code>[</code> <code>{</code> <code>)</code> <code>]</code> <code>}</code>), jump to its match. Indispensable for JSON and embedded code blocks.</p>
   <table>
     <tbody>
       <tr><td><code>%</code></td><td>Jump to matching brace</td></tr>
       <tr><td><code>d%</code></td><td>Delete from cursor to matching brace (inclusive)</td></tr>
-      <tr><td><code>c%</code></td><td>Change from cursor to matching brace</td></tr>
       <tr><td><code>v%</code></td><td>Visually select from cursor to matching brace</td></tr>
     </tbody>
   </table>
   <div class="note">Pair with text objects from <a href="./vim-modal-grammar.html">the grammar reference</a>: <code>di{</code> clears a JSON object's contents; <code>da{</code> removes the object and its braces.</div>
 
-  <h2>Marks — bookmark a spot</h2>
-  <p>Set a named mark anywhere; jump back to it later. Lowercase marks are per-buffer; uppercase are global across buffers.</p>
+  <h2>Marks — bookmark a line</h2>
   <table>
     <thead><tr><th>Key</th><th>Action</th></tr></thead>
     <tbody>
       <tr><td><code>m{a-z}</code></td><td>Set mark <code>{a}</code> at cursor (buffer-local)</td></tr>
       <tr><td><code>m{A-Z}</code></td><td>Set global mark (survives buffer switches)</td></tr>
       <tr><td><code>'{a}</code></td><td>Jump to first non-blank on mark <code>{a}</code>'s line</td></tr>
-      <tr><td><code>`{a}</code></td><td>Jump to exact column of mark <code>{a}</code></td></tr>
-      <tr><td><code>''</code></td><td>Jump to line of last jump</td></tr>
-      <tr><td><code>``</code></td><td>Jump to exact column of last jump</td></tr>
     </tbody>
   </table>
-
-  <h3>Built-in marks (always available)</h3>
-  <table>
-    <tbody>
-      <tr><td><code>`.</code></td><td>Position of last change</td></tr>
-      <tr><td><code>`^</code></td><td>Position of last insert</td></tr>
-      <tr><td><code>`[</code> / <code>`]</code></td><td>Start / end of last yanked or changed text</td></tr>
-      <tr><td><code>`&lt;</code> / <code>`&gt;</code></td><td>Start / end of last visual selection</td></tr>
-    </tbody>
-  </table>
-  <div class="note">Devops idiom: editing a long config, set <code>ma</code> on the line you're working on, detour with <code>/search</code> to check a related value, then <code>'a</code> snaps you back. No mental overhead of "where was I?"</div>
+  <div class="note">Devops idiom: set <code>ma</code> on the line you're editing, detour with <code>/search</code> to verify a related value, <code>'a</code> snaps you back.</div>
 
   <h2>Jump list — the universal back button</h2>
-  <p>Every jump (any motion that moves more than a line) is recorded. Walk back through your trail.</p>
+  <p>Every jump (mark, search, <code>G</code>, etc.) is recorded. Walk back through your trail.</p>
   <table>
     <tbody>
       <tr><td><code>Ctrl-o</code></td><td>Jump back through the jump list</td></tr>
       <tr><td><code>Ctrl-i</code></td><td>Jump forward through the jump list</td></tr>
-      <tr><td><code>:jumps</code></td><td>Show the jump list</td></tr>
     </tbody>
   </table>
+  <p>Use this when you forgot to set a mark but need to get back.</p>
 
-  <h2>Bonus — quick returns worth memorizing</h2>
-  <table>
-    <tbody>
-      <tr><td><code>gi</code></td><td>Return to last insert position and enter insert mode — great for resuming edits</td></tr>
-      <tr><td><code>gv</code></td><td>Re-select the last visual selection</td></tr>
-      <tr><td><code>gd</code></td><td>Jump to local definition of word under cursor</td></tr>
-      <tr><td><code>gD</code></td><td>Jump to global definition of word under cursor</td></tr>
-      <tr><td><code>*</code> / <code>#</code></td><td>Next / previous occurrence of word under cursor (search — covered in Lesson 0003)</td></tr>
-    </tbody>
-  </table>
+  <div class="beyond" id="beyond-pareto">
+    <h2>Beyond the pareto</h2>
+    <p>Useful, but not in the lesson. Reach for these when a real need surfaces.</p>
+    <table>
+      <tbody>
+        <tr><td><code>F{x}</code> / <code>T{x}</code> / <code>t{x}</code></td><td>Backward char search, "till" variants of <code>f</code></td></tr>
+        <tr><td><code>,</code></td><td>Repeat <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> in reverse</td></tr>
+        <tr><td><code>`{a}</code></td><td>Jump to exact column of mark (vs <code>'a</code> which lands on first non-blank)</td></tr>
+        <tr><td><code>:jumps</code></td><td>See the jump list</td></tr>
+        <tr><td><code>`.</code></td><td>Position of last change</td></tr>
+        <tr><td><code>`[</code> / <code>`]</code></td><td>Start / end of last yanked or changed text</td></tr>
+        <tr><td><code>gi</code></td><td>Return to last insert position and enter insert</td></tr>
+        <tr><td><code>gv</code></td><td>Re-select the last visual selection</td></tr>
+        <tr><td><code>gd</code> / <code>gD</code></td><td>Local / global definition of word under cursor</td></tr>
+        <tr><td><code>H</code> / <code>M</code> / <code>L</code></td><td>Top / middle / bottom of viewport</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <footer>
-    <p>Primary sources: <code>:help usr_03.txt</code> (Moving around), <code>:help motion.txt</code>, <code>:help mark-motions</code>, <code>:help jump-motions</code>.</p>
+    <p>Primary sources: <code>:help usr_03.txt</code> (Moving around), <code>:help pattern.txt</code>, <code>:help motion.txt</code>, <code>:help mark-motions</code>, <code>:help jump-motions</code>.</p>
     <p>Companion: <a href="./vim-modal-grammar.html">the vim editing grammar</a>. Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace.</p>
   </footer>
 </body>

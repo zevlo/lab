@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — vim substitute &amp; the dot formula</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1rem; margin: 1.6rem 0 0.5rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · vim</p>
+    <h1>Substitute &amp; the dot formula</h1>
+    <p class="lede">Two workflows for changing many things at once: the <code>:s</code> family for bulk operations, <code>cgn</code> + <code>.</code> for surgical find-and-replace.</p>
+  </header>
+
+  <h2>The <code>:s</code> family</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td><code>:s/old/new/</code></td><td>First match on the current line</td></tr>
+      <tr><td><code>:s/old/new/g</code></td><td>All matches on the current line</td></tr>
+      <tr><td><code>:%s/old/new/g</code></td><td>All matches in the whole file</td></tr>
+      <tr><td><code>:%s/old/new/gc</code></td><td>All matches, with per-match confirmation</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Pattern is regex.</strong> Same metachar gotcha as search: <code>.</code> matches any char, <code>*</code> is a quantifier, etc. To match literally, escape: <code>:%s/db\.internal/db-blue\.internal/g</code>.</div>
+
+  <h2>Word boundaries — the precision tool</h2>
+  <p>Use <code>\&lt;</code> and <code>\&gt;</code> to anchor a match to word boundaries. Without them, <code>:%s/api/edge/g</code> would turn <code>api-server</code> into <code>edge-server</code> — sometimes wanted, often not.</p>
+  <table>
+    <tbody>
+      <tr><td><code>\&lt;api\&gt;</code></td><td>Matches <code>api</code> as a whole word; not inside <code>api-server</code> or <code>api-server</code></td></tr>
+      <tr><td><code>\&lt;api</code></td><td>Word starting with <code>api</code></td></tr>
+      <tr><td><code>api\&gt;</code></td><td>Word ending with <code>api</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>The confirmation prompt (<code>:s/.../gc</code>)</h2>
+  <p>At each match vim asks <code>replace with X (y/n/a/q/l/^E/^Y)?</code></p>
+  <table>
+    <tbody>
+      <tr><td><code>y</code></td><td>Yes, replace this one and continue</td></tr>
+      <tr><td><code>n</code></td><td>No, skip this one and continue</td></tr>
+      <tr><td><code>a</code></td><td>Replace all remaining without asking</td></tr>
+      <tr><td><code>q</code></td><td>Quit without replacing this one</td></tr>
+      <tr><td><code>l</code></td><td>Replace this one (last) and stop</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The dot formula: <code>.</code> + <code>cgn</code></h2>
+  <p>The dot (<code>.</code>) repeats the last buffer-mutating change (insert, delete, change, etc.). Combined with <code>gn</code> (a motion that selects the next search match), you get the surgical find-and-replace workflow:</p>
+  <ol>
+    <li><code>/old&lt;Enter&gt;</code> — search</li>
+    <li><code>cgn</code> — change the next match (the <code>gn</code> motion targets it)</li>
+    <li>type replacement, <code>Esc</code></li>
+    <li><code>.</code> — repeat the change at the next match</li>
+    <li><code>n</code> if you want to skip the next match without changing</li>
+  </ol>
+  <div class="note">This is Drew Neil's <em>dot formula</em>: one keystroke to move, one to execute, repeat with <code>.</code>. Faster than <code>:%s/gc</code> for medium-length lists, and each <code>u</code> undoes one change rather than the whole batch.</div>
+
+  <h2>Dot repeat in general</h2>
+  <p><code>.</code> repeats the last change <em>as a unit</em> — including any motion that was part of it. This makes it a general-purpose power tool, not just for substitute:</p>
+  <ul>
+    <li><code>x</code> then <code>j.</code> — delete a char, move down, repeat delete</li>
+    <li><code>dw</code> then <code>j.j.</code> — delete first word across three lines</li>
+    <li><code>&gt;iw</code> then <code>j.</code> — indent a word, repeat down a column</li>
+  </ul>
+
+  <div class="beyond" id="beyond-pareto">
+    <h2>Beyond the pareto</h2>
+    <p>Useful, but not in the lesson. Reach for these when a real need surfaces.</p>
+    <table>
+      <tbody>
+        <tr><td><code>:'&lt;,'&gt;s/old/new/g</code></td><td>Substitute within the last visual selection</td></tr>
+        <tr><td><code>&amp;</code></td><td>Repeat the last <code>:s</code> on the current line</td></tr>
+        <tr><td><code>g&amp;</code></td><td>Repeat the last <code>:s</code> across the whole file</td></tr>
+        <tr><td><code>\1</code>, <code>\2</code></td><td>Backreferences in the replacement (<code>:%s/(\w+)=(\w+)/\2=\1/</code>)</td></tr>
+        <tr><td><code>\v</code></td><td>"Very magic" — saner regex where <code>()</code>, <code>{}</code> don't need backslash-escaping</td></tr>
+        <tr><td><code>\c</code> / <code>\C</code></td><td>Case-insensitive / case-sensitive flag within a pattern</td></tr>
+        <tr><td><code>\L</code> / <code>\U</code> / <code>\u</code></td><td>Lower / upper / title-case the following text in the replacement</td></tr>
+        <tr><td><code>&amp;</code> in replacement</td><td>Insert the whole matched text</td></tr>
+        <tr><td><code>:&&amp;</code></td><td>Repeat last substitute with new flags appended</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Primary sources: <code>:help :s</code>, <code>:help pattern</code>, <code>:help cgn</code>, <code>:help single-repeat</code> (the <code>.</code> command).</p>
+    <p>Companion: <a href="./vim-modal-grammar.html">the vim editing grammar</a>, <a href="./vim-navigation.html">vim navigation</a>. Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace.</p>
+  </footer>
+</body>
+</html>

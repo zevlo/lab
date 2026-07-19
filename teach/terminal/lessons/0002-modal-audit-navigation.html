@@ -74,7 +74,7 @@
     border-radius: 4px;
     overflow-x: auto;
     line-height: 1.5;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
   }
   pre code { background: none; padding: 0; }
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
@@ -91,7 +91,7 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     color: var(--code-fg);
     white-space: nowrap;
-    width: 6em;
+    width: 7em;
   }
   ol, ul { padding-left: 1.3rem; }
   li { margin: 0.3rem 0; }
@@ -107,6 +107,13 @@
   }
   .audit p:first-child { margin-top: 0; }
   .audit p:last-child { margin-bottom: 0; }
+  .gotcha {
+    background: #f6e6d8;
+    border-left: 3px solid #a04000;
+    padding: 0.7rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
   .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
   .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
   .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
@@ -157,149 +164,148 @@
   <header>
     <p class="kicker">Lesson 0002 · <a href="../reference/vim-navigation.html">Phase 2 — vim</a></p>
     <h1>Audit your speed, then learn to jump</h1>
-    <p class="lede">You've got the grammar. Now stop crawling with <code>hjkl</code> and learn the navigation commands fluent operators use to fly.</p>
+    <p class="lede">The grammar from Lesson 0001 plus five navigation tools — search, <code>f</code>, <code>%</code>, marks, and <code>Ctrl-o</code> — cover ~80% of real-world movement. That's all you need.</p>
   </header>
 
   <h2>The audit — measure your current speed honestly</h2>
   <p>Before any new content, time yourself on a small edit using your <strong>old</strong> habits. After the lesson, you'll redo it with the new tools and compare.</p>
-  <ol>
-    <li>Open a scratch file:
-      <pre><code>cd /tmp &amp;&amp; vim audit.json</code></pre>
-    </li>
-    <li>Paste in this JSON config (in vim: <code>i</code>, paste, <code>Esc</code>):
-<pre><code>{
-  "service": {
-    "name": "api-gateway",
-    "version": "2.4.1",
-    "endpoints": [
-      {"path": "/users", "method": "GET", "handler": "listUsers"},
-      {"path": "/orders", "method": "POST", "handler": "createOrder"}
-    ],
-    "database": {
-      "host": "db.internal",
-      "port": 5432,
-      "pool": {"min": 5, "max": 50, "idleTimeoutMs": 30000}
-    }
+  <p>Create the file from bash (not by pasting into vim — autoindent will mangle it):</p>
+<pre><code>cat &gt; /tmp/audit.json &lt;&lt;'EOF'
+{
+  "service": "api-gateway",
+  "version": "2.4.1",
+  "endpoints": [
+    {"path": "/users",  "method": "GET",  "handler": "listUsers"},
+    {"path": "/orders", "method": "POST", "handler": "createOrder"}
+  ],
+  "database": {
+    "host": "db.internal",
+    "port": 5432,
+    "pool": {"min": 5, "max": 50, "idleTimeoutMs": 30000}
   }
-}</code></pre>
-    </li>
-    <li>
-      Task: change <code>api-gateway</code> to <code>edge-gateway</code>, and change <code>db.internal</code> to <code>db-blue.internal</code>. Two edits.
-    </li>
-    <li>
-      Use whatever you'd normally use — arrow keys, search, manual selection. Note your start time and end time. <strong>Don't use anything from this lesson yet</strong> — it's a baseline.
-    </li>
-    <li>Write your time down. We'll come back to it after the lesson.
-    </li>
-  </ol>
+}
+EOF
+vim /tmp/audit.json</code></pre>
+  <p>Task: change <code>api-gateway</code> to <code>edge-gateway</code>, and change <code>db.internal</code> to <code>db-blue.internal</code>. Two edits. Use whatever you'd normally use — arrow keys, scrolling, manual selection. Note your start and end time. <strong>Don't use anything from this lesson yet</strong> — it's a baseline. Write the time down.</p>
 
-  <h2>Knowledge 1 — char search on a line: <code>f</code> <code>F</code> <code>t</code> <code>T</code></h2>
-  <p>To land on a specific character on the current line without counting words:</p>
+  <h2>Knowledge 1 — search: <code>/pattern</code> + <code>n</code> / <code>N</code></h2>
+  <p>The single highest-leverage motion in vim. Get somewhere by name, not by counting lines or scrolling.</p>
   <table>
     <tbody>
-      <tr><td><code>f{x}</code></td><td>forward to next <code>{x}</code>, cursor lands ON it</td></tr>
-      <tr><td><code>F{x}</code></td><td>backward to previous <code>{x}</code></td></tr>
-      <tr><td><code>t{x}</code></td><td>forward <em>till</em> next <code>{x}</code>, cursor stops one BEFORE</td></tr>
-      <tr><td><code>T{x}</code></td><td>backward till previous <code>{x}</code></td></tr>
-      <tr><td><code>;</code></td><td>repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> (same direction)</td></tr>
-      <tr><td><code>,</code></td><td>repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> (reverse direction)</td></tr>
+      <tr><td><code>/{pattern}&lt;Enter&gt;</code></td><td>Search forward; cursor lands on first match</td></tr>
+      <tr><td><code>?{pattern}&lt;Enter&gt;</code></td><td>Search backward</td></tr>
+      <tr><td><code>n</code></td><td>Next match (same direction)</td></tr>
+      <tr><td><code>N</code></td><td>Next match (reverse direction)</td></tr>
+      <tr><td><code>*</code></td><td>Search forward for the word under cursor</td></tr>
     </tbody>
   </table>
-  <p>These compose with operators as motions. Recall Lesson 0001's grammar: <code>operator + motion</code>. The motion can be a char search.</p>
+
+  <div class="gotcha">
+    <strong>Regex gotcha.</strong> <code>.</code>, <code>*</code>, <code>[</code>, <code>^</code>, <code>$</code>, <code>\</code> are regex metacharacters. <code>/db.internal</code> will usually match the literal <code>db.internal</code> (because <code>.</code> matches any char, including the dot), but the safe form is <code>/db\.internal</code> with the dot escaped. If you ever get <code>E486: Pattern not found</code> on something you can see in the buffer, the cause is either (a) metacharacter surprise, or (b) the buffer doesn't actually contain what you think — check for paste mangling.
+  </div>
+
+  <p>Search composes as a motion in the grammar from Lesson 0001: <code>operator + motion</code>.</p>
   <ul>
-    <li><code>dt,</code> — delete forward to the next comma (keeps the comma)</li>
-    <li><code>df,</code> — delete forward through the next comma (kills the comma too)</li>
-    <li><code>cf"</code> — change forward to the next double-quote</li>
-    <li><code>yt;</code> — yank forward to the next occurrence of whatever you last <code>f</code>'d</li>
+    <li><code>d/endpoints&lt;Enter&gt;</code> — delete forward to the next <code>endpoints</code></li>
+    <li><code>c?port&lt;Enter&gt;</code> — change backward to the previous <code>port</code></li>
   </ul>
 
-  <h2>Knowledge 2 — brace matching: <code>%</code></h2>
-  <p>From a brace (<code>(</code> <code>[</code> <code>{</code> <code>)</code> <code>]</code> <code>}</code>), <code>%</code> jumps to its match. From a non-brace char, it jumps to the next brace on the line first, then to its match on the next press.</p>
+  <h2>Knowledge 2 — char on a line: <code>f</code> + <code>;</code></h2>
+  <p>For landing on a specific column on the current line — usually faster than <code>w</code>/<code>b</code> when you can see the target character.</p>
+  <table>
+    <tbody>
+      <tr><td><code>f{x}</code></td><td>Forward to next <code>{x}</code>; cursor lands ON it</td></tr>
+      <tr><td><code>;</code></td><td>Repeat last <code>f</code> (find the next one)</td></tr>
+    </tbody>
+  </table>
+  <p>Operators compose: <code>df,</code> deletes forward through the next comma. <code>cf"</code> changes forward to the next quote.</p>
+
+  <h2>Knowledge 3 — brace matching: <code>%</code></h2>
+  <p>From a brace (<code>(</code> <code>[</code> <code>{</code> <code>)</code> <code>]</code> <code>}</code>), <code>%</code> jumps to its match. From a non-brace char, it jumps to the next brace on the line first.</p>
   <p>On the audit file, place your cursor on the <code>{</code> at the start of <code>"pool"</code>'s value. Press <code>%</code> — you land on its matching <code>}</code>. Press <code>%</code> again — back.</p>
-  <p>As a motion, <code>%</code> composes too:</p>
-  <ul>
-    <li><code>d%</code> — delete from cursor to the matching brace (inclusive)</li>
-    <li><code>v%</code> — visually select from cursor to the matching brace</li>
-  </ul>
-  <p>This is the devops-killer: trace through nested JSON without scrolling.</p>
+  <p>As a motion: <code>d%</code> deletes from cursor to matching brace (inclusive). <code>v%</code> selects from cursor to matching brace. This is the devops payoff for tracing nested JSON.</p>
 
-  <h2>Knowledge 3 — marks: bookmark a spot</h2>
+  <h2>Knowledge 4 — marks: bookmark a line</h2>
   <p>Sets a named anchor you can return to. Lowercase marks are per-buffer; uppercase are global.</p>
   <table>
     <tbody>
-      <tr><td><code>m{a}</code></td><td>set mark <code>{a}</code> at cursor</td></tr>
-      <tr><td><code>'{a}</code></td><td>jump to first non-blank on mark <code>{a}</code>'s line</td></tr>
-      <tr><td><code>`{a}</code></td><td>jump to the exact column of mark <code>{a}</code></td></tr>
-      <tr><td><code>''</code></td><td>jump to the line of the last jump (last <code>'x</code> or <code>/</code> or <code>G</code>)</td></tr>
+      <tr><td><code>m{a}</code></td><td>Set mark <code>{a}</code> at cursor</td></tr>
+      <tr><td><code>'{a}</code></td><td>Jump to first non-blank on mark <code>{a}</code>'s line</td></tr>
     </tbody>
   </table>
-  <p>The canonical devops idiom: you're editing a long config, set <code>ma</code> on the line you're changing, detour with <code>/something</code> to verify a related value, <code>'a</code> snaps you straight back. No "where was I?" cognitive cost.</p>
+  <p>Devops idiom: you're editing a long config, set <code>ma</code> on the line you're working on, detour with <code>/search</code> to check a related value, <code>'a</code> snaps you straight back. No "where was I?" cognitive cost.</p>
 
-  <h2>Knowledge 4 — the universal back button: <code>Ctrl-o</code> / <code>Ctrl-i</code></h2>
-  <p>Every jump (any motion that moves more than a line, including marks, search, <code>G</code>, etc.) is recorded in the jump list. Walk back through your trail:</p>
+  <h2>Knowledge 5 — the universal back button: <code>Ctrl-o</code></h2>
+  <p>Every jump (mark, search, <code>G</code>, etc.) is recorded in the jump list. <code>Ctrl-o</code> walks back through your trail. Use this when you forgot to set a mark but need to get back.</p>
   <ul>
-    <li><code>Ctrl-o</code> — jump back through the jump list</li>
-    <li><code>Ctrl-i</code> — jump forward through the jump list</li>
-    <li><code>:jumps</code> — see the list</li>
-  </ul>
-  <p>Use this when you forgot to set a mark but need to get back.</p>
-
-  <h2>Worked examples — read each as a sentence</h2>
-  <ul>
-    <li><code>f:</code> — jump to next colon on this line</li>
-    <li><code>f:;</code> — jump to the <em>second</em> colon (find colon, repeat)</li>
-    <li><code>dt,</code> — delete forward to the next comma</li>
-    <li><code>cf"</code> — change forward to the next quote</li>
-    <li><code>%</code> on a <code>{</code> — jump to its match</li>
-    <li><code>ma</code> … <code>/log</code> … <code>'a</code> — bookmark, search, return</li>
-    <li><code>Ctrl-o</code> — "wait, go back"</li>
+    <li><code>Ctrl-o</code> — jump back</li>
+    <li><code>Ctrl-i</code> — jump forward (after you've gone back)</li>
   </ul>
 
   <h2>Drill — same audit, new tools (~6 min)</h2>
-  <ol>
-    <li>Reopen <code>/tmp/audit.json</code>. Reset the file if you saved it: change <code>edge-gateway</code> back to <code>api-gateway</code> and <code>db-blue.internal</code> back to <code>db.internal</code>.</li>
-    <li>Redo the same two edits, this time <strong>only</strong> using the new tools. Reveal each answer only after you've tried.</li>
-  </ol>
+  <p>Reset the file from bash so the contents are byte-perfect again:</p>
+<pre><code>cat &gt; /tmp/audit.json &lt;&lt;'EOF'
+{
+  "service": "api-gateway",
+  "version": "2.4.1",
+  "endpoints": [
+    {"path": "/users",  "method": "GET",  "handler": "listUsers"},
+    {"path": "/orders", "method": "POST", "handler": "createOrder"}
+  ],
+  "database": {
+    "host": "db.internal",
+    "port": 5432,
+    "pool": {"min": 5, "max": 50, "idleTimeoutMs": 30000}
+  }
+}
+EOF
+vim /tmp/audit.json</code></pre>
 
-  <h3>Tasks</h3>
+  <h3>Tasks — each uses only motions from this or Lesson 0001</h3>
   <ol>
     <li>
-      Change <code>api-gateway</code> to <code>edge-gateway</code> using <code>f</code> to reach the line and <code>ci"</code> to change the value.
+      Jump to <code>api-gateway</code> with search, then change it to <code>edge-gateway</code>.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>1G</code> (top of file) or <code>gg</code>, then <code>/api-gateway&lt;Enter&gt;</code> to find it. Or jump directly with <code>f"</code> then <code>;</code> until you're inside the right string. Then <code>ci"</code>, type <code>edge-gateway</code>, <code>Esc</code>.</p>
-        <p>Notice: <code>ci"</code> from Lesson 0001 still does the heavy lifting. Navigation is what got you to the right string faster.</p>
+        <p><code>/api-gateway&lt;Enter&gt;</code> — cursor lands on <code>a</code>. <code>ci"</code> — change inside the quotes. Type <code>edge-gateway</code>, <code>Esc</code>.</p>
+        <p>Notice how <code>ci"</code> from Lesson 0001 still does the heavy lifting. Search got you there.</p>
       </div></details>
     </li>
     <li>
-      Change <code>db.internal</code> to <code>db-blue.internal</code>. Use <code>/</code> to find it, then operator + text-object to edit.
+      Change <code>db.internal</code> to <code>db-blue.internal</code> using search to get there, then <code>f.</code> to land on the dot.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>/db.internal&lt;Enter&gt;</code> — cursor lands on <code>d</code>. <code>f.</code> — jump forward to the <code>.</code>. <code>i</code>, type <code>-blue</code>, <code>Esc</code>.</p>
-        <p>Or: <code>ci"</code> from inside the quotes, type the whole new value, <code>Esc</code>. Either works; <code>f.</code> is faster for a single-word insertion at a known char.</p>
+        <p><code>/db\.internal&lt;Enter&gt;</code> — note the escaped dot for precision. <code>f.</code> — forward to the next dot. <code>i</code>, type <code>-blue</code>, <code>Esc</code>.</p>
+        <p>Alternative: <code>ci"db-blue.internal&lt;Esc&gt;</code> from inside the quotes. Faster for a short value, but <code>f.</code> is the technique being drilled.</p>
       </div></details>
     </li>
     <li>
-      On the <code>{</code> at the start of the <code>"pool"</code> value, press <code>%</code>. Verify you land on its matching <code>}</code>.
+      Brace match: cursor on the <code>{</code> of <code>pool</code>'s value, press <code>%</code>. Verify you land on the matching <code>}</code>.
       <details><summary>show what to expect</summary><div class="drill-answer">
-        <p>One keystroke moves you across multiple lines of nested JSON. This is the devops payoff: trace through a config structurally, not by scrolling.</p>
+        <p>One keystroke moves you across multiple lines of nested JSON. <code>%</code> again returns you. This is the structural-navigation payoff.</p>
       </div></details>
     </li>
     <li>
-      Set mark <code>m</code><code>a</code> on the <code>"host"</code> line. Search for <code>createOrder</code> with <code>/createOrder</code>. Jump back with <code>'a</code>.
+      Mark roundtrip: cursor on the <code>"host"</code> line, <code>ma</code>. Search <code>/createOrder&lt;Enter&gt;</code>. Press <code>'a</code> — verify you return to the <code>host</code> line.
       <details><summary>show what to expect</summary><div class="drill-answer">
-        <p>You should land back on the <code>"host"</code> line at first non-blank. Use <code>`a</code> (backtick) to land at the exact column instead.</p>
+        <p>Cursor lands on first non-blank of the marked line. The mark survives any number of subsequent jumps.</p>
       </div></details>
     </li>
     <li>
-      Bonus: <code>da{</code> from inside the <code>"pool"</code> block — delete the whole <code>{"min": 5, ...}</code> object. Undo with <code>u</code>. Note the callback to Lesson 0001's text objects.
+      Forget the mark this time: from <code>createOrder</code>, search <code>/port&lt;Enter&gt;</code>, then press <code>Ctrl-o</code> twice. Verify you walk back through your trail.
+      <details><summary>show what to expect</summary><div class="drill-answer">
+        <p><code>Ctrl-o</code> once: back to <code>createOrder</code>. Twice: back to <code>host</code>. The jump list is your safety net when you didn't plan ahead with a mark.</p>
+      </div></details>
+    </li>
+    <li>
+      Bonus callback to Lesson 0001: <code>da{</code> from inside the <code>pool</code> block — delete the whole object. <code>u</code> to undo.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Cursor anywhere inside the <code>pool</code> object's braces. <code>da{</code> — <code>d</code>elete <code>a</code>round <code>{</code>braces. Removes content <em>and</em> the delimiters. <code>u</code> brings it back.</p>
+        <p>Cursor anywhere inside the <code>pool</code> object's braces. <code>da{</code> removes content <em>and</em> the delimiters. <code>u</code> brings it back.</p>
       </div></details>
     </li>
   </ol>
 
   <h2>Compare your times</h2>
   <div class="audit">
-    <p>Look at your baseline time versus how long the second pass took. Most comfortable dabblers cut their time by 40–60% on this specific drill. More importantly, the second pass should have felt <em>smoother</em> — less hunt-and-peck, less scrolling.</p>
+    <p>Look at your baseline time versus how long the second pass took. Most comfortable dabblers cut their time by 40–60% on this drill. More importantly, the second pass should have felt <em>smoother</em> — less hunt-and-peck, less scrolling.</p>
     <p>If it didn't feel smoother, that's the most useful signal you could give the teacher. Where exactly did you reach for the old habit? Note it and bring it to the next session.</p>
   </div>
 
@@ -307,7 +313,18 @@
   <p>Four short questions. Click an option; feedback is immediate.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>Which key repeats the last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> in the same direction?</p>
+    <p class="quiz-q"><span class="num">Q1</span>After <code>/foo&lt;Enter&gt;</code>, which key finds the next match?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">n</li>
+      <li class="option">N</li>
+      <li class="option">*</li>
+      <li class="option">#</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which key repeats the last <code>f</code> char search?</p>
     <ul class="options">
       <li class="option" data-correct="true">;</li>
       <li class="option">,</li>
@@ -317,35 +334,24 @@
     <p class="quiz-feedback"></p>
   </div>
 
-  <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>Which key jumps to the matching brace from the cursor?</p>
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Which key jumps to the matching brace from the cursor?</p>
     <ul class="options">
       <li class="option" data-correct="true">%</li>
+      <li class="option">&amp;</li>
       <li class="option">*</li>
       <li class="option">#</li>
-      <li class="option">&amp;</li>
-    </ul>
-    <p class="quiz-feedback"></p>
-  </div>
-
-  <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>Which command sets mark <code>a</code> at the cursor?</p>
-    <ul class="options">
-      <li class="option" data-correct="true">ma</li>
-      <li class="option">'a</li>
-      <li class="option">`a</li>
-      <li class="option">"a</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>Which returns to the line (first non-blank) of mark <code>a</code>?</p>
+    <p class="quiz-q"><span class="num">Q4</span>Which key walks back through the jump list?</p>
     <ul class="options">
-      <li class="option" data-correct="true">'a</li>
-      <li class="option">`a</li>
-      <li class="option">ma</li>
-      <li class="option">Ma</li>
+      <li class="option" data-correct="true">Ctrl-o</li>
+      <li class="option">Ctrl-i</li>
+      <li class="option">Ctrl-d</li>
+      <li class="option">Ctrl-n</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -361,17 +367,28 @@
     <p><strong>Primary sources for this lesson</strong></p>
     <ul>
       <li>Run <code>:help usr_03.txt</code> inside vim — "Moving around".</li>
-      <li>Run <code>:help motion.txt</code>, <code>:help mark-motions</code>, <code>:help jump-motions</code> for the full reference.</li>
+      <li>Run <code>:help pattern.txt</code> for search, <code>:help motion.txt</code> for char search, <code>:help mark-motions</code> for marks, <code>:help jump-motions</code> for the jump list.</li>
       <li>Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 46–51 (move tab-first), Tip 56 (marks).</li>
     </ul>
-    <p>Previous: <a href="./0001-vim-editing-grammar.html">Lesson 0001 — The vim editing grammar</a>. Reference: <a href="../reference/vim-navigation.html">vim navigation</a>. Next: Lesson 0003 — Search &amp; substitute (planned).</p>
+    <p>Previous: <a href="./0001-vim-editing-grammar.html">Lesson 0001 — The vim editing grammar</a>. Reference: <a href="../reference/vim-navigation.html">vim navigation</a>. Next: Lesson 0003 — Substitute (<code>:s</code>, <code>:%s</code>, <code>cgn</code>).</p>
   </footer>
 
 <script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
   const quizzes = document.querySelectorAll('.quiz');
   let answered = 0;
   let correct = 0;
   quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
     const opts = quiz.querySelectorAll('.option');
     const feedback = quiz.querySelector('.quiz-feedback');
     opts.forEach(opt => opt.addEventListener('click', () => {
