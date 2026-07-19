@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — vim navigation</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --hdr-bg: #efe6cf;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 0.4rem;
+  }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 {
+    font-size: 1.25rem;
+    margin: 2.4rem 0 0.8rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 1rem;
+    margin: 1.6rem 0 0.5rem;
+    color: var(--accent);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: 0.04em;
+  }
+  p { margin: 0.6rem 0; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.08em 0.35em;
+    border-radius: 3px;
+    font-size: 0.92em;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  td:first-child {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color: var(--code-fg);
+    white-space: nowrap;
+  }
+  .note {
+    background: var(--code-bg);
+    border-left: 3px solid var(--accent);
+    padding: 0.7rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print {
+    body { max-width: none; margin: 1.5rem; font-size: 11pt; }
+    a { color: var(--fg); text-decoration: none; }
+    h2 { page-break-after: avoid; }
+    tr, table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · vim</p>
+    <h1>Navigation</h1>
+    <p class="lede">Stop crawling with <code>hjkl</code>. The commands on this page get you anywhere in a buffer in three keystrokes or fewer.</p>
+  </header>
+
+  <h2>Char on a line — <code>f</code> <code>F</code> <code>t</code> <code>T</code> + <code>;</code> <code>,</code></h2>
+  <p>The fastest way to land on a specific column. <code>f</code>inds and <code>t</code>ills, forward and backward.</p>
+  <table>
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>f{x}</code></td><td>Forward to next <code>{x}</code>, cursor ON it</td></tr>
+      <tr><td><code>F{x}</code></td><td>Backward to previous <code>{x}</code>, cursor ON it</td></tr>
+      <tr><td><code>t{x}</code></td><td>Forward till next <code>{x}</code>, cursor one BEFORE</td></tr>
+      <tr><td><code>T{x}</code></td><td>Backward till previous <code>{x}</code>, one AFTER</td></tr>
+      <tr><td><code>;</code></td><td>Repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> in same direction</td></tr>
+      <tr><td><code>,</code></td><td>Repeat last <code>f</code>/<code>F</code>/<code>t</code>/<code>T</code> in reverse direction</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Operators compose with these as motions. <code>dt,</code> deletes to the next comma. <code>cf"</code> changes forward to the next quote. <code>yt;</code> yanks to the next occurrence of the last <code>f</code> target.</div>
+
+  <h2>Brace matching — <code>%</code></h2>
+  <p>From any of <code>(</code> <code>[</code> <code>{</code> <code>)</code> <code>]</code> <code>}</code>, jump to its match. From a non-brace char, jumps to the next brace on the line. Indispensable for JSON, embedded code blocks, and function calls.</p>
+  <table>
+    <tbody>
+      <tr><td><code>%</code></td><td>Jump to matching brace</td></tr>
+      <tr><td><code>d%</code></td><td>Delete from cursor to matching brace (inclusive)</td></tr>
+      <tr><td><code>c%</code></td><td>Change from cursor to matching brace</td></tr>
+      <tr><td><code>v%</code></td><td>Visually select from cursor to matching brace</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Pair with text objects from <a href="./vim-modal-grammar.html">the grammar reference</a>: <code>di{</code> clears a JSON object's contents; <code>da{</code> removes the object and its braces.</div>
+
+  <h2>Marks — bookmark a spot</h2>
+  <p>Set a named mark anywhere; jump back to it later. Lowercase marks are per-buffer; uppercase are global across buffers.</p>
+  <table>
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>m{a-z}</code></td><td>Set mark <code>{a}</code> at cursor (buffer-local)</td></tr>
+      <tr><td><code>m{A-Z}</code></td><td>Set global mark (survives buffer switches)</td></tr>
+      <tr><td><code>'{a}</code></td><td>Jump to first non-blank on mark <code>{a}</code>'s line</td></tr>
+      <tr><td><code>`{a}</code></td><td>Jump to exact column of mark <code>{a}</code></td></tr>
+      <tr><td><code>''</code></td><td>Jump to line of last jump</td></tr>
+      <tr><td><code>``</code></td><td>Jump to exact column of last jump</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Built-in marks (always available)</h3>
+  <table>
+    <tbody>
+      <tr><td><code>`.</code></td><td>Position of last change</td></tr>
+      <tr><td><code>`^</code></td><td>Position of last insert</td></tr>
+      <tr><td><code>`[</code> / <code>`]</code></td><td>Start / end of last yanked or changed text</td></tr>
+      <tr><td><code>`&lt;</code> / <code>`&gt;</code></td><td>Start / end of last visual selection</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Devops idiom: editing a long config, set <code>ma</code> on the line you're working on, detour with <code>/search</code> to check a related value, then <code>'a</code> snaps you back. No mental overhead of "where was I?"</div>
+
+  <h2>Jump list — the universal back button</h2>
+  <p>Every jump (any motion that moves more than a line) is recorded. Walk back through your trail.</p>
+  <table>
+    <tbody>
+      <tr><td><code>Ctrl-o</code></td><td>Jump back through the jump list</td></tr>
+      <tr><td><code>Ctrl-i</code></td><td>Jump forward through the jump list</td></tr>
+      <tr><td><code>:jumps</code></td><td>Show the jump list</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Bonus — quick returns worth memorizing</h2>
+  <table>
+    <tbody>
+      <tr><td><code>gi</code></td><td>Return to last insert position and enter insert mode — great for resuming edits</td></tr>
+      <tr><td><code>gv</code></td><td>Re-select the last visual selection</td></tr>
+      <tr><td><code>gd</code></td><td>Jump to local definition of word under cursor</td></tr>
+      <tr><td><code>gD</code></td><td>Jump to global definition of word under cursor</td></tr>
+      <tr><td><code>*</code> / <code>#</code></td><td>Next / previous occurrence of word under cursor (search — covered in Lesson 0003)</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    <p>Primary sources: <code>:help usr_03.txt</code> (Moving around), <code>:help motion.txt</code>, <code>:help mark-motions</code>, <code>:help jump-motions</code>.</p>
+    <p>Companion: <a href="./vim-modal-grammar.html">the vim editing grammar</a>. Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace.</p>
+  </footer>
+</body>
+</html>

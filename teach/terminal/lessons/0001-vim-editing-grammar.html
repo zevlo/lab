@@ -284,8 +284,14 @@
       <details><summary>show answer</summary><div class="drill-answer"><code>ciw</code> then type <code>0.0.0.0</code> then <code>Esc</code>. (<code>c</code>hange <code>i</code>nner <code>w</code>ord.)</div></details>
     </li>
     <li>
-      On <code>"8080"</code>, strip the quotes so it reads <code>8080</code>.
-      <details><summary>show answer</summary><div class="drill-answer"><code>da"</code> — <code>d</code>elete <code>a</code>round double-quote. The "around" variant removes the quotes too.</div></details>
+      On <code>"8080"</code>, try <code>da"</code> first. Observe. Then undo with <code>u</code> and try <code>di"</code>. Observe.
+      <details><summary>show what happens &amp; why</summary>
+      <div class="drill-answer">
+        <p><code>da"</code> (<code>d</code>elete <code>a</code>round) removes the quoted string <strong>and</strong> its content — you're left with <code>port = </code>.</p>
+        <p><code>di"</code> (<code>d</code>elete <code>i</code>nner) removes <strong>only</strong> the content — you're left with <code>port = ""</code>.</p>
+        <p>Neither strips just the quotes. To remove the quotes and keep the content, use <code>:s/"//g</code> (substitute all <code>"</code> on the line with nothing) or the keystroke sequence <code>f"x;x</code> (find quote, delete char, find next quote, delete char).</p>
+        <p><strong>Takeaway:</strong> text objects come in <code>i</code>/<code>a</code> pairs — pick the one matching your intent. <code>ci"</code> or <code>di"</code> when the content is what you want to act on; <code>ca"</code>/<code>da"</code> when you want the whole quoted unit gone.</p>
+      </div></details>
     </li>
     <li>
       On the first <code>prod</code> in <code>tags</code>, rename to <code>production</code>.

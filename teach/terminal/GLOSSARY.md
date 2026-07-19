@@ -22,6 +22,18 @@ _Avoid_: command mode (conflicts with command-line mode).
 The vim mode where keystrokes insert literal text into the buffer.
 _Avoid_: typing mode, edit mode.
 
+**Operator**:
+A normal-mode command that performs an action (delete, change, yank, indent, etc.) on the text selected by an accompanying motion or text-object. Always the verb of a vim sentence.
+_Avoid_: action, command.
+
+**Motion**:
+A normal-mode keystroke that moves the cursor across text in some structural direction (word, line, document, search). Used after an operator, the moved-over text becomes the operator's target.
+_Avoid_: movement, navigation key.
+
+**Text object**:
+A two-character normal-mode selector (e.g. `iw`, `a"`, `ip`) that names a structural unit of text rather than a direction. Pairs with an operator to act on that unit. Comes in `i` (inner, excludes delimiters) and `a` (around, includes delimiters) variants.
+_Avoid_: selection, region.
+
 ## tmux
 
 **Prefix**:
