@@ -58,6 +58,26 @@ _Avoid_: word edge, `\b` (PCRE syntax — vim uses `\<` `\>`).
 The pattern of making one buffer change, then repeating it at other locations with `.`. Classic instance: `cgn` + type + `Esc` + `.` to surgically replace search matches one at a time.
 _Avoid_: dot repeat (acceptable alias for the `.` primitive itself).
 
+**Register**:
+A named slot in vim that holds yanked or deleted text. Every `y`, `d`, `c` writes to a register; every `p` reads from one. Addressed by a `"` prefix followed by one character (e.g., `"a`, `"0`, `"+`).
+_Avoid_: clipboard (acceptable alias for the `+` register specifically), buffer slot.
+
+**Unnamed register**:
+The default register (`"`) that receives text from any `y`/`d`/`c` when no explicit register is named. `p` pastes from it. Volatile: the next yank or delete overwrites it.
+_Avoid_: default register (acceptable alias).
+
+**Named register**:
+One of 26 persistent slots (`a`–`z`) you address explicitly. Uppercase (`A`–`Z`) appends to the lowercase slot instead of replacing it.
+_Avoid_: letter register (acceptable alias).
+
+**Black-hole register**:
+The `_` register: writes to it are discarded, so `"_d{motion}` deletes text without overwriting the unnamed register. Reading from it yields nothing.
+_Avoid_: null register (acceptable alias).
+
+**System clipboard register**:
+The `+` register, which vim bridges to the OS clipboard (`pbcopy`/`pbpaste` on macOS, CLIPBOARD on X11, clipboard on Wayland). `"+y` copies to the OS clipboard; `"+p` pastes from it. On macOS, `*` and `+` are the same register.
+_Avoid_: clipboard (acceptable shorthand).
+
 ## tmux
 
 **Prefix**:
@@ -75,3 +95,7 @@ _Avoid_: tab (acceptable alias).
 **Pane**:
 A rectangular subregion of a tmux window running its own shell. Panes share the window's area.
 _Avoid_: split, frame.
+
+**OSC 52**:
+An ANSI escape sequence (`ESC ] 52 ; c ; <base64> BEL`) that means "set the system clipboard." Modern terminals (ghostty included) translate it to a host clipboard write. tmux 3.2+ forwards copy-mode yanks as OSC 52 by default (`set-clipboard=external`), so a yank inside an SSH session flows through to your local clipboard.
+_Avoid_: clipboard escape (acceptable alias).

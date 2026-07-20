@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — vim registers</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1rem; margin: 1.6rem 0 0.5rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · vim</p>
+    <h1>Registers &amp; system clipboard</h1>
+    <p class="lede">Registers are vim's clipboards (plural). Every yank and delete targets one; every paste reads one. The <code>+</code> register bridges to the macOS pasteboard. <code>OSC 52</code> bridges across SSH.</p>
+  </header>
+
+  <h2>The register concept</h2>
+  <p>Every <code>y</code>, <code>d</code>, <code>c</code>, <code>x</code> writes the affected text to a register. Every <code>p</code> reads from one. Vim has dozens of slots, addressed by a <code>"</code> prefix followed by a single character.</p>
+  <table>
+    <tbody>
+      <tr><td><code>:reg</code></td><td>List all registers and their contents</td></tr>
+      <tr><td><code>:reg a b +</code></td><td>Inspect specific registers only</td></tr>
+      <tr><td><code>""p</code></td><td>Paste from the unnamed register explicitly (same as <code>p</code>)</td></tr>
+    </tbody>
+  </table>
+  <div class="note">When you name a register explicitly, vim <em>also</em> writes the unnamed register <code>"</code>. So <code>"ayy</code> fills both <code>a</code> and <code>"</code>. The named register is your persistent copy; <code>"</code> is the volatile working slot.</div>
+
+  <h2>The register families</h2>
+  <table>
+    <thead><tr><th>Register</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr><td><code>"</code></td><td>Unnamed — default for plain <code>y</code>/<code>d</code>/<code>p</code>. Volatile: the next yank or delete overwrites it.</td></tr>
+      <tr><td><code>0</code></td><td>Last <strong>yank</strong>. Never written by deletes. Recovery slot for "I yanked, then deleted, and now I want the yank back."</td></tr>
+      <tr><td><code>1</code>–<code>9</code></td><td>delete/change history. <code>1</code> = most recent line-or-more delete; older shifts down to <code>9</code>. <code>1</code> covers ~every real case.</td></tr>
+      <tr><td><code>-</code></td><td>Small-delete — deletes/changes of less than one line. Read-only in practice.</td></tr>
+      <tr><td><code>a</code>–<code>z</code></td><td>Named, persistent across edits (until you overwrite them or end the session). Stash slots.</td></tr>
+      <tr><td><code>A</code>–<code>Z</code></td><td>Append to the lowercase slot instead of replacing it.</td></tr>
+      <tr><td><code>+</code></td><td>System clipboard (CLIPBOARD on X11, <code>pbcopy</code>/<code>pbpaste</code> on macOS, clipboard on Wayland).</td></tr>
+      <tr><td><code>*</code></td><td>Primary selection (X11 middle-click). On macOS, <code>*</code> and <code>+</code> are the same register — no PRIMARY concept exists.</td></tr>
+      <tr><td><code>_</code></td><td>Black hole — writes discarded. Delete without clobbering <code>"</code>.</td></tr>
+      <tr><td><code>.</code></td><td>Read-only — last inserted text.</td></tr>
+      <tr><td><code>%</code></td><td>Read-only — current filename.</td></tr>
+      <tr><td><code>:</code></td><td>Read-only — last <code>:</code>-command.</td></tr>
+      <tr><td><code>#</code></td><td>Read-only — alternate file (the file you'd reach with <code>:e #</code>).</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Using a register</h2>
+  <p>The pattern is always <code>"{register}</code> followed by the operator (or motion). The <code>"</code> tells vim "the next character names a register."</p>
+  <table>
+    <tbody>
+      <tr><td><code>"ayy</code></td><td>Yank current line into <code>a</code></td></tr>
+      <tr><td><code>"ap</code></td><td>Paste from <code>a</code></td></tr>
+      <tr><td><code>3"ayy</code></td><td>Yank 3 lines into <code>a</code> (count works as usual)</td></tr>
+      <tr><td><code>"Ay</code></td><td>Append the next line to <code>a</code></td></tr>
+      <tr><td><code>"0p</code></td><td>Paste last yank, even after a delete clobbered <code>"</code></td></tr>
+      <tr><td><code>"_dd</code></td><td>Delete line into the black hole — <code>"</code> untouched</td></tr>
+      <tr><td><code>"_ciw</code></td><td>Change inner word without saving the old one</td></tr>
+      <tr><td><code>"+y</code></td><td>Yank to system clipboard</td></tr>
+      <tr><td><code>"+p</code></td><td>Paste from system clipboard</td></tr>
+      <tr><td><code>vip"+y</code></td><td>Yank the paragraph to system clipboard (composition)</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Registers compose with everything from <a href="./vim-modal-grammar.html">the grammar reference</a>: counts, motions, text objects, visual mode. <code>ci"</code> becomes <code>"aci"</code> to send the changed text into <code>a</code>; <code>vip</code> becomes <code>vip"+y</code> to ship the paragraph to the OS clipboard.</div>
+
+  <h2>System clipboard on macOS — local vim + ghostty</h2>
+  <p>When vim is built with clipboard support, the <code>+</code> register bridges directly to the macOS pasteboard via <code>pbcopy</code>/<code>pbpaste</code>. No config, no plugin.</p>
+  <table>
+    <tbody>
+      <tr><td><code>:echo has('clipboard')</code></td><td>Returns <code>1</code> if your vim can talk to the system clipboard. Verify once.</td></tr>
+      <tr><td><code>:version</code></td><td>Look for <code>+clipboard</code> (not <code>-clipboard</code>) in the feature list.</td></tr>
+      <tr><td><code>"+yy</code></td><td>Copy current line into the macOS clipboard</td></tr>
+      <tr><td><code>"+p</code></td><td>Paste from the macOS clipboard</td></tr>
+      <tr><td><code>"+yiW</code></td><td>Yank a single WORD (token, URL, secret value) into the clipboard</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>If <code>has('clipboard')</code> returns <code>0</code>.</strong> Your vim was built without pasteboard support (common on stripped server builds, rare on Homebrew vim). Fallback for one-off copies: select the text with the mouse, Cmd-C / Cmd-V through ghostty's terminal selection. <code>+</code> won't work until you install a clipboard-enabled vim.</div>
+
+  <h2>Remote clipboard over SSH — the OSC 52 bridge</h2>
+  <p>The devops-critical case: when you SSH to a remote host and run vim there, <code>"+y</code> puts text in the <em>remote's</em> clipboard — invisible to your local machine. Useless for "copy a URL from the remote vim into my local browser."</p>
+  <p>The fix is <strong>OSC 52</strong>: an ANSI escape sequence (<code>ESC ] 52 ; c ; &lt;base64&gt; BEL</code>) that means "set the system clipboard." Modern terminals — ghostty included — translate it to a host clipboard write.</p>
+  <table>
+    <tbody>
+      <tr><td><code>set-clipboard</code></td><td>tmux option. <code>external</code> (the tmux 3.7b default) forwards copy-mode yanks to the terminal as OSC 52.</td></tr>
+      <tr><td><code>tmux show -g set-clipboard</code></td><td>Verify the option's current value.</td></tr>
+      <tr><td>tmux copy-mode yank</td><td>Inside remote tmux: select, copy. The yank flows through SSH as OSC 52, lands in ghostty, and reaches your local macOS clipboard.</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Workflow:</strong> in remote tmux, <code>Ctrl-b [</code> to enter copy-mode, select text, copy. Cmd-V in any local app pastes it. Full tmux copy-mode curriculum lives in the tmux phase; this reference just confirms the bridge exists and works on your stack.</div>
+
+  <div class="beyond" id="beyond-pareto">
+    <h2>Beyond the pareto</h2>
+    <table>
+      <tbody>
+        <tr><td><code>1</code>–<code>9</code> rotation</td><td>Each new line-or-more delete shifts the previous into the next slot down. <code>"1p</code> then <code>.</code> replays the second-most-recent, etc. Rarely useful in practice — <code>u</code> or a named register is cleaner.</td></tr>
+        <tr><td><code>"=</code></td><td>Expression register — evaluates vimscript and inserts the result. Power tool for computed inserts; out of scope until fundamentals lock.</td></tr>
+        <tr><td><code>".</code></td><td>Last inserted text. <code>".p</code> re-inserts what you just typed in insert mode — occasionally useful for repeating a snippet.</td></tr>
+        <tr><td><code>"%</code> idioms</td><td><code>:w !cp % /tmp/</code> copies the current file; <code>:!chmod +x %</code> makes it executable. The register itself isn't used here, but <code>%</code> as an ex-range or shell-argument is the same idea.</td></tr>
+        <tr><td><code>set clipboard=unnamedplus</code></td><td>Config that makes <code>y</code>/<code>d</code>/<code>p</code> target <code>+</code> by default. Deliberately omitted from this workspace — the user has chosen defaults-only, so all clipboard ops use the explicit <code>"+</code> prefix.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Primary sources: <code>:help registers</code>, <code>:help clipboard</code>, <code>:help quote</code>, <code>:help quote_+</code>, <code>:help quote_0</code>, <code>:help quote_{a-z}</code>, <code>:help "_</code>. <code>man tmux</code> → <code>set-clipboard</code>.</p>
+    <p>Companion: <a href="./vim-modal-grammar.html">the vim editing grammar</a>, <a href="./vim-visual-block.html">visual &amp; block mode</a>. Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace.</p>
+  </footer>
+</body>
+</html>

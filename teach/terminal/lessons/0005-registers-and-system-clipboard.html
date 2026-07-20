@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0005 — Registers &amp; system clipboard</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 9em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0005 · <a href="../reference/vim-registers.html">Phase 2 — vim</a></p>
+    <h1>Registers &amp; system clipboard</h1>
+    <p class="lede">Registers are vim's clipboards (plural). Knowing which slot your text just went into — and how to talk to the macOS clipboard from inside vim — is the unlock for fast local edits and remote SSH workflows.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Devops patterns that registers solve cleanly:</p>
+  <ul>
+    <li>Copy a Kubernetes secret from a remote vim into your local browser.</li>
+    <li>Stash a snippet you'll need in five minutes (<code>"ay</code> … <code>"ap</code>) so it survives the edits in between.</li>
+    <li>Delete a chunk of text <strong>without</strong> overwriting the thing you just yanked.</li>
+    <li>Paste the same YAML stanza in four places without re-yanking.</li>
+    <li>Recover your last yank after a stray delete clobbered it.</li>
+  </ul>
+
+  <h2>Knowledge 1 — registers are vim's clipboards (plural)</h2>
+  <p>Every <code>y</code>, <code>d</code>, <code>c</code>, and <code>x</code> writes the affected text to a register. Every <code>p</code> reads from one. Vim has dozens of them, addressed by a <code>"</code> prefix followed by one character.</p>
+  <table>
+    <tbody>
+      <tr><td><code>:reg</code></td><td>List all registers and their current contents</td></tr>
+      <tr><td><code>:reg a b +</code></td><td>Inspect specific registers only</td></tr>
+    </tbody>
+  </table>
+  <p>The <strong>unnamed register</strong> (<code>"</code>) is the default: plain <code>y</code>/<code>d</code>/<code>p</code> write and read it. Every other register is opt-in — name it explicitly to use it.</p>
+
+  <h2>Knowledge 2 — the register families that matter</h2>
+  <table>
+    <tbody>
+      <tr><td><code>"</code></td><td>Unnamed — default for plain <code>y</code>/<code>d</code>/<code>p</code></td></tr>
+      <tr><td><code>0</code></td><td>Last <strong>yank</strong> only (never written by deletes). Lifesaver when a delete clobbers <code>"</code>.</td></tr>
+      <tr><td><code>1</code></td><td>Last delete or change of a line or more. Family <code>1</code>–<code>9</code> rotates (new delete → <code>1</code>, old <code>1</code> → <code>2</code>, etc.); <code>1</code> covers ~every real case.</td></tr>
+      <tr><td><code>a</code>–<code>z</code></td><td>Named, persistent. Stash text you'll come back to.</td></tr>
+      <tr><td><code>A</code>–<code>Z</code></td><td>Append to the lowercase slot instead of replacing it.</td></tr>
+      <tr><td><code>+</code></td><td>System clipboard — the workhorse for this lesson.</td></tr>
+      <tr><td><code>_</code></td><td>Black hole — writes are discarded. Delete without clobbering <code>"</code>.</td></tr>
+      <tr><td><code>%</code> · <code>.</code> · <code>:</code></td><td>Read-only: current filename · last inserted text · last <code>:</code>-command.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Knowledge 3 — using a register</h2>
+  <p>The pattern is always <code>"{register}</code> then the operator or motion. The <code>"</code> prefix tells vim "the next character names a register."</p>
+  <table>
+    <tbody>
+      <tr><td><code>"ayy</code></td><td>Yank current line into register <code>a</code></td></tr>
+      <tr><td><code>"ap</code></td><td>Paste from register <code>a</code></td></tr>
+      <tr><td><code>"0p</code></td><td>Paste your last yank, even after a delete clobbered <code>"</code></td></tr>
+      <tr><td><code>"+y</code></td><td>Yank selection to system clipboard</td></tr>
+      <tr><td><code>"+p</code></td><td>Paste from system clipboard</td></tr>
+      <tr><td><code>"_dd</code></td><td>Delete line into the black hole — <code>"</code> untouched</td></tr>
+      <tr><td><code>"Ay</code></td><td>Append current line to register <code>a</code></td></tr>
+    </tbody>
+  </table>
+  <p>Registers compose with everything you already know: operators, counts, motions, text objects, visual mode. <code>3"ayy</code> yanks three lines into <code>a</code>. <code>vip"+y</code> yanks the paragraph to the system clipboard. <code>"_ciw</code> changes a word without saving the old one.</p>
+
+  <h2>Knowledge 4 — system clipboard on macOS (local vim + ghostty)</h2>
+  <p>When vim is built with clipboard support, the <code>+</code> register bridges directly to the macOS pasteboard via <code>pbcopy</code>/<code>pbpaste</code>. No config, no plugin.</p>
+  <table>
+    <tbody>
+      <tr><td><code>:echo has('clipboard')</code></td><td>Returns <code>1</code> if your vim can talk to the system clipboard. Verify once.</td></tr>
+      <tr><td><code>"+yy</code></td><td>Copy current line into the macOS clipboard</td></tr>
+      <tr><td><code>"+p</code></td><td>Paste from the macOS clipboard into the buffer</td></tr>
+      <tr><td><code>vi(</code> then <code>"+y</code></td><td>Yank the text inside parens to the system clipboard</td></tr>
+    </tbody>
+  </table>
+  <p>Verify it works end-to-end: yank with <code>"+yy</code>, open another ghostty pane (or use the mouse on the ghostty title bar to open a new tab), run <code>pbpaste</code> — your line prints. Or Cmd-V in any browser field.</p>
+  <div class="gotcha"><strong>If <code>has('clipboard')</code> returns <code>0</code>.</strong> Your vim was built without pasteboard support (common on stripped-down server builds, rare on Homebrew vim). Fallback for one-off copies: select the text with the mouse, Cmd-C / Cmd-V through ghostty's terminal selection. The <code>+</code> register won't work until you install a clipboard-enabled vim.</div>
+
+  <h2>Knowledge 5 — the remote-SSH gotcha &amp; the OSC 52 bridge</h2>
+  <p>This is the devops-critical bit. When you SSH to a remote host and run vim there, <code>"+y</code> puts text in the <em>remote's</em> clipboard — which is invisible to your local machine. Useless for "copy a URL from the remote vim into my local browser."</p>
+  <p>The fix is <strong>OSC 52</strong>: an ANSI escape sequence that means "set the system clipboard." Modern terminals — ghostty included — translate it to a host clipboard write. <strong>tmux 3.7b forwards OSC 52 by default</strong> (<code>set-clipboard=external</code>), so a copy-mode yank inside an SSH session flows through the SSH connection, lands in ghostty, and ends up in your local macOS clipboard.</p>
+  <p>The workflow: inside remote tmux, press <code>Ctrl-b [</code> to enter copy-mode, move to the text, start a selection (the key depends on your copy-mode style — see drill Task 5), copy it, and the text is now in your local clipboard. Verify with Cmd-V. Full depth (remote <code>pbcopy</code> forwarding, vim-to-tmux hooks) comes in the tmux phase; for now, reach for tmux copy-mode when you need to pull text out of a remote vim.</p>
+
+  <h2>Drill (~10 min)</h2>
+  <p>Create the file from bash:</p>
+<pre><code>cat &gt; /tmp/secrets.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stripe-key
+type: Opaque
+stringData:
+  publishable: pk_live_abcd1234
+  secret: sk_live_wxyz9876
+  webhook: whsec_qwer4567
+EOF
+vim /tmp/secrets.yaml</code></pre>
+
+  <h3>Tasks</h3>
+  <ol>
+    <li>
+      Yank the <code>webhook</code> line (line 9) into register <code>w</code>, then jump to the bottom of the file and paste it with <code>"wp</code>. A second <code>webhook</code> line appears at the end.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>9G"wyy</code> — go to line 9, yank the line into register <code>w</code>. <code>G</code> — jump to the last line. <code>"wp</code> — paste from <code>w</code>.</p>
+        <p>After this, registers <code>"</code>, <code>0</code>, and <code>w</code> all contain the webhook line — because specifying a named register also writes the unnamed register.</p>
+      </div></details>
+    </li>
+    <li>
+      Delete the <code>publishable</code> line (line 7) <strong>without</strong> overwriting the unnamed register. Verify by pasting: <code>p</code> should still produce the webhook line, not the deleted publishable.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>7G"_dd</code> — go to line 7, delete it into the black-hole register <code>_</code>. The line is gone, but <code>"</code> still holds the webhook line.</p>
+        <p>Press <code>p</code> — it pastes "  webhook: whsec_qwer4567", proving <code>"</code> was untouched. This is the canonical "delete something throwaway without losing my clipboard" pattern.</p>
+      </div></details>
+    </li>
+    <li>
+      Now demonstrate the difference between <code>"</code> and <code>0</code>. Delete the <code>secret</code> line with a normal <code>dd</code> (no register prefix). Then: <code>p</code> should paste the secret line (your last delete), but <code>"0p</code> should paste the webhook line (your last <em>yank</em>).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>After Task 2, the file is 8 lines. <code>7G</code> lands on the <code>secret</code> line (was line 8). <code>dd</code> deletes it.</p>
+        <ul>
+          <li><code>p</code> pastes "  secret: sk_live_wxyz9876" — because <code>"</code> now holds the deleted line (the normal-delete clobbered it).</li>
+          <li><code>"0p</code> pastes "  webhook: whsec_qwer4567" — because <code>0</code> only ever receives <em>yanks</em>, never deletes. Your webhook yank from Task 1 is still there.</li>
+        </ul>
+        <p>Takeaway: <code>0</code> is the recovery register for "I yanked something, then deleted something, and now I want the yank back." Reach for <code>"0p</code> whenever <code>p</code> gives you the wrong thing.</p>
+      </div></details>
+    </li>
+    <li>
+      Copy the <code>webhook</code> value (<code>whsec_qwer4567</code>) into your macOS clipboard. Verify by running <code>pbpaste</code> in another ghostty pane (or by Cmd-V in a browser).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Two clean ways:</p>
+        <p><strong>Option A — line-wise:</strong> <code>8G"+yy</code> (or whichever line currently holds the webhook). Yanks the whole line into <code>+</code>. <code>pbpaste</code> in another pane prints it; Cmd-V in a browser pastes it.</p>
+        <p><strong>Option B — value-only:</strong> <code>/whsec&lt;CR&gt;</code> to land on the value, then <code>"+yiW</code> — yank the inner WORD into <code>+</code>. Now <code>pbpaste</code> prints just <code>whsec_qwer4567</code>, no surrounding text. Pick this when you need a clean token to paste into a Slack message or config field.</p>
+      </div></details>
+    </li>
+    <li>
+      Bonus — verify the OSC 52 bridge. Requires tmux. Open a tmux session, then run <code>tmux show -g set-clipboard</code> — it should output <code>set-clipboard external</code> (the tmux 3.7b default). Enter copy-mode with <code>Ctrl-b [</code>, move to a line of text, start a selection, copy. Switch to any non-terminal app (Notes, a browser URL bar) and press Cmd-V. The text you copied in tmux appears in your local clipboard.
+      <details><summary>show selection keys by copy-mode style</summary><div class="drill-answer">
+        <p>tmux's copy-mode keys depend on the <code>mode-keys</code> option:</p>
+        <ul>
+          <li><strong>vi mode</strong> (set via <code>set-window-option -g mode-keys vi</code> — an option, not a remap): <code>v</code> to start char-wise selection, <code>V</code> line-wise, move with <code>hjkl</code> / <code>w</code> / <code>/</code>, then <code>y</code> to copy.</li>
+          <li><strong>emacs mode</strong> (tmux default): <code>C-Space</code> to start selection, move with <code>C-n</code>/<code>C-p</code>/<code>C-f</code>/<code>C-b</code> or arrow keys, then <code>M-w</code> (Alt-w) to copy.</li>
+        </ul>
+        <p>If Cmd-V shows nothing: check <code>set-clipboard</code> isn't <code>off</code>, and that no <code>allow-passthrough off</code> is blocking OSC sequences. ghostty accepts OSC 52 by default.</p>
+        <p>The full tmux copy-mode curriculum is Lesson 0006. This task just confirms the bridge works end-to-end on your stack.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Tool-matching recap.</strong> Three "clipboards" in play: <code>"</code> (vim's default, volatile), <code>0</code> (last yank, immune to deletes), <code>+</code> (system clipboard, crosses into macOS). And one delete-target: <code>_</code> (throw it away). Pick by intent: "where do I want this text to <em>go</em>?" — the register letter follows.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Which register is the system clipboard on macOS?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">"+</li>
+      <li class="option">"0</li>
+      <li class="option">"a</li>
+      <li class="option">"_</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which register holds only your last <em>yank</em> (never receives deletes)?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">"0</li>
+      <li class="option">"</li>
+      <li class="option">"1</li>
+      <li class="option">#</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Which register is the "black hole" — delete without saving?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">"_</li>
+      <li class="option">"-</li>
+      <li class="option">"0</li>
+      <li class="option">#</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Which sequence pastes the contents of register <code>a</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">"ap</li>
+      <li class="option">pa</li>
+      <li class="option">"pa</li>
+      <li class="option">a"p</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did <code>"+y</code> + <code>pbpaste</code> work first try, or did <code>:echo has('clipboard')</code> reveal your vim was built without clipboard support? On the remote side, did the tmux copy-mode → Cmd-V chain land, or did you hit a wall (<code>set-clipboard off</code>, <code>allow-passthrough</code>, something else)?</p>
+    <p style="margin-bottom:0">Bring concrete observations. The teacher uses them to decide whether L0006 starts <strong>Phase 3 — tmux fundamentals</strong> (sessions, windows, panes, prefix; the natural follow-up since this lesson teed up tmux copy-mode) or pauses for <strong>marks, macros, and the jump list revisited</strong> (deeper vim automation before the tmux phase).</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li>Run <code>:help registers</code>, <code>:help clipboard</code>, <code>:help quote</code>, <code>:help quote_+</code>, <code>:help quote_0</code>, <code>:help quote_{a-z}</code>, <code>:help "_</code>.</li>
+      <li>Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 60–66 (registers, the black hole, the system clipboard).</li>
+      <li><code>man tmux</code> → <code>set-clipboard</code> option; <code>copy-mode</code> keytable. Ghostty docs → OSC 52.</li>
+    </ul>
+    <p>Previous: <a href="./0004-visual-and-block-mode.html">Lesson 0004 — Visual &amp; block mode</a>. Reference: <a href="../reference/vim-registers.html">vim registers</a>. Next: Lesson 0006 — tmux fundamentals (Phase 3 kickoff), OR marks/macros (depending on your feedback).</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Registers and clipboard clicking. Move on to Lesson 0006.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the registers reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
