@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — tmux fundamentals</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1rem; margin: 1.6rem 0 0.5rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · tmux</p>
+    <h1>Sessions, windows, panes</h1>
+    <p class="lede">The hierarchy and the default keys that cover most day-to-day tmux. Prefix is <code>C-b</code>. Detach leaves the session alive.</p>
+  </header>
+
+  <h2>Hierarchy</h2>
+  <pre><code>session  — persistent; survives C-b d and SSH drops
+  └── window — full-screen "tab" inside a session
+        └── pane  — split region; one pty / shell each</code></pre>
+  <p>One tmux <em>server</em> per machine (socket) manages all sessions. A <em>client</em> is your attached terminal. See DESCRIPTION in <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>.</p>
+
+  <h2>Shell commands (outside / detached)</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>tmux new -s name</code></td><td>Create session <code>name</code> and attach</td></tr>
+      <tr><td><code>tmux ls</code></td><td>List sessions (<code>list-sessions</code>)</td></tr>
+      <tr><td><code>tmux attach -t name</code></td><td>Attach to existing session</td></tr>
+      <tr><td><code>tmux attach</code></td><td>Attach to the default / only session</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Prefix keys (pareto set)</h2>
+  <p>Press <code>Ctrl-b</code>, release, then the command key. From DEFAULT KEY BINDINGS in <code>man tmux</code>.</p>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>C-b d</code></td><td>Detach client</td></tr>
+      <tr><td><code>C-b c</code></td><td>New window</td></tr>
+      <tr><td><code>C-b n</code> / <code>p</code></td><td>Next / previous window</td></tr>
+      <tr><td><code>C-b 0</code>…<code>9</code></td><td>Select window by index</td></tr>
+      <tr><td><code>C-b %</code></td><td>Split left / right</td></tr>
+      <tr><td><code>C-b "</code></td><td>Split top / bottom</td></tr>
+      <tr><td><code>C-b o</code></td><td>Next pane</td></tr>
+      <tr><td><code>C-b ←↑↓→</code></td><td>Pane by direction</td></tr>
+      <tr><td><code>C-b z</code></td><td>Zoom pane (toggle)</td></tr>
+      <tr><td><code>C-b x</code></td><td>Kill pane (confirm)</td></tr>
+      <tr><td><code>C-b ?</code></td><td>List key bindings</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Indexing.</strong> Stock tmux: windows start at <code>0</code>. A local <code>base-index 1</code> only affects machines with that config — assume <code>0</code> on bare remotes.</div>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p>Useful later; not required for Lesson 0006 fluency.</p>
+    <table>
+      <tbody>
+        <tr><td><code>C-b [</code> / <code>]</code></td><td>Copy-mode / paste buffer — own lesson</td></tr>
+        <tr><td><code>C-b ,</code> / <code>$</code></td><td>Rename window / session</td></tr>
+        <tr><td><code>C-b &amp;</code></td><td>Kill window</td></tr>
+        <tr><td><code>C-b s</code> / <code>(</code> <code>)</code></td><td>Pick / cycle sessions</td></tr>
+        <tr><td><code>C-b Space</code> / <code>M-1</code>…</td><td>Preset layouts</td></tr>
+        <tr><td><code>C-b {</code> / <code>}</code></td><td>Swap panes</td></tr>
+        <tr><td><code>setw synchronize-panes</code></td><td>Type into all panes — multi-host lesson</td></tr>
+        <tr><td><code>tmux kill-session -t name</code></td><td>Destroy a session on purpose</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <p>Primary source: <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — DESCRIPTION, DEFAULT KEY BINDINGS, <code>new-session</code>, <code>attach-session</code>, <code>list-sessions</code>.</p>
+    <p>Companion: <a href="../lessons/0006-tmux-sessions-windows-panes.html">Lesson 0006</a>. Part of the <a href="../MISSION.md">terminal · vim · tmux for DevOps</a> workspace.</p>
+  </footer>
+</body>
+</html>

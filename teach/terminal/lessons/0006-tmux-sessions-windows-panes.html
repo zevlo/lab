@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0006 — tmux sessions, windows, panes</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 9em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0006 · <a href="../reference/tmux-fundamentals.html">Phase 3 — tmux</a></p>
+    <h1>Sessions, windows, panes</h1>
+    <p class="lede">One mental model and a handful of default keys. Detach, come back, and the work is still there — the unlock for remote SSH ops on a bare tmux.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Your mission needs three tmux outcomes early: survive an SSH drop, keep several shells organized without tab chaos, and split a window when two views must stay visible. This lesson is only the hierarchy and the keys that get you 80% of daily use. Copy-mode, synchronize-panes, and layouts wait for later.</p>
+
+  <h2>Knowledge 1 — the hierarchy</h2>
+  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: a <strong>session</strong> is a persistent collection of terminals; each session has one or more <strong>windows</strong> (full-screen tabs); each window may be split into <strong>panes</strong> (each a separate pty). The status line at the bottom names the session and lists windows.</p>
+  <pre><code>session  (survives detach / SSH drop)
+  └── window  (a "tab" — full screen)
+        └── pane   (a split region — one shell)</code></pre>
+  <p>You talk to tmux with a <strong>prefix</strong>, then a command key. Default prefix is <code>Ctrl-b</code> (written <code>C-b</code>). Press prefix, release, then the command key — not all three at once.</p>
+
+  <h2>Knowledge 2 — outside tmux (shell commands)</h2>
+  <p>These run in bash <em>before</em> you are attached. Aliases: <code>ls</code> = <code>list-sessions</code>, <code>attach</code> = <code>attach-session</code>, <code>new</code> = <code>new-session</code>.</p>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>tmux new -s ops</code></td><td>Create and attach a session named <code>ops</code></td></tr>
+      <tr><td><code>tmux ls</code></td><td>List sessions on this machine's tmux server</td></tr>
+      <tr><td><code>tmux attach -t ops</code></td><td>Attach to session <code>ops</code> (must already exist)</td></tr>
+      <tr><td><code>tmux attach</code></td><td>Attach to the most recent / only session</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Detach ≠ kill.</strong> <code>C-b d</code> leaves the session running. Closing the Ghostty window without detaching can also leave it running. <code>tmux ls</code> is how you find orphans. Destroying a session is a different, intentional act — not in this lesson's pareto set.</div>
+
+  <h2>Knowledge 3 — inside tmux (default keys only)</h2>
+  <p>All chords below are <code>C-b</code> then the key. Sourced from the DEFAULT KEY BINDINGS section of <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>.</p>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>C-b d</code></td><td>Detach this client — session keeps running</td></tr>
+      <tr><td><code>C-b c</code></td><td>Create a new window</td></tr>
+      <tr><td><code>C-b n</code> / <code>C-b p</code></td><td>Next / previous window</td></tr>
+      <tr><td><code>C-b 0</code>…<code>9</code></td><td>Select window by index</td></tr>
+      <tr><td><code>C-b %</code></td><td>Split pane left / right</td></tr>
+      <tr><td><code>C-b "</code></td><td>Split pane top / bottom</td></tr>
+      <tr><td><code>C-b o</code></td><td>Cycle to the next pane</td></tr>
+      <tr><td><code>C-b ←↑↓→</code></td><td>Move to the pane in that direction</td></tr>
+      <tr><td><code>C-b z</code></td><td>Zoom pane full-window (toggle)</td></tr>
+      <tr><td><code>C-b x</code></td><td>Kill the current pane (confirms)</td></tr>
+      <tr><td><code>C-b ?</code></td><td>List all key bindings</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Window numbers on remotes.</strong> Stock tmux indexes windows from <code>0</code>. Your local <code>~/.tmux.conf</code> sets <code>base-index 1</code>. On a bare SSH host, <code>C-b 0</code> is the first window — train that habit for strangers' machines.</div>
+
+  <h2>Drill — one session you can abandon and reclaim</h2>
+  <p>Do this in <strong>Ghostty</strong>. If you already have a tmux client attached, detach first (<code>C-b d</code>) so the shell commands below run outside tmux.</p>
+  <ol>
+    <li>
+      Create a named session and confirm the status line shows the name:
+      <pre><code>tmux new -s drill</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Status line bottom-left should include <code>drill</code>. You are attached: one window, one pane.</p>
+      </div></details>
+    </li>
+    <li>
+      Split left/right, then top/bottom in the active pane, so you have three panes. Cycle with <code>C-b o</code> until each pane has run <code>hostname</code> once.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>C-b %</code> then <code>C-b "</code> (order flexible). <code>C-b o</code> cycles focus. Arrow keys after prefix also move by direction — use whichever is faster.</p>
+      </div></details>
+    </li>
+    <li>
+      Zoom the pane where your cursor is (<code>C-b z</code>), read a long <code>man tmux</code> page if you want, then un-zoom with <code>C-b z</code> again.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Zoom is the high-leverage pane trick: temporarily fullscreen without destroying the layout. Same key toggles off.</p>
+      </div></details>
+    </li>
+    <li>
+      Create a second window (<code>C-b c</code>). In it, run <code>echo window-two</code>. Flip with <code>C-b n</code> / <code>C-b p</code> (or the window number).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Status line should show two window entries. Numbers depend on <code>base-index</code> — locally likely <code>1</code> and <code>2</code>; on stock remotes <code>0</code> and <code>1</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Detach (<code>C-b d</code>). From bash:
+      <pre><code>tmux ls
+tmux attach -t drill</code></pre>
+      Confirm both windows and your pane layout are intact.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>tmux ls</code> should list <code>drill:</code> with a window count. After attach, you are back where you left off — this is the SSH-drop survival story, practiced locally.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut (not this lesson).</strong> Copy-mode (<code>C-b [</code>), paste buffer (<code>C-b ]</code>), synchronize-panes, preset layouts, renaming, and killing sessions/windows are deferred. Need a binding you forgot? <code>C-b ?</code> is the escape hatch on any stock tmux.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What does <code>C-b d</code> do?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">detach this client</li>
+      <li class="option">destroy the session</li>
+      <li class="option">delete every window</li>
+      <li class="option">disable the prefix</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which shell command lists sessions?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">tmux ls</li>
+      <li class="option">tmux ps</li>
+      <li class="option">tmux df</li>
+      <li class="option">tmux id</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Default keys to split left/right?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">C-b %</li>
+      <li class="option">C-b "</li>
+      <li class="option">C-b x</li>
+      <li class="option">C-b z</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Largest unit that survives detach?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">session</li>
+      <li class="option">window</li>
+      <li class="option">pane</li>
+      <li class="option">prefix</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did detach → <code>tmux ls</code> → attach feel boring (good — boring is fluency), or did you lose a layout / hit a second session by mistake? On window numbers: did your local <code>base-index 1</code> trip you when you reached for <code>C-b 0</code>?</p>
+    <p style="margin-bottom:0">Bring concrete observations. The teacher uses them to choose the next slice of Phase 3: <strong>copy-mode on stock defaults</strong> (scrollback + yank into the tmux buffer), <strong>multi-session habits</strong> (<code>C-b s</code>, named sessions per host), or <strong>synchronize-panes</strong> for parallel multi-host ops.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — DESCRIPTION (session / window / pane), DEFAULT KEY BINDINGS, <code>new-session</code>, <code>attach-session</code>, <code>list-sessions</code>.</li>
+      <li>Brian Hogan, <em>tmux 2: Productive Mouse-Free Development</em> — early chapters on the hierarchy and detach/attach workflow.</li>
+    </ul>
+    <p>Previous: <a href="./0005-registers-and-system-clipboard.html">Lesson 0005 — Registers &amp; system clipboard</a>. Reference: <a href="../reference/tmux-fundamentals.html">tmux fundamentals</a>. Next: Lesson 0007 — TBD from your feedback.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Hierarchy locked. Ask the teacher what to cut next.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the tmux fundamentals reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

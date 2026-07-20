@@ -43,3 +43,15 @@
 - **Drill file**: `/tmp/secrets.yaml` (a Secret-shaped YAML) so system-clipboard tasks feel like real DevOps work — copy a `whsec_` token to the local browser.
 - **Pre-emption**: the lesson warns about the remote-SSH clipboard gotcha BEFORE the user hits it. Future remote drills should reinforce that `"+y` is local-only without OSC 52; tmux copy-mode is the bridge.
 - **Forward-reference discipline upheld**: Task 5 references tmux copy-mode keys, but explicitly — labeled as a bonus task that probes Lesson 0006 material rather than assuming it.
+
+## L0006 design notes (Phase 3 kickoff)
+- **Topic**: sessions / windows / panes + detach/attach. Copy-mode and Mac clipboard path explicitly deferred (user parked that investigation).
+- **Pareto keys only**: `d c n p 0-9 % " o arrows z x ?` after prefix; shell: `new -s`, `ls`, `attach -t`.
+- **Cut to reference "Beyond the pareto"**: copy-mode, paste buffer, sync-panes, layouts, rename, kill-session.
+- **SSH comfort**: teach stock `base-index 0`; warn that local conf uses `base-index 1`.
+- **Primary source**: `man tmux` DESCRIPTION + DEFAULT KEY BINDINGS (OpenBSD man mirror).
+
+## L0006 complete (4/4)
+- Hierarchy + detach/attach/splits: fluent. Next Phase 3 slice TBD from ask-the-teacher options.
+- **L0007 copy-mode constraint (mandatory):** `C-b [` + `Option-w` does **not** update macOS clipboard on this machine; it only fills the tmux buffer. Teach buffer paste (`C-b ]`) as the portable win; Mac clipboard via mouse/Ghostty or `set-buffer -w` — do not promise Option-w → Notes.
+- User question logged: how bash history vs tmux scrollback vs Ghostty scrollback differ (three separate stores).
