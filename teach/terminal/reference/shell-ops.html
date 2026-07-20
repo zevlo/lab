@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — shell ops (pgrep, kill, curl, cut)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · shell ops</p>
+    <h1>pgrep, kill, curl, cut</h1>
+    <p class="lede">Find a process, signal it, probe HTTP, extract a field. The incident reflex from the mission’s ops success criteria.</p>
+  </header>
+
+  <h2>cut — pick fields</h2>
+  <p>From <a href="https://www.gnu.org/software/coreutils/manual/coreutils.html"><code>info coreutils</code></a> (<code>cut</code> invocation). Fields are <strong>1-indexed</strong>.</p>
+  <table>
+    <thead><tr><th>Form</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>cut -d D -f N</code></td><td>Split on delimiter <code>D</code>; keep field <code>N</code></td></tr>
+      <tr><td><code>cut -d' ' -f1</code></td><td>First whitespace-separated field</td></tr>
+      <tr><td><code>cut -d' ' -f2</code></td><td>Second field (e.g. HTTP status code)</td></tr>
+      <tr><td><code>cut -d: -f1,3</code></td><td>Fields 1 and 3 (comma list)</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Spaces.</strong> Default delimiter is tab, not space. For space-separated text always pass <code>-d' '</code> (or <code>-d " "</code>).</div>
+
+  <h2>pgrep — find by pattern</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>pgrep -f PATTERN</code></td><td>PIDs whose <em>full</em> argv matches (portable)</td></tr>
+      <tr><td><code>pgrep -lf PATTERN</code></td><td>macOS: PID + full command line</td></tr>
+      <tr><td><code>pgrep -af PATTERN</code></td><td>Linux (procps): PID + full command line</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Name vs args.</strong> Without <code>-f</code>, match is against the short process name only. Prefer <code>-f</code> when hunting something like <code>http.server</code> in the argv.</div>
+
+  <h2>kill — send a signal</h2>
+  <p>From <a href="https://man.openbsd.org/kill.1"><code>man kill</code></a>: default signal is <code>TERM</code> (15). Prefer TERM before <code>KILL</code> (9).</p>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>kill PID</code></td><td>Send TERM — polite stop; allows cleanup</td></tr>
+      <tr><td><code>kill -TERM PID</code></td><td>Same, explicit</td></tr>
+      <tr><td><code>kill -9 PID</code></td><td>KILL — cannot be caught; last resort</td></tr>
+      <tr><td><code>kill -0 PID</code></td><td>Check PID exists (no signal sent)</td></tr>
+    </tbody>
+  </table>
+  <pre><code>PID=$(pgrep -f 'http.server 8765')
+kill "$PID"          # TERM first
+sleep 1
+kill -0 "$PID" 2&gt;/dev/null || echo gone</code></pre>
+
+  <h2>curl — probe HTTP</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>curl -i URL</code></td><td>Response headers + body (mission flag)</td></tr>
+      <tr><td><code>curl -sI URL</code></td><td>Headers only; silent progress meter</td></tr>
+      <tr><td><code>curl -si URL</code></td><td>Headers + body; silent meter</td></tr>
+    </tbody>
+  </table>
+  <pre><code>curl -si http://127.0.0.1:8765/ | head -1
+# HTTP/1.0 200 OK  →  status is field 2
+curl -si http://127.0.0.1:8765/ | head -1 | cut -d' ' -f2</code></pre>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p><code>pkill</code> (signal by name — easy to over-match), <code>kill -HUP</code> reload patterns, <code>curl -X</code>/<code>-d</code>/<code>-H</code> for full API work, <code>dig</code>, <code>ss -tlnp</code> (Linux). Add when an incident needs them.</p>
+  </div>
+
+  <footer>
+    <p><code>man pgrep</code>, <code>man kill</code>, <a href="https://curl.se/docs/manpage.html"><code>man curl</code></a>, <a href="https://www.gnu.org/software/coreutils/manual/coreutils.html"><code>info coreutils</code></a> (<code>cut</code>). Lesson: <a href="../lessons/0008-ops-pgrep-kill-curl.html">0008 — ops: pgrep, kill, curl</a>. Map: <a href="./pareto-shell-commands.html">pareto shell commands</a>.</p>
+  </footer>
+</body>
+</html>

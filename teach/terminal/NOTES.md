@@ -53,5 +53,21 @@
 
 ## L0006 complete (4/4)
 - Hierarchy + detach/attach/splits: fluent. Next Phase 3 slice TBD from ask-the-teacher options.
-- **L0007 copy-mode constraint (mandatory):** `C-b [` + `Option-w` does **not** update macOS clipboard on this machine; it only fills the tmux buffer. Teach buffer paste (`C-b ]`) as the portable win; Mac clipboard via mouse/Ghostty or `set-buffer -w` — do not promise Option-w → Notes.
+- **Copy-mode constraint (mandatory when that lesson ships):** `C-b [` + `Option-w` does **not** update macOS clipboard on this machine; it only fills the tmux buffer. Teach buffer paste (`C-b ]`) as the portable win; Mac clipboard via mouse/Ghostty or `set-buffer -w` — do not promise Option-w → Notes.
 - User question logged: how bash history vs tmux scrollback vs Ghostty scrollback differ (three separate stores).
+
+## L0007 design notes (Pareto shell — user-requested)
+- **Topic:** the 20% of Linux/shell commands that cover ~80% of DevOps work — map first, then one tangible filter pipeline.
+- **Five families:** navigate / inspect / filter / redirect / ops. Full table in `reference/pareto-shell-commands.html`.
+- **Skill win:** mission recipe `grep | cut | sort | uniq -c | sort -nr` (+ `tee`, optional `tail -F`). Shotts TLCL ch. 6 is primary source.
+- **Pareto cut from lesson body:** `find`/`xargs`, `sed`/`awk`, `jq`, archives, deep permissions — reference "Beyond the pareto" only.
+- **macOS caveat:** `ss` is Linux/remote; call out `lsof`/`netstat` for local. Don't drill `ss` on Mac.
+- **Interleave:** shell lesson inserted after tmux L0006 by explicit user request; Phase 3 copy-mode remains deferred.
+- **Next from ask-the-teacher:** ops drill, redirect mastery, tmux copy-mode, or more filter interleaving.
+
+## L0008 design notes (ops — from L0007 feedback)
+- **Gaps named:** `pgrep`/`kill`/`curl` soft; `cut` first-time → interleave cut for storage strength.
+- **Skill win:** local `python3 -m http.server` lifecycle — curl -i → cut status → pgrep -f → kill TERM → kill -0 verify.
+- **Portable core:** `pgrep -f` + kill-by-PID. Mac display: `-lf`; Linux display: `-af`. No `pkill` in lesson.
+- **Cut:** reinforce `-d' '` (space not default) and 1-indexed fields; status code = field 2.
+- **Deferred:** dig, ss, rich curl API flags, redirect mastery, tmux copy-mode.

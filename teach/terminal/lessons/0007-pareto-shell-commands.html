@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0007 — Pareto shell commands</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 9em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0007 · <a href="../reference/pareto-shell-commands.html">Phase shell — coreutils</a></p>
+    <h1>The 20% that does 80%</h1>
+    <p class="lede">A mental map of the commands that actually carry DevOps work — then one pipeline you will reuse forever for log triage.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Your mission needs fluent POSIX pipelines for incident triage, not encyclopedic knowledge of every binary in <code>/usr/bin</code>. Roughly twenty commands, in five families, cover most bare-metal shell work. Everything else waits until a real job demands it — same pareto discipline you asked for in vim.</p>
+
+  <h2>Knowledge 1 — five families</h2>
+  <p>Memorize the <em>map</em>, not every flag. Full cheat sheet: <a href="../reference/pareto-shell-commands.html">pareto shell commands</a>.</p>
+  <table>
+    <thead><tr><th>Family</th><th>Job</th><th>Pareto set</th></tr></thead>
+    <tbody>
+      <tr><td>navigate</td><td>Where / files</td><td><code>pwd cd ls mkdir cp mv rm cat less</code></td></tr>
+      <tr><td>inspect</td><td>Read / pick</td><td><code>head tail grep</code></td></tr>
+      <tr><td>filter</td><td>Reshape stream</td><td><code>| cut sort uniq wc tee</code></td></tr>
+      <tr><td>redirect</td><td>To a file</td><td><code>&gt; &gt;&gt; 2&gt;&amp;1</code></td></tr>
+      <tr><td>ops</td><td>Proc / net</td><td><code>ps pgrep kill curl dig ss</code></td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>macOS vs remote.</strong> <code>ss</code> is Linux — use it over SSH. Local Mac listening ports: <code>lsof</code> / <code>netstat</code>. Prefer portable flags; half your work is remote.</div>
+
+  <h2>Knowledge 2 — filters and the pipe</h2>
+  <p>From Shotts (<a href="https://www.linuxcommand.org/lc3_lts0070.php">I/O redirection</a> / TLCL ch. 6): a <strong>pipeline</strong> connects stdout of one command to stdin of the next with <code>|</code>. Programs that reshape the stream are <strong>filters</strong>.</p>
+  <table>
+    <thead><tr><th>Filter</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>grep PAT</code></td><td>Keep lines matching <code>PAT</code></td></tr>
+      <tr><td><code>cut -d D -f N</code></td><td>Keep field <code>N</code> (split on <code>D</code>)</td></tr>
+      <tr><td><code>sort</code></td><td>Order lines (needed before <code>uniq</code>)</td></tr>
+      <tr><td><code>uniq -c</code></td><td>Count <em>adjacent</em> duplicates</td></tr>
+      <tr><td><code>sort -nr</code></td><td>Rank numeric counts high→low</td></tr>
+      <tr><td><code>wc -l</code></td><td>Count lines</td></tr>
+      <tr><td><code>tee FILE</code></td><td>Save a copy mid-pipe; keep flowing</td></tr>
+    </tbody>
+  </table>
+  <p>Mission shape — source → narrow → extract → sort → count → rank:</p>
+  <pre><code>tail -n 200 app.log \
+  | grep ERROR \
+  | cut -d' ' -f1 \
+  | sort \
+  | uniq -c \
+  | sort -nr</code></pre>
+  <div class="gotcha"><strong><code>uniq</code> needs sorted input.</strong> It only collapses runs of identical <em>adjacent</em> lines. Skip <code>sort</code> and your counts lie. Always <code>sort | uniq -c</code>, then optionally <code>sort -nr</code> to rank.</div>
+
+  <h2>Knowledge 3 — pipe vs redirect</h2>
+  <p><code>|</code> feeds another <em>program</em>. <code>&gt;</code> / <code>&gt;&gt;</code> feeds a <em>file</em>. Merge errors into the stream you are capturing with <code>2&gt;&amp;1</code> (bash redirection; see <a href="https://www.gnu.org/software/bash/manual/bash.html"><code>man bash</code></a>).</p>
+  <pre><code>cmd &gt;out.txt 2&gt;&amp;1          # both streams into out.txt
+cmd 2&gt;&amp;1 | tee out.txt     # both streams into pipe + file</code></pre>
+
+  <h2>Drill — one log, one recipe</h2>
+  <p>Do this in bash (Ghostty is fine; tmux optional). Create the sample log with a heredoc — do not paste into vim for this drill.</p>
+  <ol>
+    <li>
+      Write a tiny fake access log:
+      <pre><code>cat &gt; /tmp/app.log &lt;&lt;'EOF'
+10.0.0.1 GET /health 200
+10.0.0.2 GET /api 500 ERROR timeout
+10.0.0.1 GET /api 200
+10.0.0.3 POST /login 401 ERROR auth
+10.0.0.2 GET /api 500 ERROR timeout
+10.0.0.2 GET /api 500 ERROR timeout
+10.0.0.4 GET /api 200
+10.0.0.3 POST /login 401 ERROR auth
+EOF</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>wc -l /tmp/app.log</code> should print <code>8</code>. If not, re-run the heredoc — the closing <code>EOF</code> must be alone on its line.</p>
+      </div></details>
+    </li>
+    <li>
+      Narrow to error lines only:
+      <pre><code>grep ERROR /tmp/app.log</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Five lines. <code>grep</code> is inspect <em>and</em> filter — same binary, used mid-pipe or on a file.</p>
+      </div></details>
+    </li>
+    <li>
+      Extract the client IP (field 1, space-delimited) and rank frequencies:
+      <pre><code>grep ERROR /tmp/app.log \
+  | cut -d' ' -f1 \
+  | sort \
+  | uniq -c \
+  | sort -nr</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Expect <code>10.0.0.2</code> with count 3, then <code>10.0.0.3</code> with count 2. If counts look wrong, you likely forgot <code>sort</code> before <code>uniq</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Save the ranked table while still viewing it:
+      <pre><code>grep ERROR /tmp/app.log \
+  | cut -d' ' -f1 \
+  | sort | uniq -c | sort -nr \
+  | tee /tmp/top-err-ips.txt</code></pre>
+      Confirm with <code>cat /tmp/top-err-ips.txt</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>tee</code> is the T-junction from Shotts: copy to a file without breaking the pipeline. Here the pipeline ends at <code>tee</code>, so you see the same text on screen and in the file.</p>
+      </div></details>
+    </li>
+    <li>
+      Optional muscle: follow a live file. In one pane/window run <code>tail -F /tmp/app.log</code>. In another, append a line:
+      <pre><code>echo '10.0.0.9 GET /x 500 ERROR boom' &gt;&gt; /tmp/app.log</code></pre>
+      Watch it appear. Stop with <code>Ctrl-c</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>tail -F</code> (capital F) follows across rotation; day-to-day log watching. Pair later with <code>grep --line-buffered</code> when you need live filtered follow — not required today.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut (not this lesson).</strong> Deep <code>find</code>/<code>xargs</code>, <code>sed</code>/<code>awk</code>, <code>jq</code>, archives, and permission surgery stay on the reference’s “Beyond the pareto” list. Navigate/ops families are on the map — drill them when an incident needs them, not all at once.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Which family owns <code>cut</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">filter family</li>
+      <li class="option">navigate set</li>
+      <li class="option">ops tooling</li>
+      <li class="option">redirect ops</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Why <code>sort</code> before <code>uniq</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">uniq needs adjacency</li>
+      <li class="option">sort needs adjacency</li>
+      <li class="option">grep needs adjacency</li>
+      <li class="option">tee needs adjacency</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Pipe vs redirect — which is true?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">pipe feeds a program</li>
+      <li class="option">pipe feeds a filename</li>
+      <li class="option">arrow feeds a program</li>
+      <li class="option">arrow feeds a process</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Listening sockets on Linux remotes?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">ss -tlnp</li>
+      <li class="option">ps -tlnp</li>
+      <li class="option">ls -tlnp</li>
+      <li class="option">cd -tlnp</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did the ranked IP table match (3 / 2)? Did skipping <code>sort</code> ever bite you? Which family still feels fuzzy — navigate flags, live <code>tail -F</code>, redirects, or the ops trio (<code>pgrep</code>/<code>kill</code>/<code>curl</code>)?</p>
+    <p style="margin-bottom:0">Bring concrete observations. Next slices from feedback: <strong>ops drill</strong> (find + signal a process; <code>curl -i</code>), <strong>redirect mastery</strong> (<code>2&gt;&amp;1</code> + <code>tee</code> under failure), <strong>tmux copy-mode</strong> (deferred Phase 3), or another pass on filters with interleaved practice.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li>William Shotts, <a href="https://linuxcommand.org/tlcl.php"><em>The Linux Command Line</em></a> — ch. 6 Redirection (pipelines, filters: <code>cat sort uniq wc grep head tail tee</code>). Free PDF from linuxcommand.org.</li>
+      <li><a href="https://www.linuxcommand.org/lc3_lts0070.php">linuxcommand.org — I/O Redirection</a> — short companion to the same ideas.</li>
+      <li><a href="https://www.gnu.org/software/coreutils/manual/coreutils.html"><code>info coreutils</code></a> — canonical semantics for <code>cut</code>, <code>sort</code>, <code>uniq</code>, <code>tee</code>, etc.</li>
+      <li><a href="https://www.gnu.org/software/bash/manual/bash.html"><code>man bash</code></a> — redirection (<code>&gt;</code>, <code>&gt;&gt;</code>, <code>2&gt;&amp;1</code>).</li>
+    </ul>
+    <p>Previous: <a href="./0006-tmux-sessions-windows-panes.html">Lesson 0006 — tmux sessions, windows, panes</a>. Reference: <a href="../reference/pareto-shell-commands.html">pareto shell commands</a>. Next: <a href="./0008-ops-pgrep-kill-curl.html">Lesson 0008 — ops: pgrep, kill, curl</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Map locked. Ask the teacher what to drill next.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the pareto shell reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

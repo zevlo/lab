@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — Pareto shell commands</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1rem; margin: 1.6rem 0 0.5rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · shell</p>
+    <h1>Pareto shell commands</h1>
+    <p class="lede">The ~20 commands that cover ~80% of DevOps terminal work on a bare bash stack. Prefer portable flags; check <code>man</code> / <code>info</code> on each host.</p>
+  </header>
+
+  <h2>Five families</h2>
+  <pre><code>navigate  — where am I / move files
+inspect   — read logs and pick lines
+filter    — reshape streams in a pipeline
+redirect  — send streams to files
+ops       — processes and network (often remote Linux)</code></pre>
+
+  <h2>Navigate</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>pwd</code></td><td>Print working directory</td></tr>
+      <tr><td><code>cd</code></td><td>Change directory (<code>cd -</code> previous)</td></tr>
+      <tr><td><code>ls -la</code></td><td>List including hidden; long form</td></tr>
+      <tr><td><code>mkdir -p</code></td><td>Make dirs; create parents</td></tr>
+      <tr><td><code>cp -R</code></td><td>Copy; recursive for dirs</td></tr>
+      <tr><td><code>mv</code></td><td>Move or rename</td></tr>
+      <tr><td><code>rm -rf</code></td><td>Remove; recursive + force (dangerous)</td></tr>
+      <tr><td><code>cat</code></td><td>Concatenate / dump small files</td></tr>
+      <tr><td><code>less</code></td><td>Page through a file (<code>q</code> quit)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Inspect</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>head -n N</code></td><td>First <code>N</code> lines</td></tr>
+      <tr><td><code>tail -n N</code></td><td>Last <code>N</code> lines</td></tr>
+      <tr><td><code>tail -F</code></td><td>Follow a log (survives rotate)</td></tr>
+      <tr><td><code>grep PAT</code></td><td>Lines matching pattern</td></tr>
+      <tr><td><code>grep -v PAT</code></td><td>Lines <em>not</em> matching</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Filter (pipeline middle)</h2>
+  <p>From Shotts’s redirection chapter: filters read stdin, write stdout. Chain with <code>|</code>.</p>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>|</code></td><td>Pipe stdout → next stdin</td></tr>
+      <tr><td><code>cut -d D -f N</code></td><td>Pick field <code>N</code> (delimiter <code>D</code>)</td></tr>
+      <tr><td><code>sort</code></td><td>Sort lines</td></tr>
+      <tr><td><code>sort -nr</code></td><td>Numeric, reverse</td></tr>
+      <tr><td><code>uniq</code></td><td>Drop adjacent duplicates (sort first)</td></tr>
+      <tr><td><code>uniq -c</code></td><td>Count adjacent duplicates</td></tr>
+      <tr><td><code>wc -l</code></td><td>Count lines</td></tr>
+      <tr><td><code>tee FILE</code></td><td>Copy stream to file <em>and</em> stdout</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Mission recipe.</strong> Log triage shape: <code>tail … | grep … | cut … | sort | uniq -c | sort -nr</code>. <code>uniq</code> only collapses <em>adjacent</em> lines — always <code>sort</code> before <code>uniq</code>.</div>
+
+  <h2>Redirect</h2>
+  <table>
+    <thead><tr><th>Operator</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>&gt; file</code></td><td>Overwrite file with stdout</td></tr>
+      <tr><td><code>&gt;&gt; file</code></td><td>Append stdout to file</td></tr>
+      <tr><td><code>2&gt;&amp;1</code></td><td>Merge stderr into stdout</td></tr>
+      <tr><td><code>cmd &gt;f 2&gt;&amp;1</code></td><td>Capture both streams in <code>f</code></td></tr>
+    </tbody>
+  </table>
+  <p><code>|</code> connects programs. <code>&gt;</code> connects a program to a file. Do not confuse them.</p>
+
+  <h2>Ops (process + network)</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>ps aux</code></td><td>Snapshot of processes</td></tr>
+      <tr><td><code>pgrep -a NAME</code></td><td>Find PIDs by name</td></tr>
+      <tr><td><code>kill PID</code></td><td>Signal a process (default TERM)</td></tr>
+      <tr><td><code>kill -9 PID</code></td><td>Force kill (last resort)</td></tr>
+      <tr><td><code>curl -i URL</code></td><td>HTTP request; show headers</td></tr>
+      <tr><td><code>dig NAME</code></td><td>DNS lookup</td></tr>
+      <tr><td><code>ss -tlnp</code></td><td>Listening TCP sockets (Linux)</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>macOS vs remote.</strong> <code>ss</code> is a Linux tool — use it on SSH remotes. Local Mac: reach for <code>lsof -iTCP -sTCP:LISTEN</code> or <code>netstat</code> when you must. Prefer portable flags when half your work is remote.</div>
+
+  <h2>Canonical pipeline shape</h2>
+  <pre><code>source | narrow | extract | sort | count | rank
+tail -F app.log \
+  | grep ERROR \
+  | cut -d' ' -f1 \
+  | sort \
+  | uniq -c \
+  | sort -nr</code></pre>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p>Useful later, not day-one muscle: <code>find</code>/<code>xargs</code>, <code>sed</code>/<code>awk</code>, <code>jq</code>, <code>tar</code>/<code>gzip</code>, deep <code>chmod</code>/<code>chown</code>, <code>rsync</code>, <code>scp</code>, <code>ssh</code> multiplexing, package managers. Add when a real incident demands them.</p>
+  </div>
+
+  <footer>
+    <p>Primary: William Shotts, <a href="https://linuxcommand.org/tlcl.php"><em>The Linux Command Line</em></a> ch. 6 (redirection &amp; filters); <a href="https://www.gnu.org/software/coreutils/manual/coreutils.html"><code>info coreutils</code></a>; <a href="https://www.gnu.org/software/bash/manual/bash.html"><code>man bash</code></a> (redirection). Lesson: <a href="../lessons/0007-pareto-shell-commands.html">0007 — Pareto shell commands</a>.</p>
+  </footer>
+</body>
+</html>
