@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0009 — redirect mastery</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0009 · <a href="../reference/shell-redirect.html">Phase shell — redirect</a></p>
+    <h1>Capture what failed</h1>
+    <p class="lede">Stdout vs stderr, <code>&gt;</code> vs <code>&gt;&gt;</code>, why <code>2&gt;&amp;1</code> order matters, and <code>tee</code> when you need to watch and save.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Incident work means saving command output — including the error text that usually scrolls past. Lesson 0007 put redirects on the map; this lesson makes them muscle. Finishes the five-family shell pareto before you branch into network tools or tmux copy-mode.</p>
+
+  <h2>Knowledge 1 — two outputs, one screen</h2>
+  <p>From Shotts (<a href="https://www.linuxcommand.org/lc3_lts0070.php">I/O Redirection</a> / TLCL ch. 6) and <a href="https://www.gnu.org/software/bash/manual/bash.html"><code>man bash</code></a> REDIRECTION: programs write <strong>stdout</strong> (fd <code>1</code>, results) and <strong>stderr</strong> (fd <code>2</code>, diagnostics). Both default to the terminal, so they look identical until you redirect.</p>
+  <pre><code>ls /tmp /no-such-path
+# listing  → stdout
+# error    → stderr</code></pre>
+
+  <h2>Knowledge 2 — overwrite, append, stderr alone</h2>
+  <table>
+    <thead><tr><th>Form</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>cmd &gt; f</code></td><td>Stdout overwrites <code>f</code></td></tr>
+      <tr><td><code>cmd &gt;&gt; f</code></td><td>Stdout appends to <code>f</code></td></tr>
+      <tr><td><code>cmd 2&gt; f</code></td><td>Stderr overwrites <code>f</code></td></tr>
+    </tbody>
+  </table>
+  <p><code>&gt;</code> alone leaves stderr on the screen. That is why “I redirected but still see errors” is so common.</p>
+
+  <h2>Knowledge 3 — merge with <code>2&gt;&amp;1</code> (order matters)</h2>
+  <p><code>2&gt;&amp;1</code> means: point stderr at <em>wherever stdout is pointing right now</em>. So retarget stdout first, then merge.</p>
+  <pre><code>cmd &gt;out.txt 2&gt;&amp;1      # both in out.txt
+cmd 2&gt;&amp;1 &gt;out.txt      # stderr still on terminal — footgun</code></pre>
+  <div class="gotcha"><strong>Left to right.</strong> Destination (<code>&gt;file</code>), then duplicate (<code>2&gt;&amp;1</code>). Reverse the tokens and you “merged” onto the terminal before stdout moved to the file.</div>
+  <div class="gotcha"><strong>POSIX-lean.</strong> Bash also has <code>&amp;&gt;file</code>. Prefer <code>&gt;file 2&gt;&amp;1</code> so the same reflex works on bare remote shells.</div>
+
+  <h2>Knowledge 4 — tee: see and save</h2>
+  <p><code>tee</code> is the T-junction: copy the pipe to a file without killing the screen. Merge first if you want errors in the capture.</p>
+  <pre><code>cmd 2&gt;&amp;1 | tee /tmp/capture.txt
+cmd 2&gt;&amp;1 | tee -a /tmp/capture.txt   # append</code></pre>
+
+  <h2>Drill — lose an error, then catch it</h2>
+  <p>All in bash. Use <code>/tmp</code> so nothing important gets clobbered.</p>
+  <ol>
+    <li>
+      See both streams on screen:
+      <pre><code>ls /tmp /no-such-path</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You get a directory listing (stdout) and a “No such file” line (stderr). Same terminal, two fds.</p>
+      </div></details>
+    </li>
+    <li>
+      Capture stdout only — watch stderr escape:
+      <pre><code>ls /tmp /no-such-path &gt; /tmp/out-only.txt
+cat /tmp/out-only.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>The error still printed on screen. The file has only the listing. This is the classic “redirect didn’t catch the failure” moment.</p>
+      </div></details>
+    </li>
+    <li>
+      Capture both (correct order):
+      <pre><code>ls /tmp /no-such-path &gt; /tmp/both.txt 2&gt;&amp;1
+cat /tmp/both.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Screen is quiet. File has listing <em>and</em> the error. That is the form to memorize for incident logs.</p>
+      </div></details>
+    </li>
+    <li>
+      Prove the footgun — wrong order:
+      <pre><code>ls /tmp /no-such-path 2&gt;&amp;1 &gt; /tmp/wrong-order.txt
+cat /tmp/wrong-order.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Error on screen again; file is listing-only. You merged stderr onto the terminal, <em>then</em> moved stdout to the file. Order is the lesson.</p>
+      </div></details>
+    </li>
+    <li>
+      Append, then tee (watch + save):
+      <pre><code>echo '--- next run ---' &gt;&gt; /tmp/both.txt
+ls /tmp /no-such-path &gt;&gt; /tmp/both.txt 2&gt;&amp;1
+ls /tmp /no-such-path 2&gt;&amp;1 | tee /tmp/tee-capture.txt
+cat /tmp/tee-capture.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>&gt;&gt; … 2&gt;&amp;1</code> appends both streams. <code>tee</code> prints the same text you saved — useful when you refuse to run a command twice just to keep a log.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut.</strong> Not today: <code>&amp;&gt;</code>, <code>|&</code>, fancy fd swaps, process substitution. Cheat sheet: <a href="../reference/shell-redirect.html">shell redirection</a>.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Which fd is stderr?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">file descriptor 2</li>
+      <li class="option">file descriptor 0</li>
+      <li class="option">file descriptor 1</li>
+      <li class="option">file descriptor 3</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Capture both streams to a file?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">cmd &gt;f 2&gt;&amp;1</li>
+      <li class="option">cmd 2&gt;&amp;1 &gt;f</li>
+      <li class="option">cmd &gt;f 1&gt;&amp;2</li>
+      <li class="option">cmd &lt;f 2&gt;&amp;1</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What does <code>&gt;&gt;</code> do to the file?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">append stdout bytes</li>
+      <li class="option">erase stdout bytes</li>
+      <li class="option">merge stderr bytes</li>
+      <li class="option">pipe stdout bytes</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why use <code>tee</code> mid-capture?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">see output and save</li>
+      <li class="option">hide output and save</li>
+      <li class="option">sort output and save</li>
+      <li class="option">kill output and save</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did the wrong-order step feel surprising or obvious once you saw it? Is <code>&gt;f 2&gt;&amp;1</code> now automatic? Any leftover confusion about <code>2&gt;f</code> (stderr only) vs the merge form?</p>
+    <p style="margin-bottom:0">Bring concrete observations. Next slices: <strong>dig + remote <code>ss</code></strong>, <strong>tmux copy-mode</strong> (Mac buffer caveats), or spaced retrieval on <strong>cut</strong> / the ops loop.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li>William Shotts, <a href="https://linuxcommand.org/tlcl.php"><em>The Linux Command Line</em></a> — ch. 6 Redirection (stdout/stderr, <code>&gt;</code>/<code>&gt;&gt;</code>, pipes, <code>tee</code>).</li>
+      <li><a href="https://www.linuxcommand.org/lc3_lts0070.php">linuxcommand.org — I/O Redirection</a> — short companion.</li>
+      <li><a href="https://www.gnu.org/software/bash/manual/bash.html"><code>man bash</code></a> — REDIRECTION (<code>2&gt;&amp;1</code> semantics, left-to-right).</li>
+      <li><a href="https://www.gnu.org/software/coreutils/manual/coreutils.html"><code>info coreutils</code></a> — <code>tee</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0008-ops-pgrep-kill-curl.html">Lesson 0008 — ops: pgrep, kill, curl</a>. Reference: <a href="../reference/shell-redirect.html">shell redirection</a>. Next: TBD from your feedback.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Redirects locked. Ask the teacher what to drill next.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the shell redirection reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

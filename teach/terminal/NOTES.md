@@ -75,3 +75,9 @@
 ## L0008 complete (4/4)
 - Ops loop fluent: `pgrep -f` → `curl -i` / `cut` → `kill` TERM → `kill -0`. New floor; do not re-teach unless retrieval decay shows up.
 - Next slice TBD from ask-the-teacher: redirect mastery, dig + remote ss, cut spacing, or tmux copy-mode.
+
+## L0009 design notes (redirect mastery — user-requested)
+- **Topic:** stdout vs stderr, `>` / `>>` / `2>`, merge `>f 2>&1`, order footgun, `tee` / `tee -a`.
+- **Skill win:** lose an error with `> only`, catch it with correct merge, prove wrong-order footgun, append + tee.
+- **POSIX-lean:** teach `>f 2>&1`, not bash `&>`. Cut: `|&`, process substitution, fancy fd swaps.
+- **Primary:** Shotts TLCL ch. 6 + `man bash` REDIRECTION + `info coreutils` tee.

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — shell redirection</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · shell</p>
+    <h1>Redirection</h1>
+    <p class="lede">Stdout, stderr, overwrite vs append, merge order, and <code>tee</code>. Portable forms preferred (<code>&gt;file 2&gt;&amp;1</code>).</p>
+  </header>
+
+  <h2>Three streams</h2>
+  <table>
+    <thead><tr><th>Name</th><th>fd</th><th>Default</th></tr></thead>
+    <tbody>
+      <tr><td>stdin</td><td><code>0</code></td><td>keyboard</td></tr>
+      <tr><td>stdout</td><td><code>1</code></td><td>terminal</td></tr>
+      <tr><td>stderr</td><td><code>2</code></td><td>terminal</td></tr>
+    </tbody>
+  </table>
+  <p>Results go to stdout. Diagnostics go to stderr. Both look the same on screen until you redirect.</p>
+
+  <h2>Operators (pareto)</h2>
+  <table>
+    <thead><tr><th>Form</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>cmd &gt; file</code></td><td>Overwrite <code>file</code> with stdout</td></tr>
+      <tr><td><code>cmd &gt;&gt; file</code></td><td>Append stdout to <code>file</code></td></tr>
+      <tr><td><code>cmd 2&gt; file</code></td><td>Overwrite <code>file</code> with stderr only</td></tr>
+      <tr><td><code>cmd &gt; file 2&gt;&amp;1</code></td><td>Both streams into <code>file</code> (order matters)</td></tr>
+      <tr><td><code>cmd 2&gt;&amp;1 | tee file</code></td><td>Merge, then pipe; see + save</td></tr>
+      <tr><td><code>|</code></td><td>Stdout of left → stdin of right (not a file)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Order of <code>2&gt;&amp;1</code></h2>
+  <p>From bash Redirections: <code>2&gt;&amp;1</code> means “point fd 2 at whatever fd 1 currently points to.” Apply it <em>after</em> you retarget stdout.</p>
+  <pre><code>cmd &gt;out.txt 2&gt;&amp;1     # GOOD — both in out.txt
+cmd 2&gt;&amp;1 &gt;out.txt     # BAD  — stderr still on terminal</code></pre>
+  <div class="note"><strong>Memory aid.</strong> Redirect the destination first (<code>&gt;file</code>), then duplicate stderr onto it (<code>2&gt;&amp;1</code>). Left-to-right, destination before merge.</div>
+
+  <h2>tee</h2>
+  <p>From Shotts / <code>info coreutils</code>: <code>tee</code> copies stdin to a file <em>and</em> to stdout — a T-junction on the pipe.</p>
+  <pre><code>cmd 2&gt;&amp;1 | tee /tmp/capture.txt
+cmd 2&gt;&amp;1 | tee -a /tmp/capture.txt   # append to the capture file</code></pre>
+
+  <h2>Demo command</h2>
+  <pre><code>ls /tmp /no-such-path
+# stdout: listing of /tmp
+# stderr: “No such file or directory”</code></pre>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p>Bash-only <code>&amp;&gt;file</code> / <code>&amp;&gt;&gt;file</code>, <code>|&</code> (pipe both), <code>n&gt;&amp;m</code> fd juggling, process substitution <code>&lt;(…)</code>, <code>/dev/null</code> deep patterns. Prefer <code>&gt;file 2&gt;&amp;1</code> on bare remotes for POSIX-lean muscle.</p>
+  </div>
+
+  <footer>
+    <p>William Shotts, <a href="https://linuxcommand.org/tlcl.php"><em>The Linux Command Line</em></a> ch. 6; <a href="https://www.linuxcommand.org/lc3_lts0070.php">I/O Redirection</a>; <a href="https://www.gnu.org/software/bash/manual/bash.html"><code>man bash</code></a> REDIRECTION. Lesson: <a href="../lessons/0009-redirect-mastery.html">0009 — redirect mastery</a>.</p>
+  </footer>
+</body>
+</html>
