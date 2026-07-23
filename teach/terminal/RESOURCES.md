@@ -46,5 +46,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **r/sre and r/devops** — https://reddit.com/r/sre
   Use for: real-world incident patterns and DevOps tool workflows.
 
-## Gaps
-_None yet._ Will surface explicitly if a mission-relevant area has no trusted resource.
+- **`man 1 dig`** / BIND dig
+  DNS lookup utility. Use for: A/AAAA/MX, `+short`, `@server`, reading `status:` in full output. Lesson 0010.
+- **`man 8 ss`** — https://manpages.debian.org/bookworm/iproute2/ss.8.en.html
+  Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only.

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0010 — dig and ss</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 11em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0010 · <a href="../reference/dig-and-ss.html">Phase shell — network</a></p>
+    <h1>Name it, then find the bind</h1>
+    <p class="lede"><code>dig</code> answers “where does this name go?” <code>ss -tlnp</code> answers “what is listening on this Linux host?” — mission network reflexes.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Success criteria already include <code>curl -i</code>, <code>dig</code>, and <code>ss -tlnp</code>. You have curl. This lesson closes the other two: resolve a name, then on a remote Linux box see which process owns a port.</p>
+
+  <h2>Knowledge 1 — dig</h2>
+  <p>From <code>man dig</code> (BIND on your Mac): query DNS; default record type is <code>A</code> (IPv4). Without <code>@server</code>, dig uses <code>/etc/resolv.conf</code>.</p>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>dig name</code></td><td>Full output — read <code>status:</code> and ANSWER</td></tr>
+      <tr><td><code>dig name +short</code></td><td>Terse answer only</td></tr>
+      <tr><td><code>dig @1.1.1.1 name</code></td><td>Bypass local resolver; ask Cloudflare</td></tr>
+      <tr><td><code>dig name AAAA</code></td><td>IPv6</td></tr>
+      <tr><td><code>dig name MX</code></td><td>Mail exchangers</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Status, not silence.</strong> <code>status: NOERROR</code> means the query worked. <code>NXDOMAIN</code> means the name does not exist. Empty <code>+short</code> with NXDOMAIN is a real answer — “no such name.”</div>
+
+  <h2>Knowledge 2 — ss -tlnp (Linux remotes)</h2>
+  <p>From <a href="https://manpages.debian.org/bookworm/iproute2/ss.8.en.html"><code>man ss</code></a> (iproute2). Mission mnemonic:</p>
+  <pre><code>ss -tlnp
+# -t  TCP
+# -l  listening only
+# -n  numeric ports/addresses
+# -p  owning process (may need root for others)</code></pre>
+  <p>Read the <code>Local Address:Port</code> column (<code>0.0.0.0:22</code>, <code>*:443</code>, <code>[::]:22</code>) and the process field when present.</p>
+  <div class="gotcha"><strong>Not on macOS.</strong> Your Mac has no <code>ss</code>. Run it over SSH on Linux. Local preview of “what is listening”: <code>lsof -nP -iTCP -sTCP:LISTEN</code> — different tool, same question.</div>
+
+  <h2>Drill A — dig (local Mac)</h2>
+  <p>Needs network. Use <code>example.com</code> (stable IANA name).</p>
+  <ol>
+    <li>
+      Full lookup — find the status line and ANSWER section:
+      <pre><code>dig example.com</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Look for <code>status: NOERROR</code> near the top HEADER. ANSWER SECTION should show an <code>A</code> record with an IPv4 address. Note the QUERY TIME at the bottom.</p>
+      </div></details>
+    </li>
+    <li>
+      Short form, then ask a public resolver:
+      <pre><code>dig example.com +short
+dig @1.1.1.1 example.com +short</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Both print one or more IPv4 addresses. They usually match; if they differ, you have a resolver/cache story to chase later — not today’s lesson.</p>
+      </div></details>
+    </li>
+    <li>
+      Other types:
+      <pre><code>dig example.com AAAA +short
+dig example.com MX +short</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>AAAA may be empty or an IPv6 address. MX lines look like <code>0 .</code> or priority + hostname — shape matters more than memorizing today’s values.</p>
+      </div></details>
+    </li>
+    <li>
+      Optional failure shape — pick a nonsense name:
+      <pre><code>dig this-name-should-not-exist-zz9.example +short
+dig this-name-should-not-exist-zz9.example | grep status</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Expect empty short output and <code>status: NXDOMAIN</code> (or similar failure status). That is how dig reports “no such name.”</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <h2>Drill B — ss (SSH to Linux)</h2>
+  <p>Attach to any Linux host you use for work (<code>ssh user@host</code>). If you have no remote tonight, do Drill A + quiz, then run Drill B next SSH session.</p>
+  <ol>
+    <li>
+      List listening TCP sockets:
+      <pre><code>ss -tlnp</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You should see rows with <code>LISTEN</code> and ports like <code>:22</code> (ssh). Without root, <code>-p</code> may omit process names for services you do not own — the ports still show.</p>
+      </div></details>
+    </li>
+    <li>
+      Narrow to a port you care about (ssh is a safe bet):
+      <pre><code>ss -tlnp | grep ':22'</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>One or more listen lines for port 22. This is the triage pattern: wide list, then <code>grep</code> the port from an incident.</p>
+      </div></details>
+    </li>
+    <li>
+      Optional Mac contrast (same question, different binary):
+      <pre><code>lsof -nP -iTCP -sTCP:LISTEN | head</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Local Mac only. Do not train this as your remote reflex — remotes get <code>ss -tlnp</code>.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut.</strong> Not today: <code>dig +trace</code>, DNSSEC, <code>ss</code> state filters, UDP deep dives. Cheat sheet: <a href="../reference/dig-and-ss.html">dig and ss</a>.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Default record type for bare <code>dig name</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">A (IPv4 addr)</li>
+      <li class="option">MX (mail exch)</li>
+      <li class="option">NS (name serv)</li>
+      <li class="option">TXT (text data)</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>What does <code>dig +short</code> strip away?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">verbose dig chrome</li>
+      <li class="option">the answer RDATA</li>
+      <li class="option">the query itself</li>
+      <li class="option">the DNS protocol</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Mission flags for listening TCP + process?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">ss -tlnp</li>
+      <li class="option">ss -uanp</li>
+      <li class="option">ss -srlp</li>
+      <li class="option">ss -xanp</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Where do you run <code>ss</code> for this mission?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Linux SSH hosts</li>
+      <li class="option">macOS by default</li>
+      <li class="option">inside vim only</li>
+      <li class="option">inside dig only</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drills: did <code>+short</code> vs full <code>dig</code> click? On the remote — did <code>-p</code> show process names, or only ports (permissions)? Any host where <code>ss</code> was missing (old box → <code>netstat</code>)?</p>
+    <p style="margin-bottom:0">Bring concrete output. Next slices: <strong>tmux copy-mode</strong> (Mac buffer caveats), or spaced retrieval across the shell pareto.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li><code>man dig</code> — ISC BIND; <code>+short</code>, <code>@server</code>, record types (default <code>A</code>).</li>
+      <li><a href="https://manpages.debian.org/bookworm/iproute2/ss.8.en.html"><code>man ss</code></a> — iproute2; <code>-t</code>/<code>-l</code>/<code>-n</code>/<code>-p</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0009-redirect-mastery.html">Lesson 0009 — redirect mastery</a>. Reference: <a href="../reference/dig-and-ss.html">dig and ss</a>. Next: TBD from your feedback.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Network pair locked. Ask the teacher what felt soft.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the dig and ss reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

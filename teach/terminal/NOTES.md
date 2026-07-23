@@ -81,3 +81,12 @@
 - **Skill win:** lose an error with `> only`, catch it with correct merge, prove wrong-order footgun, append + tee.
 - **POSIX-lean:** teach `>f 2>&1`, not bash `&>`. Cut: `|&`, process substitution, fancy fd swaps.
 - **Primary:** Shotts TLCL ch. 6 + `man bash` REDIRECTION + `info coreutils` tee.
+
+## L0009 complete (4/4)
+- Redirects fluent; no confusion reported. Shell pareto families (navigate map + inspect/filter + ops + redirect) now have drill floors. Next: dig + remote ss, tmux copy-mode, or spaced retrieval.
+
+## L0010 design notes (dig + ss — user-requested)
+- **Topic:** `dig` (full / +short / @resolver / AAAA / MX) + remote `ss -tlnp`.
+- **Skill win:** local dig on example.com; SSH Linux for ss; Mac has no ss — `lsof` only as contrast.
+- **Pareto cut:** dig +trace/DNSSEC, ss state filters, UDP deep dives.
+- **Primary:** `man dig` (BIND), `man ss` (iproute2 / Debian manpage).
