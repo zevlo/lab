@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — tmux synchronize-panes</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · tmux</p>
+    <h1>synchronize-panes</h1>
+    <p class="lede">Type once; every pane in the window gets the keystrokes. Mission tool for parallel multi-host ops. No default key — use the command prompt.</p>
+  </header>
+
+  <h2>What it does</h2>
+  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: window option <code>synchronize-panes</code> duplicates input to all other panes in the same window where the option is also on (panes not in a mode).</p>
+
+  <h2>Commands (stock — no remaps)</h2>
+  <table>
+    <thead><tr><th>How</th><th>Command</th></tr></thead>
+    <tbody>
+      <tr><td>tmux prompt</td><td><code>C-b :</code> then <code>setw synchronize-panes on</code></td></tr>
+      <tr><td>tmux prompt</td><td><code>C-b :</code> then <code>setw synchronize-panes off</code></td></tr>
+      <tr><td>toggle</td><td><code>C-b :</code> then <code>setw synchronize-panes</code></td></tr>
+      <tr><td>from shell</td><td><code>tmux setw synchronize-panes on</code></td></tr>
+      <tr><td>check</td><td><code>tmux show -w synchronize-panes</code></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Scope.</strong> Window-local. Other windows in the session are unaffected. Turn it <em>off</em> when the parallel burst is done — leaving it on is how you broadcast a typo to every host.</div>
+
+  <h2>Typical multi-host shape</h2>
+  <pre><code># one window, N panes — each already ssh'd to a host
+C-b :  setw synchronize-panes on
+# type the same triage commands everywhere
+C-b :  setw synchronize-panes off
+# continue in one pane only</code></pre>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p>Custom binds (e.g. toggle on <code>C-b S</code>), status-line indicators for sync state, scripting pane labels. Defaults-only mission skips binds.</p>
+  </div>
+
+  <footer>
+    <p><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — <code>synchronize-panes</code> window option. Hierarchy: <a href="./tmux-fundamentals.html">tmux fundamentals</a>. Lesson: <a href="../lessons/0012-tmux-synchronize-panes.html">0012 — synchronize-panes</a>.</p>
+  </footer>
+</body>
+</html>

@@ -83,11 +83,13 @@
     <tbody>
       <tr><td>arrows / <code>PgUp</code> <code>PgDn</code></td><td>Move / page in scrollback</td></tr>
       <tr><td><code>C-Space</code></td><td>Begin selection</td></tr>
-      <tr><td><code>M-w</code> (<code>Option-w</code> on Mac)</td><td>Copy selection → tmux buffer; exit copy-mode</td></tr>
+      <tr><td><code>C-w</code></td><td>Copy → buffer; exit (no Meta needed)</td></tr>
+      <tr><td><code>M-w</code> (<code>Option-w</code>)</td><td>Same — only if terminal sends Option as Alt</td></tr>
       <tr><td><code>C-g</code></td><td>Clear selection</td></tr>
     </tbody>
   </table>
-  <div class="note"><strong>This Mac.</strong> <code>Option-w</code> fills the <em>tmux paste buffer</em>. It does <strong>not</strong> update the macOS clipboard / Notes. Portable paste is <code>C-b ]</code>. For OS clipboard, use Ghostty/mouse selection (or later OSC 52 / <code>set-buffer -w</code> — not this lesson’s pareto).</div>
+  <div class="note"><strong>This Mac — two separate issues.</strong> (1) Yank fills the <em>tmux paste buffer</em>, not the macOS clipboard — portable paste is <code>C-b ]</code>. (2) By default macOS Option does <em>not</em> send Meta, so <code>Option-w</code> never becomes <code>M-w</code>. Fix in Ghostty: <code>macos-option-as-alt = left</code>. Meta-free yank: <code>C-w</code> after selection. With <code>mouse on</code>, drag-select in copy-mode also yanks.</div>
+  <div class="note"><strong>C-Space stolen?</strong> macOS often binds Control-Space to “Select previous input source.” If begin-selection does nothing, disable that shortcut or use mouse-drag to start the selection.</div>
 
   <h2>If mode-keys is vi</h2>
   <table>

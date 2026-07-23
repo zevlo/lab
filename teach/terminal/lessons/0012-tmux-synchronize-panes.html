@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0012 — tmux synchronize-panes</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.3rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0012 · <a href="../reference/tmux-synchronize-panes.html">Phase 3 — tmux</a></p>
+    <h1>Type once, hit every pane</h1>
+    <p class="lede"><code>synchronize-panes</code> — the mission unlock for parallel multi-host commands. No default keybind; the command prompt is the stock path.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Success criteria: drive <code>synchronize-panes</code> from muscle memory for multi-host ops. You already split panes (Lesson 0006). This lesson turns those panes into one keyboard when you want the same triage on every host — then turns that off before a typo goes global.</p>
+
+  <h2>Knowledge — window option, not a prefix chord</h2>
+  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: <code>synchronize-panes on</code> duplicates input to all other panes in the <em>same window</em> (panes not stuck in a mode). Stock tmux has <strong>no</strong> default key for this — use the command prompt (<code>C-b :</code>) or a shell <code>tmux setw …</code>.</p>
+  <table>
+    <thead><tr><th>Action</th><th>Stock command</th></tr></thead>
+    <tbody>
+      <tr><td>Turn on</td><td><code>C-b :</code> → <code>setw synchronize-panes on</code></td></tr>
+      <tr><td>Turn off</td><td><code>C-b :</code> → <code>setw synchronize-panes off</code></td></tr>
+      <tr><td>Toggle</td><td><code>C-b :</code> → <code>setw synchronize-panes</code></td></tr>
+      <tr><td>Check</td><td><code>tmux show -w synchronize-panes</code></td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Off when done.</strong> Sync left on is how you broadcast <code>rm</code> to every pane. Habit: on → burst of commands → <em>off</em> before exploratory typing.</div>
+  <div class="gotcha"><strong>Window scope.</strong> Only panes in the current window. Other windows stay independent. Real workflow: one window per “fleet burst,” ssh already established in each pane, then sync.</div>
+
+  <h2>Drill — three panes, one keyboard</h2>
+  <p>Local is enough (no SSH required). Simulate hosts with labeled shells.</p>
+  <ol>
+    <li>
+      Session with three panes:
+      <pre><code>tmux new -s syncdrill
+# C-b %   then C-b "   → three panes
+# C-b o to cycle; in each pane run a label:</code></pre>
+      Pane A: <code>export PS1='A&gt; '</code><br>
+      Pane B: <code>export PS1='B&gt; '</code><br>
+      Pane C: <code>export PS1='C&gt; '</code>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You should see three different prompts. Sync is still off — typing in one pane must not appear in the others.</p>
+      </div></details>
+    </li>
+    <li>
+      Enable sync from the tmux command prompt:
+      <pre><code>C-b :
+setw synchronize-panes on
+# Enter</code></pre>
+      Confirm:
+      <pre><code>tmux show -w synchronize-panes</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Should print <code>synchronize-panes on</code>. The <code>:</code> prompt is prefix then colon — same place you would type any tmux command.</p>
+      </div></details>
+    </li>
+    <li>
+      With focus in any pane, type:
+      <pre><code>echo hello-from-sync
+hostname</code></pre>
+      Watch all three panes receive the same keystrokes.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Every pane runs the same lines. Prompts stay A/B/C; output of <code>hostname</code> is whatever this Mac is — the point is identical input, not identical hosts.</p>
+      </div></details>
+    </li>
+    <li>
+      Disable sync, then type only in one pane:
+      <pre><code>C-b :
+setw synchronize-panes off</code></pre>
+      In one pane: <code>echo only-here</code> — the others must stay quiet.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>If all three still echo, sync never turned off — re-run <code>tmux show -w synchronize-panes</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Optional: toggle with bare <code>setw synchronize-panes</code> (no on/off) twice and watch <code>tmux show -w synchronize-panes</code> flip.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Toggle is fine once you trust yourself; explicit <code>on</code>/<code>off</code> is safer under incident stress.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut.</strong> No custom keybind for sync (defaults-only). Status-line sync indicators later if you want. Cheat sheet: <a href="../reference/tmux-synchronize-panes.html">synchronize-panes</a>.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four short questions. Answers are shuffled on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>How do you open the tmux command prompt?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">C-b :</li>
+      <li class="option">C-b ;</li>
+      <li class="option">C-b /</li>
+      <li class="option">C-b ?</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Stock command to enable sync?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">setw synchronize-panes on</li>
+      <li class="option">setw synchronize-panes go</li>
+      <li class="option">setw synchronize-panes all</li>
+      <li class="option">setw synchronize-panes yes</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Sync duplicates input across…?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">panes in one window</li>
+      <li class="option">all tmux sessions</li>
+      <li class="option">all Ghostty tabs</li>
+      <li class="option">all bash histories</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>After a parallel burst you should…?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">turn synchronize off</li>
+      <li class="option">turn synchronize up</li>
+      <li class="option">kill every pane</li>
+      <li class="option">detach immediately</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did on → type → off feel crisp? Any moment you left sync on by accident? When you try keyboard copy-mode on Linux, report whether <code>C-w</code> / <code>M-w</code> works there.</p>
+    <p style="margin-bottom:0">Next slices: <strong>multi-session habits</strong> (<code>C-b s</code>, named sessions per host), OSC 52 clipboard depth, or spaced shell retrieval.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources for this lesson</strong></p>
+    <ul>
+      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — window option <code>synchronize-panes</code>; command prompt via DEFAULT KEY BINDINGS (<code>:</code>).</li>
+    </ul>
+    <p>Previous: <a href="./0011-tmux-copy-mode.html">Lesson 0011 — tmux copy-mode</a>. Reference: <a href="../reference/tmux-synchronize-panes.html">synchronize-panes</a>. Next: TBD from your feedback.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Sync habit locked. Ask the teacher what to cut next.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then continue.'
+            : ' — re-read the synchronize-panes reference before moving on.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

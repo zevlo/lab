@@ -102,12 +102,15 @@
       <tr><td><code>C-b [</code></td><td>Enter copy-mode</td></tr>
       <tr><td>arrows / PgUp PgDn</td><td>Move in scrollback</td></tr>
       <tr><td><code>C-Space</code></td><td>Begin selection (emacs)</td></tr>
-      <tr><td><code>M-w</code> / <code>Option-w</code></td><td>Copy to tmux buffer; exit</td></tr>
+      <tr><td><code>C-w</code></td><td>Copy to tmux buffer; exit (Meta-free — prefer on Mac)</td></tr>
+      <tr><td><code>M-w</code> / <code>Option-w</code></td><td>Same copy — needs Option-as-Meta in the terminal</td></tr>
       <tr><td><code>q</code> or <code>Esc</code></td><td>Leave without copying</td></tr>
       <tr><td><code>C-b ]</code></td><td>Paste top buffer into pane</td></tr>
     </tbody>
   </table>
-  <div class="gotcha"><strong>This Mac (mandatory).</strong> <code>Option-w</code> fills the <strong>tmux paste buffer</strong> only. It does <em>not</em> put text on the macOS clipboard for Notes/browser. Portable proof: <code>tmux show-buffer</code> then <code>C-b ]</code>. For OS clipboard locally, use Ghostty/mouse selection — separate from this skill.</div>
+  <div class="gotcha"><strong>This Mac (mandatory) — buffer ≠ pasteboard.</strong> A successful yank fills the <strong>tmux paste buffer</strong> only. It does <em>not</em> put text on the macOS clipboard for Notes/browser. Portable proof: <code>tmux show-buffer</code> then <code>C-b ]</code>.</div>
+  <div class="gotcha"><strong>This Mac — Option is not Meta by default.</strong> Stock Ghostty/Terminal leave Option for special characters, so <code>Option-w</code> never reaches tmux as <code>M-w</code> and yank appears “broken.” Meta-free yank (no config): after <code>C-Space</code> selection, press <code>C-w</code> (also bound to copy). Or with your <code>mouse on</code>: enter copy-mode, drag to select, release — that yanks. Durable Ghostty fix: <code>macos-option-as-alt = left</code> so left Option sends Alt/Meta.</div>
+  <div class="gotcha"><strong>C-Space may be stolen.</strong> macOS often uses Control-Space for input-source switching. If begin-selection does nothing, check System Settings → Keyboard → Keyboard Shortcuts → Input Sources, or start the selection with a mouse drag instead.</div>
   <div class="gotcha"><strong>vi mode on some remotes.</strong> If <code>mode-keys</code> is <code>vi</code>: <code>Space</code> begins selection, <code>Enter</code> copies. Same <code>C-b [</code> / <code>C-b ]</code> outside.</div>
 
   <h2>Drill — yank a token, paste it back</h2>
@@ -129,14 +132,15 @@ echo "TOKEN-$(date +%s)-COPYMODE"</code></pre>
       </div></details>
     </li>
     <li>
-      Select and yank (emacs defaults):
-      <pre><code>C-Space     # begin selection
+      Select and yank (emacs defaults). Prefer <code>C-w</code> on Mac until Option-as-Meta is configured:
+      <pre><code>C-Space     # begin selection (if macOS steals this, mouse-drag instead)
 # move to cover the whole TOKEN line
-Option-w    # M-w — copy to tmux buffer, exit copy-mode</code></pre>
+C-w         # copy to tmux buffer, exit (Meta-free)
+# Option-w  # only works after macos-option-as-alt / Option-as-Meta</code></pre>
       Verify:
       <pre><code>tmux show-buffer</code></pre>
       <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>show-buffer</code> must print your <code>TOKEN-…</code> text. If empty, selection/yank failed — re-enter copy-mode and try again. Do <em>not</em> expect Notes/pasteboard to update.</p>
+        <p><code>show-buffer</code> must print your <code>TOKEN-…</code> text. If empty, selection/yank failed — usually Meta never arrived, or <code>C-Space</code> never began a selection. Mouse-drag in copy-mode is a reliable fallback with <code>mouse on</code>. Do <em>not</em> expect Notes/pasteboard to update.</p>
       </div></details>
     </li>
     <li>
@@ -215,7 +219,7 @@ Option-w    # M-w — copy to tmux buffer, exit copy-mode</code></pre>
       <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — copy-mode, emacs/vi key tables, <code>paste-buffer</code>, BUFFERS, <code>mode-keys</code>.</li>
       <li>Prior constraint: LR-0008 / L0006 feedback — Option-w ≠ macOS clipboard on this stack.</li>
     </ul>
-    <p>Previous: <a href="./0010-dig-and-ss.html">Lesson 0010 — dig and ss</a>. Reference: <a href="../reference/tmux-copy-mode.html">tmux copy-mode</a>. Hierarchy: <a href="../reference/tmux-fundamentals.html">tmux fundamentals</a>. Next: TBD from your feedback.</p>
+    <p>Previous: <a href="./0010-dig-and-ss.html">Lesson 0010 — dig and ss</a>. Reference: <a href="../reference/tmux-copy-mode.html">tmux copy-mode</a>. Hierarchy: <a href="../reference/tmux-fundamentals.html">tmux fundamentals</a>. Next: <a href="./0012-tmux-synchronize-panes.html">Lesson 0012 — synchronize-panes</a>.</p>
   </footer>
 
 <script>

@@ -100,3 +100,12 @@
 - **mode-keys:** stock emacs; vi gotcha if EDITOR contains vi (`Space`/`Enter`).
 - **Pareto cut:** rectangle, search, buffer list, OSC 52 / set-buffer -w.
 - **Primary:** `man tmux` copy-mode + prior LR-0008 constraint.
+
+## L0011 complete (quiz 4/4; mouse yank works)
+- Keyboard Meta yank deferred to Linux try. Mouse path confirmed. Next: synchronize-panes.
+
+## L0012 design notes (synchronize-panes)
+- **Topic:** `setw synchronize-panes on|off` via `C-b :` (no default bind — defaults-only).
+- **Skill win:** 3 local panes, sync on → shared typing → sync off → single-pane typing.
+- **Habit:** always off after burst. Window-scoped.
+- **Primary:** `man tmux` synchronize-panes.
