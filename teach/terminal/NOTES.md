@@ -71,3 +71,7 @@
 - **Portable core:** `pgrep -f` + kill-by-PID. Mac display: `-lf`; Linux display: `-af`. No `pkill` in lesson.
 - **Cut:** reinforce `-d' '` (space not default) and 1-indexed fields; status code = field 2.
 - **Deferred:** dig, ss, rich curl API flags, redirect mastery, tmux copy-mode.
+
+## L0008 complete (4/4)
+- Ops loop fluent: `pgrep -f` → `curl -i` / `cut` → `kill` TERM → `kill -0`. New floor; do not re-teach unless retrieval decay shows up.
+- Next slice TBD from ask-the-teacher: redirect mastery, dig + remote ss, cut spacing, or tmux copy-mode.
