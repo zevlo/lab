@@ -90,3 +90,13 @@
 - **Skill win:** local dig on example.com; SSH Linux for ss; Mac has no ss — `lsof` only as contrast.
 - **Pareto cut:** dig +trace/DNSSEC, ss state filters, UDP deep dives.
 - **Primary:** `man dig` (BIND), `man ss` (iproute2 / Debian manpage).
+
+## L0010 complete (4/4)
+- dig + remote ss floor set. User ready for next lesson → Phase 3 copy-mode.
+
+## L0011 design notes (tmux copy-mode)
+- **Topic:** scrollback vs bash vs Ghostty; `C-b [` / emacs `C-Space` + `M-w` (Option-w) / `C-b ]`; `tmux show-buffer`.
+- **Mandatory Mac caveat:** Option-w → tmux buffer only, not macOS clipboard. Portable paste = `C-b ]`.
+- **mode-keys:** stock emacs; vi gotcha if EDITOR contains vi (`Space`/`Enter`).
+- **Pareto cut:** rectangle, search, buffer list, OSC 52 / set-buffer -w.
+- **Primary:** `man tmux` copy-mode + prior LR-0008 constraint.

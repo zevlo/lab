@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 0010 — dig and ss</title>
+<title>Lesson 0011 — tmux copy-mode</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -45,7 +45,7 @@
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
   th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 11em; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
   ol, ul { padding-left: 1.3rem; }
   li { margin: 0.3rem 0; }
   .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
@@ -75,145 +75,129 @@
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0010 · <a href="../reference/dig-and-ss.html">Phase shell — network</a></p>
-    <h1>Name it, then find the bind</h1>
-    <p class="lede"><code>dig</code> answers “where does this name go?” <code>ss -tlnp</code> answers “what is listening on this Linux host?” — mission network reflexes.</p>
+    <p class="kicker">Lesson 0011 · <a href="../reference/tmux-copy-mode.html">Phase 3 — tmux</a></p>
+    <h1>Scrollback, yank, paste</h1>
+    <p class="lede">Enter copy-mode, grab text into the tmux buffer, paste with <code>C-b ]</code>. Portable remote skill — not the macOS clipboard.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>Success criteria already include <code>curl -i</code>, <code>dig</code>, and <code>ss -tlnp</code>. You have curl. This lesson closes the other two: resolve a name, then on a remote Linux box see which process owns a port.</p>
+  <p>Mission needs mouse-free capture of output that already scrolled off screen — especially over SSH. Hierarchy (Lesson 0006) is fluent; this is the deferred copy-mode slice. On your Mac, yank stays in the <em>tmux</em> buffer; train that path so remotes behave the same.</p>
 
-  <h2>Knowledge 1 — dig</h2>
-  <p>From <code>man dig</code> (BIND on your Mac): query DNS; default record type is <code>A</code> (IPv4). Without <code>@server</code>, dig uses <code>/etc/resolv.conf</code>.</p>
+  <h2>Knowledge 1 — three different “histories”</h2>
   <table>
-    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <thead><tr><th>Store</th><th>Holds</th><th>Reach with</th></tr></thead>
     <tbody>
-      <tr><td><code>dig name</code></td><td>Full output — read <code>status:</code> and ANSWER</td></tr>
-      <tr><td><code>dig name +short</code></td><td>Terse answer only</td></tr>
-      <tr><td><code>dig @1.1.1.1 name</code></td><td>Bypass local resolver; ask Cloudflare</td></tr>
-      <tr><td><code>dig name AAAA</code></td><td>IPv6</td></tr>
-      <tr><td><code>dig name MX</code></td><td>Mail exchangers</td></tr>
+      <tr><td>bash</td><td>commands you typed</td><td><code>↑</code> / <code>Ctrl-r</code></td></tr>
+      <tr><td>tmux scrollback</td><td>pane screen output</td><td><code>C-b [</code></td></tr>
+      <tr><td>Ghostty</td><td>emulator buffer</td><td>mouse / Ghostty UI</td></tr>
     </tbody>
   </table>
-  <div class="gotcha"><strong>Status, not silence.</strong> <code>status: NOERROR</code> means the query worked. <code>NXDOMAIN</code> means the name does not exist. Empty <code>+short</code> with NXDOMAIN is a real answer — “no such name.”</div>
+  <p>Inside tmux, use tmux scrollback. Ghostty’s scroll will not exist on a bare remote.</p>
 
-  <h2>Knowledge 2 — ss -tlnp (Linux remotes)</h2>
-  <p>From <a href="https://manpages.debian.org/bookworm/iproute2/ss.8.en.html"><code>man ss</code></a> (iproute2). Mission mnemonic:</p>
-  <pre><code>ss -tlnp
-# -t  TCP
-# -l  listening only
-# -n  numeric ports/addresses
-# -p  owning process (may need root for others)</code></pre>
-  <p>Read the <code>Local Address:Port</code> column (<code>0.0.0.0:22</code>, <code>*:443</code>, <code>[::]:22</code>) and the process field when present.</p>
-  <div class="gotcha"><strong>Not on macOS.</strong> Your Mac has no <code>ss</code>. Run it over SSH on Linux. Local preview of “what is listening”: <code>lsof -nP -iTCP -sTCP:LISTEN</code> — different tool, same question.</div>
+  <h2>Knowledge 2 — enter, yank, paste</h2>
+  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: <code>C-b [</code> runs <code>copy-mode</code>; <code>C-b ]</code> runs <code>paste-buffer</code>. Stock <code>mode-keys</code> is <strong>emacs</strong> unless <code>EDITOR</code>/<code>VISUAL</code> contains <code>vi</code>. Confirm: <code>tmux show -g mode-keys</code>.</p>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>C-b [</code></td><td>Enter copy-mode</td></tr>
+      <tr><td>arrows / PgUp PgDn</td><td>Move in scrollback</td></tr>
+      <tr><td><code>C-Space</code></td><td>Begin selection (emacs)</td></tr>
+      <tr><td><code>M-w</code> / <code>Option-w</code></td><td>Copy to tmux buffer; exit</td></tr>
+      <tr><td><code>q</code> or <code>Esc</code></td><td>Leave without copying</td></tr>
+      <tr><td><code>C-b ]</code></td><td>Paste top buffer into pane</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>This Mac (mandatory).</strong> <code>Option-w</code> fills the <strong>tmux paste buffer</strong> only. It does <em>not</em> put text on the macOS clipboard for Notes/browser. Portable proof: <code>tmux show-buffer</code> then <code>C-b ]</code>. For OS clipboard locally, use Ghostty/mouse selection — separate from this skill.</div>
+  <div class="gotcha"><strong>vi mode on some remotes.</strong> If <code>mode-keys</code> is <code>vi</code>: <code>Space</code> begins selection, <code>Enter</code> copies. Same <code>C-b [</code> / <code>C-b ]</code> outside.</div>
 
-  <h2>Drill A — dig (local Mac)</h2>
-  <p>Needs network. Use <code>example.com</code> (stable IANA name).</p>
+  <h2>Drill — yank a token, paste it back</h2>
+  <p>In Ghostty, use a tmux session (create one if needed: <code>tmux new -s copydrill</code>).</p>
   <ol>
     <li>
-      Full lookup — find the status line and ANSWER section:
-      <pre><code>dig example.com</code></pre>
+      Generate scrollback and a unique token:
+      <pre><code>seq 1 80
+echo "TOKEN-$(date +%s)-COPYMODE"</code></pre>
+      Note the <code>TOKEN-…</code> line — you will yank it.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Look for <code>status: NOERROR</code> near the top HEADER. ANSWER SECTION should show an <code>A</code> record with an IPv4 address. Note the QUERY TIME at the bottom.</p>
+        <p><code>seq</code> pushes earlier lines off the visible screen so copy-mode has somewhere to scroll. The echo line is your target string.</p>
       </div></details>
     </li>
     <li>
-      Short form, then ask a public resolver:
-      <pre><code>dig example.com +short
-dig @1.1.1.1 example.com +short</code></pre>
+      Enter copy-mode (<code>C-b [</code>). Page/arrow until the <code>TOKEN-…</code> line is visible. Place the cursor on it.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Both print one or more IPv4 addresses. They usually match; if they differ, you have a resolver/cache story to chase later — not today’s lesson.</p>
+        <p>Status line usually indicates copy-mode. If keys do nothing useful, you may not have entered — press prefix then <code>[</code> again.</p>
       </div></details>
     </li>
     <li>
-      Other types:
-      <pre><code>dig example.com AAAA +short
-dig example.com MX +short</code></pre>
+      Select and yank (emacs defaults):
+      <pre><code>C-Space     # begin selection
+# move to cover the whole TOKEN line
+Option-w    # M-w — copy to tmux buffer, exit copy-mode</code></pre>
+      Verify:
+      <pre><code>tmux show-buffer</code></pre>
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>AAAA may be empty or an IPv6 address. MX lines look like <code>0 .</code> or priority + hostname — shape matters more than memorizing today’s values.</p>
+        <p><code>show-buffer</code> must print your <code>TOKEN-…</code> text. If empty, selection/yank failed — re-enter copy-mode and try again. Do <em>not</em> expect Notes/pasteboard to update.</p>
       </div></details>
     </li>
     <li>
-      Optional failure shape — pick a nonsense name:
-      <pre><code>dig this-name-should-not-exist-zz9.example +short
-dig this-name-should-not-exist-zz9.example | grep status</code></pre>
+      Paste into the shell with <code>C-b ]</code>, then press Enter if needed so the line runs as a command or sits on the prompt. Confirm the token reappeared.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Expect empty short output and <code>status: NXDOMAIN</code> (or similar failure status). That is how dig reports “no such name.”</p>
+        <p>Paste inserts buffer text at the cursor. This is the remote-portable loop: scroll → select → yank → <code>C-b ]</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Optional: exit copy-mode with <code>q</code> without yanking once, to feel the difference from <code>Option-w</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>q</code>/<code>Esc</code> leaves; buffer unchanged. Yank only happens on the copy key.</p>
       </div></details>
     </li>
   </ol>
 
-  <h2>Drill B — ss (SSH to Linux)</h2>
-  <p>Attach to any Linux host you use for work (<code>ssh user@host</code>). If you have no remote tonight, do Drill A + quiz, then run Drill B next SSH session.</p>
-  <ol>
-    <li>
-      List listening TCP sockets:
-      <pre><code>ss -tlnp</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>You should see rows with <code>LISTEN</code> and ports like <code>:22</code> (ssh). Without root, <code>-p</code> may omit process names for services you do not own — the ports still show.</p>
-      </div></details>
-    </li>
-    <li>
-      Narrow to a port you care about (ssh is a safe bet):
-      <pre><code>ss -tlnp | grep ':22'</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>One or more listen lines for port 22. This is the triage pattern: wide list, then <code>grep</code> the port from an incident.</p>
-      </div></details>
-    </li>
-    <li>
-      Optional Mac contrast (same question, different binary):
-      <pre><code>lsof -nP -iTCP -sTCP:LISTEN | head</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Local Mac only. Do not train this as your remote reflex — remotes get <code>ss -tlnp</code>.</p>
-      </div></details>
-    </li>
-  </ol>
-
-  <div class="gotcha"><strong>Pareto cut.</strong> Not today: <code>dig +trace</code>, DNSSEC, <code>ss</code> state filters, UDP deep dives. Cheat sheet: <a href="../reference/dig-and-ss.html">dig and ss</a>.</div>
+  <div class="gotcha"><strong>Pareto cut.</strong> Rectangle mode, copy-mode search, buffer picker, OSC 52 / <code>set-buffer -w</code> clipboard bridge — later. Cheat sheet: <a href="../reference/tmux-copy-mode.html">tmux copy-mode</a>.</div>
 
   <h2>Check your understanding</h2>
   <p>Four short questions. Answers are shuffled on each page load.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>Default record type for bare <code>dig name</code>?</p>
+    <p class="quiz-q"><span class="num">Q1</span>How do you enter tmux copy-mode?</p>
     <ul class="options">
-      <li class="option" data-correct="true">A (IPv4 addr)</li>
-      <li class="option">MX (mail exch)</li>
-      <li class="option">NS (name serv)</li>
-      <li class="option">TXT (text data)</li>
+      <li class="option" data-correct="true">C-b [</li>
+      <li class="option">C-b ]</li>
+      <li class="option">C-b d</li>
+      <li class="option">C-b z</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>What does <code>dig +short</code> strip away?</p>
+    <p class="quiz-q"><span class="num">Q2</span>Portable paste from tmux buffer?</p>
     <ul class="options">
-      <li class="option" data-correct="true">verbose dig chrome</li>
-      <li class="option">the answer RDATA</li>
-      <li class="option">the query itself</li>
-      <li class="option">the DNS protocol</li>
+      <li class="option" data-correct="true">C-b ]</li>
+      <li class="option">C-b [</li>
+      <li class="option">C-b c</li>
+      <li class="option">C-b n</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>Mission flags for listening TCP + process?</p>
+    <p class="quiz-q"><span class="num">Q3</span>Emacs begin-selection key?</p>
     <ul class="options">
-      <li class="option" data-correct="true">ss -tlnp</li>
-      <li class="option">ss -uanp</li>
-      <li class="option">ss -srlp</li>
-      <li class="option">ss -xanp</li>
+      <li class="option" data-correct="true">C-Space</li>
+      <li class="option">C-Enter</li>
+      <li class="option">C-Return</li>
+      <li class="option">C-Delete</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>Where do you run <code>ss</code> for this mission?</p>
+    <p class="quiz-q"><span class="num">Q4</span>On this Mac, Option-w copies into…?</p>
     <ul class="options">
-      <li class="option" data-correct="true">Linux SSH hosts</li>
-      <li class="option">macOS by default</li>
-      <li class="option">inside vim only</li>
-      <li class="option">inside dig only</li>
+      <li class="option" data-correct="true">tmux paste buffer</li>
+      <li class="option">macOS pasteboard</li>
+      <li class="option">bash hist file</li>
+      <li class="option">Ghostty bookmarks</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -221,17 +205,17 @@ dig this-name-should-not-exist-zz9.example | grep status</code></pre>
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> After the drills: did <code>+short</code> vs full <code>dig</code> click? On the remote — did <code>-p</code> show process names, or only ports (permissions)? Any host where <code>ss</code> was missing (old box → <code>netstat</code>)?</p>
-    <p style="margin-bottom:0">Bring concrete output. Next slices: <strong>tmux copy-mode</strong> (Mac buffer caveats), or spaced retrieval across the shell pareto.</p>
+    <p><strong>Ask the teacher.</strong> After the drill: did <code>tmux show-buffer</code> show your token? Did <code>Option-w</code> feel awkward (Meta), or did you fall back to mouse once? Was <code>mode-keys</code> emacs or vi on your machine?</p>
+    <p style="margin-bottom:0">Bring concrete observations. Next slices: <strong>synchronize-panes</strong> for multi-host typing, <strong>multi-session habits</strong>, OSC 52 clipboard depth, or spaced shell retrieval.</p>
   </div>
 
   <footer>
     <p><strong>Primary sources for this lesson</strong></p>
     <ul>
-      <li><code>man dig</code> — ISC BIND; <code>+short</code>, <code>@server</code>, record types (default <code>A</code>).</li>
-      <li><a href="https://manpages.debian.org/bookworm/iproute2/ss.8.en.html"><code>man ss</code></a> — iproute2; <code>-t</code>/<code>-l</code>/<code>-n</code>/<code>-p</code>.</li>
+      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — copy-mode, emacs/vi key tables, <code>paste-buffer</code>, BUFFERS, <code>mode-keys</code>.</li>
+      <li>Prior constraint: LR-0008 / L0006 feedback — Option-w ≠ macOS clipboard on this stack.</li>
     </ul>
-    <p>Previous: <a href="./0009-redirect-mastery.html">Lesson 0009 — redirect mastery</a>. Reference: <a href="../reference/dig-and-ss.html">dig and ss</a>. Next: <a href="./0011-tmux-copy-mode.html">Lesson 0011 — tmux copy-mode</a>.</p>
+    <p>Previous: <a href="./0010-dig-and-ss.html">Lesson 0010 — dig and ss</a>. Reference: <a href="../reference/tmux-copy-mode.html">tmux copy-mode</a>. Hierarchy: <a href="../reference/tmux-fundamentals.html">tmux fundamentals</a>. Next: TBD from your feedback.</p>
   </footer>
 
 <script>
@@ -271,10 +255,10 @@ dig this-name-should-not-exist-zz9.example | grep status</code></pre>
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Network pair locked. Ask the teacher what felt soft.'
+            ? ' — flawless. Buffer paste locked. Ask the teacher what felt soft.'
             : correct >= quizzes.length - 1
             ? ' — solid. Revisit the miss, then continue.'
-            : ' — re-read the dig and ss reference before moving on.'
+            : ' — re-read the tmux copy-mode reference before moving on.'
         }`;
       }
     }));

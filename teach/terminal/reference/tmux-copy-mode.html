@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — tmux copy-mode</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · tmux</p>
+    <h1>Copy-mode and paste buffer</h1>
+    <p class="lede">Scroll pane history, yank into the tmux buffer, paste with <code>C-b ]</code>. Stock defaults; emacs copy-mode keys unless <code>mode-keys</code> is vi.</p>
+  </header>
+
+  <h2>Three histories (do not confuse)</h2>
+  <table>
+    <thead><tr><th>Store</th><th>What it holds</th><th>How you reach it</th></tr></thead>
+    <tbody>
+      <tr><td>bash history</td><td>Past <em>commands</em> you typed</td><td><code>↑</code> / <code>Ctrl-r</code></td></tr>
+      <tr><td>tmux scrollback</td><td>Past <em>screen output</em> in the pane</td><td><code>C-b [</code> copy-mode</td></tr>
+      <tr><td>Ghostty scrollback</td><td>Terminal emulator buffer (outside tmux)</td><td>Mouse / Ghostty UI — not tmux</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Inside tmux, train on <strong>tmux scrollback</strong>. Ghostty’s own scroll is a different store and will not help you on a bare SSH host.</div>
+
+  <h2>Enter / exit / paste</h2>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>C-b [</code></td><td>Enter copy-mode (scroll the pane history)</td></tr>
+      <tr><td><code>q</code> or <code>Esc</code></td><td>Leave copy-mode (emacs table)</td></tr>
+      <tr><td><code>C-b ]</code></td><td>Paste the top tmux buffer into the pane</td></tr>
+      <tr><td><code>tmux show-buffer</code></td><td>Print the top buffer (verify yank)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Copy-mode keys (emacs — stock default)</h2>
+  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: default <code>mode-keys</code> is emacs unless <code>EDITOR</code>/<code>VISUAL</code> contains <code>vi</code>. Check: <code>tmux show -g mode-keys</code>.</p>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td>arrows / <code>PgUp</code> <code>PgDn</code></td><td>Move / page in scrollback</td></tr>
+      <tr><td><code>C-Space</code></td><td>Begin selection</td></tr>
+      <tr><td><code>M-w</code> (<code>Option-w</code> on Mac)</td><td>Copy selection → tmux buffer; exit copy-mode</td></tr>
+      <tr><td><code>C-g</code></td><td>Clear selection</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>This Mac.</strong> <code>Option-w</code> fills the <em>tmux paste buffer</em>. It does <strong>not</strong> update the macOS clipboard / Notes. Portable paste is <code>C-b ]</code>. For OS clipboard, use Ghostty/mouse selection (or later OSC 52 / <code>set-buffer -w</code> — not this lesson’s pareto).</div>
+
+  <h2>If mode-keys is vi</h2>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>Space</code></td><td>Begin selection</td></tr>
+      <tr><td><code>Enter</code></td><td>Copy → buffer; exit</td></tr>
+      <tr><td><code>q</code></td><td>Cancel / leave</td></tr>
+    </tbody>
+  </table>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p>Rectangle select, copy-mode search, buffer list (<code>C-b =</code>), <code>set-buffer -w</code> / OSC 52 clipboard bridging, mouse drag copy. Defer until buffer paste is fluent on remotes.</p>
+  </div>
+
+  <footer>
+    <p><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — copy-mode, DEFAULT KEY BINDINGS, BUFFERS. Hierarchy: <a href="./tmux-fundamentals.html">tmux fundamentals</a>. Lesson: <a href="../lessons/0011-tmux-copy-mode.html">0011 — tmux copy-mode</a>.</p>
+  </footer>
+</body>
+</html>
