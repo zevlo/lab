@@ -201,26 +201,26 @@ print(len(errors))   # 2 &mdash; the filtered copy</code></pre>
 <h2>Check yourself</h2>
 
 <div class="quiz" data-answer="b">
-  <p class="q"><strong>1.</strong> <code>[x for x in [1, 2, 3, 4] if x &gt; 2]</code> evaluates to:</p>
-  <button class="opt" data-k="a"><code>[1, 2]</code> &mdash; items that failed the test</button>
-  <button class="opt" data-k="b"><code>[3, 4]</code> &mdash; items that passed the test</button>
-  <button class="opt" data-k="c"><code>[1, 2, 3, 4]</code> &mdash; the source list again</button>
+  <p class="q"><strong>1.</strong> What does this expression produce?<br><code>[x for x in [1, 2, 3, 4] if x &gt; 2]</code></p>
+  <button class="opt" data-k="a">the list <code>[1, 2]</code></button>
+  <button class="opt" data-k="b">the list <code>[3, 4]</code></button>
+  <button class="opt" data-k="c">the list <code>[1, 2, 3, 4]</code></button>
   <p class="feedback"></p>
 </div>
 
 <div class="quiz" data-answer="c">
-  <p class="q"><strong>2.</strong> After <code>ys = [x for x in xs if x]</code>, what happened to <code>xs</code>?</p>
-  <button class="opt" data-k="a"><code>xs</code> was emptied; only <code>ys</code> holds items</button>
-  <button class="opt" data-k="b"><code>xs</code> was filtered in place to match <code>ys</code></button>
-  <button class="opt" data-k="c"><code>xs</code> is unchanged; <code>ys</code> is a new list</button>
+  <p class="q"><strong>2.</strong> You run <code>ys = [x for x in xs if x &gt; 0]</code>. Which statement is true?</p>
+  <button class="opt" data-k="a"><code>xs</code> is now empty; only <code>ys</code> has values</button>
+  <button class="opt" data-k="b"><code>xs</code> was changed so it matches <code>ys</code></button>
+  <button class="opt" data-k="c"><code>xs</code> is the same; <code>ys</code> is a new list</button>
   <p class="feedback"></p>
 </div>
 
 <div class="quiz" data-answer="a">
-  <p class="q"><strong>3.</strong> You want hostnames from lines that start with <code>ERROR</code>. Which?</p>
+  <p class="q"><strong>3.</strong> Which comprehension keeps the hostname (<code>split()[1]</code>) from each line that starts with <code>ERROR</code>?</p>
   <button class="opt" data-k="a"><code>[line.split()[1] for line in lines if line.startswith("ERROR")]</code></button>
-  <button class="opt" data-k="b"><code>[line.startswith("ERROR") for line in lines.split()[1]]</code></button>
-  <button class="opt" data-k="c"><code>[line.split()[1] if line in lines.startswith("ERROR")]</code></button>
+  <button class="opt" data-k="b"><code>[line.startswith("ERROR") for line in lines if line.split()[1]]</code></button>
+  <button class="opt" data-k="c"><code>[line.split()[1] for line in lines.startswith("ERROR")]</code></button>
   <p class="feedback"></p>
 </div>
 
