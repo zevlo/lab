@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 24 &middot; List Comprehensions Filter Lines</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #767676;
+    --rule: #ddd;
+    --accent: #8b2c2c;
+    --code-bg: #f6f4f0;
+    --good: #2e6b34;
+    --bad: #a33;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background: #fffdf9;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    line-height: 1.6;
+  }
+  .kicker {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  h1 { font-weight: normal; font-size: 2.1rem; margin: 0.2rem 0 0.3rem; letter-spacing: -0.01em; }
+  .lede { font-style: italic; color: var(--faint); font-size: 1.05rem; margin-top: 0; }
+  h2 { font-weight: normal; font-size: 1.35rem; margin-top: 2.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--code-bg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  pre code { background: none; padding: 0; font-size: 0.88rem; }
+  .quiz {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.2rem 1.4rem;
+    margin: 1.5rem 0;
+    background: #fff;
+  }
+  .quiz p.q { margin-top: 0; }
+  .quiz button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    background: var(--code-bg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.55rem 0.8rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+    white-space: pre-wrap;
+  }
+  .quiz button.opt:hover { border-color: var(--accent); }
+  .quiz .feedback { font-size: 0.92rem; margin: 0.6rem 0 0; min-height: 1.3em; }
+  .quiz .feedback.good { color: var(--good); }
+  .quiz .feedback.bad { color: var(--bad); }
+  .task {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 1.2rem;
+    margin: 1.5rem 0;
+    background: #fdf8f3;
+  }
+  .demo {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    background: #fff;
+  }
+  .demo p:first-child { margin-top: 0; }
+  .demo p:last-child { margin-bottom: 0; }
+  .callout {
+    font-size: 0.95rem;
+    color: var(--faint);
+    font-style: italic;
+    margin: 0.8rem 0 0;
+  }
+  .legend {
+    font-size: 0.82rem;
+    color: var(--faint);
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+  }
+  a { color: var(--accent); }
+  .footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: 0.92rem; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<p class="kicker">Python for DevOps &middot; Lesson 24 &middot; ~15 min</p>
+<h1>List Comprehensions Filter Lines</h1>
+<p class="lede">One new shape today. A list comprehension builds a new list in a single expression &mdash; the interview-correct way to say &ldquo;keep only the ERROR lines.&rdquo;</p>
+
+<h2>Why this lesson</h2>
+<p>Last session (<a href="0023-sets-dedupe-a-list.html">Lesson 23</a>) you collapsed duplicates with a <code>set</code>. Today&rsquo;s question is different: keep some items, throw the rest away, and end up with a <em>list</em> (order preserved). &ldquo;Give me only the ERROR lines.&rdquo; &ldquo;Extract the hostname from each matching line.&rdquo; You already know how to do this with an empty list, a <code>for</code>, an <code>if</code>, and <code>.append()</code>. A list comprehension is that same loop, written as one expression. One new idea, no escalation.</p>
+
+<h2>Recall first</h2>
+<p>From memory, jot answers before scrolling further:</p>
+<ul>
+  <li>How do you start with an empty list and grow it one item at a time?</li>
+  <li>After <code>line = "ERROR db-01 down"</code>, what does <code>line.startswith("ERROR")</code> return?</li>
+  <li>After <code>line.split()</code>, what is index <code>[1]</code> for that same line?</li>
+</ul>
+<p>Check yourself against the <a href="../reference/python-quick-reference.html#lists">lists</a> and <a href="../reference/python-quick-reference.html#files">string parsing</a> rows of the quick reference. You will reuse all three in the one-liner below.</p>
+
+<h2>The one idea</h2>
+<p>A list comprehension is brackets containing an expression, a <code>for</code> clause, and optionally an <code>if</code>. It returns a <strong>new</strong> list. That is the whole pitch.</p>
+<pre><code>lines = [
+    "INFO web-01 started",
+    "ERROR db-01 connection failed",
+    "WARN web-01 high load",
+    "ERROR cache-01 timeout",
+]
+
+errors = [line for line in lines if line.startswith("ERROR")]
+print(errors)
+# ['ERROR db-01 connection failed', 'ERROR cache-01 timeout']</code></pre>
+<p>Read the brackets left to right:</p>
+<ul>
+  <li><code>line</code> &mdash; what to put in the new list (the expression).</li>
+  <li><code>for line in lines</code> &mdash; the loop, same meaning as a normal <code>for</code>.</li>
+  <li><code>if line.startswith("ERROR")</code> &mdash; keep this item only when the condition is true.</li>
+</ul>
+
+<h2>Same job, two spellings</h2>
+<div class="demo">
+<p>You already know the long form. The comprehension is a rewrite of it &mdash; not a different algorithm:</p>
+<pre><code>errors = []
+for line in lines:
+    if line.startswith("ERROR"):
+        errors.append(line)
+
+errors = [line for line in lines if line.startswith("ERROR")]</code></pre>
+<p>Same inputs, same outputs, same order. The long form is never wrong. The comprehension is the shape interviewers and idiomatic scripts expect when the body is one keep-or-transform step.</p>
+<p class="callout">If the body needs two or three statements, keep the <code>for</code> loop. Comprehensions are for the simple case.</p>
+</div>
+
+<h2>Change the left side to transform</h2>
+<div class="demo">
+<p>The expression does not have to be the loop variable itself. Put whatever you want to <em>keep</em> on the left:</p>
+<pre><code># keep the whole line
+errors = [line for line in lines if line.startswith("ERROR")]
+
+# keep just the hostname (second field)
+hosts  = [line.split()[1] for line in lines if line.startswith("ERROR")]
+print(hosts)   # ['db-01', 'cache-01']</code></pre>
+<p>Filter and transform in one pass: the <code>if</code> decides which items survive; the expression decides what each survivor becomes. Still one idea &mdash; same brackets, same <code>for</code>, same optional <code>if</code>.</p>
+</div>
+
+<h2>Read a small script</h2>
+<p>Here is the shape you will type in a minute. Each block is tagged:</p>
+<pre><code>lines = [                                              <span class="legend"># &mdash; log lines as a list</span>
+    "INFO web-01 started",
+    "ERROR db-01 connection failed",
+    "INFO web-02 ready",
+    "ERROR cache-01 timeout",
+    "WARN web-01 high load",
+    "ERROR web-01 disk full",
+]
+
+hosts = [line.split()[1] for line in lines             <span class="legend"># &mdash; transform + filter</span>
+         if line.startswith("ERROR")]
+
+print(f"{len(hosts)} hosts with errors:")              <span class="legend"># &mdash; count the new list</span>
+for host in hosts:                                     <span class="legend"># &mdash; report, order kept</span>
+    print(host)</code></pre>
+<p>Read it top to bottom. Six log lines go in. The comprehension keeps only lines that start with <code>ERROR</code>, and for each survivor it stores field <code>[1]</code> &mdash; the hostname. The new list has three strings, in the same order the ERROR lines appeared. The report loop is ordinary; the new skill lived entirely inside the brackets.</p>
+
+<h2>The one trap to remember</h2>
+<div class="demo">
+<p>A comprehension always builds a <strong>new</strong> list. It does not change the source:</p>
+<pre><code>lines = ["INFO a", "ERROR b", "ERROR c"]
+errors = [line for line in lines if line.startswith("ERROR")]
+
+print(len(lines))    # 3 &mdash; original untouched
+print(len(errors))   # 2 &mdash; the filtered copy</code></pre>
+<p>Second trap: the <code>if</code> goes at the <em>end</em>, after the <code>for</code> &mdash; not at the front like a statement. <code>[line if &hellip; for line in lines]</code> is a different (ternary) shape and not what you want for filtering. Stick to <code>[expr for item in xs if condition]</code>.</p>
+<p class="callout">Nested comprehensions, dict/set comprehensions, and generator expressions are out of scope today. One pair of square brackets is enough.</p>
+</div>
+
+<h2>Check yourself</h2>
+
+<div class="quiz" data-answer="b">
+  <p class="q"><strong>1.</strong> <code>[x for x in [1, 2, 3, 4] if x &gt; 2]</code> evaluates to:</p>
+  <button class="opt" data-k="a"><code>[1, 2]</code> &mdash; items that failed the test</button>
+  <button class="opt" data-k="b"><code>[3, 4]</code> &mdash; items that passed the test</button>
+  <button class="opt" data-k="c"><code>[1, 2, 3, 4]</code> &mdash; the source list again</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="c">
+  <p class="q"><strong>2.</strong> After <code>ys = [x for x in xs if x]</code>, what happened to <code>xs</code>?</p>
+  <button class="opt" data-k="a"><code>xs</code> was emptied; only <code>ys</code> holds items</button>
+  <button class="opt" data-k="b"><code>xs</code> was filtered in place to match <code>ys</code></button>
+  <button class="opt" data-k="c"><code>xs</code> is unchanged; <code>ys</code> is a new list</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="quiz" data-answer="a">
+  <p class="q"><strong>3.</strong> You want hostnames from lines that start with <code>ERROR</code>. Which?</p>
+  <button class="opt" data-k="a"><code>[line.split()[1] for line in lines if line.startswith("ERROR")]</code></button>
+  <button class="opt" data-k="b"><code>[line.startswith("ERROR") for line in lines.split()[1]]</code></button>
+  <button class="opt" data-k="c"><code>[line.split()[1] if line in lines.startswith("ERROR")]</code></button>
+  <p class="feedback"></p>
+</div>
+
+<h2>Now type it for real</h2>
+<div class="task">
+<p>From memory, create <code>filter_errors.py</code> in <code>exercises/</code>. Use the small script above as your guide, then close it and type your own. Required shape:</p>
+<ol>
+  <li>Define a list called <code>lines</code> with these <strong>six</strong> strings, in this order:
+    <pre><code>"INFO web-01 started"
+"ERROR db-01 connection failed"
+"INFO web-02 ready"
+"ERROR cache-01 timeout"
+"WARN web-01 high load"
+"ERROR web-01 disk full"</code></pre>
+  </li>
+  <li>Build <code>hosts</code> with one list comprehension: keep <code>line.split()[1]</code> for each <code>line</code> in <code>lines</code> where <code>line.startswith("ERROR")</code>.</li>
+  <li>Print <code>f"{len(hosts)} hosts with errors:"</code>.</li>
+  <li>Loop <code>for host in hosts:</code> and <code>print(host)</code>.</li>
+  <li>Run it from <code>exercises/</code>:</li>
+</ol>
+<pre><code>python3 filter_errors.py</code></pre>
+<p>Expected output:</p>
+<pre><code>3 hosts with errors:
+db-01
+cache-01
+web-01</code></pre>
+<p>Then &mdash; the trap check &mdash; add <code>print(len(lines))</code> at the bottom and re-run. You should still see <code>6</code>. The comprehension built <code>hosts</code>; it did not shrink <code>lines</code>. Once you have seen that, delete the extra print.</p>
+</div>
+
+<h2>Go deeper</h2>
+<p>Primary source: <a href="https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions">Official Tutorial &mdash; List Comprehensions</a> (short; the canonical first read &mdash; stop before nested list comprehensions). Optional second pass: <a href="https://realpython.com/list-comprehension-python/">Real Python &mdash; List Comprehension</a> (gentler walkthrough with more examples; skip nested and performance sections for now).</p>
+
+<div class="footer">
+<p>Reference: <a href="../reference/python-quick-reference.html#list-comprehensions">Python quick reference &mdash; List comprehensions</a>, <a href="../reference/python-quick-reference.html#lists">Lists</a>, <a href="../reference/python-quick-reference.html#files">Files &amp; string parsing</a>. Previous: <a href="0023-sets-dedupe-a-list.html">Lesson 23 &mdash; Sets Dedupe a List</a>. Related: <a href="0002-lists-and-loops.html">Lesson 2</a>, <a href="0004-conditionals.html">Lesson 4</a>.</p>
+<p>Questions &mdash; especially &ldquo;when should I keep the long <code>for</code> loop?&rdquo; or &ldquo;how is this different from <code>filter()</code>?&rdquo; &mdash; ask your teacher (the agent). Follow-ups are part of the lesson.</p>
+</div>
+
+<script>
+document.querySelectorAll('.quiz').forEach(function (quiz) {
+  var answer = quiz.dataset.answer;
+  var feedback = quiz.querySelector('.feedback');
+  quiz.querySelectorAll('button.opt').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (btn.dataset.k === answer) {
+        feedback.textContent = '\u2713 Correct.';
+        feedback.className = 'feedback good';
+      } else {
+        feedback.textContent = '\u2717 Not quite \u2014 think about it, then try again.';
+        feedback.className = 'feedback bad';
+      }
+    });
+  });
+});
+</script>
+
+</body>
+</html>

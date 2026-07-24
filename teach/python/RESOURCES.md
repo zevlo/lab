@@ -42,6 +42,10 @@
   Authoritative intro to `class`, instances, `__init__`, and methods. Use for: enough OOP to read others' code — stop before inheritance unless needed.
 - [Real Python: Python Classes](https://realpython.com/python-classes/)
   Practical walkthrough of attributes and methods. Use for: a gentler second pass after the official “first look” section.
+- [Official Tutorial — List Comprehensions](https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions)
+  Canonical intro to `[expr for item in iterable if condition]`. Use for: the authoritative first read; stop before nested comprehensions unless needed.
+- [Real Python: List Comprehension](https://realpython.com/list-comprehension-python/)
+  Gentler walkthrough with filter and transform examples. Use for: a second pass after the official tutorial section.
 
 ## Wisdom (Communities)
 

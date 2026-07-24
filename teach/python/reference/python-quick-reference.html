@@ -586,6 +586,28 @@ for host in sorted(unique):    # alphabetical, deterministic
 
   <p class="note">A set answers &ldquo;which ones?&rdquo; (dedupe). A dict answers &ldquo;how many of each?&rdquo; (tally). For stable output, wrap a set in <code>sorted()</code> &mdash; raw <code>set(...)</code> order is not guaranteed.</p>
 
+  <h2 id="list-comprehensions">List comprehensions <span class="note">&mdash; Lesson 0024</span></h2>
+  <table>
+    <tr><th>Task</th><th>Code</th><th>Notes</th></tr>
+    <tr><td>Filter</td><td><code>[x for x in xs if cond]</code></td><td>new list of items that pass <code>cond</code>; order kept</td></tr>
+    <tr><td>Transform</td><td><code>[expr for x in xs]</code></td><td>new list where each item becomes <code>expr</code></td></tr>
+    <tr><td>Both</td><td><code>[expr for x in xs if cond]</code></td><td>filter then transform in one pass</td></tr>
+    <tr><td>Long form</td><td>empty list + <code>for</code> + <code>if</code> + <code>.append()</code></td><td>same result; use when the body needs more than one step</td></tr>
+  </table>
+
+<pre><code>lines = [
+    "INFO web-01 started",
+    "ERROR db-01 connection failed",
+    "ERROR cache-01 timeout",
+]
+
+# same as: errors = []; for line in lines: if ...: errors.append(line)
+errors = [line for line in lines if line.startswith("ERROR")]
+hosts  = [line.split()[1] for line in lines if line.startswith("ERROR")]
+# hosts == ['db-01', 'cache-01']  — lines is still length 3</code></pre>
+
+  <p class="note">Read brackets left to right: expression, then <code>for</code>, then optional <code>if</code>. Always a <strong>new</strong> list &mdash; the source is not modified. Nested / dict / set comprehensions are a later topic.</p>
+
 </body>
 </html>
 
