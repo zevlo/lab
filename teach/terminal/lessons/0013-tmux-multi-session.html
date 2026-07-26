@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 0012 — tmux synchronize-panes</title>
+<title>Lesson 0013 — tmux multi-session habits</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -45,7 +45,7 @@
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
   th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 11em; }
   ol, ul { padding-left: 1.3rem; }
   li { margin: 0.3rem 0; }
   .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
@@ -75,125 +75,123 @@
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0012 · <a href="../reference/tmux-synchronize-panes.html">Phase 3 — tmux</a></p>
-    <h1>Type once, hit every pane</h1>
-    <p class="lede"><code>synchronize-panes</code> — the mission unlock for parallel multi-host commands. No default keybind; the command prompt is the stock path.</p>
+    <p class="kicker">Lesson 0013 · <a href="../reference/tmux-multi-session.html">Phase 3 — tmux</a></p>
+    <h1>Named sessions as workspaces</h1>
+    <p class="lede">Stop living in one anonymous session. Name them, switch with <code>C-b s</code>, come back after an SSH drop by name.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>Success criteria: drive <code>synchronize-panes</code> from muscle memory for multi-host ops. You already split panes (Lesson 0006). This lesson turns those panes into one keyboard when you want the same triage on every host — then turns that off before a typo goes global.</p>
+  <p>Mission: survive disconnects and keep multi-host work organized. Lesson 0006 taught one session. Real ops needs several — e.g. <code>ops</code> (synced host panes), <code>edit</code> (vim), <code>logs</code> (long <code>tail -F</code>) — and a way to jump without tearing anything down.</p>
 
-  <h2>Knowledge — window option, not a prefix chord</h2>
-  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: <code>synchronize-panes on</code> duplicates input to all other panes in the <em>same window</em> (panes not stuck in a mode). Stock tmux has <strong>no</strong> default key for this — use the command prompt (<code>C-b :</code>) or a shell <code>tmux setw …</code>.</p>
+  <h2>Knowledge — one server, many sessions</h2>
+  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: a <strong>session</strong> is a persistent collection of windows. Your terminal is a <strong>client</strong> attached to one session at a time. Creating another session does not destroy the first.</p>
+  <pre><code>tmux server (on this machine)
+  ├── session ops
+  ├── session edit
+  └── session logs</code></pre>
   <table>
-    <thead><tr><th>Action</th><th>Stock command</th></tr></thead>
+    <thead><tr><th>Keys / command</th><th>Does</th></tr></thead>
     <tbody>
-      <tr><td>Turn on</td><td><code>C-b :</code> → <code>setw synchronize-panes on</code></td></tr>
-      <tr><td>Turn off</td><td><code>C-b :</code> → <code>setw synchronize-panes off</code></td></tr>
-      <tr><td>Toggle</td><td><code>C-b :</code> → <code>setw synchronize-panes</code></td></tr>
-      <tr><td>Check</td><td><code>tmux show -w synchronize-panes</code></td></tr>
+      <tr><td><code>tmux new -s name</code></td><td>Create + attach named session</td></tr>
+      <tr><td><code>tmux new -s name -d</code></td><td>Create detached (don’t leave current)</td></tr>
+      <tr><td><code>tmux ls</code></td><td>List sessions</td></tr>
+      <tr><td><code>tmux attach -t name</code></td><td>Attach from outside tmux</td></tr>
+      <tr><td><code>C-b s</code></td><td>Pick a session interactively</td></tr>
+      <tr><td><code>C-b (</code> / <code>)</code></td><td>Previous / next session</td></tr>
+      <tr><td><code>C-b L</code></td><td>Jump to last session</td></tr>
+      <tr><td><code>C-b $</code></td><td>Rename current session</td></tr>
     </tbody>
   </table>
-  <div class="gotcha"><strong>Off when done.</strong> Sync left on is how you broadcast <code>rm</code> to every pane. Habit: on → burst of commands → <em>off</em> before exploratory typing.</div>
-  <div class="gotcha"><strong>Window scope.</strong> Only panes in the current window. Other windows stay independent. Real workflow: one window per “fleet burst,” ssh already established in each pane, then sync.</div>
+  <div class="gotcha"><strong>Name by job, not by number.</strong> <code>ops</code> / <code>db</code> / <code>vpn</code> beat <code>0</code> and <code>1</code>. After an SSH drop: <code>tmux ls</code> → <code>tmux attach -t ops</code>.</div>
 
-  <h2>Drill — three panes, one keyboard</h2>
-  <p>Local is enough (no SSH required). Simulate hosts with labeled shells.</p>
+  <h2>Drill — two workspaces, switch both ways</h2>
+  <p>If you are already inside tmux, detach first (<code>C-b d</code>) so the shell commands below run outside.</p>
   <ol>
     <li>
-      Session with three panes:
-      <pre><code>tmux new -s syncdrill
-# C-b %   then C-b "   → three panes
-# C-b o to cycle; in each pane run a label:</code></pre>
-      Pane A: <code>export PS1='A&gt; '</code><br>
-      Pane B: <code>export PS1='B&gt; '</code><br>
-      Pane C: <code>export PS1='C&gt; '</code>
+      Create an <code>ops</code> session and leave a marker:
+      <pre><code>tmux new -s ops
+echo 'workspace: OPS' &gt; /tmp/tmux-ops.txt
+cat /tmp/tmux-ops.txt</code></pre>
+      Detach with <code>C-b d</code>.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>You should see three different prompts. Sync is still off — typing in one pane must not appear in the others.</p>
+        <p>Status line should have shown session name <code>ops</code>. After detach you are back in plain bash; <code>tmux ls</code> still lists <code>ops</code>.</p>
       </div></details>
     </li>
     <li>
-      Enable sync from the tmux command prompt:
-      <pre><code>C-b :
-setw synchronize-panes on
-# Enter</code></pre>
-      Confirm:
-      <pre><code>tmux show -w synchronize-panes</code></pre>
+      Create a second session without leaving bash’s “outside” view — first make it detached, then attach:
+      <pre><code>tmux new -s edit -d
+tmux ls
+tmux attach -t edit
+echo 'workspace: EDIT' &gt; /tmp/tmux-edit.txt</code></pre>
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Should print <code>synchronize-panes on</code>. The <code>:</code> prompt is prefix then colon — same place you would type any tmux command.</p>
+        <p><code>tmux ls</code> should list both <code>ops</code> and <code>edit</code>. You are attached to <code>edit</code> now.</p>
       </div></details>
     </li>
     <li>
-      With focus in any pane, type:
-      <pre><code>echo hello-from-sync
-hostname</code></pre>
-      Watch all three panes receive the same keystrokes.
+      Switch with the picker: <code>C-b s</code>, arrow to <code>ops</code>, Enter. Confirm <code>cat /tmp/tmux-ops.txt</code> (or that you are in the pane where you created it).
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Every pane runs the same lines. Prompts stay A/B/C; output of <code>hostname</code> is whatever this Mac is — the point is identical input, not identical hosts.</p>
+        <p><code>C-b s</code> is <code>choose-tree</code> filtered to sessions. Enter selects. Your <code>edit</code> session keeps running in the background.</p>
       </div></details>
     </li>
     <li>
-      Disable sync, then type only in one pane:
-      <pre><code>C-b :
-setw synchronize-panes off</code></pre>
-      In one pane: <code>echo only-here</code> — the others must stay quiet.
+      Flip with chords: <code>C-b )</code> / <code>C-b (</code> to cycle, then <code>C-b L</code> to jump back to the previous session.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>If all three still echo, sync never turned off — re-run <code>tmux show -w synchronize-panes</code>.</p>
+        <p><code>L</code> is “last session” — fastest toggle when you only bounce between two workspaces.</p>
       </div></details>
     </li>
     <li>
-      Optional: toggle with bare <code>setw synchronize-panes</code> (no on/off) twice and watch <code>tmux show -w synchronize-panes</code> flip.
+      Rename for clarity: in whichever session you’re in, <code>C-b $</code>, type a clearer name if needed (or keep <code>ops</code>/<code>edit</code>), Enter. Verify with <code>tmux ls</code> from a detached shell or <code>C-b s</code>.
       <details><summary>show answer</summary><div class="drill-answer">
-        <p>Toggle is fine once you trust yourself; explicit <code>on</code>/<code>off</code> is safer under incident stress.</p>
+        <p>Rename does not destroy windows or panes — only the label changes.</p>
       </div></details>
     </li>
   </ol>
 
-  <div class="gotcha"><strong>Pareto cut.</strong> No custom keybind for sync (defaults-only). Status-line sync indicators later if you want. Cheat sheet: <a href="../reference/tmux-synchronize-panes.html">synchronize-panes</a>.</div>
+  <div class="gotcha"><strong>Pareto cut.</strong> Not today: <code>kill-session</code>, nested tmux, extra sockets. Leaving orphan sessions is fine until you intentionally clean up. Cheat sheet: <a href="../reference/tmux-multi-session.html">multi-session</a>.</div>
 
   <h2>Check your understanding</h2>
   <p>Four short questions. Answers are shuffled on each page load.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>How do you open the tmux command prompt?</p>
+    <p class="quiz-q"><span class="num">Q1</span>Interactive session picker key?</p>
     <ul class="options">
-      <li class="option" data-correct="true">C-b :</li>
-      <li class="option">C-b ;</li>
-      <li class="option">C-b /</li>
-      <li class="option">C-b ?</li>
+      <li class="option" data-correct="true">C-b s</li>
+      <li class="option">C-b w</li>
+      <li class="option">C-b d</li>
+      <li class="option">C-b c</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>Stock command to enable sync?</p>
+    <p class="quiz-q"><span class="num">Q2</span>Create and attach a named session?</p>
     <ul class="options">
-      <li class="option" data-correct="true">setw synchronize-panes on</li>
-      <li class="option">setw synchronize-panes go</li>
-      <li class="option">setw synchronize-panes all</li>
-      <li class="option">setw synchronize-panes yes</li>
+      <li class="option" data-correct="true">tmux new -s ops</li>
+      <li class="option">tmux new -t ops</li>
+      <li class="option">tmux ls -s ops</li>
+      <li class="option">tmux kill -s ops</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>Sync duplicates input across…?</p>
+    <p class="quiz-q"><span class="num">Q3</span>What does <code>C-b L</code> do?</p>
     <ul class="options">
-      <li class="option" data-correct="true">panes in one window</li>
-      <li class="option">all tmux sessions</li>
-      <li class="option">all Ghostty tabs</li>
-      <li class="option">all bash histories</li>
+      <li class="option" data-correct="true">last session jump</li>
+      <li class="option">list every pane</li>
+      <li class="option">lock the server</li>
+      <li class="option">layout next tile</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>After a parallel burst you should…?</p>
+    <p class="quiz-q"><span class="num">Q4</span>Switching sessions does what to the other?</p>
     <ul class="options">
-      <li class="option" data-correct="true">turn synchronize off</li>
-      <li class="option">turn synchronize up</li>
-      <li class="option">kill every pane</li>
-      <li class="option">detach immediately</li>
+      <li class="option" data-correct="true">leaves it running</li>
+      <li class="option">kills its windows</li>
+      <li class="option">detaches the server</li>
+      <li class="option">clears its history</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -201,16 +199,16 @@ setw synchronize-panes off</code></pre>
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> After the drill: did on → type → off feel crisp? Any moment you left sync on by accident? When you try keyboard copy-mode on Linux, report whether <code>C-w</code> / <code>M-w</code> works there.</p>
-    <p style="margin-bottom:0">Next slices: <strong>multi-session habits</strong> (<code>C-b s</code>, named sessions per host), OSC 52 clipboard depth, or spaced shell retrieval.</p>
+    <p><strong>Ask the teacher.</strong> After the drill: did <code>C-b s</code> or <code>C-b L</code> feel faster for two sessions? Any leftover anonymous sessions from earlier drills cluttering <code>tmux ls</code>?</p>
+    <p style="margin-bottom:0">Next slices: OSC 52 clipboard depth, spaced shell retrieval, or a mission check-in (what still feels slow in real incidents).</p>
   </div>
 
   <footer>
     <p><strong>Primary sources for this lesson</strong></p>
     <ul>
-      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — window option <code>synchronize-panes</code>; command prompt via DEFAULT KEY BINDINGS (<code>:</code>).</li>
+      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — DESCRIPTION (sessions), DEFAULT KEY BINDINGS (<code>s</code>, <code>(</code>, <code>)</code>, <code>L</code>, <code>$</code>), <code>new-session</code>, <code>attach-session</code>, <code>switch-client</code>, <code>choose-tree</code>.</li>
     </ul>
-    <p>Previous: <a href="./0011-tmux-copy-mode.html">Lesson 0011 — tmux copy-mode</a>. Reference: <a href="../reference/tmux-synchronize-panes.html">synchronize-panes</a>. Next: <a href="./0013-tmux-multi-session.html">Lesson 0013 — multi-session habits</a>.</p>
+    <p>Previous: <a href="./0012-tmux-synchronize-panes.html">Lesson 0012 — synchronize-panes</a>. Reference: <a href="../reference/tmux-multi-session.html">multi-session</a>. Next: TBD from your feedback.</p>
   </footer>
 
 <script>
@@ -250,10 +248,10 @@ setw synchronize-panes off</code></pre>
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Sync habit locked. Ask the teacher what to cut next.'
+            ? ' — flawless. Session workspaces locked. Ask the teacher what’s next.'
             : correct >= quizzes.length - 1
             ? ' — solid. Revisit the miss, then continue.'
-            : ' — re-read the synchronize-panes reference before moving on.'
+            : ' — re-read the multi-session reference before moving on.'
         }`;
       }
     }));

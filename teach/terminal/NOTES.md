@@ -109,3 +109,12 @@
 - **Skill win:** 3 local panes, sync on → shared typing → sync off → single-pane typing.
 - **Habit:** always off after burst. Window-scoped.
 - **Primary:** `man tmux` synchronize-panes.
+
+## L0012 complete (4/4)
+- Sync on/off via `C-b :` fluent. Primary use case to reinforce: multi-host SSH panes → identical triage burst → sync off.
+
+## L0013 design notes (multi-session habits)
+- **Topic:** named sessions as workspaces; `tmux new -s` / `ls` / `attach -t`; `C-b s` / `(`/`)` / `L` / `$`.
+- **Skill win:** ops + edit sessions, switch via picker and last-session toggle.
+- **Pareto cut:** kill-session, nested tmux, sockets.
+- **Primary:** `man tmux` sessions + DEFAULT KEY BINDINGS.

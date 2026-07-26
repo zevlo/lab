@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — tmux multi-session</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } h2 { page-break-after: avoid; } tr, table { page-break-inside: avoid; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · tmux</p>
+    <h1>Multi-session habits</h1>
+    <p class="lede">Named sessions as workspaces. Switch without destroying. Detach/reattach stays the same.</p>
+  </header>
+
+  <h2>Mental model</h2>
+  <pre><code>one tmux server (per machine)
+  ├── session ops     — incident / multi-host panes
+  ├── session edit    — vim configs
+  └── session logs    — long-running tails</code></pre>
+  <p>A session is a named, persistent workspace. Windows and panes live <em>inside</em> it. Switching sessions moves your client; nothing is killed.</p>
+
+  <h2>Shell (create / list / attach)</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>tmux new -s ops</code></td><td>Create and attach session <code>ops</code></td></tr>
+      <tr><td><code>tmux new -s logs -d</code></td><td>Create <code>logs</code> detached (stay where you are)</td></tr>
+      <tr><td><code>tmux ls</code></td><td>List sessions</td></tr>
+      <tr><td><code>tmux attach -t ops</code></td><td>Attach to <code>ops</code></td></tr>
+      <tr><td><code>tmux switch -t logs</code></td><td>From inside tmux: jump to <code>logs</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Prefix keys (stock)</h2>
+  <p>From DEFAULT KEY BINDINGS in <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>.</p>
+  <table>
+    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>C-b s</code></td><td>Interactive session picker (<code>choose-tree -Zs</code>)</td></tr>
+      <tr><td><code>C-b (</code></td><td>Previous session</td></tr>
+      <tr><td><code>C-b )</code></td><td>Next session</td></tr>
+      <tr><td><code>C-b L</code></td><td>Last session (toggle back)</td></tr>
+      <tr><td><code>C-b $</code></td><td>Rename current session</td></tr>
+      <tr><td><code>C-b d</code></td><td>Detach (sessions keep running)</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Naming habit.</strong> Prefer short task names (<code>ops</code>, <code>db</code>, <code>vpn</code>) over <code>1</code>/<code>2</code>. After SSH drop: <code>tmux ls</code> then <code>tmux attach -t ops</code>.</div>
+
+  <div class="beyond">
+    <h2>Beyond the pareto</h2>
+    <p><code>kill-session</code>, nested tmux, separate sockets (<code>-L</code>), fuzzy Tab picker extras. Destroy sessions only on purpose.</p>
+  </div>
+
+  <footer>
+    <p><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — sessions, <code>choose-tree</code>, <code>switch-client</code>. Lesson: <a href="../lessons/0013-tmux-multi-session.html">0013 — multi-session habits</a>.</p>
+  </footer>
+</body>
+</html>
