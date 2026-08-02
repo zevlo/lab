@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0016 — MS pipes &amp; core filters</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 11em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0016 · <a href="../reference/shell-pipes-filters.html">Missing Semester — shell</a></p>
+    <h1>Pipes &amp; core filters</h1>
+    <p class="lede">Compose small programs with <code>|</code>. High-rep <code>cat</code>/<code>head</code>/<code>tail</code>/<code>grep</code>/<code>sort</code>/<code>uniq</code> — the MS lecture 1 toolkit before <code>find</code>/<code>sed</code>/<code>awk</code>.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Missing Semester’s power move is composition: each tool does one job; pipes chain them. L0014 showed advanced recipes fade without a sturdier filter floor. Today is reps on the simple tools from <a href="https://missing.csail.mit.edu/2026/course-shell/">Introduction to the Shell</a>, then one ranking pipeline you can rebuild cold.</p>
+  <p><strong>Read first (10–15 min):</strong> MS notes — “What is available in the shell?” through the simple tools (<code>cat</code>/<code>sort</code>/<code>uniq</code>/<code>head</code>/<code>tail</code>/<code>grep</code>), then “The shell language” paragraphs on pipes, <code>&gt;</code>/<code>&gt;&gt;</code>, and <code>tee</code>. Stop before <code>find</code>/<code>sed</code>/<code>awk</code> and the scripting section.</p>
+
+  <h2>Knowledge 1 — filters read files or stdin</h2>
+  <p>From Missing Semester: most of these programs take a file argument, or read <strong>standard input</strong> when none is given. That is the contract that makes <code>|</code> work — stdout of one program becomes stdin of the next.</p>
+  <table>
+    <thead><tr><th>Tool</th><th>Job</th></tr></thead>
+    <tbody>
+      <tr><td><code>cat</code></td><td>Print contents</td></tr>
+      <tr><td><code>head</code> / <code>tail</code></td><td>First / last lines</td></tr>
+      <tr><td><code>grep PAT</code></td><td>Keep matching lines</td></tr>
+      <tr><td><code>sort</code></td><td>Order lines</td></tr>
+      <tr><td><code>uniq</code> / <code>-c</code></td><td>Collapse / count adjacent dupes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Knowledge 2 — pipe vs redirect</h2>
+  <p><code>|</code> feeds another <em>program</em>. <code>&gt;</code> / <code>&gt;&gt;</code> feeds a <em>file</em>. <code>tee</code> does both: copy to a file while the stream keeps flowing (MS + Shotts).</p>
+  <pre><code>cmd1 | cmd2           # program → program
+cmd &gt; out.txt         # overwrite file
+cmd &gt;&gt; out.txt        # append file
+cmd | tee out.txt     # see it and save it</code></pre>
+
+  <h2>Knowledge 3 — uniq needs sort</h2>
+  <div class="gotcha"><strong>Adjacent only.</strong> <code>uniq</code> collapses runs of identical neighbors. Unsorted input → wrong counts. Muscle: <code>sort | uniq -c | sort -nr | head</code>.</div>
+
+  <h2>Drill — solo, then compose, then cold</h2>
+  <p>Ghostty + bash. One token per line so you do not need <code>cut</code>/<code>awk</code> yet. Say the expected output before Enter when you can.</p>
+  <ol>
+    <li>
+      Build the sample (heredoc — closing <code>EOF</code> alone on its line):
+      <pre><code>cat &gt; /tmp/ms-users.txt &lt;&lt;'EOF'
+root
+admin
+ubuntu
+root
+postgres
+admin
+root
+test
+ubuntu
+root
+admin
+mysql
+ubuntu
+root
+EOF</code></pre>
+      Confirm with <code>wc -l /tmp/ms-users.txt</code> (expect <code>14</code>).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Fourteen lines. If not, re-run the heredoc — a mistyped closing <code>EOF</code> is the usual culprit.</p>
+      </div></details>
+    </li>
+    <li>
+      Solo reps — run each twice:
+      <pre><code>cat /tmp/ms-users.txt
+head -n 3 /tmp/ms-users.txt
+tail -n 3 /tmp/ms-users.txt
+grep ubuntu /tmp/ms-users.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>head</code> → root, admin, ubuntu. <code>tail</code> → mysql, ubuntu, root. <code>grep ubuntu</code> → three lines.</p>
+      </div></details>
+    </li>
+    <li>
+      Prove the <code>uniq</code> footgun, then the fix:
+      <pre><code>uniq -c /tmp/ms-users.txt
+sort /tmp/ms-users.txt | uniq -c</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Without <code>sort</code>, counts are nonsense (only adjacent dupes). With <code>sort | uniq -c</code>, each name has one count line — <code>root</code> should be 5.</p>
+      </div></details>
+    </li>
+    <li>
+      Rank top names (MS composition shape):
+      <pre><code>sort /tmp/ms-users.txt \
+  | uniq -c \
+  | sort -nr \
+  | head -n 5</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Expect <code>root</code> 5, then <code>ubuntu</code> 3 and <code>admin</code> 3 (tie order may vary by locale), then <code>test</code>/<code>postgres</code>/<code>mysql</code> at 1 — <code>head -n 5</code> shows the first five ranked lines.</p>
+      </div></details>
+    </li>
+    <li>
+      Save while viewing — overwrite, then tee:
+      <pre><code>sort /tmp/ms-users.txt | uniq -c | sort -nr &gt; /tmp/ranked.txt
+cat /tmp/ranked.txt
+sort /tmp/ms-users.txt | uniq -c | sort -nr | tee /tmp/ranked-tee.txt | head -n 3
+cat /tmp/ranked-tee.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>&gt;</code> saves the full ranked table silently. <code>tee</code> writes the full stream to the file while <code>head</code> only shows three lines on screen — open the file to see everything.</p>
+      </div></details>
+    </li>
+    <li>
+      Pipe vs redirect — predict before running:
+      <pre><code>grep root /tmp/ms-users.txt | wc -l
+grep root /tmp/ms-users.txt &gt; /tmp/roots.txt
+wc -l /tmp/roots.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Both count <code>5</code>. First: pipe into <code>wc</code>. Second: redirect into a file, then count the file. Same data, different destination type.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuild</strong> (no peeking at this page): clear the scrollback mentally, then type from memory the command that prints the top 5 usernames by frequency from <code>/tmp/ms-users.txt</code>. Check against step 4.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>sort /tmp/ms-users.txt | uniq -c | sort -nr | head -n 5</code>. If you missed <code>sort</code> before <code>uniq</code>, re-run step 3 until the footgun feels obvious.</p>
+      </div></details>
+    </li>
+    <li>
+      Optional spacing: close the terminal tab, open a new one, <code>cd /tmp</code>, and rebuild the ranking pipeline once more without the lesson open.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Same recipe. Storage strength grows when retrieval crosses a session boundary — this is the L0014 lesson applied to a smaller surface.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut (same lecture, later).</strong> <code>find</code>, <code>sed -i</code>, <code>awk</code>, bash scripting (<code>if</code>/<code>for</code>/shebang), stderr merge (<code>2&gt;&amp;1</code> — already drilled in L0009), and MS “consider installing” tools (eza, bat, fd, ripgrep, zoxide).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What does <code>|</code> connect?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">stdout → next stdin</li>
+      <li class="option">stdout → a file</li>
+      <li class="option">stderr → man pages</li>
+      <li class="option">PATH → which</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Why <code>sort</code> before <code>uniq -c</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">uniq needs adjacent</li>
+      <li class="option">sort deletes files</li>
+      <li class="option">uniq ignores stdin</li>
+      <li class="option">head requires sort</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Pipe vs <code>&gt;</code> — which is true?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">pipe→program; &gt;→file</li>
+      <li class="option">both write only files</li>
+      <li class="option">both feed only programs</li>
+      <li class="option">tee replaces both always</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>What does <code>tee out.txt</code> do in a pipe?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">save and keep flowing</li>
+      <li class="option">sort then stop</li>
+      <li class="option">delete the input file</li>
+      <li class="option">merge stderr only</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did the cold rebuild land without peeking? Did skipping <code>sort</code> before <code>uniq</code> bite you again? Which filter still feels slow — <code>head</code>/<code>tail</code>, <code>grep</code>, or the ranking chain?</p>
+    <p style="margin-bottom:0">Next: another cold pass on this recipe tomorrow, or continue MS lecture 1 with <code>find</code> / light <code>sed</code> / <code>awk</code> (still high-rep, still no fancy CLIs).</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Course Overview + Introduction to the Shell</a> (CC BY-NC-SA). Sections: What is available (simple tools); shell language — pipes, redirects, <code>tee</code>.</li>
+      <li>William Shotts, <em>The Linux Command Line</em> ch. 6 — filters &amp; pipelines.</li>
+      <li><code>man sort</code>, <code>man uniq</code>, <code>man grep</code>, <code>man tee</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0015-intro-to-the-shell.html">Lesson 0015 — Introduction to the Shell</a>. Reference: <a href="../reference/shell-pipes-filters.html">pipes &amp; core filters</a>. Next: <a href="./0017-ms-find-sed-awk.html">Lesson 0017 — find, sed, awk</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the ranking recipe once more before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuild.'
+            : ' — re-read the MS filters section and the pipes-filters reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

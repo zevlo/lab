@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** [Introduction to the Shell](https://missing.csail.mit.edu/2026/course-shell/) → then Command-line Environment → continue the 2026 syllabus.
+**Next up:** [Introduction to the Shell](https://missing.csail.mit.edu/2026/course-shell/) — `find` / light `sed` / `awk` (L0017) → light bash scripting (lecture 1 rest) → Command-line Environment → continue the 2026 syllabus.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reference — shell navigation (Missing Semester)</title>
+<title>Reference — pipes &amp; core filters (Missing Semester)</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -50,66 +50,54 @@
 <body>
   <header>
     <p class="kicker">Reference · Missing Semester · shell</p>
-    <h1>Navigation, PATH, man</h1>
-    <p class="lede">Lecture 1 foundation slice. Grounded in <a href="https://missing.csail.mit.edu/2026/course-shell/">Introduction to the Shell</a>.</p>
+    <h1>Pipes &amp; core filters</h1>
+    <p class="lede">Lecture 1 composition slice. Grounded in <a href="https://missing.csail.mit.edu/2026/course-shell/">Introduction to the Shell</a>.</p>
   </header>
 
-  <h2>Terminal vs shell</h2>
-  <p><strong>Terminal</strong> = the app that draws text (Ghostty). <strong>Shell</strong> = the program that reads commands (bash). You type into the terminal; bash interprets.</p>
-
-  <h2>Prompt &amp; cwd</h2>
+  <h2>Pipe vs redirect</h2>
   <table>
-    <thead><tr><th>Thing</th><th>Means</th></tr></thead>
+    <thead><tr><th>Form</th><th>Feeds</th></tr></thead>
     <tbody>
-      <tr><td><code>~</code></td><td>Home directory</td></tr>
-      <tr><td><code>/</code></td><td>Filesystem root</td></tr>
-      <tr><td><code>$</code> in prompt</td><td>Ordinary user (not root)</td></tr>
-      <tr><td><code>pwd</code></td><td>Print working directory</td></tr>
-      <tr><td><code>echo $PWD</code></td><td>Same path via env var</td></tr>
+      <tr><td><code>cmd1 | cmd2</code></td><td>Stdout → another <em>program</em> (stdin)</td></tr>
+      <tr><td><code>cmd &gt; file</code></td><td>Stdout → file (overwrite)</td></tr>
+      <tr><td><code>cmd &gt;&gt; file</code></td><td>Stdout → file (append)</td></tr>
+      <tr><td><code>cmd &lt; file</code></td><td>File → stdin</td></tr>
     </tbody>
   </table>
+  <div class="note">Most filters read a file argument <em>or</em> stdin when no file is given. That is why pipes work.</div>
 
-  <h2>cd &amp; paths</h2>
+  <h2>Core filters (MS simple tools)</h2>
   <table>
     <thead><tr><th>Command</th><th>Does</th></tr></thead>
     <tbody>
-      <tr><td><code>cd /path</code></td><td>Absolute — from root</td></tr>
-      <tr><td><code>cd rel</code></td><td>Relative — from cwd</td></tr>
-      <tr><td><code>cd ~</code> or <code>cd</code></td><td>Go home</td></tr>
-      <tr><td><code>cd -</code></td><td>Previous directory</td></tr>
-      <tr><td><code>.</code></td><td>This directory</td></tr>
-      <tr><td><code>..</code></td><td>Parent directory</td></tr>
-    </tbody>
-  </table>
-  <div class="note"><code>cd</code> is a <strong>shell builtin</strong> — not a separate program. A child process cannot change the parent’s cwd, so <code>cd</code> must live inside the shell (<a href="https://missing.csail.mit.edu/2026/course-shell/">MS exercise</a>).</div>
-
-  <h2>PATH &amp; which</h2>
-  <pre><code>echo $PATH          # :-separated search dirs
-which echo          # where the shell finds echo
-/bin/echo hi        # bypass PATH with full path</code></pre>
-
-  <h2>man</h2>
-  <pre><code>man ls              # full manual (q to quit)
-ls --help           # short help on many commands</code></pre>
-
-  <h2>Starter programs</h2>
-  <table>
-    <thead><tr><th>Command</th><th>Does</th></tr></thead>
-    <tbody>
-      <tr><td><code>date</code></td><td>Print date/time</td></tr>
-      <tr><td><code>echo args…</code></td><td>Print arguments</td></tr>
-      <tr><td><code>ls</code> / <code>ls -l</code></td><td>List directory</td></tr>
       <tr><td><code>cat file</code></td><td>Print file contents</td></tr>
+      <tr><td><code>head [-n N] file</code></td><td>First N lines (default often 10)</td></tr>
+      <tr><td><code>tail [-n N] file</code></td><td>Last N lines</td></tr>
+      <tr><td><code>grep PAT file</code></td><td>Lines matching PAT (regex)</td></tr>
+      <tr><td><code>sort file</code></td><td>Sort lines</td></tr>
+      <tr><td><code>uniq</code></td><td>Drop <em>adjacent</em> duplicate lines</td></tr>
+      <tr><td><code>uniq -c</code></td><td>Count adjacent duplicates</td></tr>
+      <tr><td><code>sort -nr</code></td><td>Numeric reverse sort (rank counts)</td></tr>
+      <tr><td><code>tee file</code></td><td>Copy stdin to file and stdout</td></tr>
     </tbody>
   </table>
+  <div class="note"><strong><code>uniq</code> needs sorted input.</strong> It only collapses runs of identical adjacent lines. Always <code>sort | uniq -c</code>, then optionally <code>sort -nr</code>.</div>
+
+  <h2>Ranking recipe</h2>
+  <pre><code>sort file \
+  | uniq -c \
+  | sort -nr \
+  | head -n 5</code></pre>
+  <p>With a mid-pipe save:</p>
+  <pre><code>sort file | uniq -c | sort -nr | tee /tmp/ranked.txt | head -n 5</code></pre>
 
   <div class="beyond">
-    <h2>Same lecture — later slices</h2>
-    <p>Pipes + core filters → <a href="./shell-pipes-filters.html">shell-pipes-filters</a> (L0016). Still later: <code>find</code>/<code>sed</code>/<code>awk</code>, bash scripting. Fancy replacements (eza, fd, rg) stay out of scope under mission constraints.</p>
+    <h2>Same lecture — later / deferred</h2>
+    <p><code>find</code>, <code>sed</code>, <code>awk</code> → <a href="./shell-find-sed-awk.html">shell-find-sed-awk</a> (L0017). Still later: bash scripting, MS alternate CLIs (eza, bat, fd, ripgrep, zoxide).</p>
   </div>
 
   <footer>
-    <p>Primary: <a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). Lesson: <a href="../lessons/0015-intro-to-the-shell.html">0015</a>.</p>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). Companion: William Shotts TLCL ch. 6. Lesson: <a href="../lessons/0016-ms-pipes-core-filters.html">0016</a>.</p>
   </footer>
 </body>
 </html>

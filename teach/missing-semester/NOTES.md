@@ -137,3 +137,25 @@
 - **Scope:** terminal vs shell, cwd/cd/paths, PATH/which, man, date/echo/ls/cat — lots of reps.
 - **Defer:** pipes, redirects deep, find/sed/awk, scripting, MS fancy CLIs.
 - User should read MS notes (nav + PATH sections) before/during lesson.
+
+## L0015 complete (no issues)
+- Nav / PATH / `man` floor set. Continue MS lecture 1 — pipes + core filters with high reps.
+
+## L0016 design notes (MS shell — pipes + core filters)
+- **Primary source:** https://missing.csail.mit.edu/2026/course-shell/ — “What is available” (simple tools) + “The shell language” pipes/`>`/`tee` paragraphs.
+- **Scope:** `cat` `head` `tail` `grep` `sort` `uniq` + `|` composition; light `>` / `>>` / `tee`; pipe vs redirect.
+- **Data shape:** one token per line so ranking works without `cut`/`awk` (those return later).
+- **Skill win:** cold rebuild `sort | uniq -c | sort -nr | head`.
+- **Defer:** `find`/`sed`/`awk`, stderr merge depth (already L0009), bash scripting, MS fancy CLIs.
+- **Reps over novelty:** solo each filter, then compose, then cold rebuild.
+
+## L0016 complete (4/4; cold rebuild + /tmp spacing OK)
+- Ranking recipe stuck through cold rebuild and optional fresh-tab spacing. Next: MS `find` / light `sed` / `awk`.
+
+## L0017 design notes (MS shell — find / light sed / awk)
+- **Primary source:** https://missing.csail.mit.edu/2026/course-shell/ — “What is available” complicated tools (`sed`, `find`, `awk`).
+- **Scope:** `find` `-type`/`-name`/`-exec`; `sed` `s///g` preview + in-place; `awk` `{print $N}` + `-F`.
+- **macOS mandatory:** `sed -i '' 's/…/…/g' file` (BSD); Linux remotes use `sed -i 's/…/…/g'`.
+- **Skill win:** find py files with TODO via `-exec grep -l`; extract a column with awk; safe sed substitute.
+- **Defer:** deep sed/awk languages, find `-mtime`/`-size` depth (mention only), full SSH log pipeline, bash scripting, fd/rg.
+- **Scratch tree:** `/tmp/ms-tree/` — controlled, disposable.

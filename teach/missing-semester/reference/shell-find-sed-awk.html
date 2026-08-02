@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — find, sed, awk (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · shell</p>
+    <h1>find, light sed, light awk</h1>
+    <p class="lede">Lecture 1 “complicated tools” slice. Grounded in <a href="https://missing.csail.mit.edu/2026/course-shell/">Introduction to the Shell</a>.</p>
+  </header>
+
+  <h2>find — locate by conditions</h2>
+  <table>
+    <thead><tr><th>Form</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>find DIR -type f</code></td><td>Files only (not dirs)</td></tr>
+      <tr><td><code>find DIR -type d</code></td><td>Directories only</td></tr>
+      <tr><td><code>find DIR -name '*.py'</code></td><td>Basename glob (quote it!)</td></tr>
+      <tr><td><code>find DIR -exec CMD {} \;</code></td><td>Run CMD per match; <code>{}</code> = path</td></tr>
+    </tbody>
+  </table>
+  <pre><code>find . -type f -name '*.py' -exec grep -l TODO {} \;</code></pre>
+  <div class="note">The <code>\;</code> ends <code>-exec</code>. Escape the semicolon so the shell does not eat it. Quote globs so the shell does not expand them early.</div>
+
+  <h2>sed — substitute</h2>
+  <pre><code>sed 's/pattern/replacement/g' file     # preview → stdout
+sed -i '' 's/pattern/replacement/g' file   # macOS / BSD in-place
+sed -i 's/pattern/replacement/g' file      # Linux / GNU in-place</code></pre>
+  <div class="note"><strong>Always preview first.</strong> <code>s</code> = substitute; trailing <code>g</code> = all matches per line. macOS requires the empty extension <code>''</code> after <code>-i</code>.</div>
+
+  <h2>awk — columns</h2>
+  <pre><code>awk '{print $2}' file          # 2nd whitespace-separated field
+awk -F, '{print $2}' file      # 2nd comma-separated field
+awk '$2 &gt; 100 {print $1}' file # filter rows, then print</code></pre>
+  <div class="note"><code>$1</code>, <code>$2</code>, … are fields; <code>$0</code> is the whole line. Default FS is whitespace.</div>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <p>find <code>-mtime</code>/<code>-size</code> depth, sed capture groups / <code>-E</code> pipelines, awk aggregates, the full MS SSH-log mega-pipe, bash scripting, <code>xargs</code>, fd/ripgrep.</p>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). <code>man find</code>, <code>man sed</code>, <code>man awk</code>. Lesson: <a href="../lessons/0017-ms-find-sed-awk.html">0017</a>.</p>
+  </footer>
+</body>
+</html>
