@@ -26,6 +26,11 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **_tmux 2: Productive Mouse-Free Development_ — Brian Hogan** — https://pragprog.com/titles/bhtmux2/tmux-2/
   Pragmatic, project-driven tmux guide. Use for: tmux mastery beyond the man page.
 
+## Knowledge — courses / curricula
+
+- **The Missing Semester of Your CS Education (MIT)** — https://missing.csail.mit.edu/
+  User-recommended. MIT IAP course on tool proficiency: shell, command-line environment, editors, debugging, git, and related workflow skills. Lectures + notes. Use for: structured enrichment and “what else should I know?” — still defer to `man` / Shotts / `:help` as sources of truth for lesson claims.
+
 ## Knowledge — focused references
 
 - **"Editing as a language" — Drew Neil (vimcasts)** — http://vimcasts.org/episodes/the-edit/
@@ -34,6 +39,10 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   The actual standard. Use for: deciding what is portable bash vs a GNU-ism.
 - **_Learn Vimscript the Hard Way_ — Steve Losh** — https://learnvimscriptthehardway.stevelosh.com/
   For later: scripting vim. Out of scope until fundamentals are locked.
+- **`man 1 dig`** / BIND dig
+  DNS lookup utility. Use for: A/AAAA/MX, `+short`, `@server`, reading `status:` in full output. Lesson 0010.
+- **`man 8 ss`** — https://manpages.debian.org/bookworm/iproute2/ss.8.en.html
+  Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only.
 
 ## Wisdom (communities)
 
@@ -46,7 +55,5 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **r/sre and r/devops** — https://reddit.com/r/sre
   Use for: real-world incident patterns and DevOps tool workflows.
 
-- **`man 1 dig`** / BIND dig
-  DNS lookup utility. Use for: A/AAAA/MX, `+short`, `@server`, reading `status:` in full output. Lesson 0010.
-- **`man 8 ss`** — https://manpages.debian.org/bookworm/iproute2/ss.8.en.html
-  Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only.
+## Gaps
+_None yet._ Will surface explicitly if a mission-relevant area has no trusted resource.

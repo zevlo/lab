@@ -118,3 +118,12 @@
 - **Skill win:** ops + edit sessions, switch via picker and last-session toggle.
 - **Pareto cut:** kill-session, nested tmux, sockets.
 - **Primary:** `man tmux` sessions + DEFAULT KEY BINDINGS.
+
+## L0013 complete (4/4)
+- Multi-session habits fluent; user praised the lesson. Recommended Missing Semester → added to RESOURCES.md.
+- Phase 3 core (hierarchy, copy-mode, sync, multi-session) largely drilled. Next: OSC 52, spaced shell retrieval, or mission check-in.
+
+## L0014 design notes (spaced shell retrieval — user-requested)
+- **No new knowledge.** Interleave L0007–0010: pipeline, redirect order, ops loop, dig, ss.
+- **Desirable difficulty:** hide answers; retrieval index for after-check only.
+- **Quiz:** 6 interleaved items. Drill is incident-shaped single pass.

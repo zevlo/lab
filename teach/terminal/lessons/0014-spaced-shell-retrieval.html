@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0014 — spaced shell retrieval</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0014 · <a href="../reference/shell-retrieval-index.html">Phase shell — retrieval</a></p>
+    <h1>Recall under mixed load</h1>
+    <p class="lede">No new commands. Interleaved practice of pipelines, redirects, ops, and dig/<code>ss</code> so they stick past fluency.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>You already drilled each family once. Fluency fades; <strong>storage strength</strong> grows when you retrieve under desirable difficulty — mixed topics, answers not sitting on the previous page. Struggle first; open the <a href="../reference/shell-retrieval-index.html">retrieval index</a> only after you try.</p>
+  <div class="gotcha"><strong>Rule.</strong> Do not peek at Lessons 0007–0010 during the drill. Blank on a step? Guess, run it, then check the answer disclosure or the index.</div>
+
+  <h2>Drill — one incident-shaped pass</h2>
+  <p>All in bash. Prefer recalling the pipeline shape before typing.</p>
+  <ol>
+    <li>
+      Seed a log (heredoc is fine — you may copy this block):
+      <pre><code>cat &gt; /tmp/recall.log &lt;&lt;'EOF'
+10.0.0.1 GET /ok 200
+10.0.0.2 GET /x 500 ERROR
+10.0.0.3 GET /x 500 ERROR
+10.0.0.2 GET /x 500 ERROR
+10.0.0.4 GET /ok 200
+EOF</code></pre>
+      From memory: rank ERROR client IPs by count (high → low). Reveal only after you try.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>grep ERROR /tmp/recall.log | cut -d' ' -f1 | sort | uniq -c | sort -nr</code> — expect <code>10.0.0.2</code> with 2, then <code>10.0.0.3</code> with 1.</p>
+      </div></details>
+    </li>
+    <li>
+      Capture <em>both</em> streams from a command that fails partway:
+      <pre><code>ls /tmp /no-such-recall</code></pre>
+      Write listing + error into <code>/tmp/recall-both.txt</code> (correct merge order). Confirm with <code>cat</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>ls /tmp /no-such-recall &gt; /tmp/recall-both.txt 2&gt;&amp;1</code> — not <code>2&gt;&amp;1 &gt;file</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      See and save the same failure with <code>tee</code>:
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>ls /tmp /no-such-recall 2&gt;&amp;1 | tee /tmp/recall-tee.txt</code></p>
+      </div></details>
+    </li>
+    <li>
+      Ops loop: start a throwaway server, find it, stop it politely.
+      <pre><code>python3 -m http.server 8766 --bind 127.0.0.1 &gt;/tmp/http8766.log 2&gt;&amp;1 &amp;</code></pre>
+      From memory: probe with headers, extract status code with <code>cut</code>, <code>pgrep -f</code> the server, <code>kill</code> TERM, verify with <code>kill -0</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>curl -si http://127.0.0.1:8766/ | head -1 | cut -d' ' -f2</code> → <code>200</code>. <code>PID=$(pgrep -f 'http.server 8766')</code>; <code>kill "$PID"</code>; <code>kill -0 "$PID" 2&gt;/dev/null || echo gone</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      DNS from memory: short A lookup for <code>example.com</code>, then the same via <code>@1.1.1.1</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>dig example.com +short</code> and <code>dig @1.1.1.1 example.com +short</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Remote-only recall (skip if no Linux SSH tonight): what exact flag set lists listening TCP with process? Run it and <code>grep</code> for <code>:22</code> if present.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>ss -tlnp</code> then <code>ss -tlnp | grep ':22'</code>. Mac local is <code>lsof</code> — not the mission reflex.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <h2>Check your understanding</h2>
+  <p>Six interleaved questions. Answers shuffled on each load. No peeking.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Why <code>sort</code> before <code>uniq -c</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">uniq needs adjacency</li>
+      <li class="option">sort needs adjacency</li>
+      <li class="option">cut needs adjacency</li>
+      <li class="option">tee needs adjacency</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Both streams into <code>out.txt</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">cmd &gt;out.txt 2&gt;&amp;1</li>
+      <li class="option">cmd 2&gt;&amp;1 &gt;out.txt</li>
+      <li class="option">cmd &lt;out.txt 2&gt;&amp;1</li>
+      <li class="option">cmd &gt;out.txt 1&gt;&amp;2</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Portable match on full argv?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">pgrep -f</li>
+      <li class="option">pgrep -a</li>
+      <li class="option">pgrep -l</li>
+      <li class="option">pgrep -n</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Status code from <code>HTTP/1.0 200 OK</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">cut -d' ' -f2</li>
+      <li class="option">cut -d' ' -f1</li>
+      <li class="option">cut -d' ' -f3</li>
+      <li class="option">cut -d' ' -f4</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="5">
+    <p class="quiz-q"><span class="num">Q5</span>Terse DNS answer only?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">dig name +short</li>
+      <li class="option">dig name +trace</li>
+      <li class="option">dig name +noall</li>
+      <li class="option">dig name +answer</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="6">
+    <p class="quiz-q"><span class="num">Q6</span>Listening TCP + process on Linux?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">ss -tlnp</li>
+      <li class="option">ss -uanp</li>
+      <li class="option">ss -srlp</li>
+      <li class="option">ss -xanp</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Which step made you hesitate — pipeline order, <code>2&gt;&amp;1</code>, ops loop, or dig/<code>ss</code>? That miss is the highest-value target for the next spaced pass.</p>
+    <p style="margin-bottom:0">Next slices: <strong>OSC 52 clipboard</strong>, another retrieval pass later this week, or a <strong>mission check-in</strong> on real-incident friction.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong> — your prior lessons and their cited manuals (Shotts ch. 6, <code>man bash</code>, <code>man dig</code>, <code>man ss</code>, <code>info coreutils</code>). Enrichment: <a href="https://missing.csail.mit.edu/">Missing Semester</a>.</p>
+    <p>Previous: <a href="./0013-tmux-multi-session.html">Lesson 0013 — multi-session habits</a>. Index: <a href="../reference/shell-retrieval-index.html">shell retrieval index</a>. Next: TBD from your feedback.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless retrieval. Tell the teacher which drill step was slowest.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Note the miss; that is next week’s spaced target.'
+            : ' — check the retrieval index, then retry the weak family soon.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

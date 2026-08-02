@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — shell retrieval index</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · shell</p>
+    <h1>Retrieval index</h1>
+    <p class="lede">Open <em>after</em> a spaced-retrieval attempt — not during. Links back to the lesson references.</p>
+  </header>
+
+  <div class="note">Rule: struggle first. Check here only to confirm or correct.</div>
+
+  <h2>Maps</h2>
+  <ul>
+    <li><a href="./pareto-shell-commands.html">Pareto shell commands</a> — five families</li>
+    <li><a href="./shell-ops.html">pgrep, kill, curl, cut</a></li>
+    <li><a href="./shell-redirect.html">Redirection</a> — <code>&gt;f 2&gt;&amp;1</code> order</li>
+    <li><a href="./dig-and-ss.html">dig and ss</a></li>
+  </ul>
+
+  <h2>Mission recipes (recall targets)</h2>
+  <ul>
+    <li>Log triage: <code>… | grep … | cut … | sort | uniq -c | sort -nr</code></li>
+    <li>Both streams to file: <code>cmd &gt;f 2&gt;&amp;1</code></li>
+    <li>See + save: <code>cmd 2&gt;&amp;1 | tee f</code></li>
+    <li>Find + stop: <code>pgrep -f</code> → <code>kill</code> (TERM) → <code>kill -0</code></li>
+    <li>HTTP status field: <code>… | head -1 | cut -d' ' -f2</code></li>
+    <li>DNS short: <code>dig name +short</code></li>
+    <li>Listening TCP (Linux): <code>ss -tlnp</code></li>
+  </ul>
+
+  <footer>
+    <p>Lesson: <a href="../lessons/0014-spaced-shell-retrieval.html">0014 — spaced shell retrieval</a>.</p>
+  </footer>
+</body>
+</html>
