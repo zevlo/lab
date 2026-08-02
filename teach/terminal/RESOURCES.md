@@ -29,7 +29,9 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 ## Knowledge — courses / curricula
 
 - **The Missing Semester of Your CS Education (MIT)** — https://missing.csail.mit.edu/
-  User-recommended. MIT IAP course on tool proficiency: shell, command-line environment, editors, debugging, git, and related workflow skills. Lectures + notes. Use for: structured enrichment and “what else should I know?” — still defer to `man` / Shotts / `:help` as sources of truth for lesson claims.
+  **Curriculum spine (from L0015).** User-recommended MIT IAP course. 2026 lecture order drives shell/tooling lessons. Notes are default lesson sources; still defer to `man` / Shotts / `:help` for exact semantics. Skip “consider installing” fancy CLIs while constraints say defaults/POSIX-only.
+- **Introduction to the Shell (2026)** — https://missing.csail.mit.edu/2026/course-shell/
+  Lecture 1 notes + exercises. Use for: shell vs terminal, navigation, PATH, core tools intro, redirects/pipes. Lesson 0015 = nav/PATH/`man` high-rep slice.
 
 ## Knowledge — focused references
 

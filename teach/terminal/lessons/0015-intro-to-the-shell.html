@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0015 — Introduction to the Shell</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 10em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0015 · <a href="../reference/shell-navigation.html">Missing Semester — shell</a></p>
+    <h1>Introduction to the Shell</h1>
+    <p class="lede">Terminal vs shell, where you are, how programs are found. High-rep navigation — rebuilding the floor after L0014.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Your course path now follows <a href="https://missing.csail.mit.edu/">Missing Semester</a>. Lecture 1 is dense; this lesson is only the foundation slice — with more repetitions, because the spaced retrieval pass showed the advanced recipes need a sturdier base. DevOps still owns the mission; we just stop skipping reps.</p>
+  <p><strong>Read first (15–20 min):</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">Course Overview + Introduction to the Shell</a> through “Navigating in the shell” and “What is available” (PATH / <code>which</code> / <code>ls</code>). Stop before the long SSH pipeline / full scripting section — those come in later slices.</p>
+
+  <h2>Knowledge 1 — terminal vs shell</h2>
+  <p>From Missing Semester: a <strong>terminal</strong> is the visual interface (Ghostty). A <strong>shell</strong> (bash) reads your commands, runs programs, and shows output. Nearly every platform has a shell; we stay on bash.</p>
+  <pre><code>date                 # run a program
+echo hello           # program + arguments
+echo $SHELL          # confirm you are in bash/zsh-class Unix shell</code></pre>
+
+  <h2>Knowledge 2 — cwd, cd, paths</h2>
+  <p>The prompt shows where you are. <code>~</code> is home. <code>pwd</code> (or <code>echo $PWD</code>) prints the working directory. <code>cd</code> changes it — and is a <strong>builtin</strong>, not a separate binary.</p>
+  <table>
+    <thead><tr><th>Form</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>/bin</code></td><td>Absolute path (from root)</td></tr>
+      <tr><td><code>bin</code></td><td>Relative (from cwd)</td></tr>
+      <tr><td><code>.</code> / <code>..</code></td><td>This dir / parent</td></tr>
+      <tr><td><code>cd -</code></td><td>Previous directory</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Why <code>cd</code> is a builtin.</strong> A child process cannot change its parent’s working directory. If <code>cd</code> were an external program, it would change cwd only for itself and exit — your shell would stay put. (Missing Semester exercise.)</div>
+
+  <h2>Knowledge 3 — PATH, which, man</h2>
+  <p>The shell finds <code>echo</code> / <code>date</code> by searching directories in <code>$PATH</code> (<code>:</code>-separated). <code>which name</code> shows which file runs. <code>man name</code> is the manual — your primary docs habit.</p>
+  <pre><code>echo $PATH
+which echo
+man ls          # q to quit; space/ arrows to scroll
+ls -l /         # then ask: what do the first columns mean?</code></pre>
+
+  <h2>Drill — reps, not novelty</h2>
+  <p>Do every step in Ghostty + bash. Say the answer out loud before you press Enter when you can.</p>
+  <ol>
+    <li>
+      Confirm shell and home:
+      <pre><code>echo $SHELL
+pwd
+cd /
+pwd
+cd ~
+pwd</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You should see something like <code>/bin/bash</code>, then <code>/</code>, then your home path. <code>cd</code> with no args also goes home.</p>
+      </div></details>
+    </li>
+    <li>
+      Absolute vs relative (from Missing Semester):
+      <pre><code>cd /
+cd bin
+pwd
+cd ..
+pwd
+cd /bin
+pwd</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>cd bin</code> from <code>/</code> lands in <code>/bin</code>. <code>..</code> returns to <code>/</code>. Absolute <code>/bin</code> works from anywhere.</p>
+      </div></details>
+    </li>
+    <li>
+      Dot path nonsense that still works — predict <code>pwd</code> before running:
+      <pre><code>cd /
+cd bin/../bin/../bin/././../bin/..
+pwd</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You end at <code>/</code>. <code>.</code> and <code>..</code> are real path components — walk them carefully.</p>
+      </div></details>
+    </li>
+    <li>
+      Repeat navigation three times (muscle): from home → <code>/tmp</code> → <code>..</code> → home using only <code>cd</code> and <code>pwd</code> after each hop. Then <code>cd -</code> twice and watch it toggle.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>cd /tmp</code>, <code>pwd</code>, <code>cd ..</code>, <code>pwd</code>, <code>cd ~</code>, <code>pwd</code>. <code>cd -</code> swaps with the previous directory.</p>
+      </div></details>
+    </li>
+    <li>
+      PATH reps:
+      <pre><code>echo $PATH
+which date
+which ls
+/bin/echo "full path works"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>which</code> prints a path under one of the <code>PATH</code> directories. Full-path execution skips the search.</p>
+      </div></details>
+    </li>
+    <li>
+      <code>man</code> habit (Missing Semester exercise):
+      <pre><code>man ls</code></pre>
+      Find what <code>-l</code> does. Run <code>ls -l /</code>. Note the first ~10 characters of a line — you do not need to memorize every bit yet; just open <code>man ls</code> and locate the long-format description.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>-l</code> is long format. The leading block is file type + permissions (e.g. <code>drwxr-xr-x</code>). Details deepen later; the win today is using <code>man</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Tiny programs three times each: <code>date</code>, <code>echo hello world</code>, <code>ls ~</code>, <code>cat</code> a small file you create with <code>echo 'hi' &gt; /tmp/ms-hi.txt</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>echo 'hi' &gt; /tmp/ms-hi.txt</code> then <code>cat /tmp/ms-hi.txt</code>. Redirects deepen next; here just feel create → print.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Pareto cut (same lecture, later).</strong> Pipes, <code>2&gt;&amp;1</code>, <code>find</code>/<code>sed</code>/<code>awk</code>, shell scripts, and Missing Semester’s suggested alternate tools. Next shell lesson continues this lecture’s remaining core, still with reps.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Ghostty is the…?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">terminal program</li>
+      <li class="option">shell interpreter</li>
+      <li class="option">kernel process</li>
+      <li class="option">PATH variable</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>What does <code>..</code> mean in a path?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">parent directory</li>
+      <li class="option">home directory</li>
+      <li class="option">root directory</li>
+      <li class="option">empty directory</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>How does the shell find <code>echo</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">search $PATH dirs</li>
+      <li class="option">search only /tmp</li>
+      <li class="option">search the kernel</li>
+      <li class="option">search man pages</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why must <code>cd</code> be a builtin?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">child can't set cwd</li>
+      <li class="option">PATH forbids binaries</li>
+      <li class="option">man pages require it</li>
+      <li class="option">root owns all paths</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did absolute vs relative click? Was <code>man ls</code> usable, or did you bounce out? Any path hop that still feels slow?</p>
+    <p style="margin-bottom:0">Next: continue Missing Semester lecture 1 (pipes/redirects/core filters) with more reps, or re-do this navigation drill cold tomorrow before advancing.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Course Overview + Introduction to the Shell</a> (CC BY-NC-SA). Sections: What is the shell, Navigating, PATH / <code>which</code> / <code>ls</code>, related exercises.</li>
+      <li><code>man ls</code>, <code>man bash</code> — flag and builtin details.</li>
+    </ul>
+    <p>Previous: <a href="./0014-spaced-shell-retrieval.html">Lesson 0014 — spaced shell retrieval</a>. Reference: <a href="../reference/shell-navigation.html">shell navigation</a>. Next: TBD (rest of MS lecture 1).</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Do the navigation drill once more cold before the next MS slice.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Revisit the miss, then rep the drill.'
+            : ' — re-read the MS navigation section and the shell-navigation reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

@@ -127,3 +127,13 @@
 - **No new knowledge.** Interleave L0007–0010: pipeline, redirect order, ops loop, dig, ss.
 - **Desirable difficulty:** hide answers; retrieval index for after-check only.
 - **Quiz:** 6 interleaved items. Drill is incident-shaped single pass.
+
+## L0014 complete — drills weak; path change
+- User performed poorly on drills; requested more repetitions.
+- **Course path → Missing Semester 2026** (explicit). MISSION.md updated. Next lessons follow MS lecture order; high-rep shell fundamentals first.
+
+## L0015 design notes (MS Introduction to the Shell — nav slice)
+- **Primary source:** https://missing.csail.mit.edu/2026/course-shell/
+- **Scope:** terminal vs shell, cwd/cd/paths, PATH/which, man, date/echo/ls/cat — lots of reps.
+- **Defer:** pipes, redirects deep, find/sed/awk, scripting, MS fancy CLIs.
+- User should read MS notes (nav + PATH sections) before/during lesson.
