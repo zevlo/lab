@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** [Introduction to the Shell](https://missing.csail.mit.edu/2026/course-shell/) — `find` / light `sed` / `awk` (L0017) → light bash scripting (lecture 1 rest) → Command-line Environment → continue the 2026 syllabus.
+**Next up:** [Introduction to the Shell](https://missing.csail.mit.edu/2026/course-shell/) — light bash scripting (lecture 1 rest; not built yet) → Command-line Environment → continue the 2026 syllabus.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
@@ -24,12 +24,12 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - Environment: ghostty 1.3.1 (Gruvbox Dark), tmux 3.7b, vim 9.1, macOS.
 - Work pattern: roughly half local, half remote over SSH.
 - Cadence: a few sessions per week, 30–45 min each.
-- Pedagogy: more **spaced repetition** on shell fundamentals after L0014 retrieval struggle; prefer reps over rushing the syllabus.
+- Pedagogy: Missing Semester lecture notes set the spine and tone. Slice dense topics into workable lessons; drills and cold rebuilds are fine — do not narrate “pareto,” “reps,” or other teaching-meta in lesson copy.
 
 ## Out of scope (for now)
 - zsh, fish, neovim, helix, emacs.
 - vim plugins, tmux plugin managers (TPM), oh-my-* or starship prompts.
-- Missing Semester–suggested alternate CLIs (eza, bat, fd, ripgrep, zoxide, jq-deep) until fundamentals stick — revisit later.
+- Missing Semester–suggested alternate CLIs (eza, bat, fd, ripgrep, zoxide, jq-deep) — revisit later if desired; defaults/POSIX stay primary.
 - Container/k8s CLI depth (kubectl, helm, docker-compose) — revisit once fundamentals are locked.
 - IDEs and GUI editors entirely.
 - PowerShell / cmd.exe (use bash on Mac / Linux remotes).

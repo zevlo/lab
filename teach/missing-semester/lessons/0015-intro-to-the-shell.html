@@ -77,11 +77,11 @@
   <header>
     <p class="kicker">Lesson 0015 · <a href="../reference/shell-navigation.html">Missing Semester — shell</a></p>
     <h1>Introduction to the Shell</h1>
-    <p class="lede">Terminal vs shell, where you are, how programs are found. High-rep navigation — rebuilding the floor after L0014.</p>
+    <p class="lede">Terminal vs shell, where you are, how programs are found — the foundation of Missing Semester lecture 1.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>Your course path now follows <a href="https://missing.csail.mit.edu/">Missing Semester</a>. Lecture 1 is dense; this lesson is only the foundation slice — with more repetitions, because the spaced retrieval pass showed the advanced recipes need a sturdier base. DevOps still owns the mission; we just stop skipping reps.</p>
+  <p>Your course path follows <a href="https://missing.csail.mit.edu/">Missing Semester</a>. Lecture 1 is dense; this lesson is the navigation and PATH foundation. DevOps still owns the mission — bash on Ghostty, defaults-only, <code>man</code> as primary docs.</p>
   <p><strong>Read first (15–20 min):</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">Course Overview + Introduction to the Shell</a> through “Navigating in the shell” and “What is available” (PATH / <code>which</code> / <code>ls</code>). Stop before the long SSH pipeline / full scripting section — those come in later slices.</p>
 
   <h2>Knowledge 1 — terminal vs shell</h2>
@@ -110,7 +110,7 @@ which echo
 man ls          # q to quit; space/ arrows to scroll
 ls -l /         # then ask: what do the first columns mean?</code></pre>
 
-  <h2>Drill — reps, not novelty</h2>
+  <h2>Drill</h2>
   <p>Do every step in Ghostty + bash. Say the answer out loud before you press Enter when you can.</p>
   <ol>
     <li>
@@ -154,7 +154,7 @@ pwd</code></pre>
       </div></details>
     </li>
     <li>
-      PATH reps:
+      PATH:
       <pre><code>echo $PATH
 which date
 which ls
@@ -179,7 +179,7 @@ which ls
     </li>
   </ol>
 
-  <div class="gotcha"><strong>Pareto cut (same lecture, later).</strong> Pipes, <code>2&gt;&amp;1</code>, <code>find</code>/<code>sed</code>/<code>awk</code>, shell scripts, and Missing Semester’s suggested alternate tools. Next shell lesson continues this lecture’s remaining core, still with reps.</div>
+  <div class="gotcha"><strong>Later in this lecture.</strong> Pipes, redirects, <code>find</code>/<code>sed</code>/<code>awk</code>, shell scripts, and Missing Semester’s suggested alternate tools. Next lessons continue the remaining core.</div>
 
   <h2>Check your understanding</h2>
   <p>Four questions. Shuffled answers.</p>
@@ -232,7 +232,7 @@ which ls
 
   <div class="ask">
     <p><strong>Ask the teacher.</strong> After the drill: did absolute vs relative click? Was <code>man ls</code> usable, or did you bounce out? Any path hop that still feels slow?</p>
-    <p style="margin-bottom:0">Next: continue Missing Semester lecture 1 (pipes/redirects/core filters) with more reps, or re-do this navigation drill cold tomorrow before advancing.</p>
+    <p style="margin-bottom:0">Next: continue Missing Semester lecture 1 (pipes and core filters), or re-do this navigation drill cold tomorrow before advancing.</p>
   </div>
 
   <footer>
@@ -283,7 +283,7 @@ which ls
           correct === quizzes.length
             ? ' — flawless. Do the navigation drill once more cold before the next MS slice.'
             : correct >= quizzes.length - 1
-            ? ' — solid. Revisit the miss, then rep the drill.'
+            ? ' — solid. Revisit the miss, then re-do the drill.'
             : ' — re-read the MS navigation section and the shell-navigation reference.'
         }`;
       }

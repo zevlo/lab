@@ -77,11 +77,11 @@
   <header>
     <p class="kicker">Lesson 0017 · <a href="../reference/shell-find-sed-awk.html">Missing Semester — shell</a></p>
     <h1>find, light sed, light awk</h1>
-    <p class="lede">Locate files, edit streams, extract columns — the MS “complicated tools” trio, kept pareto and high-rep.</p>
+    <p class="lede">Locate files, edit streams, extract columns — the MS “complicated tools” trio from lecture 1.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>You can already compose line filters. Incidents also need “find every <code>*.conf</code> under here,” “rename a string in a file,” and “grab column 2.” Missing Semester introduces <code>find</code>, <code>sed</code>, and <code>awk</code> for exactly that — each is a language; today you take only the 20% you will reuse weekly.</p>
+  <p>You can already compose line filters. Incidents also need “find every <code>*.conf</code> under here,” “rename a string in a file,” and “grab column 2.” Missing Semester introduces <code>find</code>, <code>sed</code>, and <code>awk</code> for exactly that — each is a language; today is the everyday subset.</p>
   <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">MS Introduction to the Shell</a> — the <code>sed</code>, <code>find</code>, and <code>awk</code> paragraphs under “What is available.” Skip the mega SSH pipeline and the bash scripting section for now.</p>
 
   <h2>Knowledge 1 — find</h2>
@@ -144,7 +144,7 @@ pwd</code></pre>
       </div></details>
     </li>
     <li>
-      find reps:
+      find:
       <pre><code>find . -type f
 find . -type d
 find . -type f -name '*.py'
@@ -203,7 +203,7 @@ awk -F, '$2 &gt; 100 {print $1,$3}' data.csv</code></pre>
     </li>
   </ol>
 
-  <div class="gotcha"><strong>Pareto cut.</strong> Deep find predicates (<code>-mtime</code>/<code>-size</code> — know they exist), sed capture groups / the MS SSH mega-pipe, awk aggregates, <code>xargs</code>, bash scripting, fd/ripgrep.</div>
+  <div class="gotcha"><strong>Later.</strong> Deep find predicates (<code>-mtime</code>/<code>-size</code> — know they exist), sed capture groups / the MS SSH mega-pipe, awk aggregates, <code>xargs</code>, bash scripting, fd/ripgrep.</div>
 
   <h2>Check your understanding</h2>
   <p>Four questions. Shuffled answers.</p>

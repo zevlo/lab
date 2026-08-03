@@ -10,26 +10,25 @@
 
 ## Lesson cadence
 - A few sessions per week, 30–45 min each.
-- Spacing: aim for retrieval prompts across sessions, not just within them.
-- Interleave: once Phase 2 (vim) is underway, occasionally mix terminal drills back in.
 
-## Pedagogical decisions
-- **Opener = vim grammar** (operator + count + motion/text-object). Biggest single dabbler-unlock; immediate payoff on remote edits.
+## MS-era pedagogy (from L0015; current default)
+- **Spine:** Missing Semester 2026 lecture order and notes. Slice a dense lecture into focused lessons.
+- **Tone:** Teach the material plainly — why it matters, how it works, drill, quiz. Do **not** put “pareto,” “high-rep,” “storage strength,” or similar meta in lesson copy.
+- **Still good:** cold rebuilds, hidden drill answers, quiz shuffle, citing MS + `man`, deferring out-of-slice topics as “later” (not “pareto cut”).
+- **Still constrained:** defaults-only, POSIX-lean bash, skip MS “consider installing …” fancy CLIs unless mission changes.
+- Pre-MS NOTES below are historical context for older lessons — do not let them steer new MS lesson wording.
+
+## Pedagogical decisions (mostly pre-MS; keep where still useful)
 - **Reference docs built just-in-time** alongside each lesson.
-- Quiz format: equal-length answers, immediate JS feedback.
+- Quiz format: equal-length answers, immediate JS feedback; shuffle answer order on every page load.
 - Primary sources cited per lesson; parametric knowledge never trusted.
-- **Audit caveat (after L0002)**: the "baseline vs new tools" speed delta will be smaller than expected because Lesson 0001's grammar is already instinctive — the user reached for `ci"` during the L0002 "baseline" run despite instructions to use old habits. Future audits should either (a) explicitly forbid ALL recently-taught commands in the baseline, or (b) be reframed as "new-skill delta" rather than "total speed delta".
-- **Quiz randomization (after L0002)**: shuffle answer order on every page load. Default for all future lessons. Implemented in L0001 and L0002 script blocks.
-- **Drill-design principle (after L0003)**: match the tool to the task. Don't force a specific tool when a simpler one exists. Use `cgn` only when the scenario has surgical decisions (some matches in, some out); use `:%s` for bulk; use `r`+`.` for single-char diffs. The user's instinct for "right tool for the job" is reliable — trust and reinforce it. When a lesson teaches tool X but the drill's task is better served by tool Y, surface the alternatives honestly in the answer key rather than pretending X is the only option.
-
-## Pareto discipline (added after L0002 feedback)
-- For every motion/shortcut/technique, ask: "Is this in the 20% that delivers 80% of real-world value?" If not, **cut from the lesson**.
-- Reference docs may include cut items in a clearly-marked "Beyond the pareto" section for completeness.
-- Specifically cut from L0002: `t`/`T`, `,` (reverse repeat), `:jumps`, built-in marks (`` `. ``, `` `^ ``, `` `[ ``, `` `< ``), backtick-vs-apostrophe mark distinction, `gi`/`gd` bonus.
-- Specifically added to L0002: `/pattern<Enter>` + `n`/`N` (search is the highest-leverage nav move; teaching navigation without it forces forward-references).
-- Drill tasks must use ONLY motions taught in the current or prior lessons. **No forward-references.**
+- **Drill-design principle (after L0003)**: match the tool to the task. Don't force a specific tool when a simpler one exists.
+- Drill tasks must use ONLY material taught in the current or prior lessons. **No forward-references.**
 - File creation in drills uses `cat > file <<'EOF'` from bash, not in-vim paste, to avoid autoindent/paste-mode issues.
-- When in doubt, leave it out. Add later if a real-world need surfaces in a session.
+
+## Scope discipline (historical label: “Pareto”; pre-MS)
+- Older lessons/refs used “pareto” / “Beyond the pareto” for cutting low-leverage material. The *idea* (leave depth out of the lesson body) still applies under MS-era wording: say “later” / “beyond this slice.”
+- Specific pre-MS cuts (vim L0002, tmux keys, etc.) remain valid for those lessons; do not retrofit every old HTML file.
 
 ## Tools available to teach with
 - All file edits in this workspace use Write/Edit (no shell heredocs).
@@ -130,16 +129,16 @@
 
 ## L0014 complete — drills weak; path change
 - User performed poorly on drills; requested more repetitions.
-- **Course path → Missing Semester 2026** (explicit). MISSION.md updated. Next lessons follow MS lecture order; high-rep shell fundamentals first.
+- **Course path → Missing Semester 2026** (explicit). MISSION.md updated. Next lessons follow MS lecture order.
 
 ## L0015 design notes (MS Introduction to the Shell — nav slice)
 - **Primary source:** https://missing.csail.mit.edu/2026/course-shell/
-- **Scope:** terminal vs shell, cwd/cd/paths, PATH/which, man, date/echo/ls/cat — lots of reps.
+- **Scope:** terminal vs shell, cwd/cd/paths, PATH/which, man, date/echo/ls/cat.
 - **Defer:** pipes, redirects deep, find/sed/awk, scripting, MS fancy CLIs.
 - User should read MS notes (nav + PATH sections) before/during lesson.
 
 ## L0015 complete (no issues)
-- Nav / PATH / `man` floor set. Continue MS lecture 1 — pipes + core filters with high reps.
+- Nav / PATH / `man` floor set. Continue MS lecture 1 — pipes + core filters.
 
 ## L0016 design notes (MS shell — pipes + core filters)
 - **Primary source:** https://missing.csail.mit.edu/2026/course-shell/ — “What is available” (simple tools) + “The shell language” pipes/`>`/`tee` paragraphs.
@@ -147,7 +146,7 @@
 - **Data shape:** one token per line so ranking works without `cut`/`awk` (those return later).
 - **Skill win:** cold rebuild `sort | uniq -c | sort -nr | head`.
 - **Defer:** `find`/`sed`/`awk`, stderr merge depth (already L0009), bash scripting, MS fancy CLIs.
-- **Reps over novelty:** solo each filter, then compose, then cold rebuild.
+- Solo each filter, then compose, then cold rebuild.
 
 ## L0016 complete (4/4; cold rebuild + /tmp spacing OK)
 - Ranking recipe stuck through cold rebuild and optional fresh-tab spacing. Next: MS `find` / light `sed` / `awk`.
@@ -159,3 +158,6 @@
 - **Skill win:** find py files with TODO via `-exec grep -l`; extract a column with awk; safe sed substitute.
 - **Defer:** deep sed/awk languages, find `-mtime`/`-size` depth (mention only), full SSH log pipeline, bash scripting, fd/rg.
 - **Scratch tree:** `/tmp/ms-tree/` — controlled, disposable.
+
+## L0017 complete (4/4; cold rebuilds great)
+- find/sed/awk floor set. User paused before next lesson — do not build L0018 until asked. When resumed: MS light bash scripting.
