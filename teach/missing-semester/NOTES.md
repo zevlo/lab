@@ -161,3 +161,10 @@
 
 ## L0017 complete (4/4; cold rebuilds great)
 - find/sed/awk floor set. User paused before next lesson — do not build L0018 until asked. When resumed: MS light bash scripting.
+
+## L0018 design notes (MS shell — light bash scripting)
+- **Primary source:** https://missing.csail.mit.edu/2026/course-shell/ — “The shell language (bash)” (conditionals → shebang / `set -euo pipefail`).
+- **Scope:** variables (`name=value`, `"$name"`); `if` / `[ -f ]` / string `=`; `for` + `$(seq)`; shebang; `set -euo pipefail`; `$1`; `chmod +x`.
+- **Skill win:** cold rebuild `check.sh` (MS exercise shape) + dated backup via `$(date +%Y-%m-%d)`.
+- **Defer:** full flaky-test/`stress` script, background `&`, arithmetic, `[[ ]]` depth, functions, `set -x`, shellcheck, CLE lecture.
+- **Scratch:** `/tmp/ms-script/`.

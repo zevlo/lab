@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reference — find, sed, awk (Missing Semester)</title>
+<title>Reference — light bash scripting (Missing Semester)</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -50,42 +50,82 @@
 <body>
   <header>
     <p class="kicker">Reference · Missing Semester · shell</p>
-    <h1>find, light sed, light awk</h1>
-    <p class="lede">Lecture 1 “complicated tools” slice. Grounded in <a href="https://missing.csail.mit.edu/2026/course-shell/">Introduction to the Shell</a>.</p>
+    <h1>Light bash scripting</h1>
+    <p class="lede">Lecture 1 “shell language” slice. Grounded in <a href="https://missing.csail.mit.edu/2026/course-shell/">Introduction to the Shell</a>.</p>
   </header>
 
-  <h2>find — locate by conditions</h2>
+  <h2>Variables</h2>
+  <pre><code>name=value          # no spaces around =
+echo "$name"        # expand; quote when unsure</code></pre>
+  <div class="note"><code>name = value</code> is not assignment — the shell runs a command named <code>name</code>.</div>
+
+  <h2>Conditionals — if / test / [</h2>
+  <pre><code>if [ -f "$path" ]; then
+  echo exists
+else
+  echo missing
+fi
+
+if [ "$a" = "$b" ]; then
+  echo match
+fi</code></pre>
   <table>
     <thead><tr><th>Form</th><th>Does</th></tr></thead>
     <tbody>
-      <tr><td><code>find DIR -type f</code></td><td>Files only (not dirs)</td></tr>
-      <tr><td><code>find DIR -type d</code></td><td>Directories only</td></tr>
-      <tr><td><code>find DIR -name '*.py'</code></td><td>Basename glob (quote it!)</td></tr>
-      <tr><td><code>find DIR -exec CMD {} \;</code></td><td>Run CMD per match; <code>{}</code> = path</td></tr>
+      <tr><td><code>[ -f path ]</code></td><td>regular file exists</td></tr>
+      <tr><td><code>[ -d path ]</code></td><td>directory exists</td></tr>
+      <tr><td><code>[ "$a" = "$b" ]</code></td><td>string equality (quote)</td></tr>
     </tbody>
   </table>
-  <pre><code>find . -type f -name '*.py' -exec grep -l TODO {} \;</code></pre>
-  <div class="note">The <code>\;</code> ends <code>-exec</code>. Escape the semicolon so the shell does not eat it. Quote globs so the shell does not expand them early.</div>
+  <div class="note">Spaces after <code>[</code> and before <code>]</code> are required. Success = exit status 0.</div>
 
-  <h2>sed — substitute</h2>
-  <pre><code>sed 's/pattern/replacement/g' file     # preview → stdout
-sed -i '' 's/pattern/replacement/g' file   # macOS / BSD in-place
-sed -i 's/pattern/replacement/g' file      # Linux / GNU in-place</code></pre>
-  <div class="note"><strong>Always preview first.</strong> <code>s</code> = substitute; trailing <code>g</code> = all matches per line. macOS requires the empty extension <code>''</code> after <code>-i</code>.</div>
+  <h2>Loops — for / while / $()</h2>
+  <pre><code>for h in web db cache; do
+  echo "$h"
+done
 
-  <h2>awk — columns</h2>
-  <pre><code>awk '{print $2}' file          # 2nd whitespace-separated field
-awk -F, '{print $2}' file      # 2nd comma-separated field
-awk '$2 &gt; 100 {print $1}' file # filter rows, then print</code></pre>
-  <div class="note"><code>$1</code>, <code>$2</code>, … are fields; <code>$0</code> is the whole line. Default FS is whitespace.</div>
+for i in $(seq 1 5); do
+  echo "$i"
+done
+
+while [ -f /tmp/lock ]; do
+  sleep 1
+done</code></pre>
+  <div class="note">Prefer <code>$(cmd)</code> over backticks — nesting works. <code>while</code> repeats while the test command succeeds.</div>
+
+  <h2>Scripts — shebang, set, args, chmod</h2>
+  <pre><code>#!/bin/bash
+set -euo pipefail
+
+# $1 = first argument
+if [ -f "$1" ]; then
+  echo "file exists: $1"
+else
+  echo "file missing: $1"
+fi</code></pre>
+  <table>
+    <thead><tr><th>Piece</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>#!/bin/bash</code></td><td>shebang — interpreter for <code>./script</code></td></tr>
+      <tr><td><code>set -e</code></td><td>exit on command failure</td></tr>
+      <tr><td><code>set -u</code></td><td>exit on undefined variable</td></tr>
+      <tr><td><code>set -o pipefail</code></td><td>fail if any pipe stage fails</td></tr>
+      <tr><td><code>$1</code></td><td>first argument (<code>$0</code> = script name)</td></tr>
+      <tr><td><code>chmod +x script.sh</code></td><td>execute bit for <code>./script.sh</code></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><code>bash script.sh</code> ignores the need for <code>+x</code>. <code>./script.sh</code> needs the execute bit so the kernel uses the shebang.</div>
+
+  <h2>Handy one-liner</h2>
+  <pre><code>cp notes.txt "notes_$(date +%Y-%m-%d).txt"</code></pre>
 
   <div class="beyond">
     <h2>Beyond this slice</h2>
-    <p>find <code>-mtime</code>/<code>-size</code> depth, sed capture groups / <code>-E</code> pipelines, awk aggregates, the full MS SSH-log mega-pipe, <code>xargs</code>, fd/ripgrep. Light bash scripting → <a href="../lessons/0018-ms-light-bash-scripting.html">Lesson 0018</a>.</p>
+    <p>MS flaky-test script (background <code>&amp;</code>, arithmetic), <code>[[ ]]</code>, functions, <code>set -x</code>, shellcheck, special params (<code>$@</code>/<code>$#</code>/<code>$?</code> depth), Command-line Environment lecture.</p>
   </div>
 
   <footer>
-    <p>Primary: <a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). <code>man find</code>, <code>man sed</code>, <code>man awk</code>. Lesson: <a href="../lessons/0017-ms-find-sed-awk.html">0017</a>.</p>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). <code>man bash</code>. Lesson: <a href="../lessons/0018-ms-light-bash-scripting.html">0018</a>.</p>
   </footer>
 </body>
 </html>

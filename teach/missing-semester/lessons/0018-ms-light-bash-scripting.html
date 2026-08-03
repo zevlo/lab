@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0018 — MS light bash scripting</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0018 · <a href="../reference/shell-bash-scripting.html">Missing Semester — shell</a></p>
+    <h1>Light bash scripting</h1>
+    <p class="lede">Variables, <code>if</code>/<code>for</code>, shebang, and <code>set -euo pipefail</code> — the rest of MS lecture 1’s shell language.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>One-liners get you far; a tiny <code>.sh</code> file gets you further — check a path, loop hosts, fail loudly when something is wrong. Missing Semester treats bash as a programming language: variables, conditionals, loops, then a script with a shebang and strict <code>set</code> flags.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">MS Introduction to the Shell</a> — “The shell language (bash)” from conditionals through the shebang / <code>set -euo pipefail</code> paragraphs. Skim the long flaky-test example for structure; you will not rebuild <code>stress</code>/<code>cargo</code> today.</p>
+
+  <h2>Knowledge 1 — variables</h2>
+  <p>Assign with <code>name=value</code> (no spaces around <code>=</code>). Expand with <code>$name</code>. Quote expansions that might be empty or contain spaces.</p>
+  <pre><code>host=db01
+echo "$host"
+msg="hello world"
+echo "$msg"</code></pre>
+  <div class="gotcha"><strong>Spaces break assignment.</strong> <code>host = db01</code> runs a command named <code>host</code> with arguments <code>=</code> and <code>db01</code>. Always <code>host=db01</code>.</div>
+
+  <h2>Knowledge 2 — if and test</h2>
+  <p>Exit status drives control flow: success (0) → then-branch. Common checks use <code>test</code>, usually written <code>[ … ]</code>.</p>
+  <pre><code>if [ -f /tmp/notes.txt ]; then
+  echo "exists"
+else
+  echo "missing"
+fi
+
+name=ops
+if [ "$name" = "ops" ]; then
+  echo "match"
+fi</code></pre>
+  <table>
+    <thead><tr><th>Check</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>[ -f path ]</code></td><td>path is a regular file</td></tr>
+      <tr><td><code>[ -d path ]</code></td><td>path is a directory</td></tr>
+      <tr><td><code>[ "$a" = "$b" ]</code></td><td>strings equal (quote both)</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Spaces inside <code>[ ]</code>.</strong> <code>[ -f file ]</code> needs a space after <code>[</code> and before <code>]</code>. Bash also has <code>[[ ]]</code> (safer built-in); stick to <code>[ ]</code> for this lesson — it matches the MS exercises.</div>
+
+  <h2>Knowledge 3 — for and $()</h2>
+  <p><code>for</code> walks a word list. Command substitution <code>$(…)</code> inserts a command’s stdout into that list (prefer <code>$()</code> over backticks).</p>
+  <pre><code>for h in web db cache; do
+  echo "host=$h"
+done
+
+for i in $(seq 1 3); do
+  echo "n=$i"
+done</code></pre>
+  <p><code>while cmd; do …; done</code> repeats while <code>cmd</code> succeeds (exit 0). Same idea as <code>if</code>, but looping.</p>
+
+  <h2>Knowledge 4 — script file, shebang, strict set</h2>
+  <p>Put durable logic in a file. First line is the shebang: the kernel runs that interpreter on the file. Second line turns on common safety:</p>
+  <pre><code>#!/bin/bash
+set -euo pipefail</code></pre>
+  <table>
+    <thead><tr><th>Flag</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>-e</code></td><td>exit if a command fails</td></tr>
+      <tr><td><code>-u</code></td><td>exit on undefined variable</td></tr>
+      <tr><td><code>-o pipefail</code></td><td>a failed pipe stage fails the script</td></tr>
+    </tbody>
+  </table>
+  <p>Make it executable, then run by path. <code>$1</code> is the first argument.</p>
+  <pre><code>chmod +x check.sh
+./check.sh /tmp/notes.txt</code></pre>
+  <div class="gotcha"><strong><code>./</code> and execute bit.</strong> <code>bash check.sh</code> works without <code>+x</code>. <code>./check.sh</code> needs the execute bit (<code>chmod +x</code>) so the kernel honors the shebang.</div>
+
+  <h2>Drill — prompt first, then a real script</h2>
+  <p>Ghostty + bash. Work under <code>/tmp/ms-script</code>.</p>
+  <ol>
+    <li>
+      Scratch dir + sample file:
+      <pre><code>rm -rf /tmp/ms-script
+mkdir -p /tmp/ms-script
+cat &gt; /tmp/ms-script/notes.txt &lt;&lt;'EOF'
+status=draft
+owner=ops
+EOF
+cd /tmp/ms-script
+pwd</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>cwd is <code>/tmp/ms-script</code>. <code>ls</code> shows <code>notes.txt</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Variables at the prompt:
+      <pre><code>role=ops
+echo "$role"
+bad = oops</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>First two lines print <code>ops</code>. Third should error (command not found / unexpected) — that is the spaces-around-<code>=</code> footgun.</p>
+      </div></details>
+    </li>
+    <li>
+      <code>if</code> / <code>[ -f ]</code> at the prompt:
+      <pre><code>if [ -f notes.txt ]; then echo yes; else echo no; fi
+if [ -f missing.txt ]; then echo yes; else echo no; fi</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>yes</code> then <code>no</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <code>for</code> + <code>$()</code>:
+      <pre><code>for x in a b c; do echo "x=$x"; done
+for i in $(seq 1 3); do echo "i=$i"; done</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Three <code>x=…</code> lines, then <code>i=1</code> … <code>i=3</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Dated backup via command substitution (MS-shaped):
+      <pre><code>cp notes.txt "notes_$(date +%Y-%m-%d).txt"
+ls</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You should see <code>notes.txt</code> and something like <code>notes_2026-08-03.txt</code> (today’s date).</p>
+      </div></details>
+    </li>
+    <li>
+      Write <code>check.sh</code> (MS exercise shape — shebang, strict set, <code>$1</code>, <code>[ -f ]</code>):
+      <pre><code>cat &gt; check.sh &lt;&lt;'EOF'
+#!/bin/bash
+set -euo pipefail
+
+if [ -f "$1" ]; then
+  echo "file exists: $1"
+else
+  echo "file missing: $1"
+fi
+EOF
+chmod +x check.sh
+./check.sh notes.txt
+./check.sh no-such.txt
+ls -l check.sh</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>First run: <code>file exists: notes.txt</code>. Second: <code>file missing: no-such.txt</code>. <code>ls -l</code> should show an <code>x</code> in the permission bits (e.g. <code>-rwxr-xr-x</code>).</p>
+      </div></details>
+    </li>
+    <li>
+      Feel <code>-u</code> (undefined variable):
+      <pre><code>bash -c 'set -u; echo "$unset_var"'</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Bash errors unbound variable / unbound parameter — that is <code>-u</code> doing its job. Without <code>-u</code>, you often get a silent empty string.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking) — from <code>/tmp/ms-script</code>:
+      <ol type="a">
+        <li>One-liner: if <code>notes.txt</code> exists, print <code>ok</code>, else <code>missing</code>.</li>
+        <li>Loop <code>web</code> <code>db</code> <code>cache</code> and print each.</li>
+        <li>From memory: first two lines of every new script; how do you run <code>./check.sh</code>?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>if [ -f notes.txt ]; then echo ok; else echo missing; fi</code><br>
+        (b) <code>for h in web db cache; do echo "$h"; done</code><br>
+        (c) <code>#!/bin/bash</code> then <code>set -euo pipefail</code>; need <code>chmod +x check.sh</code> (once) then <code>./check.sh …</code>.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> The full MS flaky-test script (background jobs, arithmetic), <code>[[ ]]</code> depth, functions, <code>set -x</code> tracing, shellcheck, and the next MS lecture (Command-line Environment).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Why does <code>host = db</code> fail?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">spaces → runs cmd host</li>
+      <li class="option">bash forbids host names</li>
+      <li class="option">need export always</li>
+      <li class="option">must use double quotes</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>What does <code>set -u</code> do?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">fail on unset vars</li>
+      <li class="option">unlock the terminal</li>
+      <li class="option">unbuffer all pipes</li>
+      <li class="option">undo last assignment</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What is <code>$1</code> in a script?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">first script argument</li>
+      <li class="option">first awk field only</li>
+      <li class="option">exit status of last</li>
+      <li class="option">path to bash itself</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why <code>chmod +x</code> before <code>./s.sh</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">kernel needs exec bit</li>
+      <li class="option">shebang becomes optional</li>
+      <li class="option">turns on set -euo</li>
+      <li class="option">adds PATH entry</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did the spaces-around-<code>=</code> footgun bite? Did <code>./check.sh</code> fail before <code>chmod</code>? Did <code>-u</code> click?</p>
+    <p style="margin-bottom:0">Next: Missing Semester lecture 2 — <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Command-line Environment</a> — or another cold pass on this script tomorrow.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). Section: “The shell language (bash)” (conditionals → shebang / <code>set</code>).</li>
+      <li><code>man bash</code> — SHELL GRAMMAR, CONDITIONAL EXPRESSIONS, SPECIAL PARAMETERS, The Set Builtin.</li>
+    </ul>
+    <p>Previous: <a href="./0017-ms-find-sed-awk.html">Lesson 0017 — find, sed, awk</a>. Reference: <a href="../reference/shell-bash-scripting.html">light bash scripting</a>. Next: TBD (MS Command-line Environment).</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild check.sh once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS shell-language paragraphs and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
