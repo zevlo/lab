@@ -168,3 +168,6 @@
 - **Skill win:** cold rebuild `check.sh` (MS exercise shape) + dated backup via `$(date +%Y-%m-%d)`.
 - **Defer:** full flaky-test/`stress` script, background `&`, arithmetic, `[[ ]]` depth, functions, `set -x`, shellcheck, CLE lecture.
 - **Scratch:** `/tmp/ms-script/`.
+
+## L0018 complete (4/4; cold rebuild a/b/c ×2 — good rep)
+- Light bash floor set. Two cold passes to get if / for / shebang+`set`+`chmod` clean — repetition worked as designed. MS lecture 1 done. Next when asked: CLE (lecture 2).
