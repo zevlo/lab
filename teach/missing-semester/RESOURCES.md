@@ -31,7 +31,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **The Missing Semester of Your CS Education (MIT)** — https://missing.csail.mit.edu/
   **Curriculum spine (from L0015).** User-recommended MIT IAP course. 2026 lecture order drives shell/tooling lessons. Notes are default lesson sources; still defer to `man` / Shotts / `:help` for exact semantics. Skip “consider installing” fancy CLIs while constraints say defaults/POSIX-only.
 - **Introduction to the Shell (2026)** — https://missing.csail.mit.edu/2026/course-shell/
-  Lecture 1 notes + exercises. Use for: shell vs terminal, navigation, PATH, core tools intro, redirects/pipes, light bash. Lesson 0015 = nav/PATH/`man`; Lesson 0016 = pipes + core filters; Lesson 0017 = `find` / light `sed` / `awk`; Lesson 0018 = light bash scripting (`if`/`for`/shebang/`set -euo pipefail`).
+  Lecture 1 notes + exercises. Use for: shell vs terminal, navigation, PATH, core tools intro, redirects/pipes, light bash. Lesson 0015 = nav/PATH/`man`; Lesson 0016 = pipes + core filters; Lesson 0017 = `find` / light `sed` / `awk`; Lesson 0018 = light bash scripting (`if`/`for`/shebang/`set -euo pipefail`). Lesson 0020 = full MS lecture 1 exercises workbook (no new Knowledge; includes MS `jq` exercise as a one-off exception).
 - **Command-line Environment (2026)** — https://missing.csail.mit.edu/2026/command-line-environment/
   Lecture 2. Lesson 0019 = Signals & job control (`Ctrl-C`/`Z`, `fg`/`bg`/`jobs`, `SIGHUP`/`nohup`). Later CLE slices: Arguments & globs, env vars, return codes, SSH, aliases/dotfiles. Skip fancy “consider installing” tools while defaults-only holds. Tmux hierarchy already covered in L0006–0013 — do not re-teach from CLE’s multiplexer section.
 

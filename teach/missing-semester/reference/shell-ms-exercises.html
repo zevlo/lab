@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — MS shell exercises</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { background: #efe6cf; border-left: 3px solid var(--rule); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester — shell</p>
+    <h1>Lecture 1 exercise index</h1>
+    <p class="lede">Open after an attempt — maps each exercise cluster to prior lessons and primary docs.</p>
+  </header>
+
+  <div class="note">Scratch: <code>/tmp/ms-ex/</code>. Full prompts and check-answers live in the lesson; this page is a map, not a solution key.</div>
+
+  <h2>Clusters → prior floors</h2>
+  <table>
+    <thead><tr><th>Cluster</th><th>Lesson refs</th><th>Primary docs</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>ls -l / permissions</td>
+        <td><a href="../lessons/0015-intro-to-the-shell.html">0015</a>, <a href="./shell-navigation.html">nav ref</a></td>
+        <td><code>man ls</code></td>
+      </tr>
+      <tr>
+        <td>Globs / quoting</td>
+        <td><a href="../lessons/0015-intro-to-the-shell.html">0015</a>, <a href="../lessons/0017-ms-find-sed-awk.html">0017</a> (quote <code>-name</code>)</td>
+        <td><code>man bash</code> — Pattern Matching, Quoting</td>
+      </tr>
+      <tr>
+        <td>Redirects / <code>$?</code> / <code>&amp;&amp;</code> <code>||</code></td>
+        <td><a href="../lessons/0009-redirect-mastery.html">0009</a>, <a href="./shell-redirect.html">redirect ref</a>, <a href="../lessons/0016-ms-pipes-core-filters.html">0016</a></td>
+        <td><code>man bash</code> — Redirections, Exit Status</td>
+      </tr>
+      <tr>
+        <td><code>cd</code> builtin</td>
+        <td><a href="../lessons/0015-intro-to-the-shell.html">0015</a></td>
+        <td><code>man bash</code> — SHELL BUILTIN COMMANDS</td>
+      </tr>
+      <tr>
+        <td><code>check.sh</code> / <code>chmod</code> / <code>set -x</code> / dated <code>cp</code></td>
+        <td><a href="../lessons/0018-ms-light-bash-scripting.html">0018</a>, <a href="./shell-bash-scripting.html">scripting ref</a></td>
+        <td><code>man bash</code> — Conditional Expressions, The Set Builtin; Command Substitution</td>
+      </tr>
+      <tr>
+        <td>Flaky script + <code>$@</code></td>
+        <td><a href="../lessons/0018-ms-light-bash-scripting.html">0018</a> (deferred in lecture; exercise here)</td>
+        <td><code>man bash</code> — Special Parameters</td>
+      </tr>
+      <tr>
+        <td>Extensions / <code>xargs</code> / <code>awk</code> / history</td>
+        <td><a href="../lessons/0016-ms-pipes-core-filters.html">0016</a>, <a href="../lessons/0017-ms-find-sed-awk.html">0017</a>, <a href="./shell-find-sed-awk.html">find/sed/awk ref</a></td>
+        <td><code>man find</code>, <code>man xargs</code>, <code>man awk</code></td>
+      </tr>
+      <tr>
+        <td><code>curl</code> + <code>grep -c</code></td>
+        <td><a href="../lessons/0008-ops-pgrep-kill-curl.html">0008</a></td>
+        <td><code>man curl</code>, <code>man grep</code></td>
+      </tr>
+      <tr>
+        <td><code>jq</code> select</td>
+        <td>MS exercise exception (not a prior floor)</td>
+        <td><code>man jq</code> / <code>jq --help</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Mission recipes (recall targets)</h2>
+  <ul>
+    <li>Merge streams: <code>cmd &gt;f 2&gt;&amp;1</code></li>
+    <li>Create if missing: <code>[ -d d ] || mkdir d</code> or <code>mkdir -p d</code></li>
+    <li>Dated backup: <code>cp f "f_$(date +%Y-%m-%d).ext"</code> — shape to your basename</li>
+    <li>Null-safe xargs: <code>find … -print0 | xargs -0 …</code></li>
+    <li>Rank: <code>sort | uniq -c | sort -nr | head</code></li>
+  </ul>
+
+  <div class="beyond"><strong>Later.</strong> CLE lecture slices (arguments &amp; globs depth, env, SSH, aliases) continue after Lesson 0019. Deep <code>jq</code> and fancy MS CLIs stay optional.</div>
+
+  <footer>
+    <p>Lesson: <a href="../lessons/0020-ms-shell-exercises.html">0020 — MS shell exercises</a>. Source: <a href="https://missing.csail.mit.edu/2026/course-shell/">MS Introduction to the Shell</a>.</p>
+  </footer>
+</body>
+</html>

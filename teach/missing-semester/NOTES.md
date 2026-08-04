@@ -178,3 +178,12 @@
 - **Reuse:** `pgrep`/`pkill` from L0008 in the drill (no re-teach).
 - **Skill win:** cold rebuild suspend → `bg` → `kill %N`; explain SIGHUP vs tmux.
 - **Defer:** `wait`/`pidwait`/`trap`; Arguments & globs; env/`export`; return codes `&&`/`||`; SSH config; aliases/dotfiles; CLE tmux redo; fancy CLIs (fzf, mosh, rg, oh-my-*).
+
+## L0020 design notes (MS lecture 1 exercises workbook — user-requested)
+- **Pattern:** Like L0014 — no new Knowledge. Full MS [course-shell Exercises](https://missing.csail.mit.edu/2026/course-shell/) set in one HTML workbook (spread across sittings).
+- **Scope:** All 17 MS exercises (ls -l → globs/quoting → redirects/`$?` → cd builtin → check.sh/`chmod`/`set -x` → dated backup → flaky `$@` → extensions/`xargs`/`curl`/`jq`/`awk` → SSH pipe + history).
+- **Exception:** Include MS `jq` exercise despite fancy-CLI constraint; note `brew install jq` in-lesson.
+- **Scratch:** `/tmp/ms-ex/`. Hidden `show answer` = one valid approach.
+- **Ref:** `reference/shell-ms-exercises.html` — cluster → prior lesson/man map (not a solution key).
+- **Tone:** MS-era — no pareto/reps/storage-strength meta in lesson copy.
+- **Next when asked:** continue CLE after L0019 (arguments & globs, …).

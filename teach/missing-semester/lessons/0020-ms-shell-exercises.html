@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0020 — MS shell exercises</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.45rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0020 · <a href="../reference/shell-ms-exercises.html">Missing Semester — shell exercises</a></p>
+    <h1>Introduction to the Shell — exercises</h1>
+    <p class="lede">No new Knowledge sections. The full Missing Semester lecture 1 exercise set, with hidden check-answers after you try.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Missing Semester’s lectures come with exercises — some concrete, some open-ended. The value is the journey: follow tangents, ask “why,” and resist the shortest path to a pasted answer. You already covered lecture 1 in Lessons 0015–0018; this workbook is the official exercise pass.</p>
+  <p><strong>Read / skim:</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">MS Introduction to the Shell</a> — especially the Exercises section at the bottom. Confirm you are in bash: <code>echo $SHELL</code> should show something like <code>/bin/bash</code>.</p>
+  <div class="gotcha"><strong>How to use this.</strong> Work in bash under <code>/tmp/ms-ex/</code> (create it once). Try each exercise before opening <code>show answer</code> — those are one valid approach, not the only one. The <a href="../reference/shell-ms-exercises.html">exercise index</a> points back to prior lessons and man pages; open it after you struggle, not first. You can spread this across several sittings.</div>
+
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-ex &amp;&amp; cd /tmp/ms-ex
+echo $SHELL</code></pre>
+
+  <h2>Drill — foundations</h2>
+  <ol>
+    <li>
+      What does the <code>-l</code> flag to <code>ls</code> do? Run <code>ls -l /</code> and examine the output. What do the first 10 characters of each line mean? (Hint: <code>man ls</code>)
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>-l</code> is long listing: type, permissions, links, owner, group, size, mtime, name. The first character is file type (<code>-</code> regular, <code>d</code> directory, <code>l</code> symlink, …). The next nine are <code>rwx</code> for user, group, other (a <code>-</code> means that bit is off). Together that is 10 characters before the link count.</p>
+      </div></details>
+    </li>
+    <li>
+      In <code>find ~/Downloads -type f -name "*.zip" -mtime +30</code>, the <code>*.zip</code> is a “glob”. What is a glob? Create a test directory with some files and experiment with <code>ls *.txt</code>, <code>ls file?.txt</code>, and <code>ls {a,b,c}.txt</code>. See Pattern Matching in the Bash manual.
+      <pre><code>mkdir -p /tmp/ms-ex/glob &amp;&amp; cd /tmp/ms-ex/glob
+touch a.txt b.txt c.txt file1.txt file2.txt file10.txt notes.md
+ls *.txt
+ls file?.txt
+ls {a,b,c}.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>A <strong>glob</strong> is a shell pattern the shell expands into matching pathnames before running the command (<code>*</code> any string, <code>?</code> one character, <code>{a,b}</code> brace expansion). Quote <code>"*.zip"</code> for <code>find -name</code> so the <em>shell</em> does not expand it early — <code>find</code> matches the pattern itself. <code>file?.txt</code> matches <code>file1.txt</code> / <code>file2.txt</code> but not <code>file10.txt</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      What’s the difference between <code>'single quotes'</code>, <code>"double quotes"</code>, and <code>$'ANSI quotes'</code>? Write a command that echoes a string containing a literal <code>$</code>, a <code>!</code>, and a newline. See Quoting in the Bash manual.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Single quotes: literal everything (no <code>$</code> expansion). Double quotes: expand <code>$var</code>, <code>$(…)</code>, backticks, <code>\</code> escapes. ANSI <code>$'…'</code>: C-style escapes like <code>\n</code>, <code>\t</code>. One approach:</p>
+        <p><code>echo $'literal $ and !\nand a newline'</code></p>
+        <p>Or: <code>printf '%s\n' 'literal $ and !'</code> (single-quoted <code>$</code>/<code>!</code>; <code>printf</code> supplies the newline).</p>
+      </div></details>
+    </li>
+    <li>
+      The shell has three standard streams: stdin (0), stdout (1), and stderr (2). Run <code>ls /nonexistent /tmp</code> and redirect stdout to one file and stderr to another. How would you redirect both to the same file? See Redirections.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>ls /nonexistent /tmp &gt;/tmp/ms-ex/out.txt 2&gt;/tmp/ms-ex/err.txt</code></p>
+        <p>Both to one file (POSIX merge order): <code>ls /nonexistent /tmp &gt;/tmp/ms-ex/both.txt 2&gt;&amp;1</code> — not <code>2&gt;&amp;1 &gt;file</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <code>$?</code> holds the exit status of the last command (0 = success). <code>&amp;&amp;</code> runs the next command only if the previous succeeded; <code>||</code> runs it only if the previous failed. Write a one-liner that creates <code>/tmp/mydir</code> only if it doesn’t already exist. See Exit Status.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>mkdir /tmp/mydir 2&gt;/dev/null || true</code> is weak. Cleaner: <code>[ -d /tmp/mydir ] || mkdir /tmp/mydir</code> or <code>mkdir -p /tmp/mydir</code> (<code>-p</code> is a no-op if it exists). Another: <code>test ! -d /tmp/mydir &amp;&amp; mkdir /tmp/mydir</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Why does <code>cd</code> have to be built into the shell itself rather than a standalone program? (Hint: think about what a child process can and cannot affect in its parent.)
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>A standalone <code>cd</code> would run in a child process. Changing cwd in the child cannot change the parent shell’s cwd — when the child exits, you would still be where you started. Builtins run inside the shell process, so they can change its state.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <h2>Drill — scripts</h2>
+  <ol start="7">
+    <li>
+      Write a script that takes a filename as an argument (<code>$1</code>) and checks whether the file exists using <code>test -f</code> or <code>[ -f … ]</code>. Print different messages depending on whether the file exists. See Bash Conditional Expressions.
+      <pre><code>cd /tmp/ms-ex
+touch notes.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <pre><code>cat &gt; check.sh &lt;&lt;'EOF'
+#!/bin/bash
+set -euo pipefail
+if [ -f "$1" ]; then
+  echo "exists: $1"
+else
+  echo "missing: $1"
+fi
+EOF</code></pre>
+        <p>Test with <code>bash check.sh notes.txt</code> and <code>bash check.sh no-such.txt</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Save the script from the previous exercise (e.g. <code>check.sh</code>). Try <code>./check.sh somefile</code>. What happens? Now run <code>chmod +x check.sh</code> and try again. Why is this step necessary? (Hint: look at <code>ls -l check.sh</code> before and after.)
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Without execute permission, <code>./check.sh</code> fails with “Permission denied” (kernel will not run it via the shebang). <code>bash check.sh</code> still works because you are feeding the file to bash. <code>chmod +x</code> sets the <code>x</code> bit; <code>ls -l</code> shows <code>-rwxr-xr-x</code> (or similar) afterward.</p>
+      </div></details>
+    </li>
+    <li>
+      What happens if you add <code>-x</code> to the <code>set</code> flags in a script? Try it with a simple script and observe the output. See The Set Builtin.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>set -x</code> (or <code>set -euxo pipefail</code>) prints each command and its expanded arguments to stderr before running it — a trace for debugging. Example: put <code>set -x</code> under the shebang in <code>check.sh</code> and run <code>./check.sh notes.txt</code>; you will see lines like <code>+ [ -f notes.txt ]</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Write a command that copies a file to a backup with today’s date in the filename (e.g. <code>notes.txt</code> → <code>notes_2026-01-12.txt</code>). Hint: <code>$(date +%Y-%m-%d)</code>. See Command Substitution.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>cp notes.txt "notes_$(date +%Y-%m-%d).txt"</code></p>
+      </div></details>
+    </li>
+    <li>
+      Modify the flaky-test script from the lecture to accept the test command as an argument instead of hardcoding <code>cargo test my_test</code>. Hint: <code>$1</code> or <code>$@</code>. See Special Parameters. (You do not need <code>stress</code> or Rust installed — use a tiny stand-in command.)
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Replace the hardcoded test with <code>"$@"</code> (or <code>$1</code> if a single word). Sketch:</p>
+        <pre><code>#!/bin/bash
+set -euo pipefail
+LOGFILE="test_runs_$(date +%s).log"
+RUN=1
+while "$@" &gt; "$LOGFILE" 2&gt;&amp;1; do
+  echo "Run $RUN passed"
+  ((RUN++)) || true
+done
+echo "Failed on run $RUN"
+tail -n 20 "$LOGFILE"</code></pre>
+        <p>Try: <code>./flaky.sh true</code> (loops forever — Ctrl-C), or a script that fails on the third run. <code>$@</code> preserves separate arguments; <code>$*</code> does not.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <h2>Drill — pipelines &amp; tools</h2>
+  <ol start="12">
+    <li>
+      Use pipes to find the 5 most common file extensions in your home directory. Hint: combine <code>find</code>, <code>grep</code> / <code>sed</code> / <code>awk</code>, <code>sort</code>, <code>uniq -c</code>, and <code>head</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>One approach (may take a while; add <code>-maxdepth 3</code> to bound it):</p>
+        <pre><code>find ~ -type f 2&gt;/dev/null \
+  | sed 's/.*\.//' \
+  | sort | uniq -c | sort -nr | head -5</code></pre>
+        <p>Or extract with <code>awk -F. '{print $NF}'</code>. Files with no dot become the whole basename — filter with <code>grep '\.'</code> first if you want only dotted names.</p>
+      </div></details>
+    </li>
+    <li>
+      <code>xargs</code> converts lines from stdin into command arguments. Use <code>find</code> and <code>xargs</code> together (not <code>find -exec</code>) to find all <code>.sh</code> files in a directory and count the lines in each with <code>wc -l</code>. Bonus: handle filenames with spaces (<code>-print0</code> / <code>-0</code>). See <code>man xargs</code>.
+      <pre><code>mkdir -p /tmp/ms-ex/scripts
+printf 'echo hi\n' &gt; /tmp/ms-ex/scripts/a.sh
+printf 'echo bye\n# comment\n' &gt; "/tmp/ms-ex/scripts/my script.sh"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Basic: <code>find /tmp/ms-ex/scripts -name '*.sh' | xargs wc -l</code></p>
+        <p>Spaces-safe: <code>find /tmp/ms-ex/scripts -name '*.sh' -print0 | xargs -0 wc -l</code></p>
+      </div></details>
+    </li>
+    <li>
+      Use <code>curl</code> to fetch the HTML of the course website (<a href="https://missing.csail.mit.edu/">https://missing.csail.mit.edu/</a>) and pipe it to <code>grep</code> to count how many lectures are listed. Hint: look for a pattern that appears once per lecture; use <code>curl -s</code> to silence progress.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Inspect once: <code>curl -s https://missing.csail.mit.edu/ | less</code>. A common pattern is lecture links under the schedule. Count lines matching that pattern, e.g.:</p>
+        <p><code>curl -s https://missing.csail.mit.edu/ | grep -c 'href="/2026/'</code></p>
+        <p>(Exact pattern may shift year-to-year — choose something that appears once per lecture row, then <code>grep -c</code>.)</p>
+      </div></details>
+    </li>
+    <li>
+      <code>jq</code> is a powerful tool for processing JSON. Fetch <a href="https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json">https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json</a> with <code>curl</code> and use <code>jq</code> to extract just the names of people whose version is greater than 6. Hint: pipe to <code>jq .</code> first; then <code>jq '.[] | select(...) | .name'</code>.
+      <div class="gotcha"><strong>Exception.</strong> This workbook includes the MS <code>jq</code> exercise even though fancy CLIs are normally out of scope. Install if needed: <code>brew install jq</code>.</div>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>curl -s https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json | jq '.[] | select(.version &gt; 6) | .name'</code></p>
+        <p>Confirm field names with <code>| jq '.[0]'</code> first if the shape surprises you.</p>
+      </div></details>
+    </li>
+    <li>
+      Write an <code>awk</code> command that prints only lines where the second column is greater than 100, and swaps the first and third columns. Test with:
+      <pre><code>printf 'a 50 x\nb 150 y\nc 200 z\n'</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>printf 'a 50 x\nb 150 y\nc 200 z\n' | awk '$2 &gt; 100 {print $3, $2, $1}'</code></p>
+        <p>Expect <code>y 150 b</code> and <code>z 200 c</code>. (If you literally “swap first and third” keeping column 2 in place: <code>{print $3, $2, $1}</code> is that swap.)</p>
+      </div></details>
+    </li>
+    <li>
+      Dissect the SSH log pipeline from the lecture: what does each step do? Then build something similar to find your most-used shell commands from <code>~/.bash_history</code>.
+      <pre><code>ssh myserver 'journalctl -u sshd -b-1 | grep "Disconnected from"' \
+  | sed -E 's/.*Disconnected from .* user (.*) [^ ]+ port.*/\1/' \
+  | sort | uniq -c \
+  | sort -nk1,1 | tail -n10 \
+  | awk '{print $2}' | paste -sd,</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><strong>Dissection:</strong> remote <code>journalctl</code> for previous-boot sshd → <code>grep</code> disconnect lines → <code>sed -E</code> capture username → <code>sort | uniq -c</code> counts → <code>sort -nk1,1 | tail -n10</code> (ascending by count, then last 10 = most frequent) → <code>awk '{print $2}'</code> usernames only → <code>paste -sd,</code> comma-join.</p>
+        <p><strong>History analogue</strong> (bash; first word = command):</p>
+        <pre><code>awk '{print $1}' ~/.bash_history \
+  | sort | uniq -c | sort -nr | head -20</code></pre>
+        <p>Skip comments/blank lines if needed: <code>grep -v '^#' ~/.bash_history | …</code></p>
+      </div></details>
+    </li>
+  </ol>
+
+  <h2>Check your understanding</h2>
+  <p>Six questions spanning the exercise set. Answers shuffled on each load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>First 10 chars of <code>ls -l</code> are mainly…</p>
+    <ul class="options">
+      <li class="option" data-correct="true">type + rwx bits</li>
+      <li class="option">owner and group</li>
+      <li class="option">size and mtime</li>
+      <li class="option">inode and links</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Why quote <code>'*.zip'</code> for <code>find -name</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">stop early shell glob</li>
+      <li class="option">make find case-fold</li>
+      <li class="option">enable brace expansion</li>
+      <li class="option">force recursive match</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Both streams into one file (POSIX)?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">cmd &gt;f 2&gt;&amp;1</li>
+      <li class="option">cmd 2&gt;&amp;1 &gt;f</li>
+      <li class="option">cmd &lt;f 2&gt;&amp;1</li>
+      <li class="option">cmd &gt;f 1&gt;&amp;2</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why is <code>cd</code> a shell builtin?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">child can’t change parent cwd</li>
+      <li class="option">PATH has no cd binary</li>
+      <li class="option">cd needs root privileges</li>
+      <li class="option">man pages forbid externals</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="5">
+    <p class="quiz-q"><span class="num">Q5</span>Spaces-safe find → xargs?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">-print0 | xargs -0</li>
+      <li class="option">-print | xargs -n1</li>
+      <li class="option">-ls | xargs -I{}</li>
+      <li class="option">-exec | xargs -0</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="6">
+    <p class="quiz-q"><span class="num">Q6</span>What does <code>set -x</code> add?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">trace before each command</li>
+      <li class="option">exit on first failure</li>
+      <li class="option">error on unset vars</li>
+      <li class="option">fail on pipe errors</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Which cluster was slowest — quoting/globs, redirects/<code>$?</code>, scripting/<code>chmod</code>/<code>set -x</code>, or the pipeline/tools block (<code>xargs</code>/<code>jq</code>/history)? That is the highest-value follow-up.</p>
+    <p style="margin-bottom:0">Curriculum continues with CLE after Lesson 0019 (arguments &amp; globs, env, SSH, …) when you want the next teaching slice.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong> — <a href="https://missing.csail.mit.edu/2026/course-shell/">MS Introduction to the Shell</a> (Exercises); <code>man bash</code> (Pattern Matching, Quoting, Redirections, Special Parameters, The Set Builtin); <code>man ls</code>, <code>man find</code>, <code>man xargs</code>, <code>man awk</code>, <code>man jq</code>. Prior floors: Lessons <a href="./0015-intro-to-the-shell.html">0015</a>–<a href="./0018-ms-light-bash-scripting.html">0018</a>.</p>
+    <p>Previous: <a href="./0018-ms-light-bash-scripting.html">Lesson 0018 — light bash scripting</a>. Index: <a href="../reference/shell-ms-exercises.html">shell MS exercises</a>. Latest CLE: <a href="./0019-ms-signals-job-control.html">Lesson 0019 — signals &amp; job control</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Tell the teacher which drill cluster was slowest.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Re-do the weak exercise cluster before advancing CLE.'
+            : ' — re-open the weak drills; use the exercise index after another try.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
