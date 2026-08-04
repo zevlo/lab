@@ -201,3 +201,15 @@
 - **Scratch:** `/tmp/ms-args/`.
 - **Defer:** `**`/globstar; Streams concurrency; env/`export`; return codes `&&`/`||`; SSH; aliases/dotfiles; fancy CLIs.
 - **Next when asked:** env vars or return codes.
+
+## L0021 complete (4/4; structure/style praised)
+- Args/globs floor set. User likes current MS lesson shape — keep it.
+
+## L0022 design notes (MS CLE — environment variables & export)
+- **Primary source:** https://missing.csail.mit.edu/2026/command-line-environment/ — “Environment variables”.
+- **Scope:** shell-local vs environment; `printenv`; one-shot `VAR=value cmd`; `export`; `unset`; `'` vs `"` refresh; ALL_CAPS convention; `HOME`/`PATH`/`TZ`/`DEBUG`.
+- **Reuse:** `name=value` / `$(date…)` from L0018; `PATH`/`HOME` from L0015.
+- **Skill win:** cold rebuild one-shot `TZ=… date` + `export`/`bash -c`/`unset`; explain child inheritance.
+- **Scratch:** `/tmp/ms-env/`.
+- **Defer:** process substitution `<(…)`; return codes; SSH; aliases/dotfiles; fancy CLIs.
+- **Next when asked:** return codes or SSH.

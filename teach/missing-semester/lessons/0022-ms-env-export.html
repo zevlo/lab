@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0022 — MS environment variables &amp; export</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0022 · <a href="../reference/shell-env-export.html">Missing Semester — CLE</a></p>
+    <h1>Environment variables &amp; <code>export</code></h1>
+    <p class="lede">Shell-local vars vs the environment children inherit — one-shot <code>VAR=value cmd</code>, <code>export</code>, <code>printenv</code>, and <code>unset</code>.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>You already assign shell variables and expand <code>"$name"</code> (L0018), and you know <code>PATH</code> / <code>HOME</code> from navigation (L0015). Missing Semester’s CLE “Environment variables” section draws the line that matters for DevOps: a plain <code>foo=bar</code> stays in <em>this</em> shell; children only see what is in the <strong>environment</strong>. That is how <code>DEBUG=1 ./run.sh</code>, <code>TZ=… date</code>, and long-lived <code>export</code>s actually work.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — the “Environment variables” section only (assignment / quotes / <code>printenv</code> / one-shot prefix / <code>export</code> / <code>unset</code>). Skip process substitution, Return codes, and later sections for now.</p>
+
+  <h2>Knowledge 1 — shell variables (quick refresh)</h2>
+  <p>Assign with <code>name=value</code> (no spaces). Everything is a string. Double quotes expand; single quotes are literal.</p>
+  <pre><code>host=db01
+echo "$host"    # db01
+echo '$host'    # $host
+
+stamp=$(date +%Y-%m-%d)
+echo "$stamp"</code></pre>
+  <div class="gotcha"><strong><code>host = db01</code> is not assignment.</strong> Spaces make the shell run a command named <code>host</code> with arguments <code>=</code> and <code>db01</code>. Same footgun as L0018.</div>
+  <p>Convention: lowercase for shell-local scratch; <code>ALL_CAPS</code> for environment-facing names (<code>HOME</code>, <code>PATH</code>, <code>DEBUG</code>, <code>TZ</code>). Not enforced — just readable.</p>
+
+  <h2>Knowledge 2 — the environment vs this shell</h2>
+  <p>When bash starts a program, it passes a set of name/value pairs: the <strong>environment</strong>. Inspect it with <code>printenv</code> (or <code>printenv NAME</code> for one key). A variable that is only set in the shell — not exported — does <em>not</em> appear there and is invisible to children.</p>
+  <pre><code>secret=only-here
+printenv secret        # empty / no line
+bash -c 'echo "[$secret]"'   # []  — child never saw it</code></pre>
+  <p>Two ways to put a value into a child’s environment:</p>
+  <table>
+    <thead><tr><th>Form</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td><code>VAR=value cmd</code></td><td>one-shot — only that command (and its kids)</td></tr>
+      <tr><td><code>export VAR=value</code></td><td>this shell’s environment — later children inherit it</td></tr>
+    </tbody>
+  </table>
+  <pre><code>TZ=Asia/Tokyo date
+echo "${TZ-}"          # still empty in this shell (one-shot did not stick)
+
+export DEBUG=1
+bash -c 'echo DEBUG=$DEBUG'   # DEBUG=1
+printenv DEBUG                # 1</code></pre>
+  <div class="gotcha"><strong>One-shot does not change your shell.</strong> After <code>TZ=Asia/Tokyo date</code>, <code>echo $TZ</code> in the parent is still empty. Use <code>export TZ=…</code> if you want it to stick (then <code>unset TZ</code> when done).</div>
+
+  <h2>Knowledge 3 — <code>unset</code> and common names</h2>
+  <p><code>unset NAME</code> removes a variable from the shell (and from the environment if it was exported).</p>
+  <pre><code>export DEBUG=1
+unset DEBUG
+printenv DEBUG         # gone</code></pre>
+  <p>Programs often read env vars instead of requiring a flag — same idea as flags being a convention:</p>
+  <table>
+    <thead><tr><th>Name</th><th>Typical role</th></tr></thead>
+    <tbody>
+      <tr><td><code>HOME</code></td><td>your home directory</td></tr>
+      <tr><td><code>PATH</code></td><td>where the shell finds commands (L0015)</td></tr>
+      <tr><td><code>TZ</code></td><td>timezone for <code>date</code> and friends</td></tr>
+      <tr><td><code>DEBUG</code> / app-specific</td><td>toggle verbose / feature flags</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Drill — prove inheritance</h2>
+  <p>Ghostty + bash. Scratch optional: <code>/tmp/ms-env/</code>. Clean up exports with <code>unset</code> when done.</p>
+  <ol>
+    <li>
+      Shell-local stays local:
+      <pre><code>mkdir -p /tmp/ms-env &amp;&amp; cd /tmp/ms-env
+token=local-only
+echo "shell=$token"
+printenv token || true
+bash -c 'echo child=[${token-}]'</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Shell prints the value. <code>printenv</code> shows nothing useful for <code>token</code>. Child prints empty brackets — not exported.</p>
+      </div></details>
+    </li>
+    <li>
+      One-shot prefix (MS <code>TZ</code> shape):
+      <pre><code>TZ=Asia/Tokyo date
+echo "TZ after=[${TZ-}]"
+date</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>First <code>date</code> reflects Tokyo (or an offset vs local). <code>TZ after</code> is empty. Second <code>date</code> is your normal zone again.</p>
+      </div></details>
+    </li>
+    <li>
+      <code>export</code> so children see it:
+      <pre><code>export DEBUG=1
+printenv DEBUG
+bash -c 'echo child_DEBUG=$DEBUG'
+unset DEBUG
+bash -c 'echo child_DEBUG=${DEBUG-}'</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>While exported, <code>printenv</code> and the child both show <code>1</code>. After <code>unset</code>, the child sees empty.</p>
+      </div></details>
+    </li>
+    <li>
+      Script that reads the environment (no argv needed):
+      <pre><code>cat &gt; greeter.sh &lt;&lt;'EOF'
+#!/bin/bash
+echo "hello from ${NAME:-world}"
+EOF
+chmod +x greeter.sh
+NAME=ops ./greeter.sh
+./greeter.sh
+export NAME=prod
+./greeter.sh
+unset NAME</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>One-shot → <code>hello from ops</code>. Plain run → <code>hello from world</code> (default). After <code>export</code> → <code>hello from prod</code>. <code>${NAME:-world}</code> is “use NAME, or world if unset/empty.”</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Run <code>date</code> once in UTC via a one-shot env prefix (do not leave <code>TZ</code> set in your shell).</li>
+        <li><code>export</code> a var, prove a <code>bash -c</code> child sees it, then <code>unset</code> it.</li>
+        <li>One sentence: what is the difference between <code>FOO=1</code> and <code>export FOO=1</code> for a child process?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>TZ=UTC date</code> (or <code>TZ=Etc/UTC date</code>)<br>
+        (b) <code>export FOO=1</code> → <code>bash -c 'echo $FOO'</code> → <code>unset FOO</code><br>
+        (c) Plain <code>FOO=1</code> is shell-local (child does not see it); <code>export</code> puts it in the environment children inherit. (<code>FOO=1 cmd</code> is the one-command middle path.)</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> Process substitution <code>&lt;(…)</code>, return codes <code>&amp;&amp;</code> <code>||</code> / <code>$?</code>, SSH, aliases &amp; dotfiles (where <code>export</code> often lives). Skip MS “consider installing” tools (fzf, mosh, ripgrep, oh-my-*).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>After <code>secret=x</code> (no export), what does a child see?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">nothing — not in environment</li>
+      <li class="option">always the value x</li>
+      <li class="option">only if printenv ran</li>
+      <li class="option">only via $1 argv</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>What does <code>TZ=UTC date</code> change?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">env for that date only</li>
+      <li class="option">TZ in your shell forever</li>
+      <li class="option">system clock hardware</li>
+      <li class="option">PATH for all shells</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What does <code>export DEBUG=1</code> do?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">add DEBUG to the environment</li>
+      <li class="option">print DEBUG to stdout</li>
+      <li class="option">delete DEBUG permanently</li>
+      <li class="option">run DEBUG as a command</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>How do you remove an exported variable?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">unset NAME</li>
+      <li class="option">export -d NAME</li>
+      <li class="option">rm $NAME</li>
+      <li class="option">kill %NAME</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did one-shot <code>TZ=… date</code> vs <code>export</code> click? Any surprise that a shell-local var is invisible to <code>bash -c</code>?</p>
+    <p style="margin-bottom:0">Next CLE slice when ready: return codes <code>&amp;&amp;</code> <code>||</code> / <code>$?</code>, or SSH / remote machines — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). Section: Environment variables.</li>
+      <li><code>man bash</code> — PARAMETERS, Shell Variables, ENVIRONMENT. <code>man printenv</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0021-ms-args-globs.html">Lesson 0021 — arguments &amp; globs</a>. Reference: <a href="../reference/shell-env-export.html">environment &amp; export</a>. You already know <code>PATH</code>/<code>HOME</code> from L0015 and <code>name=value</code> from L0018.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild one-shot TZ + export/unset once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS Environment variables section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
