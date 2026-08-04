@@ -186,4 +186,18 @@
 - **Scratch:** `/tmp/ms-ex/`. Hidden `show answer` = one valid approach.
 - **Ref:** `reference/shell-ms-exercises.html` — cluster → prior lesson/man map (not a solution key).
 - **Tone:** MS-era — no pareto/reps/storage-strength meta in lesson copy.
-- **Next when asked:** continue CLE after L0019 (arguments & globs, …).
+
+## L0020 complete (will re-run)
+- Workbook finished once; user wants more passes through exercises. Keep L0020 available for spaced re-runs alongside CLE progress.
+
+## L0019 complete (4/4; solid)
+- Signals/jobs floor set. User progressed to CLE Arguments & globs.
+
+## L0021 design notes (MS CLE — arguments & globs)
+- **Primary source:** https://missing.csail.mit.edu/2026/command-line-environment/ — “Arguments” section (flags + globs / braces).
+- **Scope:** `$0`/`$1`/`$@`/`$#`; flag conventions (`-`/`--`, grouping); shell expands `*`/`?` before exec; brace `{a,b}`; quotes freeze globs; multi-operand cmds.
+- **Reuse:** `$1` from L0018; L0020 glob/quoting exercises as prior exposure (formalize model here).
+- **Skill win:** cold rebuild brace `touch` + glob into argv printer; explain shell-vs-program expansion.
+- **Scratch:** `/tmp/ms-args/`.
+- **Defer:** `**`/globstar; Streams concurrency; env/`export`; return codes `&&`/`||`; SSH; aliases/dotfiles; fancy CLIs.
+- **Next when asked:** env vars or return codes.

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0021 — MS arguments &amp; globs</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0021 · <a href="../reference/shell-args-globs.html">Missing Semester — CLE</a></p>
+    <h1>Arguments &amp; globs</h1>
+    <p class="lede">What a program actually receives on its argv — and how the shell expands <code>*</code>, <code>?</code>, and <code>{}</code> before the program ever runs.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>You already pass <code>$1</code> into scripts (L0018) and hit globs in the lecture-1 workbook (L0020). Missing Semester’s CLE “Arguments” section names the model: every CLI gets a list of plain strings; flags are a convention; and <strong>globs are expanded by the shell</strong>, not by <code>rm</code> or <code>ls</code>. That is why <code>rm *.py</code> beats a <code>for</code>/<code>grep</code> loop — and why quoting a glob can silently break your intent.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — the “Arguments” section only (through brace / glob examples). Skip Streams, Environment variables, Return codes, and later sections for now.</p>
+
+  <h2>Knowledge 1 — argv is a list of strings</h2>
+  <p>When you type <code>ls -l folder/</code>, the shell runs <code>/bin/ls</code> with arguments roughly <code>['-l', 'folder/']</code>. Inside a bash script:</p>
+  <table>
+    <thead><tr><th>Form</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>$0</code></td><td>script / program name</td></tr>
+      <tr><td><code>$1</code> … <code>$9</code></td><td>positional args (you used <code>$1</code> in <code>check.sh</code>)</td></tr>
+      <tr><td><code>$@</code></td><td>all positional args as a list</td></tr>
+      <tr><td><code>$#</code></td><td>count of positional args</td></tr>
+    </tbody>
+  </table>
+  <pre><code>#!/bin/bash
+# save as /tmp/ms-args/show.sh  then: chmod +x show.sh
+echo "name=$0 count=$#"
+echo "first=$1"
+echo "all: $@"</code></pre>
+  <pre><code>/tmp/ms-args/show.sh alpha beta
+# name=.../show.sh count=2
+# first=alpha
+# all: alpha beta</code></pre>
+  <div class="gotcha"><strong>Quote <code>"$@"</code> when forwarding args.</strong> Bare <code>$@</code> can break on spaces. Prefer <code>"$@"</code> (MS flaky-test exercise uses this). Same habit as quoting <code>"$1"</code>.</div>
+
+  <h2>Knowledge 2 — flags are a convention</h2>
+  <p>Programs decide how to parse their strings. By convention, options start with <code>-</code> or <code>--</code>:</p>
+  <ul>
+    <li>Short: <code>-a</code>, often one letter; groupable: <code>ls -la</code> ≡ <code>ls -l -a</code></li>
+    <li>Long: <code>--all</code> (same idea as <code>-a</code> for <code>ls</code>)</li>
+    <li>Order of flags usually does not matter: <code>ls -la</code> ≡ <code>ls -al</code></li>
+  </ul>
+  <p>Many tools also take several operands of the same kind: <code>mkdir src docs</code> is one call, two directories — not two separate <code>mkdir</code>s. That pairs powerfully with globs.</p>
+
+  <h2>Knowledge 3 — the shell expands globs</h2>
+  <p>Globs are patterns the <em>shell</em> turns into matching pathnames <strong>before</strong> it invokes the program. <code>rm</code> never sees the literal <code>*.py</code> when matches exist — it sees the expanded names.</p>
+  <table>
+    <thead><tr><th>Pattern</th><th>Matches</th></tr></thead>
+    <tbody>
+      <tr><td><code>*</code></td><td>any string (including empty), non-recursive in the current dir by default</td></tr>
+      <tr><td><code>?</code></td><td>exactly one character</td></tr>
+      <tr><td><code>{a,b,c}</code></td><td>brace expansion → multiple words (bash; not a filesystem search)</td></tr>
+    </tbody>
+  </table>
+  <pre><code>mkdir -p /tmp/ms-args &amp;&amp; cd /tmp/ms-args
+touch folder/{a,b,c}.py
+# → folder/a.py folder/b.py folder/c.py
+
+echo *.py          # may print nothing if no .py in cwd — try:
+echo folder/*.py   # folder/a.py folder/b.py folder/c.py
+
+ls folder/?.py     # one-char basename before .py → a.py b.py c.py</code></pre>
+  <p>Brace expansion is pure text rewrite (works even if files do not exist yet). Filename globs (<code>*</code>, <code>?</code>) only expand to paths that exist — otherwise bash usually leaves the pattern literal (default <code>nullglob</code> off).</p>
+  <div class="gotcha"><strong>Quotes freeze the glob.</strong> <code>echo "*.py"</code> prints the characters <code>*.py</code>. <code>echo *.py</code> expands. Use quotes when you mean a literal star; leave them off when you want matches.</div>
+  <pre><code># Combined (MS shape)
+touch x.py y.sh
+echo *.{py,sh}     # x.py y.sh  (brace first, then glob — details in man bash)</code></pre>
+
+  <h2>Drill — see argv, then expand</h2>
+  <p>Ghostty + bash. Scratch: <code>/tmp/ms-args/</code>. Clean up when done.</p>
+  <ol>
+    <li>
+      Make the scratch dir and a tiny argv printer:
+      <pre><code>mkdir -p /tmp/ms-args &amp;&amp; cd /tmp/ms-args
+cat &gt; show.sh &lt;&lt;'EOF'
+#!/bin/bash
+echo "count=$#"
+printf 'arg: %s\n' "$@"
+EOF
+chmod +x show.sh
+./show.sh one "two words" three</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Expect <code>count=3</code> and three <code>arg:</code> lines — including <code>two words</code> as one argument because of the quotes.</p>
+      </div></details>
+    </li>
+    <li>
+      Create three files with one brace expansion, then list with a glob:
+      <pre><code>mkdir -p folder
+touch folder/{alpha,beta,gamma}.txt
+ls folder/*.txt
+./show.sh folder/*.txt</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>touch</code> receives three paths. <code>./show.sh folder/*.txt</code> should report <code>count=3</code> — the shell expanded the glob before <code>show.sh</code> started.</p>
+      </div></details>
+    </li>
+    <li>
+      Prove quoting blocks expansion:
+      <pre><code>./show.sh folder/*.txt
+./show.sh "folder/*.txt"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>First call: three args (expanded). Second: <code>count=1</code> and a single arg literally <code>folder/*.txt</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      One-char glob + multi-operand habit:
+      <pre><code>touch a.py b.py cc.py
+ls ?.py
+mkdir -p out
+cp ?.py out/
+ls out/</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>?.py</code> matches <code>a.py</code> and <code>b.py</code> only (<code>cc.py</code> has two characters before <code>.py</code>). <code>cp</code> gets multiple sources in one invocation.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>In a fresh empty subdir, create <code>setup.sh</code>, <code>build.sh</code>, <code>deploy.sh</code> with one <code>touch</code> and braces.</li>
+        <li>Run your <code>show.sh</code> (or <code>printf</code>) so it receives only the <code>.sh</code> files via a glob — confirm the count.</li>
+        <li>One sentence: who expands <code>*.sh</code> — the shell or <code>rm</code>/<code>ls</code>?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>touch {setup,build,deploy}.sh</code><br>
+        (b) <code>./show.sh *.sh</code> → <code>count=3</code><br>
+        (c) The <strong>shell</strong> expands globs before the program runs.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> Recursive <code>**</code> / <code>globstar</code>, Streams concurrency footnotes, environment variables / <code>export</code>, return codes <code>&amp;&amp;</code> <code>||</code>, SSH, aliases &amp; dotfiles. Skip MS “consider installing” tools (fzf, mosh, ripgrep, oh-my-*).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>In a script, what is <code>$#</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">count of positional args</li>
+      <li class="option">name of the script ($0)</li>
+      <li class="option">last command exit status</li>
+      <li class="option">current job number %N</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Who expands <code>*.py</code> in <code>rm *.py</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">the shell, before rm runs</li>
+      <li class="option">rm itself, always</li>
+      <li class="option">the kernel after exec</li>
+      <li class="option">find, via a hidden hook</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What does <code>touch f/{a,b}.txt</code> do?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">creates f/a.txt and f/b.txt</li>
+      <li class="option">creates one file named f/{a,b}.txt</li>
+      <li class="option">searches the disk for a,b</li>
+      <li class="option">only works inside find -name</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>What does <code>echo "*.log"</code> print?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">the literal characters *.log</li>
+      <li class="option">every matching .log file</li>
+      <li class="option">an empty line always</li>
+      <li class="option">an error from bash</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did seeing <code>count=</code> after a glob make the argv model click? Did quoting <code>"folder/*.txt"</code> surprise you? Any L0020 exercise that feels easier now?</p>
+    <p style="margin-bottom:0">Keep re-running L0020 exercises anytime. Next CLE slice when ready: environment variables / <code>export</code>, or return codes <code>&amp;&amp;</code> <code>||</code> / <code>$?</code> — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). Section: Arguments (flags + globs / braces).</li>
+      <li><code>man bash</code> — PARAMETERS, EXPANSION (Brace Expansion, Pathname Expansion).</li>
+    </ul>
+    <p>Previous CLE: <a href="./0019-ms-signals-job-control.html">Lesson 0019 — signals &amp; job control</a>. Workbook: <a href="./0020-ms-shell-exercises.html">Lesson 0020</a>. Reference: <a href="../reference/shell-args-globs.html">arguments &amp; globs</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild brace touch + glob into show.sh once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS Arguments section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
