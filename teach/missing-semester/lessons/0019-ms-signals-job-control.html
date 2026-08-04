@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0019 — MS signals &amp; job control</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0019 · <a href="../reference/shell-signals-jobs.html">Missing Semester — CLE</a></p>
+    <h1>Signals &amp; job control</h1>
+    <p class="lede"><code>Ctrl-C</code>, <code>Ctrl-Z</code>, <code>fg</code>/<code>bg</code>, <code>jobs</code>, and why closing a terminal kills background work — first slice of MS lecture 2.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>You already <code>kill</code> and <code>pgrep</code> from the ops floor. Missing Semester’s Command-line Environment lecture adds the other half: the terminal sends <strong>signals</strong>, and the shell tracks <strong>jobs</strong> so you can pause, resume, and background without losing the prompt. That is how you free the keyboard mid-<code>sleep</code>, keep a long job running, and understand why a closed SSH window nukes orphaned children — and why tmux exists.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — the “Signals” section only (through the sample <code>sleep</code> / <code>nohup</code> / <code>jobs</code> session). Skip Arguments, Streams, Remote Machines, and Customizing the Shell for now.</p>
+
+  <h2>Knowledge 1 — signals from the keyboard</h2>
+  <p>A signal is a software interrupt. The shell maps a few key chords to common ones:</p>
+  <table>
+    <thead><tr><th>Key</th><th>Signal</th><th>Usual effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>Ctrl-C</code></td><td><code>SIGINT</code></td><td>interrupt — stop the foreground job</td></tr>
+      <tr><td><code>Ctrl-\</code></td><td><code>SIGQUIT</code></td><td>quit — stronger stop (core dump on some systems)</td></tr>
+      <tr><td><code>Ctrl-Z</code></td><td><code>SIGTSTP</code></td><td>terminal stop — <em>suspend</em> the job</td></tr>
+    </tbody>
+  </table>
+  <pre><code>sleep 100
+^C          # Ctrl-C → shell sends SIGINT → sleep dies</code></pre>
+  <div class="gotcha"><strong>Processes can ignore <code>SIGINT</code>.</strong> Then <code>Ctrl-C</code> does nothing useful. Escalate: <code>Ctrl-\</code>, or <code>kill -TERM pid</code>, or last resort <code>kill -KILL pid</code> (<code>SIGKILL</code> cannot be caught — prefer <code>TERM</code> first).</div>
+
+  <h2>Knowledge 2 — jobs, fg, bg, &amp;</h2>
+  <p><code>Ctrl-Z</code> suspends. <code>jobs</code> lists unfinished jobs for <em>this</em> shell. Resume in the foreground with <code>fg</code>, or continue in the background with <code>bg</code>. Suffix <code>&amp;</code> starts a command in the background immediately.</p>
+  <pre><code>sleep 1000
+^Z                    # suspended
+jobs                  # [1]+  Suspended  sleep 1000
+bg                    # continue in background
+jobs                  # [1]+  Running    sleep 1000
+fg                    # bring back to foreground (then Ctrl-C to stop)
+
+sleep 60 &amp;            # start already in background
+jobs</code></pre>
+  <p>Refer to a job as <code>%1</code>, <code>%2</code>, … (the number from <code>jobs</code>). That works with <code>kill</code>, <code>fg</code>, and <code>bg</code>:</p>
+  <pre><code>kill %1
+fg %1
+bg %1</code></pre>
+  <div class="gotcha"><strong><code>jobs</code> is per-shell.</strong> A job started in another terminal (or another pane’s bash) will not show up here. Use <code>pgrep</code>/<code>pkill</code> across the machine; use <code>jobs</code>/<code>%</code> inside the shell that owns the job.</div>
+
+  <h2>Knowledge 3 — SIGHUP, nohup, and why tmux</h2>
+  <p>Close the terminal (or lose SSH) and children get <code>SIGHUP</code> (“hang up”) — most die. <code>nohup cmd &amp;</code> ignores hangup and appends output to <code>nohup.out</code>. For interactive multi-pane work that should survive disconnects, you already know the durable answer: <strong>tmux</strong> (detach / reattach).</p>
+  <pre><code>nohup sleep 2000 &amp;
+jobs
+# closing this terminal would still kill a plain `sleep &amp;`
+# nohup resists SIGHUP; tmux keeps a full session alive</code></pre>
+  <div class="gotcha"><strong><code>kill</code> without a signal name sends <code>SIGTERM</code>.</strong> Same family as the graceful stop you used with <code>pgrep</code>/<code>kill</code> in Lesson 0008. <code>kill -9</code> / <code>SIGKILL</code> is the blunt instrument — only when <code>TERM</code> fails.</div>
+
+  <h2>Drill — suspend, background, find, kill</h2>
+  <p>Ghostty + bash. One shell tab. Clean up leftover <code>sleep</code>s when done.</p>
+  <ol>
+    <li>
+      Start a long sleep, suspend, continue in background:
+      <pre><code>sleep 10000
+# Ctrl-Z
+bg
+jobs</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You should see a suspended job after <code>Ctrl-Z</code>, then <code>Running</code> after <code>bg</code>. Note the job number in brackets — that is your <code>%N</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Find and kill it <em>without typing the pid</em> (MS exercise shape — you already know <code>pgrep</code>/<code>pkill</code>):
+      <pre><code>pgrep -lf sleep
+pkill -f 'sleep 10000'
+jobs</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>pgrep -lf</code> lists pid + full command. <code>pkill -f</code> matches the command line. Prefer a specific pattern (<code>sleep 10000</code>) so you do not kill unrelated sleeps. <code>jobs</code> should be empty (or show exited).</p>
+      </div></details>
+    </li>
+    <li>
+      Background with <code>&amp;</code>, then stop via job id:
+      <pre><code>sleep 30 &amp;
+jobs
+kill %1
+jobs</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>&amp;</code> returns the prompt immediately. <code>kill %1</code> sends <code>SIGTERM</code> to that job. Confirm with <code>jobs</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Feel <code>nohup</code> (optional — skip if short on time):
+      <pre><code>nohup sleep 20 &amp;
+jobs
+# leave it; or: kill %1
+ls -l nohup.out 2&gt;/dev/null || true</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>nohup</code> prints a note about appending to <code>nohup.out</code>. The job still appears under <code>jobs</code> while it runs.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Suspend a foreground <code>sleep</code>, continue it in the background, list jobs.</li>
+        <li>Kill the latest job with <code>%N</code> (not a raw pid).</li>
+        <li>One sentence: what signal does closing the terminal send, and what tool keeps a session alive instead of <code>nohup</code>?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>sleep 10000</code> → <code>Ctrl-Z</code> → <code>bg</code> → <code>jobs</code><br>
+        (b) <code>kill %1</code> (use the number <code>jobs</code> showed)<br>
+        (c) <code>SIGHUP</code>; durable interactive answer is <strong>tmux</strong> (detach/reattach).</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <code>wait</code> / <code>pidwait</code>, <code>trap</code> cleanup, Arguments &amp; globs, environment variables / <code>export</code>, return codes &amp;&amp; <code>||</code>, SSH config depth, aliases &amp; dotfiles — further CLE slices. Skip MS “consider installing” tools (fzf, mosh, ripgrep, oh-my-*).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What does <code>Ctrl-C</code> usually send?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">SIGINT (interrupt)</li>
+      <li class="option">SIGHUP (hang up)</li>
+      <li class="option">SIGKILL (force die)</li>
+      <li class="option">SIGTSTP (suspend)</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>After <code>Ctrl-Z</code>, how do you keep running in background?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">type bg</li>
+      <li class="option">type fg again</li>
+      <li class="option">Ctrl-C then &amp;</li>
+      <li class="option">only kill -9 works</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What is <code>%1</code> in <code>kill %1</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">job number from jobs</li>
+      <li class="option">always pid 1 (init)</li>
+      <li class="option">first awk field</li>
+      <li class="option">script argument $1</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Closing the terminal typically sends children…?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">SIGHUP</li>
+      <li class="option">SIGINT only</li>
+      <li class="option">SIGTSTP</li>
+      <li class="option">no signal at all</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did <code>Ctrl-Z</code> / <code>bg</code> feel different from starting with <code>&amp;</code>? Did <code>pkill -f</code> feel safer than typing a pid? Did the SIGHUP → tmux link click?</p>
+    <p style="margin-bottom:0">Next CLE slice when ready: Arguments &amp; globs, or exit codes / <code>&amp;&amp;</code> <code>||</code>, or environment variables — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). Section: Signals (job control sample session).</li>
+      <li><code>man bash</code> — JOB CONTROL, SIGNALS. <code>man 7 signal</code> / <code>kill -l</code>. <code>man pgrep</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0018-ms-light-bash-scripting.html">Lesson 0018 — light bash scripting</a>. Reference: <a href="../reference/shell-signals-jobs.html">signals &amp; job control</a>. You already know tmux detach (L0006+) — that is the durable hangup answer.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild Ctrl-Z → bg → kill %N once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS Signals section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

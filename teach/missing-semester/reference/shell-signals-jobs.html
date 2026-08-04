@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — signals &amp; job control (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · CLE</p>
+    <h1>Signals &amp; job control</h1>
+    <p class="lede">Lecture 2 Signals slice. Grounded in <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Command-line Environment</a>.</p>
+  </header>
+
+  <h2>Keyboard → signal</h2>
+  <table>
+    <thead><tr><th>Key / command</th><th>Signal</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>Ctrl-C</code></td><td><code>SIGINT</code></td><td>Interrupt foreground job</td></tr>
+      <tr><td><code>Ctrl-\</code></td><td><code>SIGQUIT</code></td><td>Quit (stronger; may core-dump)</td></tr>
+      <tr><td><code>Ctrl-Z</code></td><td><code>SIGTSTP</code></td><td>Suspend (pause) job</td></tr>
+      <tr><td><code>kill pid</code></td><td><code>SIGTERM</code></td><td>Graceful terminate (default)</td></tr>
+      <tr><td><code>kill -KILL pid</code></td><td><code>SIGKILL</code></td><td>Force die — cannot be caught</td></tr>
+      <tr><td>close terminal / SSH drop</td><td><code>SIGHUP</code></td><td>Hang up — children often die</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><code>kill -l</code> lists signal names. Prefer <code>TERM</code> before <code>KILL</code>.</div>
+
+  <h2>Job control builtins</h2>
+  <table>
+    <thead><tr><th>Form</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>jobs</code></td><td>List unfinished jobs in <em>this</em> shell</td></tr>
+      <tr><td><code>fg</code> / <code>fg %N</code></td><td>Foreground (resume if suspended)</td></tr>
+      <tr><td><code>bg</code> / <code>bg %N</code></td><td>Continue in background</td></tr>
+      <tr><td><code>cmd &amp;</code></td><td>Start already in background</td></tr>
+      <tr><td><code>kill %N</code></td><td>Signal job number <code>N</code></td></tr>
+      <tr><td><code>nohup cmd &amp;</code></td><td>Ignore <code>SIGHUP</code>; log to <code>nohup.out</code></td></tr>
+    </tbody>
+  </table>
+  <pre><code>sleep 10000
+# Ctrl-Z
+bg
+jobs
+kill %1</code></pre>
+  <div class="note"><code>%N</code> is the bracket number from <code>jobs</code>, not a pid. Across shells, use <code>pgrep -lf</code> / <code>pkill -f</code> (Lesson 0008).</div>
+
+  <h2>Survive disconnect</h2>
+  <pre><code>nohup long-running &amp;     # resists SIGHUP; still one-shot
+tmux new -s work         # durable interactive session (L0006+)</code></pre>
+  <div class="note">tmux detach (<code>C-b d</code>) / reattach is the DevOps default for remote work. <code>nohup</code> is the one-liner escape hatch.</div>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <p><code>wait</code>, <code>pidwait</code>, <code>trap</code>, Arguments &amp; globs, <code>export</code> / env vars, return codes <code>&amp;&amp;</code> <code>||</code>, SSH config, aliases &amp; dotfiles. Fancy MS install suggestions (fzf, mosh, oh-my-*) stay out while defaults-only holds.</p>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). <code>man bash</code> JOB CONTROL. Lesson: <a href="../lessons/0019-ms-signals-job-control.html">0019</a>.</p>
+  </footer>
+</body>
+</html>

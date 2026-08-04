@@ -33,7 +33,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **Introduction to the Shell (2026)** — https://missing.csail.mit.edu/2026/course-shell/
   Lecture 1 notes + exercises. Use for: shell vs terminal, navigation, PATH, core tools intro, redirects/pipes, light bash. Lesson 0015 = nav/PATH/`man`; Lesson 0016 = pipes + core filters; Lesson 0017 = `find` / light `sed` / `awk`; Lesson 0018 = light bash scripting (`if`/`for`/shebang/`set -euo pipefail`).
 - **Command-line Environment (2026)** — https://missing.csail.mit.edu/2026/command-line-environment/
-  Lecture 2. Use for: next MS spine after L0018 (job control, tmux/config depth as MS presents it, etc.). Still filter against defaults-only / no-plugins constraints.
+  Lecture 2. Lesson 0019 = Signals & job control (`Ctrl-C`/`Z`, `fg`/`bg`/`jobs`, `SIGHUP`/`nohup`). Later CLE slices: Arguments & globs, env vars, return codes, SSH, aliases/dotfiles. Skip fancy “consider installing” tools while defaults-only holds. Tmux hierarchy already covered in L0006–0013 — do not re-teach from CLE’s multiplexer section.
 
 ## Knowledge — focused references
 

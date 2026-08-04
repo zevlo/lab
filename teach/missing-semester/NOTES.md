@@ -171,3 +171,10 @@
 
 ## L0018 complete (4/4; cold rebuild a/b/c ×2 — good rep)
 - Light bash floor set. Two cold passes to get if / for / shebang+`set`+`chmod` clean — repetition worked as designed. MS lecture 1 done. Next when asked: CLE (lecture 2).
+
+## L0019 design notes (MS CLE — signals & job control)
+- **Primary source:** https://missing.csail.mit.edu/2026/command-line-environment/ — “Signals” section (+ MS Signals and Job Control exercise shape).
+- **Scope:** `Ctrl-C`/`SIGINT`, `Ctrl-\`/`SIGQUIT`, `Ctrl-Z`/`SIGTSTP`; `jobs` / `fg` / `bg` / `&` / `%N`; `kill` default `TERM` vs `KILL`; `SIGHUP` + `nohup`; link to existing tmux as durable hangup answer.
+- **Reuse:** `pgrep`/`pkill` from L0008 in the drill (no re-teach).
+- **Skill win:** cold rebuild suspend → `bg` → `kill %N`; explain SIGHUP vs tmux.
+- **Defer:** `wait`/`pidwait`/`trap`; Arguments & globs; env/`export`; return codes `&&`/`||`; SSH config; aliases/dotfiles; CLE tmux redo; fancy CLIs (fzf, mosh, rg, oh-my-*).
