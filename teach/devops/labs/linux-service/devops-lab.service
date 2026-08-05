@@ -1,0 +1,16 @@
+[Unit]
+Description=DevOps Linux fundamentals lab
+After=network.target
+
+[Service]
+Type=simple
+User=devops-lab
+Group=devops-lab
+Environment=PORT=8080
+Environment=APP_VERSION=1.0.0
+ExecStart=/usr/bin/python3 /usr/local/lib/devops-lab/app.py
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
