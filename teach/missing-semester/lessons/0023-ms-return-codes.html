@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0023 — MS return codes</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0023 · <a href="../reference/shell-return-codes.html">Missing Semester — CLE</a></p>
+    <h1>Return codes</h1>
+    <p class="lede">Every command leaves a status — <code>0</code> means success — and <code>&amp;&amp;</code> / <code>||</code> / <code>if</code> all decide from that number.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>You already branch with <code>if [ -f … ]</code> and abort scripts with <code>set -e</code> (L0018), and you met <code>$?</code> / <code>&amp;&amp;</code> / <code>||</code> in the lecture-1 workbook (L0020). Missing Semester’s CLE “Return codes” section names the shared rule: programs report success or failure with an <strong>exit status</strong>, and the shell’s conditionals are just short-circuit tests on that status. That is how deploy one-liners, “retry until fail,” and CI steps decide what to do next.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — the “Return codes” section only (<code>$?</code>, <code>&amp;&amp;</code> / <code>||</code>, <code>true</code>/<code>false</code>, <code>if</code>/<code>while</code>). Skip Signals (done), Remote Machines, and later sections for now.</p>
+
+  <h2>Knowledge 1 — exit status and <code>$?</code></h2>
+  <p>Besides stdout/stderr and filesystem side effects, every process returns a small integer: the <strong>return code</strong> (exit status). Convention:</p>
+  <table>
+    <thead><tr><th>Code</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>0</code></td><td>success — everything went well</td></tr>
+      <tr><td>nonzero</td><td>failure / some issue</td></tr>
+    </tbody>
+  </table>
+  <p>Read the last command’s status with <code>$?</code>. Scripts default to exiting 0; force a failure with <code>exit NUM</code>.</p>
+  <pre><code>true
+echo $?          # 0
+
+false
+echo $?          # 1
+
+ls /no/such/path
+echo $?          # nonzero (often 1)</code></pre>
+  <div class="gotcha"><strong><code>$?</code> is overwritten every time.</strong> After <code>false; echo $?</code>, a second bare <code>echo $?</code> prints <code>0</code> — that is <code>echo</code>’s success, not <code>false</code>’s failure. Capture it if you need it later: <code>rc=$?</code>.</div>
+
+  <h2>Knowledge 2 — <code>&amp;&amp;</code> and <code>||</code></h2>
+  <p>Shell <code>&amp;&amp;</code> / <code>||</code> are not boolean math on strings. They short-circuit on <strong>return codes</strong>: success means status 0.</p>
+  <table>
+    <thead><tr><th>Form</th><th>Runs the right side when…</th></tr></thead>
+    <tbody>
+      <tr><td><code>cmd1 &amp;&amp; cmd2</code></td><td>cmd1 succeeded (0)</td></tr>
+      <tr><td><code>cmd1 || cmd2</code></td><td>cmd1 failed (nonzero)</td></tr>
+    </tbody>
+  </table>
+  <pre><code># echo only if grep finds a match (-q = quiet, status only)
+grep -q "owner=ops" notes.txt &amp;&amp; echo "Pattern found"
+
+# echo only if grep finds no match
+grep -q "owner=ops" notes.txt || echo "Pattern not found"
+
+true &amp;&amp; echo "This will always print"
+false || echo "This will always print"</code></pre>
+  <div class="gotcha"><strong>Inverted from many languages.</strong> In C / Python, <code>0</code> is false. In the shell, <code>0</code> is success and counts as “true” for <code>if</code> / <code>&amp;&amp;</code>. Nonzero is failure / “false.”</div>
+
+  <h2>Knowledge 3 — same rule as <code>if</code> / <code>while</code></h2>
+  <p>You already use this: <code>if cmd; then …; fi</code> runs the then-branch when <code>cmd</code> returns 0. <code>[ -f notes.txt ]</code> is just a command (<code>test</code>) whose status is 0 or 1. <code>while cmd; do …; done</code> keeps going while <code>cmd</code> returns 0.</p>
+  <pre><code>if grep -q "owner=ops" notes.txt; then
+  echo "Found"
+fi
+
+if [ -f notes.txt ]; then
+  echo "file exists"
+fi</code></pre>
+  <p><code>set -e</code> (L0018) is the automatic version: the script exits as soon as a command returns nonzero (with a few exceptions you can learn later).</p>
+
+  <h2>Drill — prove status, then chain</h2>
+  <p>Ghostty + bash. Scratch: <code>/tmp/ms-rc/</code>.</p>
+  <ol>
+    <li>
+      Scratch + sample file:
+      <pre><code>mkdir -p /tmp/ms-rc &amp;&amp; cd /tmp/ms-rc
+cat &gt; notes.txt &lt;&lt;'EOF'
+status=draft
+owner=ops
+EOF
+pwd</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>cwd is <code>/tmp/ms-rc</code>. <code>notes.txt</code> has two lines.</p>
+      </div></details>
+    </li>
+    <li>
+      Read <code>$?</code> after success and failure:
+      <pre><code>true; echo "true=$?"
+false; echo "false=$?"
+ls /no/such/path; echo "ls=$?"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>true=0</code>, <code>false=1</code>, <code>ls=</code> some nonzero (and an error on stderr). The <code>; echo</code> form is intentional so <code>echo</code> still runs after a failing <code>ls</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Short-circuit with <code>grep -q</code>:
+      <pre><code>grep -q "owner=ops" notes.txt &amp;&amp; echo "Pattern found"
+grep -q "owner=ops" notes.txt || echo "Pattern not found"
+grep -q "missing" notes.txt &amp;&amp; echo "Pattern found"
+grep -q "missing" notes.txt || echo "Pattern not found"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>First line prints <code>Pattern found</code>. Second prints nothing useful for the <code>||</code> (grep succeeded). Third prints nothing for <code>&amp;&amp;</code>. Fourth prints <code>Pattern not found</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Same idea with <code>if</code> (status, not a special keyword):
+      <pre><code>if grep -q "owner=ops" notes.txt; then echo Found; else echo Missing; fi
+if [ -f notes.txt ]; then echo file-ok; fi</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>Found</code> then <code>file-ok</code>. Both branches are driven by exit status 0.</p>
+      </div></details>
+    </li>
+    <li>
+      Script that exits nonzero:
+      <pre><code>cat &gt; fail.sh &lt;&lt;'EOF'
+#!/bin/bash
+echo "about to fail"
+exit 2
+EOF
+chmod +x fail.sh
+./fail.sh; echo "script=$?"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Prints <code>about to fail</code> then <code>script=2</code>. The script’s exit status is whatever <code>exit</code> set.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Show <code>$?</code> after <code>true</code> and after <code>false</code>.</li>
+        <li>One-liner: print <code>hit</code> only if <code>grep -q owner=ops notes.txt</code> succeeds.</li>
+        <li>One sentence: why does the shell treat <code>0</code> as success / “true”?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>true; echo $?</code> → <code>0</code>; <code>false; echo $?</code> → <code>1</code><br>
+        (b) <code>grep -q owner=ops notes.txt &amp;&amp; echo hit</code> (quotes optional here; fine either way)<br>
+        (c) Convention: zero means the command completed without error, so conditionals treat 0 as success.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> MS “run until it fails” retry exercise; <code>wait</code> / <code>pidwait</code>; SSH / remote machines; aliases &amp; dotfiles. Skip MS “consider installing” tools (fzf, mosh, ripgrep, oh-my-*).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What does exit status <code>0</code> mean?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">success — command went well</li>
+      <li class="option">failure — always an error</li>
+      <li class="option">stdout was empty</li>
+      <li class="option">process was killed</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>When does <code>cmd1 &amp;&amp; cmd2</code> run <code>cmd2</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">only if cmd1 status is 0</li>
+      <li class="option">only if cmd1 status is 1</li>
+      <li class="option">always, ignore cmd1</li>
+      <li class="option">only if stdout matched</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What does <code>$?</code> hold?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">last command’s exit status</li>
+      <li class="option">current working directory</li>
+      <li class="option">count of positional args</li>
+      <li class="option">PID of the shell</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>What does <code>false || echo hi</code> print?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">hi — false failed</li>
+      <li class="option">nothing — false succeeded</li>
+      <li class="option">false — the word itself</li>
+      <li class="option">0 — the exit status</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did the “0 = success” inversion click? Any surprise that <code>if</code> and <code>&amp;&amp;</code> use the same status rule?</p>
+    <p style="margin-bottom:0">Next CLE slice when ready: SSH / remote machines, or aliases &amp; dotfiles — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). Section: Return codes.</li>
+      <li><code>man bash</code> — Special Parameters (<code>$?</code>), Lists (<code>&amp;&amp;</code> / <code>||</code>), Bourne Shell Builtins (<code>exit</code>, <code>true</code>, <code>false</code>).</li>
+    </ul>
+    <p>Previous: <a href="./0022-ms-env-export.html">Lesson 0022 — environment &amp; export</a>. Reference: <a href="../reference/shell-return-codes.html">return codes</a>. You already know <code>if</code> / <code>[ ]</code> / <code>set -e</code> from L0018.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild $? + grep -q && once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS Return codes section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

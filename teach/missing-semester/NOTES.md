@@ -213,3 +213,16 @@
 - **Scratch:** `/tmp/ms-env/`.
 - **Defer:** process substitution `<(…)`; return codes; SSH; aliases/dotfiles; fancy CLIs.
 - **Next when asked:** return codes or SSH.
+
+## L0022 complete (4/4; drills good)
+- Env/`export` floor set. User asked real use of `bash -c` → one-shot child bash for a command string (not just the inheritance probe).
+- Next: return codes (MS CLE order) or SSH.
+
+## L0023 design notes (MS CLE — return codes)
+- **Primary source:** https://missing.csail.mit.edu/2026/command-line-environment/ — “Return codes”.
+- **Scope:** exit status convention (0 success, nonzero failure); `$?`; `true`/`false`; short-circuit `&&` / `||`; `exit NUM` in scripts; same rule powers `if`/`while` (tie to L0018).
+- **Reuse:** `[ -f ]` / `if` from L0018; `grep -q` shape from MS notes; L0020 `$?`/`&&`/`||` exposure formalized here.
+- **Skill win:** cold rebuild `$?` after true/false; `grep -q &&` / `||`; one-sentence: why 0 means success.
+- **Scratch:** `/tmp/ms-rc/`.
+- **Defer:** full MS flaky-retry exercise; `wait`/`pidwait`; SSH; aliases/dotfiles; fancy CLIs.
+- **Next when asked:** SSH / remote machines, or aliases & dotfiles.

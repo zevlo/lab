@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — return codes (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · CLE</p>
+    <h1>Return codes</h1>
+    <p class="lede">Lecture 2 Return codes slice. Grounded in <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Command-line Environment</a>.</p>
+  </header>
+
+  <h2>Convention</h2>
+  <table>
+    <thead><tr><th>Code</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>0</code></td><td>Success</td></tr>
+      <tr><td>nonzero</td><td>Failure / issue</td></tr>
+    </tbody>
+  </table>
+  <pre><code>true; echo $?     # 0
+false; echo $?    # 1
+ls /no/such; echo $?   # nonzero</code></pre>
+  <div class="note"><code>$?</code> is the exit status of the <em>last</em> command. Running <code>echo $?</code> replaces it with <code>echo</code>’s status (usually 0).</div>
+
+  <h2>Short-circuit</h2>
+  <table>
+    <thead><tr><th>Form</th><th>Runs right side when…</th></tr></thead>
+    <tbody>
+      <tr><td><code>cmd1 &amp;&amp; cmd2</code></td><td>cmd1 succeeded (0)</td></tr>
+      <tr><td><code>cmd1 || cmd2</code></td><td>cmd1 failed (nonzero)</td></tr>
+    </tbody>
+  </table>
+  <pre><code>grep -q pattern file.txt &amp;&amp; echo found
+grep -q pattern file.txt || echo missing
+true &amp;&amp; echo always
+false || echo always</code></pre>
+
+  <h2>Scripts &amp; conditionals</h2>
+  <pre><code>exit 1              # leave script with failure status
+# if / while use the same rule: 0 = true branch / keep looping
+if [ -f notes.txt ]; then echo yes; fi</code></pre>
+  <div class="note"><code>set -e</code> (L0018) exits the script when a command returns nonzero — same convention, automatic.</div>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <p>MS flaky-command retry exercise; <code>wait</code> / <code>pidwait</code>; SSH; aliases &amp; dotfiles. Fancy MS install suggestions stay out while defaults-only holds.</p>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). <code>man bash</code> — Special Parameters (<code>$?</code>), Lists (<code>&amp;&amp;</code> <code>||</code>). Lesson: <a href="../lessons/0023-ms-return-codes.html">0023</a>.</p>
+  </footer>
+</body>
+</html>
