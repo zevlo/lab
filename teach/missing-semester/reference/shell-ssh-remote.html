@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reference — return codes (Missing Semester)</title>
+<title>Reference — SSH / remote machines (Missing Semester)</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -50,49 +50,62 @@
 <body>
   <header>
     <p class="kicker">Reference · Missing Semester · CLE</p>
-    <h1>Return codes</h1>
-    <p class="lede">Lecture 2 Return codes slice. Grounded in <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Command-line Environment</a>.</p>
+    <h1>SSH / remote machines</h1>
+    <p class="lede">Lecture 2 Remote Machines slice. Grounded in <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Command-line Environment</a>.</p>
   </header>
 
-  <h2>Convention</h2>
+  <h2>Connect &amp; remote commands</h2>
+  <pre><code>ssh user@host
+ssh user@host 'hostname; whoami'
+
+# ls remote, wc local
+ssh user@host ls | wc -l
+
+# both remote (quote the pipeline)
+ssh user@host 'ls | wc -l'</code></pre>
+  <div class="note">Unquoted <code>|</code> is parsed by your local shell. Quote (or escape) when the whole pipeline should run on the server.</div>
+
+  <h2>Keys</h2>
   <table>
-    <thead><tr><th>Code</th><th>Means</th></tr></thead>
+    <thead><tr><th>Piece</th><th>Role</th></tr></thead>
     <tbody>
-      <tr><td><code>0</code></td><td>Success</td></tr>
-      <tr><td>nonzero</td><td>Failure / issue</td></tr>
+      <tr><td><code>~/.ssh/id_ed25519</code></td><td>Private key — secret, never share</td></tr>
+      <tr><td><code>~/.ssh/id_ed25519.pub</code></td><td>Public key — safe to install on servers</td></tr>
+      <tr><td><code>~/.ssh/authorized_keys</code></td><td>On the server — which pubkeys may log in</td></tr>
     </tbody>
   </table>
-  <pre><code>true; echo $?     # 0
-false; echo $?    # 1
-ls /no/such; echo $?   # nonzero</code></pre>
-  <div class="note"><code>$?</code> is the exit status of the <em>last</em> command. Running <code>echo $?</code> replaces it with <code>echo</code>’s status (usually 0).</div>
+  <pre><code>ssh-keygen -a 100 -t ed25519 -f ~/.ssh/id_ed25519
+ssh-keygen -y -f ~/.ssh/id_ed25519          # print matching pubkey
 
-  <h2>Short-circuit</h2>
-  <table>
-    <thead><tr><th>Form</th><th>Runs right side when…</th></tr></thead>
-    <tbody>
-      <tr><td><code>cmd1 &amp;&amp; cmd2</code></td><td>cmd1 succeeded (0)</td></tr>
-      <tr><td><code>cmd1 || cmd2</code></td><td>cmd1 failed (nonzero)</td></tr>
-    </tbody>
-  </table>
-  <pre><code>grep -q pattern file.txt &amp;&amp; echo found
-grep -q pattern file.txt || echo missing
-true &amp;&amp; echo always
-false || echo always</code></pre>
+ssh-copy-id -i ~/.ssh/id_ed25519 user@host
+# or: cat ~/.ssh/id_ed25519.pub | ssh user@host 'mkdir -p ~/.ssh &amp;&amp; cat &gt;&gt; ~/.ssh/authorized_keys'</code></pre>
 
-  <h2>Scripts &amp; conditionals</h2>
-  <pre><code>exit 1              # leave script with failure status
-# if / while use the same rule: 0 = true branch / keep looping
-if [ -f notes.txt ]; then echo yes; fi</code></pre>
-  <div class="note"><code>set -e</code> (L0018) exits the script when a command returns nonzero — same convention, automatic.</div>
+  <h2>Files: <code>scp</code> / <code>rsync</code></h2>
+  <pre><code>scp local.txt user@host:remote/path/
+scp user@host:remote/path/file.txt ./
+
+rsync -av local.txt user@host:remote/path/
+rsync -av --partial big.bin user@host:~/</code></pre>
+  <div class="note"><code>rsync</code> skips identical files and can resume with <code>--partial</code>. Both honor <code>~/.ssh/config</code> Host aliases.</div>
+
+  <h2><code>~/.ssh/config</code></h2>
+  <pre><code>Host vm
+    User alice
+    HostName 172.16.174.141
+    Port 2222
+    IdentityFile ~/.ssh/id_ed25519
+
+Host *.example.com
+    User alice</code></pre>
+  <div class="note">Then <code>ssh vm</code>, <code>scp file vm:</code>, <code>rsync -av . vm:proj/</code> all use the same defaults. Permissions: <code>config</code> and private keys should be mode <code>600</code>.</div>
 
   <div class="beyond">
     <h2>Beyond this slice</h2>
-    <p>MS flaky-command retry exercise; <code>wait</code> / <code>pidwait</code>; aliases &amp; dotfiles. SSH → <a href="../lessons/0024-ms-ssh-remote.html">Lesson 0024</a>. Fancy MS install suggestions stay out while defaults-only holds.</p>
+    <p>sshd hardening (<code>PasswordAuthentication</code>, <code>PermitRootLogin</code>); port forwarding (<code>-L</code>/<code>-R</code>/<code>-N</code>/<code>-f</code>); <code>ssh-agent</code> depth; aliases &amp; dotfiles. Skip MS “consider installing” tools (mosh, fzf, …). Tmux for SSH drops: already L0006 / L0019.</p>
   </div>
 
   <footer>
-    <p>Primary: <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). <code>man bash</code> — Special Parameters (<code>$?</code>), Lists (<code>&amp;&amp;</code> <code>||</code>). Lesson: <a href="../lessons/0023-ms-return-codes.html">0023</a>.</p>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). <code>man ssh</code>, <code>man ssh_config</code>, <code>man ssh-keygen</code>, <code>man scp</code>, <code>man rsync</code>. Lesson: <a href="../lessons/0024-ms-ssh-remote.html">0024</a>.</p>
   </footer>
 </body>
 </html>

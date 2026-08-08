@@ -226,3 +226,17 @@
 - **Scratch:** `/tmp/ms-rc/`.
 - **Defer:** full MS flaky-retry exercise; `wait`/`pidwait`; SSH; aliases/dotfiles; fancy CLIs.
 - **Next when asked:** SSH / remote machines, or aliases & dotfiles.
+
+## L0023 complete (4/4; cold rebuild success)
+- Return-codes floor set (`$?`, `&&`/`||`, `exit NUM`, 0 = success). Cold rebuild first pass.
+- Next: SSH / remote machines, or aliases & dotfiles.
+
+## L0024 design notes (MS CLE — SSH / remote machines)
+- **Primary source:** https://missing.csail.mit.edu/2026/command-line-environment/ — “Remote Machines”.
+- **Scope:** `ssh user@host`; non-interactive remote cmds; local vs remote pipe quoting; ed25519 keys / `ssh-keygen` / `authorized_keys` / `ssh-copy-id`; `scp` + `rsync` (`-av`, `--partial`); `~/.ssh/config` Host / User / HostName / Port / IdentityFile.
+- **Reuse:** tmux for durable remotes (L0006+); `SIGHUP` on SSH drop (L0019); `bash -c` quoting analogy (L0022); L0010-style Drill A local / Drill B remote.
+- **Skill win:** cold rebuild `ssh HOST hostname`; quoted `ssh HOST 'ls | wc -l'`; one-sentence why `~/.ssh/config`.
+- **Scratch:** `/tmp/ms-ssh/`. Never drill dumping private key material.
+- **Skip:** mosh and other MS “consider installing” tools. Do not re-teach CLE tmux section.
+- **Defer:** sshd hardening; port forwarding (`-L`/`-R`/`-N`/`-f`); ssh-agent depth; aliases & dotfiles.
+- **Next when asked:** aliases & dotfiles.
