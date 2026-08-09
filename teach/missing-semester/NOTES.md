@@ -240,3 +240,17 @@
 - **Skip:** mosh and other MS “consider installing” tools. Do not re-teach CLE tmux section.
 - **Defer:** sshd hardening; port forwarding (`-L`/`-R`/`-N`/`-f`); ssh-agent depth; aliases & dotfiles.
 - **Next when asked:** aliases & dotfiles.
+
+## L0024 complete (4/4; drills and cold rebuild clean)
+- SSH floor set (connect, keys, quoting, scp/rsync, config). No friction reported.
+- Next: aliases & dotfiles.
+
+## L0025 design notes (MS CLE — aliases & dotfiles)
+- **Primary source:** https://missing.csail.mit.edu/2026/command-line-environment/ — “Customizing the Shell”.
+- **Scope:** dotfiles concept + common paths; bash `~/.bashrc` / `~/.bash_profile` light; `export PATH="$PATH:…"`; `alias` / `alias name` / `\cmd` / `unalias`; compose; persist via sourced file; VC+symlink pattern named only.
+- **Reuse:** `export` (L0022); `~/.ssh/config` as a known dotfile (L0024); no-spaces-around-`=` footgun (L0018/L0022).
+- **Skill win:** cold rebuild `alias ll` + inspect; source a practice bashrc fragment; one-sentence what a dotfile is.
+- **Scratch:** `/tmp/ms-dot/` — do not require editing real `~/.bashrc` in the drill.
+- **Skip:** brew rg/fd/tldr, oh-my-*, fzf, AI shells, Terminal Emulator re-pick (Ghostty stays).
+- **Defer:** shell functions; full dotfiles repo migrate/publish; package managers; Ctrl-R depth.
+- **Next when asked:** next MS lecture, or deferred CLE (functions / sshd / port forward).

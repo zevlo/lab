@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0025 — MS aliases &amp; dotfiles</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0025 · <a href="../reference/shell-aliases-dotfiles.html">Missing Semester — CLE</a></p>
+    <h1>Aliases &amp; dotfiles</h1>
+    <p class="lede">Make the shell feel like home: hidden config files, <code>export PATH=…</code> in startup, and short <code>alias</code> names that stick across sessions.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>You already live in bash, vim, tmux, and <code>~/.ssh/config</code> (L0024). Missing Semester’s CLE “Customizing the Shell” section ties those together: programs read plain-text <strong>dotfiles</strong> on startup, and the shell itself can grow <strong>aliases</strong> — short names that expand before a command runs. That is how <code>ll</code>, a safer default flag, or an extra directory on <code>PATH</code> become permanent without installing a new framework.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — “Customizing the Shell” through aliases (<code>alias</code> / <code>\</code> / <code>unalias</code>, PATH append, bashrc). Skip package-manager install ads for ripgrep/fd/tldr, oh-my-* frameworks, and the AI / Terminal Emulator sections (you already chose Ghostty).</p>
+
+  <h2>Knowledge 1 — dotfiles</h2>
+  <p>A <strong>dotfile</strong> is a config whose name starts with <code>.</code>, so bare <code>ls</code> hides it (<code>ls -a</code> shows it). Convention, not magic — same idea as <code>~/.ssh/config</code>.</p>
+  <table>
+    <thead><tr><th>Tool</th><th>Typical path</th></tr></thead>
+    <tbody>
+      <tr><td>bash</td><td><code>~/.bashrc</code>, <code>~/.bash_profile</code></td></tr>
+      <tr><td>vim</td><td><code>~/.vimrc</code></td></tr>
+      <tr><td>tmux</td><td><code>~/.tmux.conf</code></td></tr>
+      <tr><td>ssh</td><td><code>~/.ssh/config</code></td></tr>
+      <tr><td>git</td><td><code>~/.gitconfig</code></td></tr>
+    </tbody>
+  </table>
+  <p>For bash, interactive customizations usually live in <code>~/.bashrc</code>. Login shells often read <code>~/.bash_profile</code>, which commonly <code>source</code>s <code>~/.bashrc</code> (your Mac setup already does that shape). Full login vs interactive vs non-interactive rules are in <code>man bash</code> INVOCATION — learn the matrix when a remote host “ignores” an alias; for now, prefer putting aliases and PATH tweaks in <code>~/.bashrc</code>.</p>
+  <div class="gotcha"><strong><code>ls</code> vs <code>ls -a</code>.</strong> Dotfiles are not missing — they are hidden by the listing convention. <code>ls -a ~ | head</code> is the quick check.</div>
+
+  <h2>Knowledge 2 — <code>PATH</code> and aliases</h2>
+  <p>Installers often ask you to append a directory so children can find new programs (same <code>export</code> idea as L0022):</p>
+  <pre><code>export PATH="$PATH:/path/to/append"</code></pre>
+  <p>When you only need a shorter name or fixed flags, use an <strong>alias</strong>. The shell expands it before running the command. No spaces around <code>=</code>:</p>
+  <pre><code>alias ll='ls -lh'
+alias gs='git status'
+alias la='ls -A'
+alias lla='la -l'     # aliases can compose
+
+alias ll              # print: ll='ls -lh'
+\ls                   # run real ls once, ignore alias
+unalias ll            # remove the alias</code></pre>
+  <div class="gotcha"><strong><code>alias ll = 'ls -lh'</code> fails.</strong> <code>alias</code> is a builtin that takes one argument of the form <code>name=value</code>. Spaces around <code>=</code> break it — same family as <code>host = db</code> (L0018 / L0022).</div>
+  <p>Aliases cannot insert arguments in the <em>middle</em> of a longer command template. For that, use a shell <strong>function</strong> (later).</p>
+
+  <h2>Knowledge 3 — make it survive a new shell</h2>
+  <p>An <code>alias</code> typed at the prompt dies when the shell exits. Put durable lines in <code>~/.bashrc</code> (or a file it <code>source</code>s), then open a new shell or:</p>
+  <pre><code>source ~/.bashrc</code></pre>
+  <p>MS advice for a long career of configs: keep dotfiles in a version-controlled folder and symlink them into place with a small install script — so a new machine is one clone + one run. You do not need to migrate everything tonight; knowing the pattern is the floor.</p>
+  <div class="gotcha"><strong>Defaults-only still holds.</strong> Prefer short aliases for commands you already use (<code>ll</code>, <code>gs</code>). Skip oh-my-*, starship, and MS “consider installing” replacements (rg, fd, fzf) while the mission says so. Overwriting core tools (<code>alias mv='mv -i'</code>) is optional and personal — know that it changes muscle memory on every host.</div>
+
+  <h2>Drill — prove aliases, then persist in a file</h2>
+  <p>Ghostty + bash. Scratch: <code>/tmp/ms-dot/</code>. Drill uses a practice file you <code>source</code> — do not require editing real <code>~/.bashrc</code> until you choose to.</p>
+  <ol>
+    <li>
+      Scratch + see hidden names at home:
+      <pre><code>mkdir -p /tmp/ms-dot &amp;&amp; cd /tmp/ms-dot
+ls -a ~ | grep '^\.' | head -n 20</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>You should recognize entries like <code>.bashrc</code>, <code>.bash_profile</code>, <code>.ssh</code>, maybe <code>.vimrc</code> / <code>.tmux.conf</code>. Exact list varies.</p>
+      </div></details>
+    </li>
+    <li>
+      Session-only alias, inspect, bypass, remove:
+      <pre><code>alias ll='ls -lh'
+alias ll
+ll /tmp/ms-dot
+\ls /tmp/ms-dot
+unalias ll
+alias ll || true</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>alias ll</code> prints the definition. <code>ll</code> lists with sizes; <code>\ls</code> is plain. After <code>unalias</code>, <code>alias ll</code> finds nothing (or errors) — <code>|| true</code> keeps a <code>set -e</code> shell calm.</p>
+      </div></details>
+    </li>
+    <li>
+      Persist via a sourced file (practice stand-in for <code>~/.bashrc</code>):
+      <pre><code>cat &gt; /tmp/ms-dot/bashrc.practice &lt;&lt;'EOF'
+# practice fragment — not your real bashrc
+alias ll='ls -lh'
+alias gs='git status'
+export PATH="$PATH:/tmp/ms-dot/bin"
+EOF
+mkdir -p /tmp/ms-dot/bin
+source /tmp/ms-dot/bashrc.practice
+alias ll
+alias gs
+echo "$PATH" | tr ':' '\n' | grep '/tmp/ms-dot/bin'</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Both aliases print. One PATH line ends with <code>/tmp/ms-dot/bin</code>. A brand-new shell will <em>not</em> have these until it sources the same lines from a real startup file.</p>
+      </div></details>
+    </li>
+    <li>
+      Compose + optional real-file peek:
+      <pre><code>alias la='ls -A'
+alias lla='la -l'
+lla /tmp/ms-dot
+# optional: grep -n alias ~/.bashrc | head</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>lla</code> expands through <code>la</code> into a long almost-all listing. The optional grep shows whether you already keep aliases at home.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Define <code>ll</code> as <code>ls -lh</code>, then print its definition with <code>alias</code>.</li>
+        <li>Write two alias lines into a file and <code>source</code> that file.</li>
+        <li>One sentence: what is a dotfile?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>alias ll='ls -lh'</code> then <code>alias ll</code><br>
+        (b) e.g. <code>cat &gt; /tmp/ms-dot/x &lt;&lt;'EOF'</code> … aliases … <code>EOF</code> then <code>source /tmp/ms-dot/x</code><br>
+        (c) A plain-text config file whose name starts with <code>.</code> (hidden from bare <code>ls</code>), read by a program on startup.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> Shell functions; version-controlled dotfiles repo + symlink installer; package managers; deeper <code>Ctrl-R</code> history. Skip MS fancy CLIs and oh-my-* frameworks. CLE AI / Terminal Emulator sections stay out — Ghostty is already the stack.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Why are they called dotfiles?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">names start with a dot</li>
+      <li class="option">they only store DNS data</li>
+      <li class="option">bash requires binary format</li>
+      <li class="option">they replace the kernel</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Where do durable bash aliases usually live?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">~/.bashrc (then source)</li>
+      <li class="option">/etc/hosts only</li>
+      <li class="option">inside id_ed25519</li>
+      <li class="option">the vim undo file</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What does <code>\ls</code> do if <code>ls</code> is aliased?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">run real ls once</li>
+      <li class="option">delete the alias forever</li>
+      <li class="option">open man ls in vim</li>
+      <li class="option">append ls to PATH</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why does <code>alias ll = 'ls -lh'</code> fail?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">spaces around the =</li>
+      <li class="option">ll is a reserved PID</li>
+      <li class="option">aliases need sudo</li>
+      <li class="option">ls cannot take flags</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> After the drill: did session-only vs sourced aliases click? Any surprise about <code>~/.bash_profile</code> sourcing <code>~/.bashrc</code> on your Mac?</p>
+    <p style="margin-bottom:0">CLE Customizing floor is the last main slice under current constraints. Next when ready: next MS lecture, or a deferred CLE bit (functions, sshd harden, port forward) — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). Section: Customizing the Shell.</li>
+      <li><code>man bash</code> — ALIASES, INVOCATION, builtins <code>alias</code> / <code>unalias</code> / <code>source</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0024-ms-ssh-remote.html">Lesson 0024 — SSH / remote</a>. Reference: <a href="../reference/shell-aliases-dotfiles.html">aliases &amp; dotfiles</a>. <code>export</code> / <code>PATH</code>: L0022. SSH config as a dotfile: L0024.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild alias ll + source a practice file once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS Customizing the Shell section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
