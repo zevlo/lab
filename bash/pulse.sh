@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Pulse - Endpoint Health and SSL Expiry Monitor
 
 # Configuration
 URLS=("https://example.com" "https://api.yourdomain.com")
+# shellcheck disable=SC2034 # placeholder used by the (commented-out) webhook call below
 ALERT_WEBHOOK="https://your.webhook.url/here" # e.g., Slack or Discord
 DAYS_WARNING=14
 

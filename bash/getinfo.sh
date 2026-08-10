@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script retrieves CPU, memory, disk, and other information of a Linux server.
 
 # Retrieve CPU information (Logical Cores)

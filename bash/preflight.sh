@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 for cmd in git docker kubectl; do
     if ! command -v "$cmd" &>/dev/null; then

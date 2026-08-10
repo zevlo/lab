@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Description: Display dotfiles information
 
 dotfiles_dir="$HOME/dotfiles"
-file_count=$(ls "$dotfiles_dir" | wc -l)
+file_count=$(find "$dotfiles_dir" -maxdepth 1 -mindepth 1 ! -name '.*' | wc -l)
 today=$(date +%Y-%m-%d)
 
 echo "=== Dotfiles Info ==="

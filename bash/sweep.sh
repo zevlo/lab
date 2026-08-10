@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Sweep - Automated Docker and System Cleanup
 
 LOG_FILE="/var/log/sweep_cleanup.log"

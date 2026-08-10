@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vitals - Linux system resource monitor
 #
 # Samples CPU, memory, swap, real disk mounts, and load average on Linux.
