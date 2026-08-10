@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Random Password Generator
 # This script generates a random password that meets the specified requirements.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Vault - Rolling Archiver and Retention Manager
 
 SOURCE_DIR="/etc/nginx" # Directory you want to backup

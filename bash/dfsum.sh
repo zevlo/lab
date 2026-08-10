@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 df -BM --exclude-type=tmpfs --exclude-type=devtmpfs --exclude-type=squashfs | awk '
 NR > 1 {
