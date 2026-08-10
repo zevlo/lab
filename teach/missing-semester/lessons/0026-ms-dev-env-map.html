@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0026 — MS terminal workflow vs IDE</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0026 · <a href="../reference/dev-env-terminal-workflow.html">Missing Semester — Dev Environment</a></p>
+    <h1>Terminal workflow vs IDE</h1>
+    <p class="lede">Name the two shapes of a development environment, map your bash + vim + tmux + Ghostty stack, then fix a small broken script with composed vim edits.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Missing Semester lecture 3 is about the <strong>development environment</strong>: the set of tools you use to edit, understand, and change code. You already built the terminal half of that story across vim (L0001–0005), tmux (L0006–0013), and the shell/SSH track (L0015–0025). This slice names the map explicitly — IDE vs terminal workflow — so later lecture-3 topics (language servers, AI form factors) have a place to hang, without abandoning defaults-only vim.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/development-environment/">MS Development Environment and Tools</a> — the opening (IDE vs terminal) through “Text editing and Vim” / “Putting it all together.” Skim language servers and AI sections for awareness only; they are later slices. Skip Caps Lock remaps and plugin shopping lists.</p>
+
+  <h2>Knowledge 1 — two shapes</h2>
+  <p>At the center is text editing, plus extras people want nearby: highlighting, type checks, formatting, autocomplete. Those can live in one application or as separate programs.</p>
+  <table>
+    <thead><tr><th>Shape</th><th>How it looks</th></tr></thead>
+    <tbody>
+      <tr><td>IDE</td><td>One GUI app (MS example: VS Code) bundles editor + language features + often AI</td></tr>
+      <tr><td>Terminal</td><td>Compose tools: multiplexer + editor + shell + language CLI tools</td></tr>
+    </tbody>
+  </table>
+  <p>MS’s terminal example uses tmux, Vim, a shell, and language CLIs (they mention Ruff / Mypy for Python). Tradeoffs they call out: IDEs are often easier to start and ship richer AI autocomplete; terminal workflows are light, and they may be <em>all you have</em> when there is no GUI or you cannot install software (bare SSH box, recovery shell, locked-down host).</p>
+  <p>MS advice: get basic familiarity with both; master at least one. Your mission masters the terminal shape for DevOps — that is intentional, not a missing VS Code install.</p>
+  <div class="gotcha"><strong>Defaults-only still holds.</strong> No vim plugin managers, no remaps (skip Caps Lock→Esc advice for now — use <code>Esc</code> / <code>Ctrl-[</code>). Do not install a second IDE for this lesson. Language servers and AI tools come later as concepts that fit <em>around</em> this map.</div>
+
+  <h2>Knowledge 2 — your stack is the terminal shape</h2>
+  <p>Map MS’s pieces onto what you already run:</p>
+  <table>
+    <thead><tr><th>Role</th><th>Your tool</th></tr></thead>
+    <tbody>
+      <tr><td>terminal emulator</td><td>Ghostty (kitty also configured)</td></tr>
+      <tr><td>shell</td><td>bash (not zsh)</td></tr>
+      <tr><td>multiplexer</td><td>tmux</td></tr>
+      <tr><td>editor</td><td>vim</td></tr>
+      <tr><td>remote session</td><td>ssh + remote tmux (L0024 / L0006)</td></tr>
+      <tr><td>startup configs</td><td>dotfiles (L0025)</td></tr>
+    </tbody>
+  </table>
+  <p>Language-specific CLI checkers (formatters, type checkers) are the terminal answer to “IDE intelligence.” They are not required tonight — just know they sit <em>beside</em> vim, not inside a plugin, under this mission’s constraints.</p>
+
+  <h2>Knowledge 3 — vim as the edit core (retrieval)</h2>
+  <p>MS’s point: programming time is mostly navigate, read snippets, and make small edits — not long insert-mode typing. Vim’s interface is a language: operators + motions + text objects. You already drilled that (L0001–0005). Lecture 3’s “Putting it all together” is composition practice, not a new grammar.</p>
+  <p>Useful reminders from the MS sequence (you know these keys):</p>
+  <pre><code>G          end of file
+o / O      open line below / above → Insert
+/{pat}     search; n / N next / prev
+w b e      word motions; counts like 2w
+:{n}       go to line n
+ci"        change inside quotes
+Esc        back to Normal</code></pre>
+  <div class="gotcha"><strong>Vim mode elsewhere.</strong> MS notes that many apps offer Vim keybindings (editors, even some AI tools). Optional later: enable Vim mode where you want it. Do not change bash readline or remaps tonight.</div>
+
+  <h2>Drill — map, then fix fizzbuzz</h2>
+  <p>Ghostty + bash + vim. Scratch: <code>/tmp/ms-dev/</code>.</p>
+  <ol>
+    <li>
+      Say out loud (one sentence each):
+      <ol type="a">
+        <li>What is an IDE workflow?</li>
+        <li>What is a terminal workflow?</li>
+        <li>When might the terminal shape be your <em>only</em> option?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) One GUI app bundling edit + language features (often AI).<br>
+        (b) Compose separate tools — e.g. tmux + vim + bash + CLIs.<br>
+        (c) No GUI, cannot install software, or you only have SSH / a recovery shell.</p>
+      </div></details>
+    </li>
+    <li>
+      Create the broken MS-shaped script:
+      <pre><code>mkdir -p /tmp/ms-dev &amp;&amp; cd /tmp/ms-dev
+cat &gt; fizz.py &lt;&lt;'EOF'
+def fizz_buzz(limit):
+    for i in range(limit):
+        if i % 3 == 0:
+            print("fizz", end="")
+        if i % 5 == 0:
+            print("fizz", end="")
+        if i % 3 and i % 5:
+            print(i, end="")
+        print()
+
+def main():
+    fizz_buzz(20)
+EOF
+vim fizz.py</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>File exists under <code>/tmp/ms-dev/fizz.py</code>. Three bugs match MS: <code>main</code> never called; range starts at 0; multiples of 5 print <code>"fizz"</code> instead of <code>"buzz"</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Fix in vim with composed Normal-mode edits (MS order is fine; any correct grammar is fine):
+      <ol type="a">
+        <li>Call <code>main</code> under <code>if __name__ == "__main__":</code> at the end of the file.</li>
+        <li>Change the loop to <code>range(1, limit + 1)</code>.</li>
+        <li>On the <code>% 5</code> branch, change the string to <code>"buzz"</code> (e.g. <code>ci"</code>).</li>
+      </ol>
+      Save and quit (<code>:wq</code>).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>One valid path (from MS): <code>G</code> → <code>o</code> → type <code>if __name__ == "__main__":</code> then indent <code>main()</code> → <code>Esc</code>. <code>/range</code> → move with <code>w</code>/<code>e</code>/<code>i</code>/<code>a</code> to get <code>range(1, limit + 1)</code>. <code>:6</code> (or search) → <code>ci"</code> → <code>buzz</code> → <code>Esc</code>. Then <code>:wq</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      Prove it:
+      <pre><code>python3 fizz.py | head -n 15</code></pre>
+      Expect lines like <code>1</code>, <code>2</code>, <code>fizz</code>, <code>4</code>, <code>buzz</code>, <code>fizz</code>, … (15 = <code>fizzbuzz</code>).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>If you still see a leading blank or <code>0</code>, range was not fixed. If fives still say <code>fizz</code>, the <code>ci"</code> edit missed the <code>% 5</code> line.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Name your four core terminal-workflow tools (emulator, shell, multiplexer, editor).</li>
+        <li>One sentence: why does MS say vim fits how programmers actually spend time?</li>
+        <li>From memory: Normal-mode sequence to change the contents of the next double-quoted string on the line (<code>ci"</code> family).</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Ghostty, bash, tmux, vim.<br>
+        (b) Most time is navigate / read / small edit — not long insert streams; composable commands match that.<br>
+        (c) On the quote: <code>ci"</code>, type, <code>Esc</code> (or <code>f"ci"</code> / search first if needed).</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> Language servers (LSP) and configuring them; AI autocomplete / inline chat / agents; IDE extensions (Remote SSH, Live Share, dev containers). Packaging/environments lecture covers project envs in more depth. Skip vim plugin frameworks.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What is a terminal-based development workflow?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">compose tmux + vim + shell + CLIs</li>
+      <li class="option">one GUI app with every feature</li>
+      <li class="option">only Python without an editor</li>
+      <li class="option">SSH with no shell allowed</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>When might a terminal workflow be your only option?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">no GUI / cannot install software</li>
+      <li class="option">you dislike dark themes</li>
+      <li class="option">Python files are over 100 lines</li>
+      <li class="option">tmux is not installed yet</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>In this mission’s map, which tool is the text editor?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">vim</li>
+      <li class="option">Ghostty</li>
+      <li class="option">tmux</li>
+      <li class="option">starship</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>What does <code>ci"</code> do in Normal mode?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">change inside the "…" pair</li>
+      <li class="option">copy the entire file</li>
+      <li class="option">close the current window</li>
+      <li class="option">create a new insert mode</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the IDE vs terminal map feel like naming something you already do? How did the fizzbuzz compose pass feel vs early vim lessons?</p>
+    <p style="margin-bottom:0">Next when ready: language servers / CLI checkers, or AI form factors (autocomplete / inline chat / agents) — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/development-environment/">Missing Semester — Development Environment and Tools</a> (CC BY-NC-SA). Sections: intro + Text editing and Vim.</li>
+      <li>Prior grammar: Lessons <a href="./0001-vim-editing-grammar.html">0001</a>–<a href="./0005-registers-and-system-clipboard.html">0005</a>. <code>:help</code> remains the flag-level source of truth.</li>
+    </ul>
+    <p>Previous: <a href="./0025-ms-aliases-dotfiles.html">Lesson 0025 — aliases &amp; dotfiles</a>. Reference: <a href="../reference/dev-env-terminal-workflow.html">terminal workflow vs IDE</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the three map sentences + ci" once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS intro + Text editing section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

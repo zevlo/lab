@@ -2,10 +2,11 @@
 
 ## User stance (established at workspace init)
 - **Comfortable dabbler**: uses the shell daily, can edit in vim, but slow and reliant on the mouse/plugins. Targeted gaps: vim grammar, text objects, tmux scripting, remote tmux patterns, POSIX-correct pipelines.
-- Opinionated about defaults, POSIX, and fundamentals. No plugins, no remaps, no fancy prompts.
+- Opinionated about defaults, POSIX, and fundamentals. No plugins, no remaps in curriculum. Owns starship + kitty configs already — do not teach expanding those.
 - Shell: **bash** (intentionally switched from default zsh on macOS).
-- Terminal: **ghostty 1.3.1** (Gruvbox Dark). One custom keybind: `shift+enter=text:\x1b\r`.
+- Terminal: **ghostty 1.3.1** (Gruvbox Dark) as taught stack; kitty also configured. One Ghostty custom keybind: `shift+enter=text:\x1b\r`.
 - Tools installed: vim 9.1, tmux 3.7b, ghostty 1.3.1.
+- Dotfiles present: bashrc, tmux, vim, ghostty, kitty, starship, ssh, gitconfig.
 - Work pattern: roughly half local, half remote SSH.
 
 ## Lesson cadence
@@ -254,3 +255,18 @@
 - **Skip:** brew rg/fd/tldr, oh-my-*, fzf, AI shells, Terminal Emulator re-pick (Ghostty stays).
 - **Defer:** shell functions; full dotfiles repo migrate/publish; package managers; Ctrl-R depth.
 - **Next when asked:** next MS lecture, or deferred CLE (functions / sshd / port forward).
+
+## L0025 complete (4/4; existing inventory)
+- Aliases / bashrc / PATH / source-persist floor set. User already has dotfiles for bashrc, tmux, vim, ghostty, kitty, starship, ssh, gitconfig.
+- CLE lecture 2 main slices done. Starship/kitty are owned configs — do not expand prompt frameworks in lessons; Ghostty stays the taught terminal.
+- Next when asked: MS lecture 3 (Dev Environment & Tools), deferred CLE (functions / sshd / port forward), or L0020 re-run.
+
+## L0026 design notes (MS Dev Environment — terminal vs IDE map)
+- **Primary source:** https://missing.csail.mit.edu/2026/development-environment/ — intro + Text editing and Vim / Putting it all together.
+- **Scope:** IDE vs terminal workflow; map Ghostty/bash/tmux/vim/ssh; vim as edit core via retrieval (not re-teach L0001–0005); MS fizzbuzz compose drill.
+- **Reuse:** vim grammar L0001–0005; tmux L0006+; SSH L0024; dotfiles L0025.
+- **Skill win:** cold rebuild map sentences + `ci"`; working `python3 fizz.py` after composed fixes.
+- **Scratch:** `/tmp/ms-dev/`.
+- **Skip:** Caps Lock remaps; vim plugins; installing VS Code; language server install tonight.
+- **Defer:** LSP / CLI checkers (ruff/mypy class); AI autocomplete / inline chat / agents; IDE extensions (Remote SSH, Live Share, devcontainers).
+- **Next when asked:** language servers / CLI checkers, or AI form factors.

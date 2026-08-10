@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** CLE lecture 2 main slices done through L0025 (aliases & dotfiles). Next MS lecture when requested, or a deferred CLE bit (shell functions, sshd harden, port forward). L0020 exercises workbook stays open for re-runs.
+**Next up:** MS lecture 3 started — L0026 (terminal workflow vs IDE map + vim compose). Next when requested: language servers / CLI checkers, or AI form factors. L0020 workbook stays open for re-runs.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
