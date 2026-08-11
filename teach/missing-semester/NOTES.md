@@ -284,3 +284,18 @@
 - **Tone:** MS-era — no pareto/reps/storage-strength meta in lesson copy.
 - **Defer:** new motions beyond L0001–0005; LSP/AI lecture-3 slices.
 - **Next when asked:** another vim pass, language servers / CLI checkers, or AI form factors.
+
+## L0027 complete (6/6; :s preferred over cgn)
+- Motions/workflow practice pass done. User asked simplest visual yank/paste and `:s` vs `cgn` tradeoffs.
+- Preference logged: substitute for bulk; do not push `cgn` as mandatory. Teach when each wins.
+- Next when asked: another vim pass, language servers / CLI checkers, or AI form factors.
+
+## L0028 design notes (MS Dev Environment — LSP & CLI checkers)
+- **Primary source:** https://missing.csail.mit.edu/2026/development-environment/ — Code intelligence and language servers.
+- **Scope:** LSP concept + feature list; terminal map (CLI checkers beside vim); `python3 -m py_compile`; `gofmt` / `go vet`; install+run `mypy` (MS-named; one-off like jq); exit status reuse L0023.
+- **Reuse:** L0026 terminal vs IDE map; L0023 `$?` / `&&`; vim fix loop.
+- **Skill win:** cold rebuild py_compile / gofmt+vet / why mypy ≠ compile.
+- **Scratch:** `/tmp/ms-lsp/`.
+- **Skip:** vim LSP plugins; VS Code extension setup; gopls-as-IDE; Ruff install tonight.
+- **Defer:** Ruff; Code Quality lecture depth; virtualenvs/packaging; AI form factors; IDE Remote SSH / Live Share / devcontainers.
+- **Next when asked:** AI form factors, more vim practice, or MS lecture 4 (Debugging and Profiling).

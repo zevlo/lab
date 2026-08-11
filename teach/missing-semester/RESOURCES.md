@@ -35,7 +35,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **Command-line Environment (2026)** — https://missing.csail.mit.edu/2026/command-line-environment/
   Lecture 2. Lesson 0019 = Signals & job control (`Ctrl-C`/`Z`, `fg`/`bg`/`jobs`, `SIGHUP`/`nohup`). Lesson 0021 = Arguments & globs (`$0`/`$@`/`$#`, flags, `*`/`?`/`{}`, shell expands before exec). Lesson 0022 = Environment variables & `export` (shell-local vs env, one-shot `VAR=cmd`, `printenv`/`unset`). Lesson 0023 = Return codes (`$?`, `&&`/`||`). Lesson 0024 = SSH / remote machines (connect, keys, `scp`/`rsync`, `~/.ssh/config`). Lesson 0025 = Aliases & dotfiles (`alias`/`unalias`, bashrc, PATH append). Skip fancy “consider installing” tools while defaults-only holds. Tmux hierarchy already covered in L0006–0013 — do not re-teach from CLE’s multiplexer section. CLE AI / Terminal Emulator sections out of scope (Ghostty already chosen).
 - **Development Environment and Tools (2026)** — https://missing.csail.mit.edu/2026/development-environment/
-  Lecture 3. Lesson 0026 = terminal workflow vs IDE map + vim compose retrieval (MS fizzbuzz). Later slices: language servers / CLI checkers; AI form factors. Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Prior vim floor: L0001–0005.
+  Lecture 3. Lesson 0026 = terminal workflow vs IDE map + vim compose retrieval (MS fizzbuzz). Lesson 0028 = language servers (LSP concept) + CLI checkers (`py_compile`, `gofmt`/`go vet`, `mypy` one-off install). Later: AI form factors. Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Prior vim floor: L0001–0005; practice workbook L0027.
 
 ## Knowledge — focused references
 

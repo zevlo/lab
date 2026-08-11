@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0028 — MS language servers &amp; CLI checkers</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0028 · <a href="../reference/dev-env-lsp-cli.html">Missing Semester — Dev Environment</a></p>
+    <h1>Language servers &amp; CLI checkers</h1>
+    <p class="lede">How IDEs get “smart” features via LSP — and how your terminal stack covers format, lint, and typecheck with programs you run beside vim.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0026 named two development-environment shapes. Missing Semester’s next slice is <strong>code intelligence</strong>: completion, jump-to-definition, find-references, formatting, linting, and type checking. In an IDE those often arrive through a <strong>language server</strong> speaking <strong>Language Server Protocol (LSP)</strong>. On a terminal workflow, the same <em>quality</em> jobs — format, lint, typecheck — usually run as <strong>CLI checkers</strong> you invoke from bash (and later in CI). You keep editing in vim; you do not need a vim plugin for that floor.</p>
+  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/development-environment/">MS Development Environment and Tools</a> — “Code intelligence and language servers” (through configuring language servers). Skim AI / Extensions for later. Skip installing VS Code extensions and vim plugin managers.</p>
+
+  <h2>Knowledge 1 — what a language server is</h2>
+  <p>A language server is a program that understands a language <em>semantically</em> (symbols, types, imports — not just text). An editor starts it and talks over LSP. MS examples: Pylance for Python in VS Code, <code>gopls</code> for Go. Features people mean by “the IDE is smart”:</p>
+  <table>
+    <thead><tr><th>Feature</th><th>What you get</th></tr></thead>
+    <tbody>
+      <tr><td>completion</td><td>suggest fields/methods after <code>obj.</code></td></tr>
+      <tr><td>hover docs</td><td>docs at the cursor</td></tr>
+      <tr><td>jump-to-definition</td><td>from use → definition</td></tr>
+      <tr><td>find references</td><td>all uses of a symbol</td></tr>
+      <tr><td>imports</td><td>organize / flag missing imports</td></tr>
+      <tr><td>code quality</td><td>format, lint, type diagnostics (often as-you-type)</td></tr>
+    </tbody>
+  </table>
+  <p>MS notes that some of those quality tools also run <strong>standalone</strong>. That standalone path is the terminal floor for this mission.</p>
+  <div class="gotcha"><strong>No vim LSP client tonight.</strong> Jump-to-definition and rich in-buffer completion need an editor plugin or an IDE. Mission constraint: no vim plugin managers. You still get format / lint / typecheck by running CLIs. (Cursor already gives you IDE-side intelligence when you want it — this lesson is the SSH-box / defaults vim path.)</div>
+
+  <h2>Knowledge 2 — CLI checkers map to the terminal stack</h2>
+  <p>MS’s terminal example pairs vim/tmux/shell with language CLIs (they name <strong>Ruff</strong> and <strong>Mypy</strong> for Python). Jobs and stock tools you already have:</p>
+  <table>
+    <thead><tr><th>Job</th><th>Tool in this lesson</th></tr></thead>
+    <tbody>
+      <tr><td>Python syntax</td><td><code>python3 -m py_compile file.py</code></td></tr>
+      <tr><td>Go format</td><td><code>gofmt -w file.go</code></td></tr>
+      <tr><td>Go static checks</td><td><code>go vet ./…</code></td></tr>
+      <tr><td>Python types</td><td><code>mypy</code> (one install — MS-named; like the <code>jq</code> exception)</td></tr>
+    </tbody>
+  </table>
+  <p>Same exit-status rule as L0023: success → <code>0</code>, problems → nonzero. So <code>python3 -m py_compile x.py &amp;&amp; echo ok</code> only prints <code>ok</code> when syntax is clean.</p>
+  <pre><code>python3 -m py_compile broken.py; echo "status=$?"
+# fix in vim, re-run until status=0
+
+gofmt -w main.go          # rewrite file to gofmt style
+go vet ./...              # report suspicious code; nonzero if issues</code></pre>
+  <div class="gotcha"><strong>Environment still matters.</strong> MS says IDEs need the right Python env so the language server sees packages. For CLIs: the <code>python3</code> / <code>mypy</code> on your <code>PATH</code> is the one that runs. Wrong interpreter → wrong or missing packages. Virtualenvs and packaging depth wait for a later lecture.</div>
+
+  <h2>Knowledge 3 — mypy as the type-check CLI</h2>
+  <p>Syntax can be fine while types are wrong. <code>mypy</code> reads annotations and reports mismatches without running the program:</p>
+  <pre><code>python3 -m pip install --user mypy
+mypy typed.py; echo "status=$?"</code></pre>
+  <p>Ruff (format + lint) is the other MS-named Python CLI — optional later. Tonight’s install is <code>mypy</code> only.</p>
+
+  <h2>Drill — catch, fix, re-check</h2>
+  <p>Ghostty + bash + vim. Scratch: <code>/tmp/ms-lsp/</code>.</p>
+  <ol>
+    <li>
+      Seed a syntax error and prove the checker:
+      <pre><code>mkdir -p /tmp/ms-lsp &amp;&amp; cd /tmp/ms-lsp
+cat &gt; broken.py &lt;&lt;'EOF'
+def greet(name):
+    print("hello", name
+EOF
+python3 -m py_compile broken.py; echo "status=$?"</code></pre>
+      Expect nonzero status and a traceback pointing near the missing <code>)</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>status</code> is not <code>0</code>. Message mentions a syntax error (often “'(' was never closed” / unexpected EOF). File is not executed — only compiled.</p>
+      </div></details>
+    </li>
+    <li>
+      Fix in vim (compose — e.g. add the closing <code>)</code>), save, re-run until:
+      <pre><code>python3 -m py_compile broken.py &amp;&amp; echo ok</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Closing paren on the <code>print</code> line. <code>ok</code> prints only when status is 0.</p>
+      </div></details>
+    </li>
+    <li>
+      Go format + vet (stock toolchain — no extra install):
+      <pre><code>cat &gt; main.go &lt;&lt;'EOF'
+package main
+import "fmt"
+func main() {
+fmt.Println( "hi" )
+}
+EOF
+gofmt -w main.go
+cat main.go
+go vet ./...; echo "vet=$?"</code></pre>
+      Confirm <code>gofmt</code> rewrote spacing/layout; <code>vet</code> should be clean (<code>0</code>) on this tiny file.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>gofmt</code> aligns braces/spacing to Go style. <code>vet=0</code>. (If you later introduce real vet findings — e.g. unreachable code — status goes nonzero.)</p>
+      </div></details>
+    </li>
+    <li>
+      Install and run <code>mypy</code> (one-time):
+      <pre><code>python3 -m pip install --user mypy
+cat &gt; typed.py &lt;&lt;'EOF'
+def add(a: int, b: int) -&gt; int:
+    return a + b
+
+print(add("1", 2))
+EOF
+mypy typed.py; echo "status=$?"</code></pre>
+      Expect a type error and nonzero status. Fix the call to pass two ints (vim), re-run until <code>Success: no issues found</code> (or equivalent) and status <code>0</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>mypy flags argument 1 as <code>str</code> where <code>int</code> expected. Change to <code>add(1, 2)</code>. Re-run <code>mypy typed.py; echo status=$?</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      One sentence out loud: what does a language server do for an IDE that <code>mypy</code> / <code>gofmt</code> do not replace by themselves?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Interactive editor features — completion, jump-to-definition, find-references, hover — while you type. CLIs cover the quality checks on demand (and in CI).</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Command to syntax-check <code>x.py</code> with the stdlib.</li>
+        <li>Commands to format then vet a Go module in the current directory.</li>
+        <li>Why might <code>mypy</code> fail while <code>python3 -m py_compile</code> succeeds?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>python3 -m py_compile x.py</code><br>
+        (b) <code>gofmt -w .</code> (or named files) then <code>go vet ./...</code><br>
+        (c) Syntax is valid but types/annotations disagree — compile does not enforce annotations.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> Ruff; deeper Code Quality lecture; project virtualenvs / packaging; AI autocomplete / inline chat / agents. IDE extensions (Remote SSH, Live Share, devcontainers) stay out of the vim mission path.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What is a language server?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">program with semantic language smarts</li>
+      <li class="option">SSH daemon for editors only</li>
+      <li class="option">tmux session that runs vim</li>
+      <li class="option">DNS server for package names</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Terminal floor for Python syntax without extra installs?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">python3 -m py_compile file.py</li>
+      <li class="option">vim :syntax on only</li>
+      <li class="option">curl the file to GitHub</li>
+      <li class="option">chmod +x and hope</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What do gofmt and mypy primarily give you?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">format / typecheck as CLI tools</li>
+      <li class="option">jump-to-definition in stock vim</li>
+      <li class="option">automatic git commits</li>
+      <li class="option">a new shell language</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>If a checker finds problems, what is <code>$?</code> usually?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">nonzero — failure status</li>
+      <li class="option">always exactly 0</li>
+      <li class="option">the line number only</li>
+      <li class="option">PID of the editor</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the LSP-vs-CLI split click? Any friction installing <code>mypy</code> or reading its errors?</p>
+    <p style="margin-bottom:0">Next when ready: AI form factors (autocomplete / inline chat / agents), more vim practice, or MS lecture 4 (Debugging and Profiling) — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/development-environment/">Missing Semester — Development Environment and Tools</a> (CC BY-NC-SA). Section: Code intelligence and language servers.</li>
+      <li><code>python3 -m py_compile --help</code>; <code>go help fmt</code>; <code>go help vet</code>; <code>mypy --help</code>. Exit status: L0023.</li>
+    </ul>
+    <p>Previous: <a href="./0027-vim-motions-practice.html">Lesson 0027 — vim motions practice</a> · map: <a href="./0026-ms-dev-env-map.html">0026</a>. Reference: <a href="../reference/dev-env-lsp-cli.html">LSP &amp; CLI checkers</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the three checker commands once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS language-servers section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
