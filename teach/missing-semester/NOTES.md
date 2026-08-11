@@ -270,3 +270,17 @@
 - **Skip:** Caps Lock remaps; vim plugins; installing VS Code; language server install tonight.
 - **Defer:** LSP / CLI checkers (ruff/mypy class); AI autocomplete / inline chat / agents; IDE extensions (Remote SSH, Live Share, devcontainers).
 - **Next when asked:** language servers / CLI checkers, or AI form factors.
+
+## L0026 complete (4/4; vim fluency gap)
+- Terminal vs IDE map floor set; fizzbuzz compose landed and felt good vs early vim lessons.
+- User still needs practice: motions + workflow not natural yet. Prefer a dedicated vim practice / spaced-retrieval slice when they want fluency work; do not treat L0001–0005 as “done forever.”
+- Next when asked: vim motions/workflow practice, language servers / CLI checkers, or AI form factors.
+
+## L0027 design notes (vim motions and workflow practice — user-requested)
+- **Pattern:** Like L0014 — no new Knowledge. Interleave L0001–0005 + L0026 compose habits.
+- **Scope:** habits (Esc / arrive by name / speak the sentence / undo+Ctrl-o); one YAML config multi-edit drill; cold rebuild; 6-question interleaved quiz.
+- **Scratch:** `/tmp/vim-practice/service.yaml`.
+- **Ref:** `reference/vim-retrieval-index.html` — pocket card + links to vim refs (open after attempt).
+- **Tone:** MS-era — no pareto/reps/storage-strength meta in lesson copy.
+- **Defer:** new motions beyond L0001–0005; LSP/AI lecture-3 slices.
+- **Next when asked:** another vim pass, language servers / CLI checkers, or AI form factors.

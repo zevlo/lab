@@ -22,7 +22,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **"I/O Redirection" — linuxcommand.org** — https://www.linuxcommand.org/lc3_lts0070.php
   Short companion to Shotts ch. 6: stdout/stdin, `>`, `>>`, pipes, and the common filter list. Use for: quick refresh before pipeline drills.
 - **_Practical Vim_ (2nd ed.) — Drew Neil** — https://pragprog.com/titles/dnvim2/practical-vim-second-edition/
-  The canonical vim-as-language text. Tips 12–14 alone rewire how you think about editing. Use for: vim editing fluency.
+  The canonical vim-as-language text. Tips 12–14 alone rewire how you think about editing. Use for: vim editing fluency. Lesson 0027 (motions practice) reuses L0001–0005 only; book is optional depth after drills.
 - **_tmux 2: Productive Mouse-Free Development_ — Brian Hogan** — https://pragprog.com/titles/bhtmux2/tmux-2/
   Pragmatic, project-driven tmux guide. Use for: tmux mastery beyond the man page.
 

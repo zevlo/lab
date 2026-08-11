@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — vim retrieval index</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · vim</p>
+    <h1>Retrieval index</h1>
+    <p class="lede">Open <em>after</em> a practice attempt — not during. Links back to lesson references.</p>
+  </header>
+
+  <div class="note">Rule: struggle first. Check here only to confirm or correct. No new keys — this is L0001–0005 recalled.</div>
+
+  <h2>Workflow habits</h2>
+  <ul>
+    <li>Live in Normal. <code>Esc</code> (or <code>Ctrl-[</code>) when lost.</li>
+    <li>Arrive by name: <code>/</code> or <code>f</code>/<code>t</code> — not arrow keys or long <code>hjkl</code> runs.</li>
+    <li>Before Insert: name the sentence — operator + motion / text-object.</li>
+    <li>Undo / redo: <code>u</code> / <code>Ctrl-r</code>.</li>
+    <li>After a jump: <code>Ctrl-o</code> back (jump list).</li>
+  </ul>
+
+  <h2>Pocket card</h2>
+  <table>
+    <thead><tr><th>Family</th><th>Keys</th></tr></thead>
+    <tbody>
+      <tr><td>grammar</td><td><code>[count] operator [count] motion</code> / text-object</td></tr>
+      <tr><td>words / lines</td><td><code>w b e</code> · <code>0 ^ $</code> · <code>gg G</code> · <code>:{n}</code></td></tr>
+      <tr><td>search / char</td><td><code>/pat</code> <code>n N</code> · <code>f F t T</code> <code>; ,</code> · <code>%</code></td></tr>
+      <tr><td>marks / jumps</td><td><code>m{a}</code> <code>'{a}</code> · <code>Ctrl-o</code> <code>Ctrl-i</code></td></tr>
+      <tr><td>text objects</td><td><code>iw aw</code> · <code>i" a"</code> · <code>i( a(</code> · <code>ip ap</code></td></tr>
+      <tr><td>operators</td><td><code>d c y</code> · <code>x s</code> · <code>&gt; &lt; =</code> · <code>.</code></td></tr>
+      <tr><td>visual</td><td><code>v V Ctrl-v</code> then operator</td></tr>
+      <tr><td>substitute</td><td><code>:s/old/new/g</code> · <code>:%s//g</code> · <code>cgn</code> + <code>.</code></td></tr>
+      <tr><td>registers</td><td><code>"{reg}</code> before op · <code>"+</code> system clipboard (local)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Lesson references</h2>
+  <ul>
+    <li><a href="./vim-modal-grammar.html">Modal grammar</a> — L0001</li>
+    <li><a href="./vim-navigation.html">Navigation</a> — L0002</li>
+    <li><a href="./vim-substitute.html">Substitute &amp; dot</a> — L0003</li>
+    <li><a href="./vim-visual-block.html">Visual &amp; block</a> — L0004</li>
+    <li><a href="./vim-registers.html">Registers &amp; clipboard</a> — L0005</li>
+  </ul>
+
+  <footer>
+    <p>Lesson: <a href="../lessons/0027-vim-motions-practice.html">0027 — vim motions practice</a>. <code>:help</code> for flag-level truth.</p>
+  </footer>
+</body>
+</html>
