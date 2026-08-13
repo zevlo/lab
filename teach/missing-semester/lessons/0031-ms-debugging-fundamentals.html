@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0031 — MS debugging fundamentals</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0031 · <a href="../reference/debug-prof-fundamentals.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>Debugging fundamentals</h1>
+    <p class="lede">The golden rule, print-vs-log discipline, and a debugger (<code>pdb</code>) for when prints run out. The first slice of MS lecture 4 — what reaches for after the L0028 checkers pass and the program is still wrong.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0030 closed MS lecture 3 (Dev Environment). Lecture 4 opens with the line every bug fixes back to: <em>code does not do what you expect it to do, but what you tell it to do</em>. Debugging is the work of closing that gap. The lecture is dense — it splits, the way Lectures 1–3 did. <strong>This slice is the foundational debugging half:</strong> the golden rule, printf debugging vs logging, and one debugger driven by hand. It targets the bug class the L0028 checkers can’t touch: a program that is syntactically valid, type-clean, and <em>still wrong</em> — a logic bug.</p>
+  <p><strong>Read first (≈10 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the “Printf Debugging and Logging” and “Debuggers” sections only. Skim the rest; it is later slices.</p>
+
+  <h2>Knowledge 1 — the golden rule + printf vs logging</h2>
+  <p>Once <code>py_compile</code> / <code>mypy</code> / <code>gofmt</code> (L0028) pass — <code>0</code> exit status (L0023) — syntax and type errors are off the table. What remains is a logic bug: the code runs, and does the wrong thing. MS names two escalating approaches:</p>
+  <table>
+    <thead><tr><th>Approach</th><th>What it is</th><th>Reach for it when</th></tr></thead>
+    <tbody>
+      <tr><td>printf</td><td>ad-hoc <code>print()</code> around the suspected region; iterate until the cause is visible</td><td>you know roughly where the bug is and re-running is cheap</td></tr>
+      <tr><td>logging</td><td>“printing with care” — a framework with severity levels, routable output, structured fields</td><td>the diagnostic should survive the fix; for services / long-running code</td></tr>
+    </tbody>
+  </table>
+  <p>MS’s durable advice: once a print finds the bug, <strong>convert it into a proper log statement</strong> instead of deleting it — next time a similar bug appears, the diagnostic is already there. Severity levels (<code>DEBUG</code> / <code>INFO</code> / <code>WARNING</code> / <code>ERROR</code>) let you filter after the fact.</p>
+  <p><strong>Third-party logs.</strong> Many programs take <code>-v</code> / <code>--verbose</code> (repeatable on some) to print more. Services write logs under <code>/var/log/</code> on Linux; systemd services show theirs via <code>journalctl -u &lt;service&gt;</code>. That is the ops-triage counterpart to in-code prints, and it pairs with the L0008 ops loop (<code>pgrep</code> → <code>curl -i</code> → <code>kill</code>).</p>
+
+  <h2>Knowledge 2 — the debugger concept + <code>pdb</code></h2>
+  <p>Prints work when you know what to print and re-running is cheap. A <strong>debugger</strong> wins when you don’t yet know what to print, when the bug only shows under hard-to-reproduce conditions, or when a restart is expensive (long startup, complex state). It lets you interact with execution as it happens: halt at a line, step one instruction at a time, inspect variable values, halt conditionally, read the call stack.</p>
+  <p>Launch Python’s <code>pdb</code> three ways:</p>
+  <pre><code>python3 -m pdb script.py            # from the start
+python3 -m pdb -c continue script.py # run until a breakpoint/error
+# or inline in the source (Python 3.7+):
+breakpoint()                         # drops into pdb here</code></pre>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th><th>Recall hook</th></tr></thead>
+    <tbody>
+      <tr><td><code>b</code> / <code>break</code></td><td>set a breakpoint (function or <code>file:line</code>)</td><td>“stop here”</td></tr>
+      <tr><td><code>c</code> / <code>continue</code></td><td>run to next breakpoint / error</td><td>“go”</td></tr>
+      <tr><td><code>n</code> / <code>next</code></td><td>step <strong>over</strong> a line (no descent)</td><td>same line, next</td></tr>
+      <tr><td><code>s</code> / <code>step</code></td><td>step <strong>into</strong> a called function</td><td>descend</td></tr>
+      <tr><td><code>p expr</code></td><td>print an expression / variable</td><td>the actual value</td></tr>
+      <tr><td><code>l</code> / <code>list</code></td><td>show source around current line</td><td>“where am I”</td></tr>
+      <tr><td><code>w</code> / <code>where</code></td><td>backtrace (call stack)</td><td>“how did I get here”</td></tr>
+      <tr><td><code>q</code> / <code>quit</code></td><td>exit pdb</td><td>done</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Mission framing.</strong> The hands-on debugger here is <code>pdb</code> — Python is the primary language track. MS’s de-facto debugger for C/C++/Rust is <a href="https://www.gnu.org/software/gdb/"><code>gdb</code></a>, whose command shapes mirror <code>pdb</code> (<code>run</code>/<code>break</code>/<code>step</code>/<code>next</code>/<code>print</code>/<code>bt</code>) — named so you recognize it on a compiled-language remote, not drilled tonight.</div>
+
+  <h2>Knowledge 3 — the debug loop + tidy logs</h2>
+  <p>The loop, stated as a discipline:</p>
+  <pre><code>reproduce  →  isolate  →  inspect  →  fix  →  gate
+   make it      narrow       look at      change      re-run the
+   happen       the blast    the ACTUAL   the code    L0028 checkers
+   on demand    radius       value                      + the bug case</code></pre>
+  <p>The cardinal rule sits in <strong>inspect</strong>: look at the value the program <em>actually holds</em>, not the one you assumed. An init-to-zero bug is invisible until you <code>p biggest</code> and see <code>0</code> where a negative number should be. Most “I don’t understand the bug” moments are really “I haven’t looked at the actual value” moments.</p>
+  <p><strong>Tidy logs.</strong> MS’s profiling half makes the same point, and it matters here too: when you add diagnostic output, shape it so it can be graphed later. A line like <code>1705012345,42.5</code> (timestamp,value) is trivial to plot; a prose sentence is not. Prints you add to chase a slow path today become the dataset you profile tomorrow — that sets up the later Lecture-4 profiling slice.</p>
+
+  <h2>Drill — print, step, gate</h2>
+  <p>Ghostty + bash + vim. Scratch: <code>/tmp/ms-debug/</code>. Reuses the Python track (functions, lists, loops) and the L0028 checkers.</p>
+  <ol>
+    <li>
+      Cold-name the golden rule, and the printf-vs-logging distinction — one sentence each.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Golden rule: code does what you <em>tell</em> it, not what you <em>expect</em> — debugging closes that gap. Printf = ad-hoc <code>print()</code> around the suspected region when re-running is cheap; logging = a framework with severity levels and routable, structured output, kept after the fix so the diagnostic survives.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Reproduce with a print.</strong> Write a buggy <code>running_max</code>, run it, watch it return wrong output, then add a print to isolate:
+      <pre><code>mkdir -p /tmp/ms-debug &amp;&amp; cd /tmp/ms-debug
+cat &gt; running_max.py &lt;&lt;'EOF'
+def running_max(numbers: list[int]) -> list[int]:
+    result = []
+    biggest = 0            # BUG: fails for all-negative input
+    for n in numbers:
+        if n > biggest:
+            biggest = n
+        result.append(biggest)
+    return result
+
+print(running_max([-5, -2, -9]))   # expect [-5, -2, -2]
+EOF
+python3 running_max.py</code></pre>
+      Output is <code>[0, 0, 0]</code>. Now add <code>print(n, biggest)</code> inside the loop and re-run. One sentence: what does the print show, and what is the fix?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>The print shows <code>biggest</code> stuck at <code>0</code> across every iteration — the negatives never beat it. Fix: initialize <code>biggest</code> to the first element (<code>biggest = numbers[0]</code>) instead of <code>0</code>, so a negative first value can become the running max. (Empty-input is a separate edge — out of scope here.)</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Re-do it in <code>pdb</code>.</strong> Remove the print, drop a <code>breakpoint()</code> on the loop body, and step:
+      <pre><code>cat &gt; running_max.py &lt;&lt;'EOF'
+def running_max(numbers: list[int]) -> list[int]:
+    result = []
+    biggest = 0
+    for n in numbers:
+        breakpoint()        # &lt;-- drops into pdb here each iteration
+        if n > biggest:
+            biggest = n
+        result.append(biggest)
+    return result
+
+print(running_max([-5, -2, -9]))
+EOF
+python3 running_max.py</code></pre>
+      In pdb: type <code>p n</code>, <code>p biggest</code>, then <code>n</code> to step, <code>c</code> to continue to the next iteration. Watch <code>biggest</code> never move off <code>0</code>. Quit with <code>q</code>. One sentence: what did the debugger show that the print did, without editing the source twice?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Same fact (<code>biggest</code> pinned at <code>0</code>), but the debugger inspected every variable live without re-editing/re-running for each new value — one <code>p biggest</code> per stop, <code>c</code> to advance. The bug is the init; the debugger just let you stare at the actual value on demand.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Fix, then gate (L0028/L0023 callback).</strong> Apply the fix (<code>biggest = numbers[0]</code>) and drop the <code>breakpoint()</code> — write the clean fixed file, then run the L0028 checkers against it:
+      <pre><code>cat &gt; running_max.py &lt;&lt;'EOF'
+def running_max(numbers: list[int]) -> list[int]:
+    result = []
+    biggest = numbers[0]   # FIXED: was 0 — failed for all-negative input
+    for n in numbers:
+        if n > biggest:
+            biggest = n
+        result.append(biggest)
+    return result
+
+print(running_max([-5, -2, -9]))
+EOF
+python3 -m py_compile running_max.py &amp;&amp; \
+  { command -v mypy &gt;/dev/null &amp;&amp; mypy running_max.py || true; }; \
+  echo "status=$?"
+python3 running_max.py   # now prints [-5, -2, -2]</code></pre>
+      Expect <code>status=0</code> and <code>[-5, -2, -2]</code>. One sentence: why was this bug invisible to the L0028 checkers in the first place?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Syntax (<code>py_compile</code>) and types (<code>mypy</code>) were already valid — <code>biggest = 0</code> is legal, well-typed Python. The bug is a <em>logic</em> bug (a wrong initial value), which checkers cannot see; only running the code or stepping it reveals it. That is exactly the bug class this slice targets after L0028 passes.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Third-party logs (L0008 callback).</strong> In one pane, start the stdlib server; in another, hit it and read the request log lines it prints:
+      <pre><code># pane A
+python3 -m http.server 4444
+# pane B
+curl -i http://localhost:4444/ &gt;/dev/null</code></pre>
+      Pane A logs a line like <code>127.0.0.1 - - [...] "GET / HTTP/1.1" 200 -</code>. One sentence: how is this the same idea as an in-code <code>print</code>, and where would you look on a systemd Linux remote instead?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Both expose runtime behavior as text you can read after the fact — the server’s access log is a built-in, routable version of a print. On a systemd Linux remote the equivalent lives in the journal: <code>journalctl -u &lt;service&gt;</code> (or under <code>/var/log/</code>); macOS has no direct <code>journalctl</code> equivalent, same posture as the <code>ss</code>-vs-<code>lsof</code> and BSD-vs-GNU caveats from earlier lessons.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>State MS’s golden rule from memory.</li>
+        <li>Name the one circumstance where a debugger clearly beats a print.</li>
+        <li>One sentence: why won’t <code>py_compile</code> / <code>mypy</code> catch the <code>biggest = 0</code> bug?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Code does what you <em>tell</em> it to do, not what you <em>expect</em> it to do.<br>
+        (b) When you don’t yet know what to print, the bug is hard to reproduce, or re-running is expensive.<br>
+        (c) The code is syntactically valid and type-clean — it’s a logic bug (wrong initial value), which only execution or stepping reveals. Checkers raise the floor; they don’t catch wrong intent.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> The rest of MS lecture 4 is its own set of slices: record-replay debugging (<a href="https://rr-project.org/"><code>rr</code></a>, reverse debugging for Heisenbugs — Linux only), system-call tracing (<code>strace</code> / <code>dtruss</code> / <code>bpftrace</code> — the highest-leverage DevOps debug tool on the list), network debugging (<code>tcpdump</code> / Wireshark — relates to L0010 <code>dig</code>/<code>ss</code>), memory debugging (ASan / Valgrind — mostly C/C++/Rust), AI-for-debugging (distinct from the L0029 AI authoring form factors), and the whole Profiling half (<code>time</code>, <code>htop</code>, <code>perf</code> + flame graphs, <code>hyperfine</code>).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>MS’s golden rule: code does not do what you ____ it to do, but what you ____ it to do.</p>
+    <ul class="options">
+      <li class="option" data-correct="true">expect; tell</li>
+      <li class="option">tell; expect</li>
+      <li class="option">compile; run</li>
+      <li class="option">print; log</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which is the clearest reason to reach for a debugger instead of a print?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">you don’t yet know what value to print, or the bug is hard to reproduce</li>
+      <li class="option">your editor has no syntax highlighting</li>
+      <li class="option">the program has no functions</li>
+      <li class="option">the file has not been saved</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Which is Python’s language-specific debugger?</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>pdb</code></li>
+      <li class="option"><code>gdb</code></li>
+      <li class="option"><code>lldb</code></li>
+      <li class="option"><code>strace</code></li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why won’t <code>py_compile</code> / <code>mypy</code> catch an init-to-zero logic bug (<code>biggest = 0</code>)?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">valid syntax and valid types — it’s a logic/value bug they can’t see</li>
+      <li class="option">they only check shell scripts, not Python</li>
+      <li class="option">they refuse to run without <code>-g</code> debug symbols</li>
+      <li class="option">they require a running container first</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the golden rule + printf/logging split click, and did stepping the <code>biggest = 0</code> bug in <code>pdb</code> land the “inspect the actual value” point? Any surprise that the L0028 checkers are useless against this bug class by design?</p>
+    <p style="margin-bottom:0">Next when ready: the next Lecture-4 slice — system-call tracing (<code>strace</code>/<code>dtruss</code>), network debugging (<code>tcpdump</code>), or the Profiling half (<code>time</code>/<code>htop</code>/<code>perf</code>) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Sections: Printf Debugging and Logging; Debuggers.</li>
+      <li><a href="https://docs.python.org/3/library/pdb.html"><code>pdb</code> — Python docs</a>. <a href="https://www.gnu.org/software/gdb/"><code>gdb</code> — GNU Debugger</a> (named, not drilled).</li>
+      <li>Checkers: L0028. Exit status: L0023. Ops / logs triage: L0008. Prior Python track (functions, lists, loops). Lecture-4 later slices → rr, strace/bpftrace, tcpdump, ASan/Valgrind, profiling (<code>time</code>/<code>htop</code>/<code>perf</code>).</li>
+    </ul>
+    <p>Previous: <a href="./0030-ms-dev-containers.html">Lesson 0030 — dev containers</a>. Reference: <a href="../reference/debug-prof-fundamentals.html">debugging fundamentals</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the golden rule, the pdb core (b/c/n/s/p/q), and the why-checkers-miss-it line once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

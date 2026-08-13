@@ -335,3 +335,19 @@
 - **Skip:** installing a second IDE; `devcontainer` CLI as a hard dependency; docker-compose; kubectl/helm; image hardening; registries/CI.
 - **Defer:** MS Packaging and Shipping Code lecture (container build depth, multi-stage, distroless, layer caching, BuildKit, volumes, networking); compose; k8s.
 - **Next when asked:** MS lecture 4 (Debugging and Profiling), MS Shipping Code lecture, more vim practice, or L0020 workbook re-run.
+
+## L0030 complete (4/4; dev containers floor set)
+- Three-noun split (image / container / dev container), `docker` CLI core, `-it`/`--rm`/`-v`/`-w`/`-p` flags, and `devcontainer.json`-as-versioned-config all landed. No friction reported.
+- MS lecture 3 (Dev Environment) fully done: terminal-workflow map (L0026), LSP + CLI checkers (L0028), AI form factors (L0029), dev containers (L0030). Do not re-teach unless retrieval decay shows.
+- Mission posture held: IDE/dev-container path named not expanded; `docker` CLI is the curriculum; `devcontainer` CLI framed as optional one-off install (like `jq` L0020 / `mypy` L0028). Container build depth deferred to MS Shipping Code; compose/k8s still out of scope.
+
+## L0031 design notes (MS Lecture 4 — debugging fundamentals, first slice)
+- **Topic choice:** Spine continuation after L0030. MS lecture 4 (Debugging and Profiling) is dense and splits like Lectures 1–3 did. First slice = the foundational debugging half only.
+- **Primary sources:** MS Debugging and Profiling — “Printf Debugging and Logging” + “Debuggers” sections. Verified exact wording via webfetch (golden rule phrasing; severity levels; debugger capability list; `pdb`/`gdb` naming).
+- **Scope:** the golden rule; printf vs logging (severity levels, the convert-print-to-log advice); third-party logs (`-v`/`--verbose`, `/var/log/`, `journalctl -u` — Linux/systemd only, called out like `ss`/`lsof`); the debugger concept; `pdb` launch (3 ways incl. `breakpoint()`) + core commands (b/c/n/s/p/l/w/q); `gdb` named only (command shapes mirror pdb) — Python is the primary track so `pdb` is the hands-on debugger; the reproduce→isolate→inspect→fix→gate loop; the cardinal rule (inspect the ACTUAL value); tidy logs (CSV-ish → sets up the profiling half).
+- **Bug-class framing (the throughline):** L0028 checkers pass (syntax/types clean, L0023 `0`) and the program is still wrong = a *logic* bug. That is exactly the bug class this slice targets, and the Q4 / cold-rebuild hinge.
+- **Reuse:** L0028 checkers + L0023 exit status (drill 4 gate); L0008 ops loop (drill 5 third-party logs via `python3 -m http.server` + `curl -i`); the Python track (functions/lists/loops — `running_max`); L0029 AI form factors noted as *distinct* from AI-for-debugging (authoring vs diagnosing).
+- **Skill win:** cold-rebuild golden rule + when-debugger-beats-print + why-checkers-miss-a-logic-bug; live drill reproduces a `biggest = 0` init bug with a print, then re-does it in `pdb` (`breakpoint()`, `p biggest`, `n`, `c`), then fixes + gates (`py_compile`/`mypy` → `status=0`) and reads `http.server` request logs.
+- **Scratch:** `/tmp/ms-debug/`. Buggy file built with `cat <<'EOF'` (house rule).
+- **Skip / Defer:** `rr` (record-replay, reverse debugging, Linux-only); `strace`/`dtruss`/`bpftrace` (syscall tracing — its own later slice, highest DevOps leverage); `tcpdump`/Wireshark (network debugging, relates to L0010); ASan/TSan/MSan/UBSan + Valgrind (memory debugging, mostly C/C++/Rust); AI-for-debugging; the whole Profiling half (`time` real/user/sys, `htop`, `perf` + flame graphs, callgrind/massif, `hyperfine`). gdb drill depth (C/Rust debug) waits until a compiled-language need appears.
+- **Next when asked:** next Lecture-4 slice (strace/dtruss, tcpdump, or the Profiling half), more vim practice, or L0020 workbook re-run.

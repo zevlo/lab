@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — debugging fundamentals (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Debugging &amp; Profiling</p>
+    <h1>Debugging fundamentals</h1>
+    <p class="lede">Lecture 4 debugging slice — the golden rule, print-vs-log discipline, and a debugger (<code>pdb</code>) for when prints run out. Grounded in <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Debugging and Profiling</a>.</p>
+  </header>
+
+  <h2>The golden rule</h2>
+  <p>MS opens the lecture with it: <em>code does not do what you expect it to do, but what you tell it to do</em>. Debugging is the work of closing that gap. The checkers from L0028 (<code>py_compile</code>, <code>mypy</code>, <code>gofmt</code>/<code>go vet</code>) catch <strong>syntax and type errors before you have to reason about logic</strong> — once those gates pass, what remains is a logic bug: the program is valid, and wrong. That is the bug class this slice targets.</p>
+
+  <h2>Printf debugging vs logging</h2>
+  <table>
+    <thead><tr><th>Approach</th><th>What it is</th><th>Reach for it when</th></tr></thead>
+    <tbody>
+      <tr><td>printf</td><td>ad-hoc <code>print()</code> around the suspected region; iterate until the cause is visible</td><td>you know roughly where the bug is and can re-run cheaply</td></tr>
+      <tr><td>logging</td><td>“printing with care” via a framework — severity levels, routable output, structured fields</td><td>the diagnostic should survive after the fix; for services / long-running code</td></tr>
+    </tbody>
+  </table>
+  <p>MS’s advice: once a print finds the bug, <strong>convert it into a proper log statement</strong> rather than deleting it. The next time a similar bug appears, the diagnostic data is already there. Severity levels let you filter later:</p>
+  <table>
+    <thead><tr><th>Level</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>DEBUG</code></td><td>fine-grained detail; off by default</td></tr>
+      <tr><td><code>INFO</code></td><td>routine progress (“server started on :8000”)</td></tr>
+      <tr><td><code>WARNING</code></td><td>unexpected but recoverable</td></tr>
+      <tr><td><code>ERROR</code></td><td>a failure; usually needs attention</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Third-party logs.</strong> Many programs take <code>-v</code> / <code>--verbose</code> (repeatable on some) to print more. Services (databases, web servers) write logs under <code>/var/log/</code> on Linux; systemd services show theirs via <code>journalctl -u &lt;service&gt;</code> (Linux/systemd only — no direct macOS equivalent). This is the ops-triage counterpart to in-code prints, and pairs with the L0008 ops loop.</div>
+
+  <h2>The debugger concept</h2>
+  <p>Prints work when you know what to print and re-running is cheap. A <strong>debugger</strong> wins when (a) you don’t yet know what to print, (b) the bug only shows under hard-to-reproduce conditions, or (c) restart is expensive (long startup, complex state). It lets you interact with execution as it happens:</p>
+  <ul>
+    <li>halt at a line (breakpoint),</li>
+    <li>step one instruction at a time,</li>
+    <li>inspect variable values,</li>
+    <li>halt conditionally,</li>
+    <li>read the call stack (backtrace).</li>
+  </ul>
+
+  <h2>pdb — Python’s debugger</h2>
+  <p>Launch three ways:</p>
+  <pre><code>python3 -m pdb script.py          # from the start
+python3 -m pdb -c continue script.py   # run until a breakpoint/error
+# or, inline in the source (Python 3.7+):
+breakpoint()                     # program drops into pdb here</code></pre>
+  <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>b</code> / <code>break func</code></td><td>set a breakpoint (function or <code>file:line</code>)</td></tr>
+      <tr><td><code>c</code> / <code>continue</code></td><td>run until the next breakpoint / error</td></tr>
+      <tr><td><code>n</code> / <code>next</code></td><td>step <strong>over</strong> the current line (no descent)</td></tr>
+      <tr><td><code>s</code> / <code>step</code></td><td>step <strong>into</strong> a called function</td></tr>
+      <tr><td><code>p expr</code></td><td>print an expression / variable</td></tr>
+      <tr><td><code>l</code> / <code>list</code></td><td>show source around the current line</td></tr>
+      <tr><td><code>w</code> / <code>where</code></td><td>backtrace (call stack)</td></tr>
+      <tr><td><code>q</code> / <code>quit</code></td><td>exit pdb</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Reproduce → isolate → inspect → fix → gate.</strong> The cardinal rule of inspecting: look at the <em>actual</em> value, not the one you assumed. An init-to-zero bug is invisible until you <code>p biggest</code> and see <code>0</code> where a negative number should be.</div>
+
+  <h2>gdb — named, for compiled languages</h2>
+  <p>MS’s de-facto debugger for C, C++, and Rust. The command shapes mirror pdb (debuggers share a vocabulary), so knowing one transfers:</p>
+  <table>
+    <thead><tr><th>gdb</th><th>pdb equivalent</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><code>run</code></td><td><code>c</code> (from start)</td><td>start the program</td></tr>
+      <tr><td><code>break &lt;func&gt;</code></td><td><code>b</code></td><td>set a breakpoint</td></tr>
+      <tr><td><code>step</code> / <code>next</code></td><td><code>s</code> / <code>n</code></td><td>step in / step over</td></tr>
+      <tr><td><code>print var</code></td><td><code>p var</code></td><td>inspect a value</td></tr>
+      <tr><td><code>bt</code></td><td><code>w</code></td><td>backtrace</td></tr>
+    </tbody>
+  </table>
+  <p>Under this mission the hands-on debugger is <strong>pdb</strong> (Python is the primary language track); gdb is named so you recognize it on a compiled-language remote. <code>gdb -tui</code> (or <code>Ctrl-x a</code>) gives a split source view.</p>
+
+  <h2>Tidy logs — debugging data doubles as profiling data</h2>
+  <p>MS’s profiling half makes the same point: when you add diagnostic output, shape it so it can be graphed later. A line like <code>1705012345,42.5</code> (timestamp,value) is trivial to plot; a prose sentence is not. Logging in a tidy, parseable shape means the prints you add to debug a slow path today become the dataset you profile tomorrow. That sets up the later Lecture-4 profiling slice.</p>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <p>These remain for later Lecture-4 slices (the lecture is dense; it gets split, like Lectures 1–3 were):</p>
+    <ul>
+      <li><strong>Record-replay debugging</strong> — <a href="https://rr-project.org/">rr</a> records a run and replays it deterministically with <em>reverse</em> commands (<code>reverse-continue</code>, <code>reverse-step</code>) for Heisenbugs and hard-to-reproduce races. Linux only.</li>
+      <li><strong>System-call tracing</strong> — <code>strace</code> (Linux) / <code>dtruss</code> (macOS) shows every syscall; <code>bpftrace</code>/eBPF does it at kernel depth with aggregation. The highest-leverage DevOps debug tool on the list.</li>
+      <li><strong>Network debugging</strong> — <code>tcpdump</code> / Wireshark packet capture; relates to L0010 (<code>dig</code>/<code>ss</code>).</li>
+      <li><strong>Memory debugging</strong> — sanitizers (ASan/TSan/MSan/UBSan) and Valgrind; mostly C/C++/Rust.</li>
+      <li><strong>AI for debugging</strong> — LLMs explaining stack traces and cryptic errors; distinct from the L0029 AI form factors (which are about <em>authoring</em> code).</li>
+      <li><strong>The Profiling half</strong> — <code>time</code> (real/user/sys), <code>htop</code>, <code>perf</code> + flame graphs, Valgrind’s callgrind/massif, <code>hyperfine</code> benchmarking.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Sections: Printf Debugging and Logging; Debuggers. <code>pdb</code>: <a href="https://docs.python.org/3/library/pdb.html">Python docs</a>. <code>gdb</code>: <a href="https://www.gnu.org/software/gdb/">GNU Debugger</a>. Checkers: L0028. Exit status: L0023. Ops loop / logs triage: L0008. Lesson: <a href="../lessons/0031-ms-debugging-fundamentals.html">0031</a>.</p>
+  </footer>
+</body>
+</html>
