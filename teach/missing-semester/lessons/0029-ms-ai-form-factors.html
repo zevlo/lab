@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0029 — MS AI form factors</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0029 · <a href="../reference/dev-env-ai-form-factors.html">Missing Semester — Dev Environment</a></p>
+    <h1>AI form factors</h1>
+    <p class="lede">The three shapes AI takes in a dev workflow — autocomplete, inline chat, and agents — and where each one already lives in your stack (Zed, opencode, vim).</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0028 closed code intelligence (language servers + CLI checkers). MS’s next slice in lecture 3 is <strong>AI-powered development</strong>: how LLMs entered software engineering after GitHub Copilot popularized them in 2021. You already run three surfaces that span all three MS form factors — so this lesson names them, so you reach for the right one deliberately instead of by habit, and ties them back to the L0028 checkers as the way you <em>gate</em> AI output.</p>
+  <p><strong>Read first (≈10 min):</strong> <a href="https://missing.csail.mit.edu/2026/development-environment/">MS Development Environment and Tools</a> — the “AI-powered development” section (Autocomplete → Inline chat → Coding agents). Skim Extensions for context; skip installing anything tonight.</p>
+
+  <h2>Knowledge 1 — three form factors (MS taxonomy)</h2>
+  <p>MS names three form factors. The boundary that matters is <em>how much existing code the model can touch</em>:</p>
+  <table>
+    <thead><tr><th>Form factor</th><th>What it does</th><th>Key limit</th></tr></thead>
+    <tbody>
+      <tr><td>autocomplete</td><td>suggests at the cursor as you type; steered by comments</td><td>only completes <em>beyond</em> the cursor — cannot rearrange existing code</td></tr>
+      <tr><td>inline chat</td><td>select a line/block, prompt in plain language, model proposes an edit</td><td>you review &amp; accept the proposed diff</td></tr>
+      <tr><td>agent</td><td>delegates a multi-step task; model edits across files and can run commands</td><td>most autonomous — needs the most verification (MS gives it its own lecture)</td></tr>
+    </tbody>
+  </table>
+  <p>MS’s autocomplete example exposes the core risk directly: asked to “extract all Markdown links,” the model returns valid code but places <code>import re</code> <em>inside</em> the function body instead of at the module level. Plausible, runnable, and wrong-shaped. That is the shape of almost every AI mistake you will see.</p>
+
+  <h2>Knowledge 2 — map to your stack</h2>
+  <p>Your three surfaces cover all three form factors. The notable one: <strong>opencode is a terminal-native coding agent</strong> — the most autonomous MS form factor, running in the same bash / tmux / ssh stack this mission is building. The agent form factor is not locked inside an IDE for you.</p>
+  <table>
+    <thead><tr><th>Form factor</th><th>Zed (IDE)</th><th>opencode (terminal)</th><th>vim (defaults)</th></tr></thead>
+    <tbody>
+      <tr><td>autocomplete</td><td>yes — at-cursor suggestions</td><td>—</td><td>—</td></tr>
+      <tr><td>inline chat</td><td>yes — assistant / inline prompts</td><td>yes — you converse, it proposes edits</td><td>—</td></tr>
+      <tr><td>agent</td><td>yes — agent mode</td><td>yes — opencode’s main mode (you are inside it now)</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Mission framing.</strong> Vim stays the no-AI editing floor — for remote / SSH / surgical speed, and as the place you <em>review</em> AI output. Zed is an IDE you already own (like kitty / starship — present, not curriculum to expand). This lesson names form factors; it does not switch your daily editor. Exact Zed panel / mode names live in <a href="https://zed.dev/docs">Zed’s docs</a>.</div>
+
+  <h2>Knowledge 3 — gate AI output (L0028 callback)</h2>
+  <p>MS’s autocomplete bug is valid Python — <code>py_compile</code> would not catch it. The discipline: treat AI output as a <strong>draft, not a verdict</strong>, and run the L0028 checkers on it before you trust it.</p>
+  <pre><code>python3 -m py_compile ai_output.py   # syntax?
+mypy ai_output.py                    # types? (installed L0028)
+gofmt -w ai_output.go &amp;&amp; go vet ./... # format + static?</code></pre>
+  <p>Same exit-status rule as L0023: <code>0</code> = clean, nonzero = reject or fix. Some AI mistakes (syntax, type mismatches) the checkers catch; others (the <code>import</code> placement, naming, design) only review or a dedicated linter catches — that linter depth is the later <strong>Code Quality</strong> lecture. The honest model: checkers raise the floor; they do not ceiling the work.</p>
+
+  <h2>Drill — name, map, gate</h2>
+  <p>Ghostty + bash + vim. Scratch: <code>/tmp/ms-ai/</code>.</p>
+  <ol>
+    <li>
+      Name MS’s three form factors cold (no peeking), and one-sentence each what they do.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>autocomplete (suggests at cursor, beyond-cursor only), inline chat (selected block → prompt → proposed edit), agent (multi-step, edits across files, can run commands).</p>
+      </div></details>
+    </li>
+    <li>
+      Map them to your surfaces. Which form factor does <strong>opencode</strong> give you <em>in the terminal</em>? Which surface has no AI at all?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>opencode = agent (and conversational inline-chat-style proposes). Zed has all three. vim has none — it is the no-AI floor and the review surface.</p>
+      </div></details>
+    </li>
+    <li>
+      Reproduce MS’s autocomplete example and probe what a checker catches vs misses:
+      <pre><code>mkdir -p /tmp/ms-ai &amp;&amp; cd /tmp/ms-ai
+cat &gt; extract.py &lt;&lt;'EOF'
+def extract(content: str) -&gt; list[str]:
+    # extract all Markdown links from the content
+    import re
+    pattern = r'\[.*?\]\((.*?)\)'
+    return re.findall(pattern, content)
+EOF
+python3 -m py_compile extract.py; echo "status=$?"</code></pre>
+      Expect <code>status=0</code> — the AI’s code is syntactically valid. One sentence: what did the checker catch, and what did it miss?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Caught: nothing — syntax is valid (status 0). Missed: <code>import re</code> belongs at module level, not inside the function. That is a placement / style issue caught by review or a linter (Ruff / Code Quality lecture), not by <code>py_compile</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Agent form factor, live.</strong> Using an agent surface — opencode (you are inside it now) or Zed’s agent mode — ask it to refactor <code>extract.py</code>: move <code>import re</code> to the module level and add a one-line docstring. Then gate the result before accepting:
+      <pre><code>python3 -m py_compile extract.py &amp;&amp; mypy extract.py; echo "status=$?"</code></pre>
+      Confirm both clean (<code>status=0</code>). If the agent touched anything else, that is normal — review the diff in vim.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>import re</code> now at top of file; docstring added under <code>def</code>. <code>py_compile</code> + <code>mypy</code> both <code>0</code>. The point: the agent did the edit; the checkers (L0028) certified it.</p>
+      </div></details>
+    </li>
+    <li>
+      One sentence out loud: why does vim stay in the stack even with AI available everywhere?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Remote / SSH / no-GUI hosts where an IDE or agent may not run; surgical edits at grammar speed; and a neutral place to review AI output. AI is a layer on top, not a replacement for the manual floor.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>MS’s three AI form factors.</li>
+        <li>Which form factor can change <em>existing</em> code, not just complete beyond the cursor?</li>
+        <li>Why run <code>py_compile</code> / <code>mypy</code> on AI-suggested code?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) autocomplete, inline chat, agent.<br>
+        (b) inline chat and agent — autocomplete only completes beyond the cursor.<br>
+        (c) AI can produce plausible-but-wrong code; checkers catch syntax/type errors (nonzero status), and review catches the rest.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> MS gives agents their own <strong>Agentic Coding</strong> lecture — prompt patterns, tool-use, scope control, safety. The <strong>Code Quality</strong> lecture adds linters (e.g. Ruff) that catch placement / style issues <code>py_compile</code> misses. Prompt engineering depth and model / provider choice wait there.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>MS names three AI form factors. Which set?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">autocomplete, inline chat, agent</li>
+      <li class="option">compile, link, run</li>
+      <li class="option">find, grep, sed</li>
+      <li class="option">insert, normal, visual</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which form factor can change <em>existing</em> code, not just complete beyond the cursor?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">inline chat / agent</li>
+      <li class="option">autocomplete only</li>
+      <li class="option">syntax highlighting</li>
+      <li class="option">the language server alone</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Why run <code>py_compile</code> / <code>mypy</code> on AI-suggested code?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">AI can produce plausible-but-wrong code; checkers catch syntax/type issues</li>
+      <li class="option">AI code never runs without it</li>
+      <li class="option">it trains the model</li>
+      <li class="option">vim requires it</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>In your stack, which surface is a terminal-native coding agent?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">opencode</li>
+      <li class="option">vim (stock)</li>
+      <li class="option">gofmt</li>
+      <li class="option">/etc/hosts</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the three-form-factor taxonomy click? Any surprise that opencode counts as MS’s “agent” form factor — and that the agent is already native to your terminal stack?</p>
+    <p style="margin-bottom:0">Next when ready: MS lecture 4 (Debugging and Profiling), more vim practice, or another L0020 workbook pass — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary source</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/development-environment/">Missing Semester — Development Environment and Tools</a> (CC BY-NC-SA). Section: AI-powered development.</li>
+      <li>Coding agents → MS <a href="https://missing.csail.mit.edu/2026/agentic-coding/">Agentic Coding</a> lecture (deferred). Checkers: L0028. Exit status: L0023.</li>
+    </ul>
+    <p>Previous: <a href="./0028-ms-lsp-cli-checkers.html">Lesson 0028 — language servers &amp; CLI checkers</a> · map: <a href="./0026-ms-dev-env-map.html">0026</a>. Reference: <a href="../reference/dev-env-ai-form-factors.html">AI form factors</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the three form factors and the gate-why once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read the MS AI-powered development section and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

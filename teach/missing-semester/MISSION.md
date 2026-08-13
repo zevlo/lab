@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** L0028 in progress — language servers & CLI checkers (`py_compile` / `gofmt` / `go vet` / `mypy`). Next when requested: AI form factors, more vim practice, or MS lecture 4. L0020 workbook stays open.
+**Next up:** L0029 ready — AI form factors (autocomplete / inline chat / agents), mapped to Zed + opencode + vim. Next when requested: MS lecture 4 (Debugging and Profiling), more vim practice, or L0020 workbook re-run. L0020 workbook stays open.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.

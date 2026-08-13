@@ -299,3 +299,20 @@
 - **Skip:** vim LSP plugins; VS Code extension setup; gopls-as-IDE; Ruff install tonight.
 - **Defer:** Ruff; Code Quality lecture depth; virtualenvs/packaging; AI form factors; IDE Remote SSH / Live Share / devcontainers.
 - **Next when asked:** AI form factors, more vim practice, or MS lecture 4 (Debugging and Profiling).
+
+## L0028 complete (4/4)
+- LSP concept + CLI checkers (`py_compile` / `gofmt` / `go vet` / `mypy`) floor set. No friction reported.
+- Dev Environment lecture terminal-track slices done. AI form factors still open in lecture 3.
+- Next when asked: AI form factors, more vim practice, or MS lecture 4 (Debugging and Profiling).
+
+## L0029 design notes (MS Dev Environment — AI form factors)
+- **Primary source:** https://missing.csail.mit.edu/2026/development-environment/ — “AI-powered development” (Autocomplete → Inline chat → Coding agents).
+- **Scope:** MS three-form-factor taxonomy (autocomplete / inline chat / agent); boundary = how much existing code the model can touch; stack map to user’s real surfaces; gate AI output with L0028 checkers (py_compile / mypy / gofmt+vet) via L0023 exit status; honest boundary — checkers catch syntax/types, not placement/style (motivates later Code Quality lecture).
+- **Reuse:** L0028 checkers as the gate; L0023 `$?` / `&&`; L0026 terminal-vs-IDE map (Zed now sits in IDE column; opencode straddles terminal column as agent); L0024 SSH/remote framing for why vim stays.
+- **User surfaces (named, not parametrically detailed):** Zed = AI-native IDE (all three form factors; exact panel/mode names deferred to zed.dev/docs). opencode = terminal-native coding agent (the user is inside it during lessons). vim = no-AI defaults floor + review surface.
+- **Mission-constraint handling:** This is a Knowledge lesson about the form-factor landscape, not “install an IDE” or “abandon vim.” Zed treated like kitty/starship in L0025 — owned config, not curriculum to expand. Vim stays the taught daily editor floor; AI framed as a layer, not a replacement. Same posture as L0028’s “Cursor gives IDE-side intelligence — this is the SSH-box/defaults vim path.”
+- **Skill win:** cold-rebuild three form factors + which touches existing code + why gate AI output; live agent drill (opencode or Zed) refactors MS’s buggy `extract.py`, then gated with py_compile+mypy.
+- **Scratch:** `/tmp/ms-ai/`.
+- **Skip:** installing a second IDE; Zed extension/mode shopping; prompt engineering depth; model/provider comparison; agentic tool-use internals.
+- **Defer:** MS Agentic Coding lecture (agents in depth); Code Quality lecture (linters like Ruff that catch placement/style); prompt engineering; IDE extensions (Remote SSH, Live Share, devcontainers).
+- **Next when asked:** MS lecture 4 (Debugging and Profiling), more vim practice, or L0020 workbook re-run.
