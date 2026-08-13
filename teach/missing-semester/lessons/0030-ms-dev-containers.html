@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0030 — MS dev containers</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0030 · <a href="../reference/dev-env-dev-containers.html">Missing Semester — Dev Environment</a></p>
+    <h1>Dev containers</h1>
+    <p class="lede">A container, defined as code, that runs your dev tools the same way on any machine. MS names them under IDE extensions for portability and isolation — this slice teaches the terminal-native core so a vim/SSH stack gets the same win without an IDE.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0029 finished MS lecture 3’s named slices (editing, language servers, AI form factors). One item MS lists under “Extensions and other IDE functionality” is still open: <strong>development containers</strong> — “use a container to run development tools … helpful for portability or isolation.” The lecture defers container depth to its own <em>Packaging and Shipping Code</em> lecture, so this slice stays at the dev-environment level: what a dev container <em>is</em>, the terminal-native verbs that drive it, and how it reunites the L0028 checkers with a versioned, reproducible environment.</p>
+  <p><strong>Read first (≈10 min):</strong> <a href="https://missing.csail.mit.edu/2026/development-environment/">MS Development Environment and Tools</a> — the “Extensions and other IDE functionality” bullet on development containers, plus the <a href="https://containers.dev/">containers.dev</a> spec introduction. Skim only; do not install an IDE tonight.</p>
+
+  <h2>Knowledge 1 — image, container, dev container</h2>
+  <p>Three nouns, layered. MS frames dev containers as a portability/isolation win; the nouns explain <em>how</em>:</p>
+  <table>
+    <thead><tr><th>Term</th><th>What it is</th><th>One-line shape</th></tr></thead>
+    <tbody>
+      <tr><td>image</td><td>layered filesystem + metadata; the blueprint</td><td>built from a <code>Dockerfile</code>; immutable, tagged</td></tr>
+      <tr><td>container</td><td>a running instance of an image</td><td><code>docker run</code> starts one; <code>docker ps</code> lists them</td></tr>
+      <tr><td>dev container</td><td>a container + a config that encodes the full dev environment</td><td><code>.devcontainer/devcontainer.json</code> (editor-agnostic spec)</td></tr>
+    </tbody>
+  </table>
+  <p>The <strong>dev container spec</strong> (<a href="https://containers.dev/">containers.dev</a>) is editor-agnostic: VS Code, Cursor, GitHub Codespaces, JetBrains, and the standalone <code>devcontainer</code> CLI all read the same <code>devcontainer.json</code>. That is the key decoupling — the environment is defined as code, not locked inside one IDE.</p>
+
+  <h2>Knowledge 2 — the docker CLI core (terminal-native)</h2>
+  <p>The daily verbs. These run identically on macOS (via Docker Desktop or <code>colima</code>, which provide the Linux VM) and on a Linux remote — same posture as the <code>ss</code>-vs-<code>lsof</code> and BSD-vs-GNU caveats from earlier lessons.</p>
+  <table>
+    <thead><tr><th>Verb</th><th>Does</th><th>Recall hook</th></tr></thead>
+    <tbody>
+      <tr><td><code>docker build -t tag .</code></td><td>build an image from the <code>Dockerfile</code> in cwd</td><td>tag = name; <code>.</code> = build context</td></tr>
+      <tr><td><code>docker images</code></td><td>list images</td><td>the blueprints</td></tr>
+      <tr><td><code>docker run</code></td><td>start a container from an image</td><td>see flags below</td></tr>
+      <tr><td><code>docker ps</code> / <code>-a</code></td><td>list running / all containers</td><td>the instances</td></tr>
+      <tr><td><code>docker exec -it NAME bash</code></td><td>open a shell in a running container</td><td>“SSH into the box”</td></tr>
+      <tr><td><code>docker stop</code> / <code>docker rm NAME</code></td><td>stop / remove a container</td><td>instance cleanup</td></tr>
+      <tr><td><code>docker rmi IMAGE</code></td><td>remove an image</td><td>blueprint cleanup</td></tr>
+      <tr><td><code>docker logs NAME</code></td><td>container stdout/stderr</td><td>like <code>tail</code> on the box</td></tr>
+    </tbody>
+  </table>
+  <p>The <code>docker run</code> flags that matter most for dev work:</p>
+  <pre><code>docker run -it --rm \
+  -v "$PWD":/work \      # mount your source live (host → container)
+  -w /work \             # working dir inside the container
+  -p 8000:8000 \         # forward a port (host:container)
+  --name ms-box \        # name the instance
+  ms-dev bash            # image + command</code></pre>
+  <p><code>-i</code> keeps stdin open, <code>-t</code> allocates a TTY — together they give an interactive shell. <code>--rm</code> removes the container on exit (disposable). <code>-v</code> is the live mount: you edit on the host in vim, the change is instantly visible inside the container. This is the whole dev-container loop in one line.</p>
+
+  <h2>Knowledge 3 — devcontainer.json + the L0028 callback</h2>
+  <p>A bare <code>docker run</code> works, but you retype the flags every time. A dev container captures them as code. Minimal shape:</p>
+  <pre><code>.devcontainer/devcontainer.json
+{
+  "name": "ms-dev",
+  "build": { "dockerfile": "../Dockerfile" },
+  "workspaceFolder": "/work",
+  "mounts": [ "source=${localWorkspaceFolder},target=/work,type=bind,consistency=cached" ],
+  "forwardPorts": [8000],
+  "postCreateCommand": "mypy --version"
+}</code></pre>
+  <p>Each key is something you would otherwise pass to <code>docker run</code> or do by hand: the build context, the workspace mount, port forwards, and a hook that runs once after creation. An IDE (or the <code>devcontainer</code> CLI) reads this file and runs the equivalent <code>docker</code> commands for you — but the file itself is plain text, versioned like the L0025 dotfiles.</p>
+  <p><strong>L0028 callback.</strong> The image bakes in the checkers — <code>py_compile</code>, <code>mypy</code>, <code>gofmt</code> — so they exist identically on every machine that runs the image. The gate is still the L0028 checkers under the L0023 exit-status rule (<code>0</code> clean, nonzero reject/fix); the container just guarantees the gate is runnable anywhere. The L0029 AI agent can run inside this same container, and its output gets gated by the same checkers — the environment and the gate travel together.</p>
+  <div class="gotcha"><strong>Mission framing.</strong> MS lists dev containers as an IDE extension. Under this mission the IDE path is named, not expanded (same posture as Zed in L0029, kitty/starship in L0025) — the terminal-native <code>docker</code> verbs are the curriculum. The optional <code>devcontainer</code> CLI (<code>npm install -g @devcontainers/cli</code>) is a one-off install like <code>jq</code> (L0020) or <code>mypy</code> (L0028), not a dependency.</div>
+
+  <h2>Drill — build, run, exec, gate</h2>
+  <p>Ghostty + bash + vim. Scratch: <code>/tmp/ms-devcontainer/</code>. Requires a working Docker daemon — on macOS that means Docker Desktop or <code>colima</code> running.</p>
+  <ol>
+    <li>
+      Cold-name the three nouns, no peeking: image, container, dev container — one sentence each.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Image = layered filesystem + metadata, the blueprint, built from a Dockerfile. Container = a running instance of an image. Dev container = a container plus a <code>devcontainer.json</code> config that encodes the full dev environment (build, mounts, ports, post-create hooks) as editor-agnostic code.</p>
+      </div></details>
+    </li>
+    <li>
+      Write a minimal Dockerfile that bakes in the L0028 checker, build it, run a one-shot:
+      <pre><code>mkdir -p /tmp/ms-devcontainer &amp;&amp; cd /tmp/ms-devcontainer
+cat &gt; Dockerfile &lt;&lt;'EOF'
+FROM python:3.12-slim
+RUN pip install --no-cache-dir mypy
+WORKDIR /work
+EOF
+docker build -t ms-dev .
+docker run --rm ms-dev mypy --version</code></pre>
+      Confirm <code>mypy</code> prints a version. One sentence: where does <code>mypy</code> live, and what would be different on a fresh machine without this image?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>mypy</code> is installed inside the image at build time (<code>RUN pip install</code>). On a fresh machine you would have to <code>pip install mypy</code> again — or just <code>docker run ms-dev</code> and it is already there. That gap is the portability win MS names.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Mount your source, gate inside the container.</strong> Reuse L0029’s <code>extract.py</code> shape and run the L0028 checkers against it from inside the image:
+      <pre><code>cat &gt; extract.py &lt;&lt;'EOF'
+def extract(content: str) -&gt; list[str]:
+    # extract all Markdown links from the content
+    import re
+    pattern = r'\[.*?\]\((.*?)\)'
+    return re.findall(pattern, content)
+EOF
+docker run --rm -v "$PWD":/work -w /work ms-dev \
+  bash -lc 'python3 -m py_compile extract.py &amp;&amp; mypy extract.py; echo status=$?'</code></pre>
+      Expect <code>status=0</code> — same as L0029. The point: the checkers ran inside the container against your live-mounted source; the host never needed <code>mypy</code> installed.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>status=0</code>: syntactically valid and mypy-clean, identical to L0029’s host run. The difference is the environment: the container guarantees <code>mypy</code> + <code>py_compile</code> exist; the host is irrelevant. The L0023 exit-status gate still rules; the container just makes the gate portable.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Long-running container + exec</strong> — the “container as a remote box” model (callback to L0024):
+      <pre><code>docker run -d --name ms-box -v "$PWD":/work -w /work ms-dev sleep 600
+docker exec -it ms-box bash
+# inside the container:
+python3 -m py_compile extract.py
+exit
+docker stop ms-box &amp;&amp; docker rm ms-box</code></pre>
+      One sentence: why is this different from drill 3’s <code>--rm</code> one-shot, and what in L0024 does it replace?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Drill 3 ran a fresh disposable container per command (<code>--rm</code>, exits and vanishes). Here the container stays alive (<code>-d</code>, detached) so you can <code>exec</code> into it repeatedly — closer to SSH-ing into a persistent remote box (L0024), except the “box” is local, disposable, and defined by the Dockerfile.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Read <code>devcontainer.json</code>, map to <code>docker run</code>.</strong> Create the file from Knowledge 3, then — without running anything — predict the bare <code>docker run</code> equivalent of each key (<code>build</code>, <code>workspaceFolder</code>, <code>mounts</code>, <code>forwardPorts</code>, <code>postCreateCommand</code>). Optional, only if you ran <code>npm install -g @devcontainers/cli</code>: <code>devcontainer up --workspace-folder .</code> then <code>devcontainer exec --workspace-folder . bash</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>build</code> → <code>docker build -t … .</code>; <code>workspaceFolder</code> → <code>-w /work</code>; <code>mounts</code> → <code>-v "$PWD":/work</code>; <code>forwardPorts</code> → <code>-p 8000:8000</code>; <code>postCreateCommand</code> → a one-shot <code>docker run … mypy --version</code> after first create. The file is just those flags, versioned.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Image vs container — define each in one sentence.</li>
+        <li>Which two <code>docker run</code> flags give an interactive shell with a TTY, and which removes the container on exit?</li>
+        <li>One sentence: what does <code>devcontainer.json</code> add over a bare <code>Dockerfile</code>, and why bake the L0028 checkers into the image?</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Image = immutable layered blueprint built from a Dockerfile; container = a running instance of an image.<br>
+        (b) <code>-i -t</code> (often written <code>-it</code>) for interactive + TTY; <code>--rm</code> removes on exit.<br>
+        (c) devcontainer.json captures the full dev environment as code (build, workspace mount, ports, post-create hook) so it is reproducible across machines/IDEs; baking the checkers in means the L0028/L0023 gate is runnable anywhere the image runs — no per-host install.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> Container <em>build</em> depth — multi-stage builds, distroless/hardened images, layer caching, registries, CI pipelines — belongs to MS’s <strong>Packaging and Shipping Code</strong> lecture. Multi-service orchestration (<code>docker-compose</code>) and Kubernetes (<code>kubectl</code>, <code>helm</code>) remain out of scope under this mission until fundamentals are locked. Volumes, networking, and BuildKit features wait there too.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A <code>Dockerfile</code> describes an ____; a running instance of it is a ____.</p>
+    <ul class="options">
+      <li class="option" data-correct="true">image; container</li>
+      <li class="option">container; image</li>
+      <li class="option">volume; mount</li>
+      <li class="option">tag; layer</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Which flags give an interactive shell inside a container with a TTY?</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>-i -t</code> (<code>-it</code>)</li>
+      <li class="option"><code>-d --rm</code></li>
+      <li class="option"><code>-v -w</code></li>
+      <li class="option"><code>-p -a</code></li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>What does a dev container (<code>devcontainer.json</code>) add over a bare <code>Dockerfile</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">a versioned, reproducible dev environment as code — mounts, ports, post-create hooks</li>
+      <li class="option">a faster container runtime than docker</li>
+      <li class="option">an AI autocomplete model bundled in</li>
+      <li class="option">a replacement for SSH</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why bake the L0028 checkers (<code>mypy</code>, <code>py_compile</code>) into the image?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">so the gate is runnable identically on any machine; no per-host install</li>
+      <li class="option">to make the image smaller</li>
+      <li class="option">to skip the exit-status check (L0023)</li>
+      <li class="option">to enable vim plugins inside the container</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the image-vs-container-vs-devcontainer distinction click, and did running the L0028 checkers from inside the container land the portability point? Any surprise that the dev container spec is editor-agnostic (so the terminal path is first-class, not an IDE afterthought)?</p>
+    <p style="margin-bottom:0">Next when ready: MS lecture 4 (Debugging and Profiling), the MS Shipping Code lecture (container build depth), more vim practice, or another L0020 workbook pass — say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/development-environment/">Missing Semester — Development Environment and Tools</a> (CC BY-NC-SA). Section: Extensions and other IDE functionality (development containers).</li>
+      <li><a href="https://containers.dev/">Development Containers spec</a> (containers.dev) — editor-agnostic <code>devcontainer.json</code> reference.</li>
+      <li>Container build depth → MS <a href="https://missing.csail.mit.edu/2026/shipping-code/">Packaging and Shipping Code</a> lecture (deferred). Checkers: L0028. Exit status: L0023. SSH/remote: L0024. Dotfiles/versioning: L0025. AI form factors: L0029.</li>
+    </ul>
+    <p>Previous: <a href="./0029-ms-ai-form-factors.html">Lesson 0029 — AI form factors</a> · map: <a href="./0026-ms-dev-env-map.html">0026</a>. Reference: <a href="../reference/dev-env-dev-containers.html">dev containers</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the three nouns, the -it/--rm flags, and the devcontainer.json-vs-Dockerfile line once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

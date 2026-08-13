@@ -35,7 +35,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **Command-line Environment (2026)** — https://missing.csail.mit.edu/2026/command-line-environment/
   Lecture 2. Lesson 0019 = Signals & job control (`Ctrl-C`/`Z`, `fg`/`bg`/`jobs`, `SIGHUP`/`nohup`). Lesson 0021 = Arguments & globs (`$0`/`$@`/`$#`, flags, `*`/`?`/`{}`, shell expands before exec). Lesson 0022 = Environment variables & `export` (shell-local vs env, one-shot `VAR=cmd`, `printenv`/`unset`). Lesson 0023 = Return codes (`$?`, `&&`/`||`). Lesson 0024 = SSH / remote machines (connect, keys, `scp`/`rsync`, `~/.ssh/config`). Lesson 0025 = Aliases & dotfiles (`alias`/`unalias`, bashrc, PATH append). Skip fancy “consider installing” tools while defaults-only holds. Tmux hierarchy already covered in L0006–0013 — do not re-teach from CLE’s multiplexer section. CLE AI / Terminal Emulator sections out of scope (Ghostty already chosen).
 - **Development Environment and Tools (2026)** — https://missing.csail.mit.edu/2026/development-environment/
-  Lecture 3. Lesson 0026 = terminal workflow vs IDE map + vim compose retrieval (MS fizzbuzz). Lesson 0028 = language servers (LSP concept) + CLI checkers (`py_compile`, `gofmt`/`go vet`, `mypy` one-off install). Lesson 0029 = AI form factors (autocomplete / inline chat / agents) mapped to the user’s real surfaces (Zed IDE, opencode terminal agent, vim no-AI floor); gates AI output with L0028 checkers. Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Prior vim floor: L0001–0005; practice workbook L0027.
+  Lecture 3. Lesson 0026 = terminal workflow vs IDE map + vim compose retrieval (MS fizzbuzz). Lesson 0028 = language servers (LSP concept) + CLI checkers (`py_compile`, `gofmt`/`go vet`, `mypy` one-off install). Lesson 0029 = AI form factors (autocomplete / inline chat / agents) mapped to the user’s real surfaces (Zed IDE, opencode terminal agent, vim no-AI floor); gates AI output with L0028 checkers. Lesson 0030 = dev containers (image/container/dev container; `docker` CLI core; `devcontainer.json` as editor-agnostic, versioned config; L0028 checkers baked into the image). Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Prior vim floor: L0001–0005; practice workbook L0027.
 
 ## Knowledge — focused references
 
@@ -49,6 +49,11 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   DNS lookup utility. Use for: A/AAAA/MX, `+short`, `@server`, reading `status:` in full output. Lesson 0010.
 - **`man 8 ss`** — https://manpages.debian.org/bookworm/iproute2/ss.8.en.html
   Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only.
+
+- **Development Containers spec** — https://containers.dev/
+  Editor-agnostic `devcontainer.json` reference (read by VS Code, Cursor, Codespaces, JetBrains, and the `devcontainer` CLI). Use for: the dev-container config shape (build, mounts, forwardPorts, postCreateCommand). Lesson 0030. Container build depth (multi-stage, registries, CI) is MS Packaging and Shipping Code, not this slice.
+- **Docker CLI reference** — https://docs.docker.com/reference/cli/docker/
+  Official `docker` verb/flag reference (`build`, `run`, `exec`, `ps`, `stop`/`rm`, `rmi`, `logs`; `-it`, `--rm`, `-v`, `-w`, `-p`). Use for: exact flag semantics. On macOS the daemon runs via Docker Desktop or `colima`; commands are identical to Linux. Lesson 0030.
 
 ## Wisdom (communities)
 

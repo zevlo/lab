@@ -316,3 +316,22 @@
 - **Skip:** installing a second IDE; Zed extension/mode shopping; prompt engineering depth; model/provider comparison; agentic tool-use internals.
 - **Defer:** MS Agentic Coding lecture (agents in depth); Code Quality lecture (linters like Ruff that catch placement/style); prompt engineering; IDE extensions (Remote SSH, Live Share, devcontainers).
 - **Next when asked:** MS lecture 4 (Debugging and Profiling), more vim practice, or L0020 workbook re-run.
+
+## L0029 complete (4/4; AI form factors floor set)
+- Three-form-factor taxonomy (autocomplete / inline chat / agent) + boundary (how much existing code the model can touch) + stack map (Zed / opencode / vim) + L0028-checkers-as-gate reuse all landed. No friction reported.
+- MS lecture 3 named slices (editing, language servers, AI form factors) done. Only remaining lecture-3 item is the deferred IDE-extensions bullet: dev containers — user picked it next.
+- Mission posture held: Zed = owned/not expanded; vim = no-AI floor + review surface; opencode = terminal-native agent. No second-IDE install, no prompt-engineering depth.
+
+## L0030 design notes (MS Dev Environment — dev containers)
+- **Topic choice:** User-requested after L0029 4/4. The last open lecture-3 item — MS lists dev containers under "Extensions and other IDE functionality" ("use a container to run development tools … portability or isolation"), pointing to the editor-agnostic `containers.dev` spec, and defers container depth to its own Packaging and Shipping Code lecture.
+- **Out-of-scope handling:** This is NOT the deferred container/k8s CLI depth (kubectl/helm/compose — still MISSION out-of-scope). It is the dev-environment concept: a container as a reproducible dev box. Container *build* depth (multi-stage, distroless, registries, CI) deferred to MS Shipping Code lecture; orchestration (compose/k8s) stays out of scope.
+- **Primary sources:** MS Dev Environment lecture (Extensions section); `containers.dev` spec intro. Verified exact MS wording via webfetch (not parametric).
+- **Scope:** three nouns (image / container / dev container); `docker` CLI core (build / images / run / ps / exec / stop / rm / rmi / logs); the `-it` / `--rm` / `-v` / `-w` / `-p` / `--name` flags; minimal `devcontainer.json` and the key→`docker run` mapping; dev container spec is editor-agnostic.
+- **Reuse:** L0028 checkers baked into the image as the portable gate; L0023 exit status still the verdict; L0024 SSH framing (container as a local, disposable "remote box" via `exec`); L0025 dotfiles/versioning (devcontainer.json is versioned config); L0029 agent can run inside the same container, gated the same way.
+- **Skill win:** cold-rebuild three nouns + `-it`/`--rm` flags + devcontainer.json-vs-Dockerfile line; live drill builds an image with mypy baked in, mounts MS's `extract.py`, runs py_compile+mypy from inside the container (status=0, same as L0029 host run); long-running container + `exec` to mirror the SSH-to-a-box loop.
+- **Mission-constraint handling:** IDE path named, not expanded (same posture as Zed L0029, kitty/starship L0025). `docker` CLI is the curriculum. The `devcontainer` CLI (`npm install -g @devcontainers/cli`) framed as an optional one-off install like `jq` (L0020) / `mypy` (L0028) — not a dependency. The drill's `devcontainer.json` task is a "read & map to docker run" task so it runs without the CLI.
+- **Environment note (agent host):** this opencode host runs Docker 29.7.1 on Linux (no `devcontainer` CLI, no `colima`). Lesson keeps the corpus's macOS framing — Docker Desktop/colima provides the Linux VM, commands identical Mac↔Linux (same pattern as `ss`/`lsof`, BSD/GNU sed caveats in earlier lessons).
+- **Scratch:** `/tmp/ms-devcontainer/`.
+- **Skip:** installing a second IDE; `devcontainer` CLI as a hard dependency; docker-compose; kubectl/helm; image hardening; registries/CI.
+- **Defer:** MS Packaging and Shipping Code lecture (container build depth, multi-stage, distroless, layer caching, BuildKit, volumes, networking); compose; k8s.
+- **Next when asked:** MS lecture 4 (Debugging and Profiling), MS Shipping Code lecture, more vim practice, or L0020 workbook re-run.
