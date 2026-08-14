@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — system-call tracing (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Debugging &amp; Profiling</p>
+    <h1>System-call tracing</h1>
+    <p class="lede">Lecture 4 slice — <code>strace</code> at the program↔kernel boundary: the five shapes, how to read a trace line, and the triage patterns. Grounded in <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Debugging and Profiling</a>.</p>
+  </header>
+
+  <h2>The boundary</h2>
+  <p>Everything a program wants from the outside world — files, memory, network, processes — it requests from the kernel via a <strong>system call</strong>. MS: tracing these calls “can reveal why a program is hanging, what files it’s trying to access, or where it’s spending time waiting.” The observation point differs from L0031: a debugger inspects state <em>inside</em> a program you can edit and re-run; a syscall trace watches behavior at the boundary — any binary, running or fresh, no source needed.</p>
+
+  <h2>The five strace shapes</h2>
+  <table>
+    <thead><tr><th>Invocation</th><th>Answers</th><th>Recall hook</th></tr></thead>
+    <tbody>
+      <tr><td><code>strace ./prog</code></td><td>every syscall, from the first <code>execve</code></td><td>“all of it”</td></tr>
+      <tr><td><code>strace -e trace=file ./prog</code></td><td>file-related calls only — cut the noise</td><td>“what files?”</td></tr>
+      <tr><td><code>strace -f ./prog</code></td><td>follow child processes too (MS: “important for programs that start other programs”)</td><td>f = family</td></tr>
+      <tr><td><code>strace -p &lt;PID&gt;</code></td><td>attach to a running process; <code>Ctrl-C</code> detaches without killing</td><td>“observe in place”</td></tr>
+      <tr><td><code>strace -T ./prog</code></td><td>duration of each call, in <code>&lt;…&gt;</code></td><td>“where does it wait?”</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Reading a trace</h2>
+  <pre><code>execve("/bin/ls", ["ls", "/"], 0x… /* 25 vars */) = 0
+openat(AT_FDCWD, "/", O_RDONLY|O_DIRECTORY)   = 3
+getdents64(3, 0x… /* 20 entries */, 32768)    = 616
+close(3)                                       = 0
+write(1, "bin\nboot\ndev\n…", 49)              = 49
+exit_group(0)                                  = ?</code></pre>
+  <p>Each line is <code>syscall(args) = result</code>. On-sight reads:</p>
+  <table>
+    <thead><tr><th>Pattern</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>execve</code> line 1</td><td>kernel loads the traced command itself — every trace opens with it</td></tr>
+      <tr><td><code>write(1, …)</code></td><td>a write to stdout (fd 1) — program output <em>is</em> this syscall (L0009)</td></tr>
+      <tr><td><code>= 3</code>, <code>= 4</code>…</td><td>successful <code>open</code>/<code>socket</code> returns a new file descriptor</td></tr>
+      <tr><td><code>= -1 ENOENT</code></td><td>a failed open — file not there; the silent-failure smoking gun</td></tr>
+      <tr><td><code>exit_group(N)</code></td><td>the exit status — the same N read as <code>$?</code> since L0023</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>The trace rides stderr.</strong> <code>strace ls &gt; /dev/null</code> → trace only; <code>strace ls 2&gt;/dev/null</code> → clean run only (L0009 skill). Redirect deliberately before grepping: <code>strace -f sh -c '…' 2&gt;&amp;1 | grep -E 'execve|pipe|clone'</code>.</div>
+
+  <h2>Recurring vocabulary</h2>
+  <table>
+    <thead><tr><th>Call</th><th>The kernel…</th><th>Seen when</th></tr></thead>
+    <tbody>
+      <tr><td><code>execve</code></td><td>loads and runs a program image</td><td>line 1; each <code>-f</code> child</td></tr>
+      <tr><td><code>openat</code> / <code>close</code></td><td>opens a file (returns fd) / releases it</td><td>any file or config access</td></tr>
+      <tr><td><code>getdents64</code></td><td>reads directory entries</td><td>directory listings (<code>ls</code>)</td></tr>
+      <tr><td><code>read</code> / <code>write</code></td><td>moves bytes through an fd — file, socket, or stdio</td><td>everywhere; fd 0/1/2 = stdio (L0009)</td></tr>
+      <tr><td><code>pipe2</code></td><td>creates a pipe, returning two fds</td><td>shell pipelines (L0016)</td></tr>
+      <tr><td><code>clone</code> / <code>clone3</code></td><td>creates a child process (and thread)</td><td>anything that spawns</td></tr>
+      <tr><td><code>socket</code> / <code>bind</code> / <code>accept4</code></td><td>opens, names, and answers a network endpoint</td><td>servers — e.g. <code>http.server</code> under <code>-p</code></td></tr>
+      <tr><td><code>mmap</code> / <code>brk</code></td><td>maps/extends memory</td><td>startup noise — usually skimmable</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Where to run it</h2>
+  <p><code>strace</code> is Linux-only — the L0010 <code>ss</code> posture: drill it in the L0030 dev container (<code>docker run --rm -it debian bash</code>, then <code>apt-get update &amp;&amp; apt-get install -y strace</code>) or over SSH on a Linux remote (add <code>sudo</code> for installs and for <code>-p</code> attaches on shared boxes; in your own container you are root). macOS/BSD equivalent: <code>dtruss</code>, which wraps <code>dtrace</code> — needs <code>sudo</code>, and SIP-protected system binaries resist it. Named, not drilled (same posture as <code>gdb</code> in L0031).</p>
+
+  <h2>Triage patterns</h2>
+  <table>
+    <thead><tr><th>Symptom</th><th>Move</th><th>What you see</th></tr></thead>
+    <tbody>
+      <tr><td>fails silently</td><td><code>-e trace=file</code></td><td>the <code>openat(…) = -1 ENOENT</code> it died on</td></tr>
+      <tr><td>spawns helpers</td><td><code>-f</code></td><td><code>pipe2</code> + <code>clone</code> + a child <code>execve</code> per stage</td></tr>
+      <tr><td>service already running</td><td><code>pgrep</code> (L0008) → <code>-p PID</code></td><td>traffic arriving (<code>accept4</code>) or not; no restart, no code access</td></tr>
+      <tr><td>hangs / unexplained slowness</td><td><code>-T</code></td><td>the one call with a multi-second <code>&lt;…&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Overhead is real.</strong> Trapping every syscall slows the target — fine for triage, wrong for loaded production. That is MS’s bridge to <code>bpftrace</code>: lower overhead, kernel depth, aggregations — at the cost of root, an awk-ish syntax, and whole-kernel scope.</div>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <ul>
+      <li><strong><code>bpftrace</code> / eBPF</strong> — sandboxed kernel programs; syscall counting and latency aggregation, filtered by <code>comm</code> or PID, tracing from process start via <code>-c 'cmd'</code>. Root required.</li>
+      <li><strong><code>strace -c</code></strong> — summary table (calls, errors, time) instead of a line-by-line trace; the cheap cousin of bpftrace aggregation.</li>
+      <li><strong><code>ltrace</code></strong> — library-call tracing (the boundary with libc, not the kernel).</li>
+      <li><strong>ptrace scope</strong> — <code>/proc/sys/kernel/yama/ptrace_scope</code> governs who may attach on modern Linux; the reason <code>sudo</code> shows up on shared remotes.</li>
+      <li><strong>Network debugging</strong> — <code>tcpdump</code>/Wireshark; the packet-level sibling of this slice, pairs with L0010. Later Lecture-4 slice.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: System Call Tracing. <code>strace(1)</code>: <a href="https://www.man7.org/linux/man-pages/man1/strace.1.html">man7.org</a>. <code>dtruss(1)</code>: <a href="https://www.manpagez.com/man/1/dtruss/">manpagez</a>. Deeper read: <a href="https://jvns.ca/strace-zine-unfolded.pdf">Julia Evans — strace zine</a> (MS-linked). Streams: L0009. Exit status: L0023. Ops loop: L0008. Container posture: L0030. Debugger slice: L0031. Lesson: <a href="../lessons/0032-ms-strace-syscall-tracing.html">0032</a>.</p>
+  </footer>
+</body>
+</html>

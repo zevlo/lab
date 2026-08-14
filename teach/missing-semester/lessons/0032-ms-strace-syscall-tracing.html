@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0032 — MS system-call tracing</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0032 · <a href="../reference/debug-prof-strace.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>System-call tracing</h1>
+    <p class="lede"><code>strace</code>: watch every request a program makes of the kernel — files it opens, sockets it takes, why it waits. The Lecture-4 slice for the bug that lives at the program↔OS boundary, where L0031’s <code>pdb</code> can’t see.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0031’s toolkit works <em>inside</em> a program you can edit and re-run: prints and <code>pdb</code> watch your own variables. Plenty of real triage isn’t like that. The program is a binary you didn’t compile, a service already running, a tool that hangs with no error at all. <strong>System-call tracing</strong> moves the observation point to the <em>boundary</em>: every request the program makes of the kernel — opening files, allocating memory, creating processes, accepting connections. MS calls this family (with <code>bpftrace</code>) the highest-leverage DevOps debugging tool in the lecture. And it answers the question L0023 left open: a nonzero exit status tells you it failed; the trace shows you <em>where</em> — the <code>openat()</code> that came back <code>-1 ENOENT</code>.</p>
+  <p><strong>Read first (≈10 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the “System Call Tracing” section, <code>strace</code>/<code>dtruss</code> subsection. Skim the <code>bpftrace</code> paragraphs; they are named later, not drilled.</p>
+
+  <h2>Knowledge 1 — the program↔kernel boundary</h2>
+  <p>Everything a program wants from the outside world — files, memory, network, other processes — it asks the kernel for via a <strong>system call</strong>. User code runs unprivileged; the syscall is the guarded door. <code>strace</code> sits at that door and logs every crossing:</p>
+  <pre><code>execve("/bin/ls", ["ls", "/"], 0x... /* 25 vars */) = 0
+openat(AT_FDCWD, "/", O_RDONLY|O_DIRECTORY)     = 3
+getdents64(3, 0x... /* 20 entries */, 32768)    = 616
+close(3)                                         = 0
+write(1, "bin\nboot\ndev\n...", 49)              = 49
+exit_group(0)                                    = ?</code></pre>
+  <p>Read each line as <code>syscall(arguments) = result</code>. Three things to recognize on sight:</p>
+  <table>
+    <thead><tr><th>Line</th><th>Means</th><th>Recall hook</th></tr></thead>
+    <tbody>
+      <tr><td><code>execve</code> first</td><td>the kernel loads and runs the program — the traced command itself</td><td>“the load verb”</td></tr>
+      <tr><td><code>write(1, …)</code></td><td>a write to fd 1 = stdout — the program’s output IS this syscall</td><td>L0009 streams</td></tr>
+      <tr><td><code>= -1 ENOENT</code></td><td>a failed open — the file it wanted does not exist (there)</td><td>the smoking gun</td></tr>
+    </tbody>
+  </table>
+  <p>File descriptors 0/1/2 are stdin/stdout/stderr (L0009). And note the last line: <code>exit_group(0)</code> — the exit status you have read as <code>$?</code> since L0023 is literally a syscall argument. The trace also lands on <strong>stderr</strong>, so <code>strace ls / &gt; /dev/null</code> shows the trace alone and <code>strace ls / 2&gt;/dev/null</code> shows the clean run — L0009 redirect skill, reused.</p>
+
+  <h2>Knowledge 2 — the five strace shapes</h2>
+  <p>MS lists five invocations. They compose: pick what to trace, whether to follow children, live or from birth, timed or not.</p>
+  <table>
+    <thead><tr><th>Invocation</th><th>Answers</th><th>Recall hook</th></tr></thead>
+    <tbody>
+      <tr><td><code>strace ./prog</code></td><td>everything, from the first <code>execve</code></td><td>“all of it”</td></tr>
+      <tr><td><code>strace -e trace=file ./prog</code></td><td>only file-related calls — cut the noise</td><td>“what files?”</td></tr>
+      <tr><td><code>strace -f ./prog</code></td><td>follow children too — MS: “important for programs that start other programs”</td><td>f = family</td></tr>
+      <tr><td><code>strace -p &lt;PID&gt;</code></td><td>attach to a process already running; <code>Ctrl-C</code> detaches</td><td>“it’s alive — observe in place”</td></tr>
+      <tr><td><code>strace -T ./prog</code></td><td>time spent in each call (<code>&lt;0.000123&gt;</code>)</td><td>“where does it wait?”</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>Where to run it.</strong> <code>strace</code> is Linux — same posture as <code>ss</code> in L0010. Drill it in the L0030 dev container (a disposable Linux box) or over SSH on a Linux remote. On macOS/BSD the equivalent is <a href="https://www.manpagez.com/man/1/dtruss/"><code>dtruss</code></a>, which wraps <code>dtrace</code>: it needs <code>sudo</code>, and SIP-protected system binaries resist it — <strong>named, not drilled</strong>, same posture as <code>gdb</code> in L0031. On a shared remote, attaching with <code>-p</code> generally needs <code>sudo</code> too; in your own container you are root.</div>
+
+  <h2>Knowledge 3 — triage patterns</h2>
+  <p>Four shapes cover most real use:</p>
+  <table>
+    <thead><tr><th>Symptom</th><th>Move</th><th>What you see</th></tr></thead>
+    <tbody>
+      <tr><td>fails silently, no message</td><td><code>-e trace=file</code></td><td>the <code>openat(… config …) = -1 ENOENT</code> it died on</td></tr>
+      <tr><td>spawns helpers, pipeline-shaped</td><td><code>-f</code></td><td><code>pipe2</code> + <code>clone</code> + a child <code>execve</code> per stage</td></tr>
+      <tr><td>service already running</td><td><code>pgrep</code> (L0008) → <code>-p PID</code></td><td>traffic arriving (<code>accept4</code>) or not; no restart needed</td></tr>
+      <tr><td>hangs / slow for no reason</td><td><code>-T</code></td><td>the one call with a multi-second <code>&lt;…&gt;</code> — the wait made visible</td></tr>
+    </tbody>
+  </table>
+  <p>The common thread is the L0031 cardinal rule, one level down: don’t assume what the program did with the OS — <strong>watch the actual calls</strong>. A debugger inspects state inside the program; a syscall trace inspects its behavior at the boundary. Each sees what the other can’t. One honest caveat, straight from MS’s <code>bpftrace</code> paragraphs: tracing this way traps every syscall, so it <em>slows the target</em> — fine for triage, wrong for load. The low-overhead kernel-depth version is <code>bpftrace</code>, named below.</p>
+
+  <h2>Drill — at the door</h2>
+  <p>Ghostty + bash + vim, tmux for panes. The trace runs on Linux: the L0030 container posture (nothing lands on the Mac; <code>--rm</code> cleans up). An SSH Linux remote works identically — add <code>sudo</code> for installs and <code>-p</code> attaches.</p>
+  <ol>
+    <li>
+      Cold-name the slice: what is a system call, and what can a syscall trace show that L0031’s <code>pdb</code> cannot?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>A syscall is a program’s request for a kernel service (open a file, allocate memory, spawn a process, accept a connection). The trace shows behavior at the program↔kernel boundary — for binaries you can’t step through, services already running, and waits that never appear as a variable value. <code>pdb</code> inspects state inside a program you can re-run and edit; <code>strace</code> inspects what any program does to the OS.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot the Linux box and first trace.</strong> On the Mac:
+      <pre><code>docker run --rm -it -p 4444:4444 --name ms-trace debian bash
+# inside the container:
+apt-get update &amp;&amp; apt-get install -y strace python3
+strace ls /</code></pre>
+      Scroll to the top. Three cold reads: (a) which syscall is line 1 and why, (b) which call carries the directory listing itself, (c) find the <code>write(1, …)</code> lines and say what fd 1 is. Then prove the trace lives on stderr, L0009-style: <code>strace ls / &gt; /dev/null</code> vs <code>strace ls / 2&gt;/dev/null</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>execve("/bin/ls", …)</code> — the kernel loading the traced command itself. (b) <code>openat</code> on the directory, then <code>getdents64</code> reads the entries, <code>close</code> when done. (c) fd 1 = stdout; the listing you normally see is exactly that <code>write(1, "bin\nboot\n…")</code>. Redirects: <code>&gt; /dev/null</code> discards stdout → only the trace remains; <code>2&gt;/dev/null</code> discards the trace → only the listing remains. Trace = stderr, listing = stdout.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cut the noise.</strong> <code>-e trace=file</code> shows only file-related calls:
+      <pre><code>strace -e trace=file ls -l /</code></pre>
+      Look at what appears <em>before</em> <code>ls</code> even starts (hints: <code>/etc/ld.so.cache</code>, locale files). One sentence: what is that pre-show, and what does <code>-e trace=file</code> buy you?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>The dynamic linker and libc startup run first — hunting shared libraries (<code>ld.so.cache</code>) and locale data before <code>main()</code> ever executes. <code>-e trace=file</code> filters to file-related calls only, so “what files does it touch” stays readable instead of drowning in <code>mmap</code>/<code>read</code>/housekeeping noise.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>A pipeline from the kernel’s side.</strong> L0016 composed <code>ls | wc -l</code> in the shell; here is what the kernel saw:
+      <pre><code>strace -f bash -c 'ls | wc -l' 2&gt;&amp;1 | grep -E 'execve|pipe|clone'</code></pre>
+      Name the three acts you spot, and one sentence on why <code>-f</code> was mandatory.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Three acts: <code>pipe2([3, 4])</code> creates the pipe; <code>clone</code> (or <code>clone3</code>) forks each stage; each child gets its own <code>execve</code> (<code>ls</code>, <code>wc</code>). Without <code>-f</code>, strace follows only the parent (bash) and you’d see the pipe built but never the children that do the work — MS’s “important for programs that start other programs.”</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Attach to a live service (L0008 + L0031 callback).</strong> Pane A in the container:
+      <pre><code>python3 -m http.server 4444</code></pre>
+      Pane B in the container (a second <code>docker exec -it ms-trace bash</code> from the Mac, or a tmux split):
+      <pre><code>pgrep -f http.server          # L0008
+strace -p &lt;PID&gt; -T</code></pre>
+      Then from the Mac: <code>curl -i http://localhost:4444/ &gt;/dev/null</code>. Watch pane B: an <code>accept4</code> arrives, a socket is read, and — L0031 callback — the access-log line you read there is itself a <code>write(1, "127.0.0.1 - - …")</code>. Detach with <code>Ctrl-C</code>; the server keeps running. One sentence: why attach rather than restart-and-trace?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Same logic as L0031’s debugger-vs-print call: attaching observes the real process — its state, its traffic, its waits — without paying a restart (lost in-memory state, dropped connections) and without owning the code. For “is the service even receiving requests / where is it stuck,” <code>pgrep</code> → <code>strace -p</code> is the whole loop, and <code>Ctrl-C</code> detaches without killing it. Cleanup when done: <code>kill &lt;PID&gt;</code> (L0008), <code>exit</code> the container, <code>--rm</code> already took care of the rest.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>All five strace shapes from memory, with the question each answers.</li>
+        <li>Why is <code>execve</code> always line 1 — whose syscall is it?</li>
+        <li>One sentence: <code>pdb</code> vs <code>strace</code> observation point.</li>
+        <li>Name the macOS equivalent, and the one-line reason it isn’t drilled tonight.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) plain = everything; <code>-e trace=file</code> = what files; <code>-f</code> = follow children; <code>-p PID</code> = attach to a running process; <code>-T</code> = time per call.<br>
+        (b) It’s the kernel loading the traced command itself — the door you walked in through.<br>
+        (c) <code>pdb</code> watches state inside a program you can edit/re-run; <code>strace</code> watches its behavior at the kernel boundary — any binary, running or fresh.<br>
+        (d) <code>dtruss</code> (wraps <code>dtrace</code>) — needs <code>sudo</code> and fights SIP on system binaries, so the drill runs on a Linux box instead.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <code>bpftrace</code>/eBPF — MS’s lower-overhead, kernel-depth sibling: aggregations (syscall counts), filtering by <code>comm</code>/PID, runs as root and watches the whole kernel; reach for it when plain tracing is too slow or you need counts, not lines. Still open in Lecture 4: network debugging (<code>tcpdump</code>/Wireshark — pairs with L0010), memory debugging (ASan/Valgrind), record-replay (<code>rr</code>, named L0031), AI-for-debugging, and the whole Profiling half. Julia Evans’s <a href="https://jvns.ca/strace-zine-unfolded.pdf">strace zine</a> (MS-linked) is the best deeper read for this slice.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What does <code>strace</code> actually show you?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">every system call the program makes to the kernel</li>
+      <li class="option">every function call made inside your own code</li>
+      <li class="option">every packet crossing the machine’s network card</li>
+      <li class="option">every line of source the interpreter executes</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Why does MS call <code>-f</code> “important for programs that start other programs”?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">children are traced too — without it you only follow the parent</li>
+      <li class="option">it makes strace run noticeably faster on large binaries</li>
+      <li class="option">it filters the trace down to file-related calls only</li>
+      <li class="option">it forces strace to follow the system’s font cache</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>A binary fails with no error message. You want the files it tried to open. Which move?</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>strace -e trace=file ./prog</code></li>
+      <li class="option"><code>strace -T ./prog</code></li>
+      <li class="option"><code>strace -p ./prog</code></li>
+      <li class="option"><code>strace -f -T ./prog</code></li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>A service is already running and you suspect it’s stuck. How do you see its syscalls without restarting it?</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>pgrep</code> for the PID, then <code>strace -p &lt;PID&gt;</code> to attach</li>
+      <li class="option">run <code>strace ./service</code> — it attaches to the live copy</li>
+      <li class="option">run <code>strace -f ./service</code> so children are included</li>
+      <li class="option">send <code>kill -9</code>, then trace the core dump it leaves</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the boundary framing land — <code>pdb</code> inside the program, <code>strace</code> at the kernel door? Did <code>execve</code>-first, <code>write(1, …)</code>, and the <code>-p</code> attach loop click in the container? Any surprise that the trace itself rides stderr?</p>
+    <p style="margin-bottom:0">Next when ready: the remaining Lecture-4 slices — network debugging (<code>tcpdump</code>), memory debugging (ASan/Valgrind), or the Profiling half (<code>time</code>/<code>htop</code>/<code>perf</code>) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: System Call Tracing (strace/dtruss).</li>
+      <li><a href="https://www.man7.org/linux/man-pages/man1/strace.1.html"><code>strace(1)</code> — man7.org</a>. <a href="https://www.manpagez.com/man/1/dtruss/"><code>dtruss(1)</code></a> (macOS, named). <a href="https://jvns.ca/strace-zine-unfolded.pdf">Julia Evans — strace zine</a> (MS-linked).</li>
+      <li>Streams/redirects: L0009. Exit status ↔ <code>exit_group</code>: L0023. Ops loop (<code>pgrep</code>/<code>curl</code>/<code>kill</code>): L0008. Container posture: L0030. Linux-remote posture (<code>ss</code>): L0010. Debugger slice: L0031.</li>
+    </ul>
+    <p>Previous: <a href="./0031-ms-debugging-fundamentals.html">Lesson 0031 — debugging fundamentals</a>. Reference: <a href="../reference/debug-prof-strace.html">system-call tracing</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the five strace shapes, the execve-first line, and the trace-rides-stderr fact once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

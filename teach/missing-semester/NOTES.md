@@ -351,3 +351,19 @@
 - **Scratch:** `/tmp/ms-debug/`. Buggy file built with `cat <<'EOF'` (house rule).
 - **Skip / Defer:** `rr` (record-replay, reverse debugging, Linux-only); `strace`/`dtruss`/`bpftrace` (syscall tracing — its own later slice, highest DevOps leverage); `tcpdump`/Wireshark (network debugging, relates to L0010); ASan/TSan/MSan/UBSan + Valgrind (memory debugging, mostly C/C++/Rust); AI-for-debugging; the whole Profiling half (`time` real/user/sys, `htop`, `perf` + flame graphs, callgrind/massif, `hyperfine`). gdb drill depth (C/Rust debug) waits until a compiled-language need appears.
 - **Next when asked:** next Lecture-4 slice (strace/dtruss, tcpdump, or the Profiling half), more vim practice, or L0020 workbook re-run.
+
+## L0031 complete (4/4; debugging fundamentals floor set)
+- Golden rule + printf-vs-logging split, `pdb` core (`b`/`c`/`n`/`s`/`p`/`q` + `breakpoint()`), third-party logs, and the logic-bug framing (checkers pass, program still wrong) all landed. No friction reported.
+- Quiz flawless path asked for cold rebuilds of golden rule, pdb core, and why-checkers-miss-it — assume done.
+- Next when asked: next Lecture-4 slice (strace/dtruss, tcpdump, or Profiling half), more vim practice, or L0020 workbook re-run.
+
+## L0032 design notes (MS Lecture 4 — system-call tracing, second slice)
+- **Topic choice:** User picked strace/dtruss from the L0031 ask options (recommended as highest-leverage DevOps tool per L0031 Later box). Second Lecture-4 slice.
+- **Primary sources:** MS Debugging and Profiling — “System Call Tracing” (strace/dtruss subsection). Verified exact wording via webfetch: the five invocations (plain / `-e trace=file` / `-f` with the “important for programs that start other programs” parenthetical / `-p PID` / `-T`), the dtruss-wraps-dtrace macOS note, bpftrace paragraphs, and the MS exercise-4 shape (trace `ls -l`, see what a more complex program opens).
+- **Scope:** the program↔kernel boundary concept; reading a trace line (`syscall(args) = result`; `execve` first; `write(1, …)` = stdout; `= -1 ENOENT` = the smoking gun; `exit_group` ↔ `$?`); the five strace shapes table; triage patterns (silent failure → `-e trace=file`; spawner → `-f`; live service → `pgrep`+`-p`; hang → `-T`); trace-rides-stderr fact (L0009 reuse: `> /dev/null` vs `2>/dev/null`); overhead caveat as the bridge to bpftrace.
+- **Environment posture:** strace is Linux-only — L0010 `ss` pattern. Drill = L0030 dev container (`docker run --rm -it -p 4444:4444 debian`, apt installs strace+python3, second shell via `docker exec`); SSH Linux remote named as identical alternative (sudo for installs/attaches). macOS `dtruss` named, not drilled (sudo + SIP friction on system binaries) — same posture as gdb in L0031. Mandatory caveat included in-lesson.
+- **Reuse:** L0009 (stderr/redirects, fd 0/1/2); L0023 (`$?` is literally `exit_group`); L0008 (pgrep/curl/kill loop in the attach drill); L0016 (pipeline seen from kernel side: `pipe2`+`clone`+child `execve`s); L0030 (container as disposable Linux box, `--rm`, `-p` port map); L0031 (access-log line = `write(1, …)` callback; debugger-vs-trace observation point).
+- **Skill win:** cold-rebuild five shapes + execve-first + `pdb`-vs-`strace` boundary + dtruss caveat; live drill traces `ls`, filters with `-e trace=file`, kernel-views a pipeline with `-f`, attaches to `http.server` with `-p`/`-T` while curling from the Mac.
+- **Scratch:** disposable container (`--name ms-trace`); nothing lands on the Mac.
+- **Skip / Defer:** bpftrace/eBPF (named in Later box with MS’s aggregation/root/whole-kernel points); `strace -c` summary (reference only); ltrace; ptrace_scope depth (reference only); tcpdump (next-slice candidate); ASan/Valgrind; rr; AI-for-debugging; Profiling half.
+- **Next when asked:** tcpdump, ASan/Valgrind, or the Profiling half — or more vim practice, or L0020 workbook re-run.

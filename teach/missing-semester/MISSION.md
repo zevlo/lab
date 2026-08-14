@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** L0031 in flight — MS lecture 4 (Debugging and Profiling), sliced to the foundational debugging half (the golden rule; printf vs logging; `pdb` core + `gdb` named; the reproduce→isolate→inspect→fix→gate loop; L0028 checkers pass and the program is still wrong = a logic bug). MS lecture 3 fully done. Later Lecture-4 slices: strace/dtruss, tcpdump, ASan/Valgrind, rr, AI-for-debugging, and the Profiling half (`time`/`htop`/`perf`/`hyperfine`). Next when requested: next Lecture-4 slice, MS Shipping Code lecture, more vim practice, or L0020 workbook re-run.
+**Next up:** L0032 in flight — MS lecture 4, second slice: system-call tracing (`strace` five shapes; trace reading — `execve` first, `write(1, …)`, `= -1 ENOENT`, `exit_group` ↔ `$?`; triage patterns incl. `-p` attach; container/SSH-Linux drill; `dtruss` named only). L0031 done (debugging fundamentals). Remaining Lecture-4 slices: tcpdump, ASan/Valgrind, rr, AI-for-debugging, and the Profiling half (`time`/`htop`/`perf`/`hyperfine`). Next when requested: another Lecture-4 slice, more vim practice, or L0020 workbook re-run.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
