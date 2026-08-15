@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0033 — MS network debugging</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0033 · <a href="../reference/debug-prof-tcpdump.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>Network debugging — tcpdump</h1>
+    <p class="lede"><code>tcpdump</code>: read the packets themselves as they cross an interface. The Lecture-4 slice for when the question is <em>“is this even leaving the machine — and what comes back?”</em> — one observation point past L0032’s kernel boundary.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>The triage ladder so far: <code>curl -i</code> (L0008) showed the HTTP conversation; <code>ss -tlnp</code> (L0010) showed the sockets a box owns; <code>strace</code> (L0032) showed the syscalls at the kernel door. When two machines disagree — “works for me,” <em>connection refused</em> versus a silent timeout — every one of those views is a claim by one side. The packet is the only neutral witness. MS: “For network issues, <code>tcpdump</code> and Wireshark let you capture and analyze network packets.” This slice drills <code>tcpdump</code> — the CLI one, present on every Linux box you will ever SSH into.</p>
+  <p><strong>Read first (≈5 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the “Network Debugging” subsection (short: two commands, one honest caveat about HTTPS).</p>
+
+  <h2>Knowledge 1 — the fourth observation point</h2>
+  <p><code>tcpdump</code> copies packets that match a filter as they cross a network interface — loopback included — and prints one summary line per packet, or saves them raw to a file. Put it at the end of the ladder:</p>
+  <table>
+    <thead><tr><th>Tool</th><th>Observation point</th><th>Sees</th></tr></thead>
+    <tbody>
+      <tr><td><code>curl -i</code></td><td>the client (L0008)</td><td>the conversation — request, status, headers</td></tr>
+      <tr><td><code>ss -tlnp</code></td><td>the box (L0010)</td><td>the sockets — who is listening, owning process</td></tr>
+      <tr><td><code>strace</code></td><td>the boundary (L0032)</td><td>the syscalls — <code>socket</code>, <code>bind</code>, <code>accept4</code></td></tr>
+      <tr><td><code>tcpdump</code></td><td>the wire</td><td>the packets themselves — both directions, both sides of the story</td></tr>
+    </tbody>
+  </table>
+  <p>Capturing needs raw access to the interface — hence <code>sudo</code> on any shared box (MS writes it that way too); in your own L0030 container you are already root. Unlike <code>strace</code>, this one is <em>not</em> Linux-only: macOS ships <code>tcpdump</code> (same libpcap filters; interfaces are named <code>lo0</code>/<code>en0</code>, and <code>-i any</code> works on recent macOS). The drill still runs in the disposable container — quiet network, no Mac traffic noise, <code>--rm</code> cleanup.</p>
+
+  <h2>Knowledge 2 — the command shapes</h2>
+  <p>MS gives two invocations; the man page adds the habits that make output readable:</p>
+  <table>
+    <thead><tr><th>Invocation</th><th>Answers</th><th>Recall hook</th></tr></thead>
+    <tbody>
+      <tr><td><code>sudo tcpdump -i any port 80</code></td><td>packets to/from port 80, on every interface (MS)</td><td>“web traffic”</td></tr>
+      <tr><td><code>sudo tcpdump -i any -w capture.pcap</code></td><td>save raw packets to a file for later / Wireshark (MS)</td><td>“keep the evidence”</td></tr>
+      <tr><td><code>-n</code></td><td>don’t resolve addresses to names — output stays numbers (man: “often best to pass -n”)</td><td>no DNS detours</td></tr>
+      <tr><td><code>-c 20</code></td><td>stop after 20 packets — scriptable, no Ctrl-C wait</td><td>“just twenty”</td></tr>
+      <tr><td><code>-r file.pcap</code></td><td>read a capture back (pair of <code>-w</code>)</td><td>replay</td></tr>
+      <tr><td><code>-A</code> / <code>-X</code></td><td>payload as ASCII / hex+ASCII — “handy for capturing web pages” (man)</td><td>see the bytes</td></tr>
+    </tbody>
+  </table>
+  <p>The tail of the command is a <strong>filter</strong> in the libpcap language — the same one Wireshark uses. It compiles to BPF and runs in the kernel, so packets you don’t want never even reach userspace. The working vocabulary is small:</p>
+  <table>
+    <thead><tr><th>Primitive</th><th>Matches</th><th>Man-page example</th></tr></thead>
+    <tbody>
+      <tr><td><code>host 192.0.2.1</code></td><td>any packet to or from that address</td><td><code>tcpdump -n 'host 192.0.2.1'</code></td></tr>
+      <tr><td><code>port 53</code></td><td>any packet with that source or dest port</td><td><code>tcpdump -n 'port 8080'</code></td></tr>
+      <tr><td><code>src</code> / <code>dst</code></td><td>one direction only</td><td><code>tcpdump -n 'src host … and port 53'</code></td></tr>
+      <tr><td><code>tcp</code> / <code>udp</code> / <code>icmp</code></td><td>protocol</td><td><code>tcpdump -n icmp</code></td></tr>
+      <tr><td><code>and</code> / <code>or</code> / <code>not</code></td><td>combine any of the above</td><td><code>host … and not port 22</code></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Knowledge 3 — reading a capture</h2>
+  <p>One line per packet: <code>timestamp  interface  dir  IP src.port &gt; dst.port: Flags […], seq …, ack …, length N</code>. A <code>curl</code> against a local server reads like this (modern tcpdump prints the interface and <code>In</code>/<code>Out</code> on <code>-i any</code>):</p>
+  <pre><code>11:04:07.113501 lo In IP 127.0.0.1.51732 &gt; 127.0.0.1.4444: Flags [S],  seq 3847561023, win 65495, options [mss 65495,…], length 0
+11:04:07.113544 lo In IP 127.0.0.1.4444 &gt; 127.0.0.1.51732: Flags [S.], seq 2309310903, ack 1, win 65483, options […], length 0
+11:04:07.113568 lo In IP 127.0.0.1.51732 &gt; 127.0.0.1.4444: Flags [.],  ack 1, win 65495, length 0
+11:04:07.113701 lo In IP 127.0.0.1.51732 &gt; 127.0.0.1.4444: Flags [P.], seq 1:79, ack 1, win 65495, length 78: HTTP: GET / HTTP/1.1</code></pre>
+  <p>The first three lines are the <strong>TCP three-way handshake</strong> — a connection being born, recognizable on sight as <code>S → S. → .</code> with <code>length 0</code>. What L0032 showed as one <code>accept4</code> syscall is, on the wire, exactly these packets. Flags to know:</p>
+  <table>
+    <thead><tr><th>Flag</th><th>Means</th><th>Seen when</th></tr></thead>
+    <tbody>
+      <tr><td><code>[S]</code> / <code>[S.]</code></td><td>SYN — open a connection; SYN+ACK — the answer</td><td>handshake lines 1–2</td></tr>
+      <tr><td><code>[.]</code></td><td>ACK — receipt confirmation, no data</td><td>handshake line 3, and between bursts</td></tr>
+      <tr><td><code>[P.]</code></td><td>PSH+ACK — carries payload</td><td>the GET, the response body</td></tr>
+      <tr><td><code>[F.]</code></td><td>FIN — orderly close, one per side</td><td>teardown</td></tr>
+      <tr><td><code>[R.]</code></td><td>RST — abort: <em>nothing listening here</em></td><td>refused connections</td></tr>
+    </tbody>
+  </table>
+  <p>Now the triage shapes — the two failures that look identical in a client log and are unmistakable in a capture:</p>
+  <table>
+    <thead><tr><th>Symptom</th><th>Capture shows</th><th>Verdict / next move</th></tr></thead>
+    <tbody>
+      <tr><td>fails fast, “connection refused”</td><td>your <code>[S]</code> answered by <code>[R.]</code></td><td>host alive, port closed — cross-check <code>ss -tlnp</code> (L0010)</td></tr>
+      <tr><td>hangs, then timeout</td><td><code>[S]</code> out, silence back</td><td>dropped, not refused — firewall or wrong host</td></tr>
+      <tr><td>“server receives nothing”</td><td>run the capture <em>on the server</em> while curling</td><td>packets present = network fine, app-layer problem</td></tr>
+      <tr><td>need it later, or for someone else</td><td><code>-w file.pcap</code>, read with <code>-r</code>, open in Wireshark</td><td>the evidence file — MS’s second invocation</td></tr>
+      <tr><td>which process is that?</td><td>—</td><td>tcpdump can’t say; that’s <code>ss -tlnp</code>’s job (L0010). They compose.</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>The HTTPS caveat, straight from MS.</strong> Encryption makes <code>tcpdump</code> “less useful” for HTTPS: you still see the connection shape — handshake, sizes, resets — but the payload is ciphertext. For content, MS points at browser dev tools (Network tab) and <code>mitmproxy</code> as an intercepting proxy — <strong>named, not drilled</strong>. The counterpoint: this slice’s plaintext HTTP drills <em>are</em> fully readable with <code>-A</code> — that’s the whole point of the flag.</div>
+
+  <h2>Drill — on the wire</h2>
+  <p>Ghostty + bash + vim, tmux for panes. Same posture as L0032: the L0030 disposable Linux box, nothing lands on the Mac, <code>--rm</code> cleans up. You are root inside, so no <code>sudo</code>. An SSH Linux remote works identically (add <code>sudo</code>).</p>
+  <ol>
+    <li>
+      Cold-name the slice: the four observation points in the ladder, and what each one sees. One sentence: why is the packet the “neutral witness”?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>curl -i</code> — the client’s view of the conversation (L0008). <code>ss -tlnp</code> — the box’s sockets, with owning process (L0010). <code>strace</code> — the program↔kernel boundary, e.g. <code>accept4</code> (L0032). <code>tcpdump</code> — the packets crossing an interface, both directions. Neutral because every other view is reported by one side; the packet is the raw fact both sides actually put on the wire.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot the box and watch a connection be born.</strong> On the Mac:
+      <pre><code>docker run --rm -it -p 4444:4444 --name ms-net debian bash
+# inside the container:
+apt-get update &amp;&amp; apt-get install -y tcpdump python3 curl
+python3 -m http.server 4444</code></pre>
+      Second shell (<code>docker exec -it ms-net bash</code> from the Mac, or a tmux split):
+      <pre><code>tcpdump -ni any port 4444</code></pre>
+      Then from the Mac: <code>curl -i http://localhost:4444/</code>. Cold reads: (a) the first three packet lines — name the ceremony; (b) which line carries <code>GET /</code>, and which flag marks it; (c) where did the Mac’s address go — whose <code>172.17.0.1</code> is that?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>[S]</code> → <code>[S.]</code> → <code>[.]</code> — the TCP three-way handshake, all <code>length 0</code>; L0032’s single <code>accept4</code> syscall unpacked into packets. (b) The <code>[P.]</code> line — PSH+ACK is the “carries data” flag; <code>length 78</code> matches the request size, and tcpdump annotates <code>HTTP: GET / HTTP/1.1</code>. (c) Docker’s port publish does NAT: your curl arrives at the container as the bridge gateway <code>172.17.0.1</code>, not your Mac’s LAN address — the rewrite is visible because <code>-n</code> keeps everything as numbers.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Work the filter.</strong> Still capturing on <code>any</code>, narrow three ways and one sentence each on what changed:
+      <pre><code>tcpdump -ni any host 127.0.0.1
+tcpdump -ni any src port 4444
+tcpdump -ni any not port 4444</code></pre>
+      Then the L0010 callback, from the wire’s side:
+      <pre><code>tcpdump -ni any udp port 53
+getent hosts example.com</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>host 127.0.0.1</code>: only loopback traffic — the eth0 lines from task 2 vanish. <code>src port 4444</code>: one direction only — just the server’s replies. <code>not port 4444</code>: everything except your own drill traffic — how you watch a box without watching yourself. DNS: two UDP lines to port 53 (<code>A? example.com.</code> out, answer back) — in a container that resolver is Docker’s embedded DNS at <code>127.0.0.11</code>; same question <code>dig</code> answered in L0010, now seen as packets.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>The two failures (the money drill).</strong> Capture on the dead port:
+      <pre><code>tcpdump -ni any port 9999
+curl -v http://127.0.0.1:9999/   # in the other shell</code></pre>
+      Read the two lines, then cross-check: <code>ss -tlnp | grep 9999</code> versus <code>ss -tlnp | grep 4444</code> (L0010). Now the other shape — <code>curl -m 3 http://10.255.255.1/</code> with <code>tcpdump -ni any port 80</code> running. One sentence: same client symptom class, different wire truth.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Refused: your <code>[S]</code> is answered <code>[R.]</code> within the millisecond — the kernel itself saying “nothing listens on 9999.” Confirmed: <code>ss -tlnp</code> shows no 9999 listener but a live 4444 one. Timeout: <code>[S]</code> out, <em>nothing</em> back — dropped (firewall / unroutable host), not refused. “Connection refused” means the host answered; silence means the packet never made a round trip. That distinction exists <em>only</em> at this observation point — curl prints two vaguely similar errors.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Keep the evidence.</strong> MS’s second invocation, bounded:
+      <pre><code>tcpdump -ni any port 4444 -w /tmp/hi.pcap -c 12
+curl -s http://127.0.0.1:4444/ &gt; /dev/null   # refill
+tcpdump -r /tmp/hi.pcap | head -4
+tcpdump -A -r /tmp/hi.pcap | less</code></pre>
+      Note what changed in the readback without <code>-n</code>; then find the GET in the <code>-A</code> output. One sentence: why is the plaintext visible here and never on an HTTPS capture?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>-w</code> writes raw packets (the .pcap Wireshark also opens); <code>-r</code> replays them through the same printer — and without <code>-n</code> it now resolves addresses to names, so the readback looks different from the live capture; add <code>-n</code> to keep numbers. <code>-A</code> prints the payload as ASCII — the <code>GET / HTTP/1.1</code> line sits there in plain sight because HTTP is plaintext; on HTTPS those bytes are ciphertext and no flag decodes them (MS’s caveat — that’s browser dev tools / mitmproxy territory, named only).</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>The observation-point ladder — four tools, four views.</li>
+        <li>The handshake as three flag-lines, plus what <code>[P.]</code>, <code>[F.]</code>, <code>[R.]</code> each mean.</li>
+        <li>Refused vs. dropped: the two capture shapes, and which tool names the owning process.</li>
+        <li>Both MS invocations from memory; the one-line HTTPS caveat.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) <code>curl -i</code> conversation / <code>ss -tlnp</code> sockets / <code>strace</code> syscalls / <code>tcpdump</code> packets.<br>
+        (b) <code>[S]</code> → <code>[S.]</code> → <code>[.]</code>, length 0 — a connection opening; <code>[P.]</code> carries data; <code>[F.]</code> orderly close; <code>[R.]</code> abort — nothing listening.<br>
+        (c) Refused = SYN answered by RST, fast; dropped = SYN out, silence, timeout. Process names come from <code>ss -tlnp</code> (L0010), never tcpdump.<br>
+        (d) <code>sudo tcpdump -i any port 80</code>; <code>sudo tcpdump -i any -w capture.pcap</code>. HTTPS: shape visible, payload encrypted — dev tools / mitmproxy for content.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <strong>Wireshark</strong> — the GUI analyst for those <code>.pcap</code> files: same filter language, “follow TCP stream,” protocol decodes; named, not part of a defaults-only terminal stack. <strong><code>mitmproxy</code></strong> — the intercepting proxy for encrypted-traffic content (MS-linked). <strong>Filter depth</strong> — <code>pcap-filter(7)</code> can slice into headers (<code>tcp[tcpflags] &amp; (tcp-syn|tcp-fin) != 0</code>) — reference only. Still open in Lecture 4: memory debugging (ASan/Valgrind), record-replay (<code>rr</code>, named L0031), AI-for-debugging, and the whole Profiling half (<code>time</code>/<code>htop</code>/<code>perf</code>/<code>hyperfine</code>).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>What does <code>tcpdump</code> actually show you?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">the packets crossing an interface, both directions, filtered as asked</li>
+      <li class="option">the system calls a program makes to the kernel</li>
+      <li class="option">the sockets a box has open, with owning processes</li>
+      <li class="option">the HTTP conversation exactly as the client saw it</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>You see <code>[S]</code>, then <code>[S.]</code>, then <code>[.]</code> — three lines, <code>length 0</code>. What just happened?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">a TCP connection was established — the three-way handshake</li>
+      <li class="option">a connection was refused and torn down at once</li>
+      <li class="option">three packets of application data were delivered</li>
+      <li class="option">the kernel logged a malformed packet it dropped</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>MS’s invocation for capturing web traffic on port 80, all interfaces:</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>sudo tcpdump -i any port 80</code></li>
+      <li class="option"><code>sudo tcpdump -i any -w 80</code></li>
+      <li class="option"><code>sudo tcpdump -c any -i 80</code></li>
+      <li class="option"><code>sudo tcpdump -i any host 80</code></li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Your <code>[S]</code> comes back as <code>[R.]</code> within a millisecond; curl says “connection refused.” What does that mean, and what confirms it?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">the host answered “nothing listening” — <code>ss -tlnp</code> shows no listener on that port</li>
+      <li class="option">a firewall silently dropped the packet on its way out</li>
+      <li class="option">DNS resolved the name to the wrong address</li>
+      <li class="option">the server accepted the connection and then crashed</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the ladder land — curl conversation, ss sockets, strace syscalls, tcpdump packets? Did refused-RST vs. dropped-silence click once <code>ss -tlnp</code> confirmed it? Any surprise that <code>-A</code> reads the plaintext GET in full, while HTTPS stays opaque?</p>
+    <p style="margin-bottom:0">Next when ready: the remaining Lecture-4 slices — memory debugging (ASan/Valgrind), record-replay (<code>rr</code>), AI-for-debugging, or the Profiling half (<code>time</code>/<code>htop</code>/<code>perf</code>) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: Network Debugging (tcpdump/Wireshark, the HTTPS caveat).</li>
+      <li><a href="https://www.man7.org/linux/man-pages/man1/tcpdump.1.html"><code>tcpdump(1)</code> — man7.org</a> (flags, output format, examples). <a href="https://www.man7.org/linux/man-pages/man7/pcap-filter.7.html"><code>pcap-filter(7)</code></a> (the filter language). <a href="https://www.wireshark.org/">Wireshark</a> / <a href="https://mitmproxy.org/">mitmproxy</a> (named, MS-linked).</li>
+      <li>Ops loop (<code>curl -i</code>): L0008. <code>dig</code>/<code>ss -tlnp</code>: L0010. Syscall boundary: L0032. Container posture: L0030. Debugger slice: L0031.</li>
+    </ul>
+    <p>Previous: <a href="./0032-ms-strace-syscall-tracing.html">Lesson 0032 — system-call tracing</a>. Reference: <a href="../reference/debug-prof-tcpdump.html">network debugging (tcpdump)</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the observation-point ladder, the S/S./. handshake, and refused-RST vs. dropped-silence once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

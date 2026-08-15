@@ -367,3 +367,20 @@
 - **Scratch:** disposable container (`--name ms-trace`); nothing lands on the Mac.
 - **Skip / Defer:** bpftrace/eBPF (named in Later box with MS’s aggregation/root/whole-kernel points); `strace -c` summary (reference only); ltrace; ptrace_scope depth (reference only); tcpdump (next-slice candidate); ASan/Valgrind; rr; AI-for-debugging; Profiling half.
 - **Next when asked:** tcpdump, ASan/Valgrind, or the Profiling half — or more vim practice, or L0020 workbook re-run.
+
+## L0032 complete (4/4; system-call tracing floor set)
+- Program↔kernel boundary, five strace shapes, triage patterns (incl. `-p` attach through the L0008 pgrep loop), and execve-first trace reading (`write(1, …)`, `= -1 ENOENT`, `exit_group` ↔ `$?`) all landed. No friction reported.
+- The observation-point framing (pdb inside vs strace at the boundary) is the hinge; quiz flawless path covered the five shapes + attach drill — assume cold rebuild done.
+- Container drill posture (L0030 reuse, `--rm` box, `docker exec` second shell) confirmed workable; `dtruss` stays named-only like gdb in L0031.
+- Next when asked: tcpdump, ASan/Valgrind, rr, AI-for-debugging, or the Profiling half — or more vim practice, or L0020 workbook re-run.
+
+## L0033 design notes (MS Lecture 4 — network debugging, third slice)
+- **Topic choice:** User picked tcpdump from the L0032 ask options (recommended: closes the mission’s curl/dig/ss triage loop; MS’s own note that network debugging relates to L0010).
+- **Primary sources:** MS Debugging and Profiling — “Network Debugging” (short: the two tcpdump invocations + Wireshark + the HTTPS/mitmproxy caveat; exact wording verified via webfetch). `tcpdump(1)` man7 verified parametrically: flag semantics, TCP output format (`Flags [S.]`, relative seqs after first sight), the man’s own examples (`-ni any`, `host`, `src host … and port 53`, `icmp`), `-i any` pseudo-interface (modern SLL2 prints ifname + `In`/`Out`).
+- **Scope:** the observation-point ladder (curl L0008 → ss L0010 → strace L0032 → packets) as the throughline; command shapes (MS’s two + `-n`/`-c`/`-r`/`-A`/`-X`); libpcap filter primitives + `and`/`or`/`not` with kernel-BPF note; reading a TCP line (anatomy, `S`/`S.`/`.` handshake, `P.`/`F.`/`R.`); triage shapes (refused-RST vs dropped-silence, server-side capture, `-w` evidence, tcpdump-can’t-name-processes → ss); the MS HTTPS caveat with the plaintext-`-A` counterpoint.
+- **Reuse:** L0008 (curl client view, `-v`); L0010 (`ss -tlnp` cross-check; dig → `udp port 53` on-the-wire callback); L0032 (`accept4` unpacked into handshake packets; boundary→wire as the next observation point; container posture, root = no sudo); L0030 (docker box, `-p` publish, `--rm`, `docker exec` second shell).
+- **Environment note:** unlike strace, tcpdump is NOT Linux-only — macOS ships it (`lo0`/`en0`; `-i any` on recent macOS per man). Named in K1; drill stays in the container for a quiet network. Docker NAT moment (Mac curl arrives as `172.17.0.1`) folded into drill-2 answer, one sentence only.
+- **Skill win:** cold-rebuild ladder + handshake + refused-vs-dropped; live drill: watch a connection be born while curling from the Mac, narrow filters three ways, DNS on the wire (`getent` + Docker resolver `127.0.0.11`), the money drill (port 9999 → RST fast vs `10.255.255.1` → silence, `ss -tlnp` confirms), `-w`/`-r`/`-A` evidence loop.
+- **Scratch:** disposable container (`--name ms-net`), `/tmp/hi.pcap` inside it; nothing lands on the Mac.
+- **Skip / Defer:** Wireshark + mitmproxy (named, MS-linked; GUI/proxy posture like Zed/gdb); pcap-filter header-slicing (`tcp[tcpflags]…`, reference only); `-s`/`-e` (reference); ICMP/ARP depth (reference); nmap-type scanning (not MS scope); remaining Lecture-4 slices (ASan/Valgrind, rr, AI-for-debugging, Profiling half).
+- **Next when asked:** ASan/Valgrind, rr, AI-for-debugging, or the Profiling half — or more vim practice, or L0020 workbook re-run.
