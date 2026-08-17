@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0034 — MS memory debugging</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0034 · <a href="../reference/debug-prof-memory.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>Memory debugging — sanitizers &amp; Valgrind</h1>
+    <p class="lede">The bug class that <em>appears to work</em>: buffer overflows, use-after-free, leaks. Two tools, one question apart — AddressSanitizer if you can recompile, Valgrind if you can’t. The Lecture-4 slice where the crash is far from the cause.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>The debugging ladder so far: <code>pdb</code> (L0031) watches variables in a program you can edit; <code>strace</code> (L0032) watches the kernel boundary; <code>tcpdump</code> (L0033) watches the wire. None of them can see the heap — a program that writes one byte past its <code>malloc</code>, or touches a block after <code>free</code>, looks fine at every one of those observation points. MS: memory bugs “often don’t crash immediately but corrupt memory in ways that cause problems much later.” This slice adds the two tools that make the invisible visible.</p>
+  <p><strong>Read first (≈5 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the “Memory Debugging” subsection (short: sanitizers, the sanitizer family, Valgrind).</p>
+
+  <h2>Knowledge 1 — the problem class</h2>
+  <p>Three bugs, one shared property — the <em>symptom</em> lands far from the <em>act</em>:</p>
+  <table>
+    <thead><tr><th>Bug</th><th>The act</th><th>The symptom, later</th></tr></thead>
+    <tbody>
+      <tr><td>buffer overflow</td><td>write past the end of an array or allocation</td><td>neighbor’s data quietly changes; crash in unrelated code</td></tr>
+      <tr><td>use-after-free</td><td>write (or read) through a pointer after <code>free()</code></td><td>often <em>nothing</em> — until the allocator reuses the block</td></tr>
+      <tr><td>memory leak</td><td><code>malloc</code> without a matching <code>free</code></td><td>no crash at all — memory climbs until the OOM killer (L0019)</td></tr>
+    </tbody>
+  </table>
+  <p>Every earlier tool has a blind spot here. <code>pdb</code> shows your variables, not your heap neighborhood. <code>strace -e trace=memory</code> shows the <code>mmap</code>/<code>brk</code> calls — it cannot see what you do <em>inside</em> the block you got. And the L0028 checkers pass happily: the code is logically exactly what you wrote. Undefined behavior means the run “works” <em>today</em> — which is not evidence of anything.</p>
+
+  <h2>Knowledge 2 — sanitizers: catch it at the moment it happens</h2>
+  <p>A <strong>sanitizer</strong> is a compiler feature: add a flag, and the compiler instruments your code so that every memory access is checked at runtime. AddressSanitizer (ASan) pads each allocation with guard bytes (<em>redzones</em>) and quarantines freed blocks — so the first bad touch is caught <em>when it happens</em>, with the exact line:</p>
+  <pre><code>gcc -fsanitize=address -g program.c -o program
+./program</code></pre>
+  <p>ASan detects (per MS): stack, heap, and global buffer overflows; use-after-free; use-after-return; and memory leaks. A report reads as <strong>three connected stacks</strong> — the bad access, the <code>free</code> that made it bad, the <code>malloc</code> that created it:</p>
+  <pre><code>==36==ERROR: AddressSanitizer: heap-use-after-free on address 0x602000000010
+WRITE of size 1 at 0x602000000010 thread T0
+    #0 0x55… in main /root/uaf.c:12      ← the bad write
+freed by thread T0 here:
+    #0 0x7f… in free
+    #1 0x55… in main /root/uaf.c:10      ← the free
+previously allocated by thread T0 here:
+    #0 0x7f… in malloc
+    #1 0x55… in main /root/uaf.c:6       ← the origin
+SUMMARY: AddressSanitizer: heap-use-after-free /root/uaf.c:12 in main</code></pre>
+  <p>Same stack-reading skill as L0031’s <code>bt</code>: start at frame <code>#0</code> of the first stack. The process aborts with a nonzero exit (L0023 — typically 134, <code>SIGABRT</code>, L0019). MS’s deployment point: sanitizers require recompilation, “but are fast enough to use in CI pipelines and during regular development” — the L0028 checkers-as-gate pattern, one flag deeper. The habit: always compile with <code>-g</code> so reports name files and lines (frame pointers — <code>-fno-omit-frame-pointer</code> — make stacks more reliable still).</p>
+  <p>The family, one flag each:</p>
+  <table>
+    <thead><tr><th>Sanitizer</th><th>Flag</th><th>Catches</th></tr></thead>
+    <tbody>
+      <tr><td>AddressSanitizer</td><td><code>-fsanitize=address</code></td><td>overflows, use-after-free, leaks</td></tr>
+      <tr><td>ThreadSanitizer</td><td><code>-fsanitize=thread</code></td><td>data races in multithreaded code</td></tr>
+      <tr><td>MemorySanitizer</td><td><code>-fsanitize=memory</code></td><td>reads of uninitialized memory</td></tr>
+      <tr><td>UBSan</td><td><code>-fsanitize=undefined</code></td><td>undefined behavior (integer overflow, …)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Knowledge 3 — Valgrind: when you can’t recompile</h2>
+  <p><strong>Valgrind</strong> runs your <em>existing binary</em> “in something akin to a virtual machine” (MS) — every instruction is supervised, no recompilation, noticeably slower. The invocation MS gives:</p>
+  <pre><code>valgrind --leak-check=full ./my_program</code></pre>
+  <p>Use it when — per MS — you don’t have the source, can’t recompile (third-party binary or library), or need a tool the sanitizers don’t ship. At exit it prints a leak summary with verdicts worth knowing cold:</p>
+  <table>
+    <thead><tr><th>Verdict</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>definitely lost</code></td><td>no pointer to the block survives — a true leak</td></tr>
+      <tr><td><code>indirectly lost</code></td><td>reachable only <em>from</em> a definitely-lost block</td></tr>
+      <tr><td><code>still reachable</code></td><td>a pointer still exists at exit — often benign</td></tr>
+    </tbody>
+  </table>
+  <p>It also catches the live errors — an invalid write after <code>free</code> shows as <code>Invalid write of size 1</code> on a block “that was freed,” with the stacks. Where ASan dies at the first bad access with the exact line, Valgrind keeps running and tallies contexts (<code>ERROR SUMMARY: 1 errors from 1 contexts</code>). MS’s forward pointer: Valgrind is “a really powerful controlled execution environment” — its <code>callgrind</code> and <code>massif</code> tools are part of the Profiling half still to come. The decision table:</p>
+  <table>
+    <thead><tr><th>Situation</th><th>Reach for</th></tr></thead>
+    <tbody>
+      <tr><td>you have the source, can rebuild</td><td>ASan — default choice: fast, precise, first-error abort</td></tr>
+      <tr><td>no source / can’t recompile</td><td><code>valgrind --leak-check=full</code></td></tr>
+      <tr><td>suspect a data race</td><td>TSan (<code>-fsanitize=thread</code>)</td></tr>
+      <tr><td>flaky, timing-dependent heisenbug</td><td><code>rr</code> — named below, not drilled here</td></tr>
+    </tbody>
+  </table>
+
+  <div class="gotcha"><strong>The write ASan can’t see.</strong> MS’s rr exercise is a loop that writes <code>scores[0..3]</code> into a 3-slot array — clobbering the neighboring struct’s <code>id</code>. That write lands <em>inside</em> the same allocated object, so it breaks nothing ASan guards: redzones guard object <em>borders</em>, not wrong slots within. Wrong-place-but-legal writes are watchpoint territory (<code>gdb</code>/<code>rr</code>, L0031) — the honest limit of this slice’s tools.</div>
+
+  <h2>Drill — make it confess</h2>
+  <p>Ghostty + bash + vim, tmux for panes. Same posture as L0032/L0033: the L0030 disposable Linux box, nothing lands on the Mac, <code>--rm</code> cleans up. You are root inside, so no <code>sudo</code>. An SSH Linux remote works identically.</p>
+  <ol>
+    <li>
+      Cold-name the slice: the three memory-bug classes and, one sentence each, why print-debugging (L0031) can’t see them. Then the decision: which tool when you can recompile, and which when you can’t?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Overflow (write past an allocation), use-after-free (touch after <code>free</code>), leak (allocate, never release). Prints show variables you thought to print — the heap neighborhood and allocator state are invisible; the symptom lands far from the act. Can recompile → ASan; can’t → <code>valgrind --leak-check=full</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot the box and meet “appears to work.”</strong> On the Mac:
+      <pre><code>docker run --rm -it --name ms-mem debian bash
+# inside:
+apt-get update &amp;&amp; apt-get install -y gcc valgrind vim</code></pre>
+      Now type MS’s exercise program in vim as <code>uaf.c</code> (use-after-free):
+      <pre><code>#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+int main() {
+    char *greeting = malloc(32);
+    strcpy(greeting, "Hello, world!");
+    printf("%s\n", greeting);
+
+    free(greeting);
+
+    greeting[0] = 'J';
+    printf("%s\n", greeting);
+
+    return 0;
+}</code></pre>
+      Plain build and run: <code>gcc uaf.c -o uaf &amp;&amp; ./uaf; echo $?</code>. Cold reads: (a) what printed — and is that <em>correct</em>? (b) what exit status, and what does that prove?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Both lines print — likely <code>Hello, world!</code> then <code>Jello, world!</code>. MS: “It may appear to work.” It is undefined behavior, not correctness: the write landed in freed-but-not-yet-reused memory. (b) <code>0</code> — nobody told the kernel anything went wrong (L0023). Exit 0 means “terminated normally,” never “bug-free.”</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>The sanitizer moment.</strong> Rebuild instrumented, run:
+      <pre><code>gcc -fsanitize=address -g uaf.c -o uaf
+./uaf; echo $?</code></pre>
+      Read the report as three stacks: connect <code>uaf.c:6</code> (malloc), <code>uaf.c:10</code> (free), <code>uaf.c:12</code> (the write). Then fix it — MS: “Fix the issue it identifies” — and rerun until clean.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>heap-use-after-free</code>: a <code>WRITE of size 1</code> at line 12, on a 32-byte block freed at line 10, allocated at line 6 — the pointer’s story in one report. Exit is nonzero: 134 = 128 + <code>SIGABRT</code> (L0019) — the sanitizer aborts at the first bad touch, by design. Fix: don’t touch memory after <code>free</code> — move the <code>free(greeting)</code> below the last use. Clean run: both lines print, exit 0, no report.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>The leak verdicts.</strong> In vim, comment out the <code>free</code> line. (a) Plain build, run — what do you observe? (b) ASan build, run — where does the leak show, and what names it? (c) Now the no-recompile path: plain build, <code>valgrind --leak-check=full ./uaf</code> — read the verdict. One sentence: what makes a leak <em>definitely</em> lost?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Silence — correct output, exit 0; leaks never announce themselves (until the OOM killer, L0019). (b) At <em>exit</em>: <code>ERROR: LeakSanitizer: detected memory leaks</code> — <code>Direct leak of 32 byte(s) in 1 object(s) allocated from:</code> the <code>uaf.c:6</code> stack (LeakSanitizer ships inside ASan on Linux). (c) <code>definitely lost: 32 bytes in 1 blocks</code> — same 32 bytes, same stack, <em>no recompile</em>. “Definitely” = no pointer to the block survives anywhere — unreachable by construction; <code>still reachable</code> would mean a live pointer remains at exit (often benign).</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Valgrind on the live error.</strong> Restore the <code>free</code> and the after-free write (task-2 state), plain build, then:
+      <pre><code>valgrind --leak-check=full ./uaf</code></pre>
+      Find the use-after-free in Valgrind’s idiom. One sentence comparing the two tools’ styles on the same bug.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>Invalid write of size 1</code> … <code>Address … is 0 bytes inside a 32-byte block that was freed</code> — with the free and malloc stacks; then <code>ERROR SUMMARY: 1 errors from 1 contexts</code>. Style: ASan aborts instantly at the exact line, Valgrind keeps running and tallies — first-error abort vs. a full supervised run; recompile vs. none; ~2× slowdown vs. substantially more (MS: “slower than sanitizers”).</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>The three memory-bug classes, and the two-tool decision table.</li>
+        <li>Both ASan invocations from memory — compile and run.</li>
+        <li>ASan report anatomy: the three stacks and what each one pins down.</li>
+        <li>The leak verdicts, and which leak report requires no recompile.</li>
+        <li>The sanitizer family map: race, uninitialized read, overflow/UAF/leak, UB.</li>
+        <li>rr in one line — and the one-sentence reason it’s not drilled here.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Overflow / use-after-free / leak; recompile → ASan, can’t → Valgrind.<br>
+        (b) <code>gcc -fsanitize=address -g prog.c -o prog</code>; <code>./prog</code>.<br>
+        (c) Bad access (line of the write) ← freed by (the free) ← previously allocated by (the malloc).<br>
+        (d) Definitely lost / indirectly lost / still reachable; Valgrind’s — no recompile.<br>
+        (e) TSan races, MSan uninitialized reads, ASan overflow/UAF/leak, UBSan undefined behavior.<br>
+        (f) <code>rr record ./prog; rr replay</code> — deterministic replay with reverse debugging; needs Linux + hardware performance counters, which VMs (incl. the Docker box) don’t expose.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <strong><code>rr</code></strong> — record once, replay deterministically, debug backwards (<code>reverse-continue</code> finds where corruption began); Linux-only, hardware counters, fails in most VMs (MS says so — that’s why it’s named, not drilled). <strong><code>bpftrace</code>/eBPF</strong> — kernel-wide syscall tracing and aggregation; strace’s lower-overhead, root-only cousin. <strong>TSan/MSan/UBSan</strong> hands-on (the family map is today’s floor). <strong>callgrind/massif</strong> — Valgrind’s profiling tools, waiting in the Profiling half. Still open in Lecture 4: AI-for-debugging (feeding reports like today’s to an LLM) and that Profiling half (<code>time</code>/<code>htop</code>/<code>perf</code>/<code>hyperfine</code>).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>You have a third-party binary and no source. Suspected memory bug — which tool, and why?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Valgrind — it supervises the existing binary, no recompilation needed</li>
+      <li class="option">ASan — it checks every access without touching the source</li>
+      <li class="option">tcpdump — capture what the process sends while it crashes</li>
+      <li class="option">strace -f — memory bugs show up as failed write syscalls</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>The plain-built <code>uaf</code> prints both lines and exits 0. Why is that not evidence the program is correct?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Use-after-free is undefined behavior — the write may silently “work” until the allocator reuses that block</li>
+      <li class="option">Exit 0 only means the program was small enough to finish quickly</li>
+      <li class="option">It is evidence — sanitizers flag hypothetical risks, not real ones</li>
+      <li class="option">printf flushes the buffer, so the corruption was already undone</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>An ASan report says <code>heap-use-after-free</code>, with <code>WRITE of size 1</code> at <code>uaf.c:12</code>, <code>freed by</code> a stack ending at <code>uaf.c:10</code>. What happened?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">The program wrote through a pointer at line 12 to a block it had already freed at line 10</li>
+      <li class="option">The program allocated a block at line 12 that was too small for one byte</li>
+      <li class="option">Two threads wrote the same address at lines 10 and 12 — a data race</li>
+      <li class="option">The program freed the same block twice, at lines 10 and 12</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Your multithreaded server has intermittent corrupted state — races suspected. Which sanitizer flag?</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>-fsanitize=thread</code> (TSan — detects data races)</li>
+      <li class="option"><code>-fsanitize=address</code> (ASan — races and leaks together)</li>
+      <li class="option"><code>-fsanitize=memory</code> (MSan — uninitialized reads)</li>
+      <li class="option"><code>valgrind --leak-check=full</code> (races show as leaks)</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the recompile-vs-not decision table land? Reading an ASan report as three connected stacks — access, free, origin? Any surprise that the plain run “worked,” and that a leak produces no symptom at all until it does?</p>
+    <p style="margin-bottom:0">Next when ready: AI-for-debugging (feeds today’s ASan report to an LLM — MS’s next section, distinct from L0029) or the Profiling half (<code>time</code>/<code>htop</code> first, then <code>perf</code>/<code>hyperfine</code>) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: Memory Debugging; exercise 3 (<code>uaf.c</code>) is the drill spine, quoted under the same license.</li>
+      <li><a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">AddressSanitizer wiki</a> (error kinds, report anatomy). <a href="https://valgrind.org/docs/manual/quick-start.html">Valgrind quick start</a> (<code>--leak-check=full</code>, leak verdicts). <a href="https://rr-project.org/">rr</a> (record/replay; named — needs Linux hardware counters, fails in most VMs).</li>
+      <li>Debugger stacks: L0031. Exit codes / signals: L0023, L0019. Checkers-as-gate: L0028. The syscall blind spot: L0032. Container posture: L0030.</li>
+    </ul>
+    <p>Previous: <a href="./0033-ms-tcpdump-network-debugging.html">Lesson 0033 — network debugging</a>. Reference: <a href="../reference/debug-prof-memory.html">memory debugging (ASan &amp; Valgrind)</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the decision table, the three-stack report read, and the leak verdicts once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

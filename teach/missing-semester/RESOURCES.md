@@ -60,6 +60,12 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Python’s language-specific debugger. Use for: breakpoints, step/next, inspect values, backtrace (`b`/`c`/`n`/`s`/`p`/`l`/`w`/`q`; `breakpoint()` inline since 3.7). Lesson 0031. `gdb` (https://www.gnu.org/software/gdb/) is the de-facto standard for C/C++/Rust — command shapes mirror `pdb`; named, not the hands-on debugger under this mission.
 - **`tcpdump(1)` / `pcap-filter(7)`** — https://www.man7.org/linux/man-pages/man1/tcpdump.1.html
   Packet capture CLI (libpcap). Use for: `-i any`/`-n`/`-c`/`-w`/`-r`/`-A`; filter primitives (`host`/`port`/`src`/`dst` + and/or/not); TCP output format (`Flags [S.]`, relative seqs); the two MS invocations. Ships on macOS too (`lo0`/`en0`). Lesson 0033. Wireshark (https://www.wireshark.org/) opens the same `.pcap` — named, not on the terminal stack.
+- **AddressSanitizer (sanitizers wiki)** — https://github.com/google/sanitizers/wiki/AddressSanitizer
+  Canonical ASan reference. Use for: error kinds (heap-use-after-free, stack/heap/global overflow, leak), report anatomy (access ← freed by ← allocated by), redzones/quarantine. Invoke with `gcc -fsanitize=address -g`; family: TSan/MSan/UBSan one flag each. Compiles on macOS clang too. Lesson 0034.
+- **Valgrind quick start** — https://valgrind.org/docs/manual/quick-start.html
+  Memcheck on an existing binary, no recompilation: `valgrind --leak-check=full ./prog`; leak verdicts (definitely lost / indirectly lost / possibly lost / still reachable); `Invalid write … that was freed` for use-after-free. Linux-only (unusable on modern macOS). callgrind/massif (profiling tools in the same suite) → MS Profiling half. Lesson 0034.
+- **rr — record and replay** — https://rr-project.org/
+  Deterministic record/replay with reverse debugging (`rr record`, `rr replay`, `reverse-continue` in gdb). Linux-only, needs hardware performance counters — fails in most VMs (incl. Docker-on-Mac). Named, not drilled. Lesson 0034.
 
 ## Wisdom (communities)
 

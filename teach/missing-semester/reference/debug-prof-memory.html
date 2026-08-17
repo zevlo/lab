@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — memory debugging: ASan &amp; Valgrind (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Debugging &amp; Profiling</p>
+    <h1>Memory debugging — sanitizers &amp; Valgrind</h1>
+    <p class="lede">Lecture 4 slice — the bug class that appears to work: overflows, use-after-free, leaks. ASan if you can recompile, Valgrind if you can’t. Grounded in <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Debugging and Profiling</a>.</p>
+  </header>
+
+  <h2>The problem class</h2>
+  <p>Memory bugs corrupt quietly and confess late — the symptom lands far from the act. Earlier observation points are blind to them: <code>pdb</code> shows variables, not the heap neighborhood (L0031); <code>strace</code> shows the <code>mmap</code>/<code>brk</code> calls, not what happens inside the block (L0032); checkers pass because the code says what you meant (L0028).</p>
+  <table>
+    <thead><tr><th>Bug</th><th>The act</th><th>The symptom, later</th></tr></thead>
+    <tbody>
+      <tr><td>buffer overflow</td><td>write past the end of an array / allocation</td><td>neighbor’s data changes; crash in unrelated code</td></tr>
+      <tr><td>use-after-free</td><td>touch memory after <code>free()</code></td><td>often nothing — until the allocator reuses the block</td></tr>
+      <tr><td>memory leak</td><td><code>malloc</code> with no matching <code>free</code></td><td>no crash — memory climbs until the OOM killer (L0019)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Sanitizers (recompile)</h2>
+  <p>Compiler instrumentation: redzones around every allocation, freed blocks quarantined — the first bad touch is caught at the moment it happens, with the exact line. MS: fast enough for CI and regular development (the L0028 gate, one flag deeper).</p>
+  <pre><code>gcc -fsanitize=address -g program.c -o program
+./program</code></pre>
+  <p>Report anatomy — three connected stacks (same <code>#0</code>-first reading as <code>bt</code>, L0031):</p>
+  <pre><code>==36==ERROR: AddressSanitizer: heap-use-after-free on address 0x602000000010
+WRITE of size 1 at 0x602000000010 thread T0
+    #0 … in main uaf.c:12          ← the bad access
+freed by thread T0 here:
+    #1 … in main uaf.c:10          ← the free that made it bad
+previously allocated by thread T0 here:
+    #1 … in main uaf.c:6           ← the origin
+SUMMARY: AddressSanitizer: heap-use-after-free uaf.c:12 in main</code></pre>
+  <p>The process aborts nonzero (typically 134 = 128 + <code>SIGABRT</code>). At exit, ASan’s LeakSanitizer reports blocks never freed — <code>Direct leak of 32 byte(s) in 1 object(s)</code> — on Linux, no extra flag. Family map:</p>
+  <table>
+    <thead><tr><th>Flag</th><th>Tool</th><th>Catches</th></tr></thead>
+    <tbody>
+      <tr><td><code>-fsanitize=address</code></td><td>ASan</td><td>stack/heap/global overflows, use-after-free, use-after-return, leaks</td></tr>
+      <tr><td><code>-fsanitize=thread</code></td><td>TSan</td><td>data races</td></tr>
+      <tr><td><code>-fsanitize=memory</code></td><td>MSan</td><td>reads of uninitialized memory</td></tr>
+      <tr><td><code>-fsanitize=undefined</code></td><td>UBSan</td><td>undefined behavior (integer overflow, …)</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><strong>Habits.</strong> Always <code>-g</code> so reports name files and lines; <code>-fno-omit-frame-pointer</code> makes stacks more reliable (matters for profiling too — MS).</div>
+
+  <h2>Valgrind (no recompile)</h2>
+  <p>Runs the existing binary in a supervised, VM-like harness — no source, no rebuild, noticeably slower than sanitizers. MS’s invocation:</p>
+  <pre><code>valgrind --leak-check=full ./my_program</code></pre>
+  <p>Use when: no source; can’t recompile (third-party); or for tools the sanitizers lack. Live errors print as <code>Invalid write of size 1</code> on a block “that was freed,” then <code>ERROR SUMMARY: N errors from M contexts</code> — it tallies rather than aborts. At exit, leak verdicts:</p>
+  <table>
+    <thead><tr><th>Verdict</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>definitely lost</code></td><td>no surviving pointer — a true leak</td></tr>
+      <tr><td><code>indirectly lost</code></td><td>reachable only from a definitely-lost block</td></tr>
+      <tr><td><code>possibly lost</code></td><td>only an interior pointer survives — suspicious</td></tr>
+      <tr><td><code>still reachable</code></td><td>a live pointer exists at exit — often benign</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Decision table</h2>
+  <table>
+    <thead><tr><th>Situation</th><th>Reach for</th></tr></thead>
+    <tbody>
+      <tr><td>have source, can rebuild</td><td>ASan — default: fast, precise, first-error abort</td></tr>
+      <tr><td>no source / can’t recompile</td><td><code>valgrind --leak-check=full</code></td></tr>
+      <tr><td>suspected data race</td><td>TSan (<code>-fsanitize=thread</code>)</td></tr>
+      <tr><td>flaky heisenbug</td><td><code>rr</code> (named — see beyond)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Where to run it</h2>
+  <p>Sanitizers compile fine anywhere gcc/clang lives, macOS included. Valgrind is Linux (unusable on modern macOS) — the lesson drill keeps everything in the L0030 container posture regardless: <code>docker run --rm -it --name ms-mem debian bash</code>, <code>apt-get install -y gcc valgrind vim</code>, nothing lands on the Mac. MS’s exercise 3 (<code>uaf.c</code>) is the drill spine: plain build “appears to work,” ASan names the use-after-free, the fix is to move <code>free</code> below the last use, the leak variant comments the <code>free</code> out.</p>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <ul>
+      <li><strong><code>rr</code></strong> — record once (<code>rr record ./prog</code>), replay deterministically (<code>rr replay</code>, opens gdb), debug backwards: <code>reverse-continue</code> runs to the last moment a watchpoint changed. For Heisenbugs and MS’s <code>corruption.c</code> exercise — a write to the wrong slot <em>inside</em> a valid object, which ASan/Valgrind cannot see (redzones guard borders, not wrong addresses within). Linux-only, needs hardware performance counters — fails in most VMs, including Docker-on-Mac; macOS → Warpspeed (named).</li>
+      <li><strong><code>bpftrace</code>/eBPF</strong> — kernel-wide syscall tracing with aggregation, root-only: strace’s lower-overhead cousin for system-level questions (MS, System Call Tracing).</li>
+      <li><strong>callgrind / massif</strong> — Valgrind’s CPU and heap profilers (<code>--tool=callgrind</code>, <code>--tool=massif</code>): the Profiling half of Lecture 4.</li>
+      <li><strong>LeakSanitizer standalone</strong> — <code>ASAN_OPTIONS=detect_leaks=1</code> toggles leak detection where it isn’t default (e.g. some platforms/CI setups).</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Sections: Memory Debugging; exercises 2–3. ASan: <a href="https://github.com/google/sanitizers/wiki/AddressSanitizer">sanitizers wiki</a>. Valgrind: <a href="https://valgrind.org/docs/manual/quick-start.html">quick start</a>. rr: <a href="https://rr-project.org/">rr-project.org</a> (named). Debugger stacks: L0031. Exit codes/signals: L0023, L0019. Checkers: L0028. Syscall blind spot: L0032. Container posture: L0030. Lesson: <a href="../lessons/0034-ms-memory-debugging.html">0034</a>.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# L0033 complete 4/4; network-debugging floor set
+
+User finished Lesson 0033 quiz 4/4. No friction reported on the observation-point ladder (curl L0008 → ss L0010 → strace L0032 → packets), the command shapes (MS's two invocations plus `-n`/`-c`/`-r`/`-A`), the libpcap filter primitives, reading the `S`/`S.`/`.` handshake and `P.`/`F.`/`R.` flags, or the refused-RST vs. dropped-silence triage with the `ss -tlnp` cross-check.
+
+**Implications:** the outward ladder is complete — every view from the client's claim down to the wire fact. Refused-vs-dropped is the new floor; the `-w`/`-r`/`-A` evidence loop and the Docker NAT moment (curl arriving as `172.17.0.1`) landed inside the drill. Wireshark/mitmproxy stay named-only (HTTPS-caveat posture). tcpdump is the first tool since curl that also runs on macOS (`lo0`/`en0`) — noted in K1, drill kept in the container for a quiet network.
+
+**Next when requested (now taken):** user said ready without picking; took lecture order — L0034 memory debugging (ASan `-fsanitize=address -g`, sanitizer family, Valgrind `--leak-check=full`; MS exercise `uaf.c` as the drill spine; `rr` named-only — MS itself notes it needs hardware perf counters and fails in VMs, which includes the Docker-on-Mac box). Remaining Lecture-4 slices after L0034: AI-for-debugging (consumes ASan/strace output; distinct from L0029) and the Profiling half (`time`/resource monitoring/`perf`/`hyperfine`) — or more vim practice, or L0020 workbook re-run.
