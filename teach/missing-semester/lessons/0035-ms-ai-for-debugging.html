@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0035 — MS AI for debugging</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0035 · <a href="../reference/debug-prof-ai-debugging.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>AI for debugging</h1>
+    <p class="lede">Feed last week’s ASan report — and a wall of C++ errors — to an LLM, then verify the suggestion with the tool that produced it. Distinct from L0029: diagnosing, not authoring.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>The Lecture-4 ladder now produces <em>artifacts</em>: a <code>pdb</code> backtrace (L0031), a <code>strace</code> line (L0032), a tcpdump flag (L0033), an ASan three-stack (L0034). MS’s next section: large language models as debugging assistants that <em>read</em> those artifacts. This is not L0029. That slice named how AI <em>writes</em> code (autocomplete / inline chat / agent). This slice is how an LLM reads a diagnosis you already know how to produce — and why you still run the tool after it speaks.</p>
+  <p><strong>Read first (≈5 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the “AI for Debugging” section (short: four shine areas, the debug-symbols note, four limitations). MS’s own exercise is today’s drill spine: paste a compiler error, and some <code>strace</code> or ASan output.</p>
+
+  <h2>Knowledge 1 — four shine areas</h2>
+  <p>MS: LLMs “excel at certain debugging tasks that complement traditional tools.” The four:</p>
+  <table>
+    <thead><tr><th>Shine area</th><th>What you paste</th><th>What you hope back</th></tr></thead>
+    <tbody>
+      <tr><td>cryptic errors</td><td>a compiler wall — C++ templates, Rust’s borrow checker</td><td>plain English + a suggested fix</td></tr>
+      <tr><td>language boundaries</td><td>a Python traceback that names a C library, an FFI / build error</td><td>which layer is actually wrong</td></tr>
+      <tr><td>symptom ↔ cause</td><td>a vague report (“works, uses 10× the memory”)</td><td>likely causes and what to measure next</td></tr>
+      <tr><td>crash dumps / stacks</td><td>an ASan report, a <code>bt</code>, a core dump excerpt</td><td>a story that connects the frames</td></tr>
+    </tbody>
+  </table>
+  <p>The habit: paste the <strong>tool output</strong>, not a paraphrase. “It crashed after I freed something” is a vibe. The ASan report that names <code>uaf.c:12</code> / <code>:10</code> / <code>:6</code> is evidence. The model is a reader of last week’s artifacts.</p>
+
+  <h2>Knowledge 2 — limitations, then verify</h2>
+  <p>MS lists four limits. Treat them as first-class, not a footnote:</p>
+  <ul>
+    <li>The model can <strong>hallucinate</strong> a fluent, wrong explanation.</li>
+    <li>It may suggest a fix that <strong>masks</strong> the bug instead of fixing it.</li>
+    <li><strong>Always verify</strong> the suggestion with the debugging tool that produced the artifact.</li>
+    <li>It is a <strong>complement</strong>, not a replacement, for understanding the code.</li>
+  </ul>
+  <p>Same gate as L0028 / L0029: the explanation is a <em>draft, not a verdict</em>. Re-run ASan, recompile, re-trace. Exit status is still the verdict (L0023). A suggestion that makes <code>uaf</code> “work” by deleting the <code>free</code> has traded a use-after-free for a leak — LeakSanitizer and Valgrind (L0034) would say so. That is a mask.</p>
+  <p>One sentence against L0029: form factors = how the model touches <em>your code</em>; this slice = how the model reads <em>a tool’s output</em>.</p>
+
+  <h2>Knowledge 3 — debug symbols: why the paste is readable</h2>
+  <p>MS puts this note here, not under sanitizers, because it is about the <em>artifact you are about to paste</em>. For native binaries (C / C++ / Rust), compile with debug symbols:</p>
+  <pre><code>gcc -g -fno-omit-frame-pointer …</code></pre>
+  <p><code>-g</code> writes DWARF debug info so stacks name <code>file:line</code> instead of bare addresses. <code>-fno-omit-frame-pointer</code> keeps a frame-pointer chain the unwinder can walk — stacks stay complete, which also matters for the profilers still to come. Without these, you paste a list of hex addresses; neither you nor the model can pin the act. Python and Java already ship symbolic traces — this is a compiled-language habit. You used <code>-g</code> in L0034 so the ASan report said <code>uaf.c:12</code>. That is why that paste is worth making.</p>
+
+  <div class="gotcha"><strong>You do not need to know C++ for today’s compiler wall.</strong> The point of the shine area is that the error is unreadable on purpose. Paste the wall; apply a suggested fix; let <code>g++</code>’s exit status decide. If the model says “delete the <code>free</code>” on the ASan report, reject it and say why.</div>
+
+  <h2>Drill — paste, read, verify</h2>
+  <p>Ghostty + bash + vim, tmux for panes. Same L0030 disposable Linux box as L0032–L0034: nothing lands on the Mac, <code>--rm</code> cleans up, you are root so no <code>sudo</code>. An SSH Linux remote works identically. Paste into the agent chat you are in now, or Zed — any LLM. The tool that produced the artifact is the judge, not the chat.</p>
+  <ol>
+    <li>
+      Cold-name the slice: the four shine areas, one phrase each. Then one sentence: how is this different from L0029?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Cryptic compiler errors; language / FFI / build boundaries; vague symptom → likely cause; crash dumps and stack traces. L0029 named how AI writes code (form factors). This slice uses an LLM to read tool output and diagnose.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot the box and remake yesterday’s artifact.</strong> On the Mac:
+      <pre><code>docker run --rm -it --name ms-ai-dbg debian bash
+# inside:
+apt-get update &amp;&amp; apt-get install -y gcc g++ strace vim</code></pre>
+      Recreate L0034’s <code>uaf.c</code> (heredoc, not vim-paste):
+      <pre><code>cat &gt; uaf.c &lt;&lt;'EOF'
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+#include &lt;stdio.h&gt;
+
+int main() {
+    char *greeting = malloc(32);
+    strcpy(greeting, "Hello, world!");
+    printf("%s\n", greeting);
+
+    free(greeting);
+
+    greeting[0] = 'J';
+    printf("%s\n", greeting);
+
+    return 0;
+}
+EOF
+gcc -fsanitize=address -g uaf.c -o uaf
+./uaf 2&gt; asan.txt; echo $?</code></pre>
+      Paste <code>asan.txt</code> into an LLM. Ask it what happened. Compare its story to the three-stack read you already know (access ← freed by ← allocated by). Did it name <code>uaf.c:12</code> / <code>:10</code> / <code>:6</code>?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>A competent read: heap-use-after-free — a 1-byte write at line 12 through a pointer freed at line 10, block allocated at line 6. Exit nonzero (typically 134). If the model invents a data race or a double-free, that is a hallucination — you already have the report. If it suggests deleting the <code>free</code>, that is a mask (leak). The fix you already know: move <code>free</code> below the last use.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>The cryptic compiler wall</strong> (MS: “especially from C++ templates”). You do not need to know C++.
+      <pre><code>cat &gt; sort_widgets.cpp &lt;&lt;'EOF'
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+
+struct Widget {
+    int id;
+};
+
+int main() {
+    std::vector&lt;Widget&gt; w = {{3}, {1}, {2}};
+    std::sort(w.begin(), w.end());
+    return 0;
+}
+EOF
+g++ sort_widgets.cpp -o sort_widgets 2&gt; cxx.txt; echo $?</code></pre>
+      Open <code>cxx.txt</code> — a wall. The first useful line is usually <code>no match for 'operator&lt;'</code> (g++) or <code>invalid operands to binary expression ('const Widget' and 'const Widget')</code> (clang), then a long instantiation chain that ends at your <code>std::sort</code> call. Paste the wall. Apply a suggested fix (an <code>operator&lt;</code> on <code>Widget</code>, or a comparator passed to <code>sort</code> — either is fine). Rebuild and run:
+      <pre><code>g++ sort_widgets.cpp -o sort_widgets &amp;&amp; ./sort_widgets; echo $?</code></pre>
+      Expect <code>status=0</code>. If not, the suggestion was wrong — that is the point of verifying.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>std::sort</code> needs a way to compare two <code>Widget</code>s. The struct has only an <code>id</code> — no <code>operator&lt;</code> — so the template instantiation fails deep inside the standard library, which is why the wall is long. A typical fix: <code>bool operator&lt;(const Widget&amp; o) const { return id &lt; o.id; }</code> inside the struct, or <code>std::sort(w.begin(), w.end(), [](const Widget&amp; a, const Widget&amp; b){ return a.id &lt; b.id; })</code>. Clean compile, run, exit 0. You did not have to learn C++; <code>g++</code> certified the translation.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>A trace you can already read.</strong>
+      <pre><code>strace -e trace=file cat /no/such/file 2&gt; trace.txt; echo $?</code></pre>
+      Paste <code>trace.txt</code>. The model should name the missing path and <code>ENOENT</code>. You already know this line from L0032 — the check is whether the LLM’s story matches the syscall, not whether you needed help.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>openat(…, "/no/such/file", …) = -1 ENOENT (No such file or directory)</code>, then <code>cat</code> writes an error to stderr and exits nonzero. If the model blames permissions or a missing shared library, that is a hallucination — the trace already named the path and the errno.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>The four shine areas.</li>
+        <li>The L0029 distinction, one sentence.</li>
+        <li>The four limitations, including the one that makes you re-run the tool.</li>
+        <li>Why <code>-g</code> (and frame pointers) before you paste a native stack.</li>
+        <li>One mask: the “fix” that deletes <code>free</code> on yesterday’s <code>uaf.c</code>.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Cryptic errors; language/FFI boundaries; symptom↔cause; crash dumps/stacks.<br>
+        (b) L0029 = how AI writes code; this slice = how an LLM reads tool output to diagnose.<br>
+        (c) Hallucinate; mask the bug; always verify with the real tool; complement, not replacement.<br>
+        (d) <code>-g</code> writes DWARF so stacks say <code>file:line</code>; <code>-fno-omit-frame-pointer</code> keeps the unwind reliable — otherwise you paste addresses.<br>
+        (e) Deleting <code>free</code> silences the use-after-free and leaves a leak — ASan/Valgrind would still fail the leak check.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> The <strong>Profiling half</strong> of Lecture 4 — <code>time</code> (real/user/sys), resource monitoring (<code>htop</code>/<code>free</code>/<code>lsof</code>), <code>perf</code> + flame graphs, Valgrind’s <code>callgrind</code>/<code>massif</code>, <code>hyperfine</code>. MS’s <strong>Agentic Coding</strong> lecture is the depth pass on agents (prompt patterns, tool-use, scope). Prompt-engineering and model choice wait there. <code>rr</code> and TSan/MSan/UBSan hands-on stay deferred from L0034.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>How does this slice differ from L0029 (AI form factors)?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Form factors = how AI writes code; this slice = how an LLM reads tool output to diagnose</li>
+      <li class="option">Form factors = how AI reads traces; this slice = how an LLM writes new features</li>
+      <li class="option">Both slices teach the same three form factors — autocomplete, inline chat, agent</li>
+      <li class="option">L0029 was sanitizers; this slice is the Profiling half of lecture 4</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>You want an LLM’s help on a crash. What do you paste?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">The ASan / compiler / strace output itself — the artifact, not a paraphrase</li>
+      <li class="option">A one-line summary of how the program felt when it crashed</li>
+      <li class="option">The source file only, with no error or report attached</li>
+      <li class="option">A request to rewrite the program from scratch in another language</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>An LLM says fix the use-after-free by deleting the <code>free()</code>. Why reject that?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">It masks the bug with a leak — verify with ASan/Valgrind; the suggestion is not a verdict</li>
+      <li class="option">Deleting free() is always correct because leaks never matter in short programs</li>
+      <li class="option">ASan cannot see leaks, so the suggestion cannot be checked at all</li>
+      <li class="option">You should accept it, then run tcpdump to confirm the heap is fine</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Why compile with <code>-g</code> before you paste a native crash stack to an LLM?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Debug symbols turn addresses into file:line — that is what makes the paste readable</li>
+      <li class="option">The <code>-g</code> flag makes the program faster, so the crash is easier to reproduce</li>
+      <li class="option">Python and Java refuse to print any stack trace unless you pass <code>-g</code></li>
+      <li class="option">Without <code>-g</code> the sanitizer refuses to run and you get no report at all</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the L0029 distinction land (authoring vs diagnosing)? Did the LLM’s ASan read match the three-stack story you already knew? Any surprise that a fluent-sounding fix can still be a mask?</p>
+    <p style="margin-bottom:0">Next when ready: the Profiling half of Lecture 4 (<code>time</code> / <code>htop</code> first, then <code>perf</code> / <code>hyperfine</code>) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: AI for Debugging; exercise 5 (paste a compiler error and strace/ASan output) is the drill spine.</li>
+      <li>Form factors (authoring): L0029. ASan three-stack + <code>uaf.c</code>: L0034. <code>strace</code> <code>ENOENT</code>: L0032. Checkers-as-gate / exit status: L0028, L0023. Container posture: L0030.</li>
+    </ul>
+    <p>Previous: <a href="./0034-ms-memory-debugging.html">Lesson 0034 — memory debugging</a>. Reference: <a href="../reference/debug-prof-ai-debugging.html">AI for debugging</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild the four shine areas, the L0029 distinction, and the verify-with-the-tool habit once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
