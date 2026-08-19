@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** L0035 in flight — MS lecture 4, fifth slice: AI-for-debugging (LLM as a reader of tool output — cryptic compiler errors, stack traces, ASan/strace artifacts; four shine areas + limitations + always-verify; debug symbols `-g` / `-fno-omit-frame-pointer` as why the paste is readable; distinct from L0029 form factors: diagnosing, not authoring). L0034 done (memory debugging: ASan / Valgrind / `uaf.c`). L0031–L0033 done. Remaining Lecture-4 slice after L0035: the Profiling half (`time` real/user/sys, resource monitoring `htop`/`free`/`lsof`, visualizing performance data, `perf`/callgrind, massif, `hyperfine`).
+**Next up:** L0036 in flight — MS lecture 4, sixth slice, start of the Profiling half: timing + resource monitoring (`time` real/user/sys as a bash keyword; `htop` process view; `free -h` available-vs-free; `lsof` who-has-this-file; `ss -tlnp` retrieval; `taskset` CPU affinity with MS’s `stress` exercise). L0035 done (AI-for-debugging). L0031–L0034 done. Remaining Profiling slices: visualizing performance data, CPU profilers (`perf` + flame graphs, callgrind), massif, `hyperfine`.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.

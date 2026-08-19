@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0036 — MS timing and resource monitoring</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0036 · <a href="../reference/debug-prof-timing-resources.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>Timing and resource monitoring</h1>
+    <p class="lede">Correct is not the same as fast enough. Read <code>time</code>’s three numbers, then ask which resource is scarce — CPU, memory, open files, or a port — before you optimize anything.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>The debugging half of Lecture 4 asked “is it wrong?” The profiling half asks “is it <em>too expensive</em> even when it’s right?” MS: algorithms classes teach big-O, not how to find the hot spot in <em>this</em> program on <em>this</em> box. And: premature optimization is the root of all evil — measure first. Today is the first measurement: wall-clock vs CPU, then a live look at what the process is actually consuming. The tools that name a function (profilers, flame graphs) wait until you know <em>which resource</em> is the constraint.</p>
+  <p><strong>Read first (≈5 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the opening of “Profiling,” then “Timing” and “Resource Monitoring” (stop before “Visualizing Performance Data”).</p>
+
+  <h2>Knowledge 1 — <code>time</code>: real, user, sys</h2>
+  <p>The simplest measurement is how long a command took. Wall-clock alone misleads: the box may be busy with other work, or the program may be <em>waiting</em> (disk, network, a sleep). bash’s <code>time</code> keyword splits that:</p>
+  <table>
+    <thead><tr><th>Number</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>real</td><td>wall clock, start to finish — includes waiting</td></tr>
+      <tr><td>user</td><td>CPU time in user code</td></tr>
+      <tr><td>sys</td><td>CPU time in kernel code</td></tr>
+    </tbody>
+  </table>
+  <p>MS’s example:</p>
+  <pre><code>$ time curl https://missing.csail.mit.edu &amp;&gt; /dev/null
+real    0m0.272s
+user    0m0.079s
+sys     0m0.028s</code></pre>
+  <p>real ≈ 272&nbsp;ms; user+sys ≈ 107&nbsp;ms. The rest was waiting for the network. Confirm you have the keyword, not the other <code>time</code>:</p>
+  <pre><code>type time          # shell keyword
+help time          # real / user / sys; -p for POSIX</code></pre>
+  <p><code>/usr/bin/time</code> is a different program (BSD on this Mac, GNU on Linux) with a different default layout. Stay with the keyword — it times a whole pipeline, which is what you want.</p>
+  <p>Three shapes, one read:</p>
+  <table>
+    <thead><tr><th>Shape</th><th>What you see</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><code>time sleep 1</code></td><td>real ≈ 1s; user and sys ≈ 0</td><td>almost all waiting</td></tr>
+      <tr><td>a tight Python loop</td><td>real ≈ user + sys</td><td>CPU-bound</td></tr>
+      <tr><td>the curl above</td><td>real ≫ user + sys</td><td>waiting on I/O or the network</td></tr>
+    </tbody>
+  </table>
+  <p>user+sys can exceed real on a multi-core machine (several CPUs working at once). That is still CPU-bound — just parallel.</p>
+
+  <h2>Knowledge 2 — the monitoring map</h2>
+  <p>MS: programs often run slowly because they are <em>resource constrained</em>. Before you profile a function, name the scarce thing:</p>
+  <table>
+    <thead><tr><th>Question</th><th>Tool</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>which process is burning CPU / RAM right now?</td><td><code>htop</code></td><td>Linux box (apt); improved <code>top</code></td></tr>
+      <tr><td>how much memory is left for new work?</td><td><code>free -h</code></td><td>Linux only</td></tr>
+      <tr><td>which process has this file (or socket) open?</td><td><code>lsof</code></td><td>Mac and Linux</td></tr>
+      <tr><td>what is listening on this port?</td><td><code>ss -tlnp</code></td><td>Linux (L0010); Mac: <code>lsof</code></td></tr>
+    </tbody>
+  </table>
+  <p><code>htop</code> is MS’s process viewer. Keys from <code>man htop</code> (the ones you will actually press today):</p>
+  <table>
+    <thead><tr><th>Key</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>P</code> / <code>M</code></td><td>sort by CPU / by memory</td></tr>
+      <tr><td><code>t</code></td><td>tree view (parent → children)</td></tr>
+      <tr><td><code>H</code></td><td>hide user threads (toggle)</td></tr>
+      <tr><td><code>l</code></td><td>open files for the selected process (calls <code>lsof</code>)</td></tr>
+      <tr><td><code>q</code></td><td>quit</td></tr>
+    </tbody>
+  </table>
+  <p><code>free -h</code> prints a memory table. The column that answers “can I start something new without swapping?” is <strong>available</strong>, not <strong>free</strong>. Linux uses idle RAM as cache, so <code>free</code> looks small on a healthy box; <code>available</code> already counts reclaimable cache. That is <code>man free</code>, not folklore.</p>
+  <p><code>lsof</code>’s original job is files, not just sockets. Two shapes: <code>lsof /path</code> (who holds this file) and <code>lsof -p PID</code> (what this process has open). The listen-sockets form from L0010 still stands on the Mac: <code>lsof -nP -iTCP -sTCP:LISTEN</code>.</p>
+
+  <div class="gotcha"><strong><code>h</code> is help, not threads.</strong> MS’s key list is abbreviated; <code>man htop</code> is the source of truth. <code>h</code> / <code>F1</code> / <code>?</code> open help. User threads are <code>H</code>. <code>top</code> ships on the Mac with different keys — named, not drilled. <code>btop</code>, <code>iotop</code>, <code>nethogs</code>, <code>iftop</code> wait.</div>
+
+  <h2>Knowledge 3 — affinity: N workers ≠ N CPUs</h2>
+  <p>A process is only allowed to run on the CPUs in its <em>affinity mask</em>. <code>taskset</code> sets that mask. MS’s exercise: start more workers than CPUs you have granted, watch them fail to fill the machine.</p>
+  <pre><code>nproc                              # how many CPUs this box sees
+taskset --cpu-list 0 stress -c 2   # two CPU-spinners, both pinned to CPU 0</code></pre>
+  <p>In <code>htop</code> you will not see two cores at 100%. Both <code>stress</code> workers share CPU 0. That is the whole point: the scheduler will not put them elsewhere. (MS writes <code>taskset --cpu-list 0,2 stress -c 3</code> — three workers, two listed CPUs. Same idea; pinning to CPU 0 alone does not require CPU 2 to exist.)</p>
+  <p>Linux-only. You are root in the drill box, so no <code>sudo</code>.</p>
+
+  <h2>Drill — measure, then watch</h2>
+  <p>Ghostty + bash + vim, tmux for panes. <code>time</code> runs on the Mac. <code>htop</code> / <code>free</code> / <code>taskset</code> / <code>ss</code> need Linux: the L0030 disposable box, nothing lands on the Mac, <code>--rm</code> cleans up. An SSH Linux remote works identically (add <code>sudo</code> for installs).</p>
+  <ol>
+    <li>
+      Cold-name the slice: the three <code>time</code> numbers, one phrase each. Then the four-tool map: CPU/RAM now, memory left, who holds a file, who holds a port.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>real = wall clock including waits; user = CPU in user code; sys = CPU in the kernel. Map: <code>htop</code> (which process is hot), <code>free -h</code> (memory left — read <em>available</em>), <code>lsof</code> (who has this file), <code>ss -tlnp</code> (who is listening — L0010; Mac: <code>lsof</code>).</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Three <code>time</code> shapes, on the Mac.</strong>
+      <pre><code>type time
+time sleep 1
+time python3 -c "print(sum(range(10**7)))"
+time curl https://missing.csail.mit.edu &amp;&gt; /dev/null</code></pre>
+      For each: is real ≈ user+sys, or is most of real waiting? One sentence on the curl gap.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>sleep 1</code>: real ≈ 1s, user and sys near 0 — waiting. Python: real close to user+sys — CPU-bound (a little leftover is startup and whatever else the Mac is doing). curl: real much larger than user+sys — the gap is network wait, same as MS’s 272&nbsp;ms vs 107&nbsp;ms. <code>type time</code> should say <code>shell keyword</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot the box and watch CPU.</strong> On the Mac:
+      <pre><code>docker run --rm -it -p 4444:4444 --name ms-prof debian bash
+# inside:
+apt-get update &amp;&amp; apt-get install -y htop python3 procps iproute2 lsof stress
+nproc
+htop</code></pre>
+      Second pane (Mac: <code>docker exec -it ms-prof bash</code>, or a tmux split after <code>apt-get</code>):
+      <pre><code>stress -c 2</code></pre>
+      In <code>htop</code>: <code>P</code> to sort by CPU, find the <code>stress</code> rows. How many cores are pegged? <code>t</code> for tree — <code>stress</code> is a parent with worker children. Stop the workers with <code>Ctrl-C</code> (L0019) in that pane.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Unconstrained, <code>stress -c 2</code> wants two full CPUs. If <code>nproc</code> ≥ 2 you should see two cores near 100% and two hot <code>stress</code> rows after <code>P</code>. Tree view shows the parent plus children. If the VM only has one CPU, both workers already share it — the next task still names the constraint.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Pin them.</strong> Same second pane:
+      <pre><code>taskset --cpu-list 0 stress -c 2</code></pre>
+      Watch <code>htop</code> again. Why don’t you get two cores at 100%? Stop with <code>Ctrl-C</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Affinity is CPU 0 only — the scheduler must run both workers there. They share one core (each well under 100%, or one at 100% and one waiting). N workers is a request; the mask is the ceiling. That is MS’s <code>taskset</code> / <code>stress</code> exercise, pinned to a CPU that always exists.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong><code>free</code> and <code>lsof</code>.</strong> Still in the box:
+      <pre><code>free -h
+python3 -m http.server 4444 &amp;
+pgrep -f http.server          # L0008
+lsof -p &lt;PID&gt; | head
+# in htop: highlight that python, press l — same list, via htop</code></pre>
+      On the <code>free</code> line: which column is “room for a new program”? Then the occupied-port loop (MS’s own exercise, L0010 retrieval):
+      <pre><code>python3 -m http.server 4444
+# Address already in use — good.
+ss -tlnp | grep 4444
+kill &lt;PID&gt;                    # the PID ss named</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>available</code>, not <code>free</code> — cache makes <code>free</code> look poorer than it is. <code>lsof -p</code> lists cwd, the Python binary, libs, and a TCP listen on *:4444. htop <code>l</code> is that list without leaving the viewer. Second <code>http.server</code> fails because the port is taken; <code>ss -tlnp</code> names the process (L0010); <code>kill</code> frees it. On the Mac the same question is <code>lsof -nP -iTCP -sTCP:LISTEN</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>real / user / sys, one phrase each.</li>
+        <li>The curl gap: what is the missing time?</li>
+        <li>The four-tool map.</li>
+        <li><code>free -h</code>: available vs free.</li>
+        <li>Why <code>taskset --cpu-list 0 stress -c 2</code> does not fill two cores.</li>
+        <li>Port 4444 already bound — first command on Linux, and the Mac cousin.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Wall clock including wait; CPU in user code; CPU in the kernel.<br>
+        (b) Waiting on the network — real includes it, user+sys do not.<br>
+        (c) <code>htop</code> / <code>free -h</code> / <code>lsof</code> / <code>ss -tlnp</code>.<br>
+        (d) available = room for new apps without swapping; free = currently unused (cache sits in the gap).<br>
+        (e) Both workers are pinned to CPU 0.<br>
+        (f) <code>ss -tlnp | grep 4444</code>; Mac: <code>lsof -nP -iTCP -sTCP:LISTEN</code>.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <strong>Visualizing</strong> performance data (tidy logs from L0031 → gnuplot / matplotlib). <strong>CPU profilers</strong> — sampling (<code>perf</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). <strong>Memory profilers</strong> — Valgrind <code>massif</code>. <strong>Benchmarking</strong> — <code>hyperfine</code>. Named only today: <code>btop</code>, <code>iotop</code>, <code>nethogs</code>, <code>iftop</code>.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A timed curl shows real 0.272s, user 0.079s, sys 0.028s. Where did the rest of the real time go?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Waiting — real includes network/I/O wait; user+sys is only CPU time</li>
+      <li class="option">The kernel hid the CPU time so it would not appear in user or sys</li>
+      <li class="option">curl always reports wall time as three times the CPU time by design</li>
+      <li class="option">The missing time is memory used, which time prints on the real line</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>You need to know which process has a given file open. Which tool?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">lsof — it lists open files and which process holds each one</li>
+      <li class="option">free — it lists files that are sitting in the page cache</li>
+      <li class="option">time — it reports how long the file has been open</li>
+      <li class="option">htop’s P key — it sorts processes by how many files they hold</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span><code>python3 -m http.server 4444</code> fails: address already in use. First move on Linux?</p>
+    <ul class="options">
+      <li class="option" data-correct="true"><code>ss -tlnp | grep 4444</code> — then kill the PID it names (L0010)</li>
+      <li class="option"><code>time python3 -m http.server 4444</code> — a slow bind is a timing bug</li>
+      <li class="option"><code>free -h</code> — the port is exhausted because RAM is full</li>
+      <li class="option"><code>strace -e trace=file</code> — ports are files, so openat will name it</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span><code>taskset --cpu-list 0 stress -c 2</code>. Why don’t you see two cores at 100%?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Affinity pins both workers to CPU 0, so they share one core</li>
+      <li class="option">stress -c 2 always uses one core; the 2 is a delay in seconds</li>
+      <li class="option">taskset starts two copies of htop, which do not burn CPU</li>
+      <li class="option">CPU 0 is reserved for the kernel, so both workers sit idle</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the curl gap land (waiting vs CPU)? Did pinning with <code>taskset</code> make the “N workers ≠ N CPUs” point obvious in <code>htop</code>? Any surprise that <code>free</code> is the wrong column?</p>
+    <p style="margin-bottom:0">Next when ready: visualizing performance data, or CPU profilers (<code>perf</code> / callgrind) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Sections: Profiling intro, Timing, Resource Monitoring; profiling exercises (<code>htop</code>/<code>taskset</code>/<code>stress</code>; occupied port via <code>ss -tlnp</code>).</li>
+      <li>bash <code>help time</code> (keyword: real/user/sys). <a href="https://man7.org/linux/man-pages/man1/htop.1.html"><code>htop(1)</code></a>. <a href="https://man7.org/linux/man-pages/man1/free.1.html"><code>free(1)</code></a>. <a href="https://man7.org/linux/man-pages/man1/taskset.1.html"><code>taskset(1)</code></a>. <code>ss</code> / Mac <code>lsof</code>: L0010. Container: L0030. Signals: L0019. Ops loop: L0008.</li>
+    </ul>
+    <p>Previous: <a href="./0035-ms-ai-for-debugging.html">Lesson 0035 — AI for debugging</a>. Reference: <a href="../reference/debug-prof-timing-resources.html">timing and resource monitoring</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild real/user/sys, the four-tool map, and the taskset pin once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — timing and resource monitoring (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Debugging &amp; Profiling</p>
+    <h1>Timing and resource monitoring</h1>
+    <p class="lede">Lecture 4 slice — the start of the Profiling half. Functionally correct can still be too expensive. Grounded in <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Debugging and Profiling</a>.</p>
+  </header>
+
+  <h2>The shift</h2>
+  <p>Debugging asked whether the program is wrong. Profiling asks whether it is too expensive even when it is right. MS: find the hot spot (or the scarce resource) before optimizing — premature optimization is the root of all evil.</p>
+
+  <h2><code>time</code> (bash keyword)</h2>
+  <pre><code>type time          # shell keyword — not /usr/bin/time
+help time
+time curl https://missing.csail.mit.edu &amp;&gt; /dev/null</code></pre>
+  <table>
+    <thead><tr><th>Number</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>real</td><td>wall clock, start to finish — includes waiting</td></tr>
+      <tr><td>user</td><td>CPU time in user code</td></tr>
+      <tr><td>sys</td><td>CPU time in kernel code</td></tr>
+    </tbody>
+  </table>
+  <p>MS curl: real 272&nbsp;ms, user+sys 107&nbsp;ms — the gap is network wait. Three diagnostic shapes: <code>time sleep 1</code> (almost all real, ~0 CPU); a tight Python loop (real ≈ user+sys); curl (real ≫ user+sys). user+sys can exceed real on multiple cores (parallel CPU-bound). The keyword times a whole pipeline. <code>/usr/bin/time</code> is a different program (BSD on macOS, GNU on Linux).</p>
+
+  <h2>Monitoring map</h2>
+  <table>
+    <thead><tr><th>Question</th><th>Tool</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>which process is hot (CPU / RAM)?</td><td><code>htop</code></td><td>Linux box; improved <code>top</code>. Mac ships <code>top</code> with different keys.</td></tr>
+      <tr><td>memory left for new work?</td><td><code>free -h</code></td><td>Linux only. Read <strong>available</strong>, not <strong>free</strong>.</td></tr>
+      <tr><td>who has this file open?</td><td><code>lsof FILE</code> / <code>lsof -p PID</code></td><td>Mac and Linux. htop <code>l</code> calls <code>lsof</code> for the selected process.</td></tr>
+      <tr><td>who is listening on this port?</td><td><code>ss -tlnp</code></td><td>Linux (L0010). Mac: <code>lsof -nP -iTCP -sTCP:LISTEN</code>.</td></tr>
+    </tbody>
+  </table>
+  <p><code>free(1)</code>: <strong>free</strong> = currently unused; <strong>available</strong> = estimate for new apps without swapping (counts reclaimable cache). Linux caches aggressively — a small <code>free</code> on a healthy box is normal.</p>
+
+  <h2>htop keys (from <code>man htop</code>)</h2>
+  <table>
+    <thead><tr><th>Key</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>P</code> / <code>M</code></td><td>sort by CPU / memory (top-compat)</td></tr>
+      <tr><td><code>t</code> / <code>F5</code></td><td>tree view</td></tr>
+      <tr><td><code>F6</code> / <code>&lt;</code> / <code>&gt;</code></td><td>pick a sort column</td></tr>
+      <tr><td><code>H</code></td><td>hide user threads (toggle)</td></tr>
+      <tr><td><code>K</code></td><td>hide kernel threads</td></tr>
+      <tr><td><code>h</code> / <code>F1</code> / <code>?</code></td><td>help — <em>not</em> threads</td></tr>
+      <tr><td><code>l</code></td><td>open files (<code>lsof</code>) for the selected process</td></tr>
+      <tr><td><code>k</code> / <code>F9</code></td><td>kill (signal menu)</td></tr>
+      <tr><td><code>q</code> / <code>F10</code></td><td>quit</td></tr>
+    </tbody>
+  </table>
+  <div class="note">MS’s key list is abbreviated. <code>h</code> is help; threads are <code>H</code>. Trust the man page.</div>
+
+  <h2>CPU affinity</h2>
+  <pre><code>nproc
+taskset --cpu-list 0 stress -c 2</code></pre>
+  <p>Two workers, one allowed CPU — they share core 0. N workers is a request; the affinity mask is the ceiling. MS writes <code>taskset --cpu-list 0,2 stress -c 3</code> (three workers, two listed CPUs). Same idea; pinning to 0 alone always works. Linux-only (<code>taskset(1)</code>, util-linux).</p>
+
+  <h2>Occupied port (retrieval)</h2>
+  <pre><code>python3 -m http.server 4444
+ss -tlnp | grep 4444
+kill &lt;PID&gt;</code></pre>
+  <p>MS profiling exercise; <code>ss -tlnp</code> is L0010. Mac cousin: <code>lsof -nP -iTCP -sTCP:LISTEN</code>.</p>
+
+  <h2>Drill box</h2>
+  <pre><code>docker run --rm -it -p 4444:4444 --name ms-prof debian bash
+apt-get update &amp;&amp; apt-get install -y htop python3 procps iproute2 lsof stress</code></pre>
+  <p>Second pane: <code>docker exec -it ms-prof bash</code>. <code>time</code> itself runs on the Mac (bash keyword). <code>free</code> / <code>taskset</code> / <code>ss</code> / <code>htop</code> are the Linux half.</p>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <ul>
+      <li><strong>Visualizing</strong> — tidy logs (L0031 CSV-ish) → gnuplot / matplotlib / ggplot2.</li>
+      <li><strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). <code>perf</code> wants hardware counters — likely the same Docker-on-Mac gap as <code>rr</code> (L0034).</li>
+      <li><strong>Memory profilers</strong> — Valgrind <code>massif</code>.</li>
+      <li><strong>Benchmarking</strong> — <code>hyperfine</code> (MS’s example uses <code>fd</code> vs <code>find</code>; fancy-CLI decision later).</li>
+      <li><strong>Named only</strong> — <code>btop</code>, <code>iotop</code>, <code>nethogs</code>, <code>iftop</code>.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Sections: Profiling intro, Timing, Resource Monitoring. bash <code>help time</code>. <a href="https://man7.org/linux/man-pages/man1/htop.1.html">htop(1)</a>. <a href="https://man7.org/linux/man-pages/man1/free.1.html">free(1)</a>. <a href="https://man7.org/linux/man-pages/man1/taskset.1.html">taskset(1)</a>. <code>ss</code>/Mac <code>lsof</code>: L0010. Container: L0030. Lesson: <a href="../lessons/0036-ms-timing-resource-monitoring.html">0036</a>.</p>
+  </footer>
+</body>
+</html>
