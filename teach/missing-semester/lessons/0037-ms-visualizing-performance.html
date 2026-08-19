@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0037 — MS visualizing performance data</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0037 · <a href="../reference/debug-prof-visualizing.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>Visualizing performance data</h1>
+    <p class="lede">A mean can look fine while a plot shows periodic spikes. Log in a tidy CSV so you can graph it — then split by category before you average.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0036 gave you one command’s three numbers. That is a point. Performance work is a <em>series</em>: latency over an hour, cost of the 1st insert vs the 10,000th. MS: humans spot patterns in graphs much faster than in tables of numbers. Last week’s tidy-logs note (L0031) was not decoration — a line like <code>1705012345,42.5</code> is already a plot; “request was a bit slow just now” is not.</p>
+  <p><strong>Read first (≈5 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — “Visualizing Performance Data” (stop before “CPU Profilers”).</p>
+
+  <h2>Knowledge 1 — tidy data is the plot</h2>
+  <p>When you add diagnostic output, shape it so a plotter can swallow it later. Two shapes that work:</p>
+  <table>
+    <thead><tr><th>Shape</th><th>Example</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>CSV</td><td><code>1705012345,42.5</code></td><td>timestamp, value — gnuplot’s default job</td></tr>
+      <tr><td>JSON (structured logs)</td><td><code>{"t": 1705012345, "ms": 42.5, "ep": "/api"}</code></td><td>extra fields you can slice on later</td></tr>
+    </tbody>
+  </table>
+  <p>A prose sentence is a dead end: you will re-parse it by hand, then give up and look at the mean. The mean is the thing that hides the spike.</p>
+
+  <h2>Knowledge 2 — gnuplot, then a terminal</h2>
+  <p>MS’s one-liner, for a file of <code>timestamp,value</code>:</p>
+  <pre><code>gnuplot -e "set datafile separator ','; plot 'latency.csv' using 1:2 with lines"</code></pre>
+  <p>Read the pieces (gnuplot’s own language; <code>help plot</code> inside gnuplot):</p>
+  <table>
+    <thead><tr><th>Bit</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>set datafile separator ','</code></td><td>fields are commas, not whitespace (the default)</td></tr>
+      <tr><td><code>using 1:2</code></td><td>column 1 as x, column 2 as y</td></tr>
+      <tr><td><code>with lines</code></td><td>connect the points — a series, not a scatter</td></tr>
+    </tbody>
+  </table>
+  <p>That command’s default output is a GUI window. The drill box has no X display, so you pick a terminal first:</p>
+  <pre><code>set terminal dumb                          # ASCII in the terminal
+set terminal png; set output 'latency.png' # a file you can open on the Mac</code></pre>
+  <p><code>gnuplot-nox</code> is the Debian package that does this without pulling X11. Same binary, no window.</p>
+
+  <div class="gotcha"><strong>The one-liner as written needs a display.</strong> On this Mac gnuplot is not installed (not a brew-install lesson). In the box, skip the GUI: <code>dumb</code> for a first look, <code>png</code> to take the picture home via the bind mount. Official docs: <code>set datafile separator</code> defaults to whitespace; CSV always needs the comma.</div>
+
+  <h2>Knowledge 3 — what a graph names that a mean will not</h2>
+  <p>MS’s three use cases, which are the drill:</p>
+  <table>
+    <thead><tr><th>Plot</th><th>What you see</th><th>What a mean hid</th></tr></thead>
+    <tbody>
+      <tr><td>latency over time</td><td>a spike every N samples</td><td>GC, a cron, a traffic burst — periodic, not “always slow”</td></tr>
+      <tr><td>insert cost vs size</td><td>spikes at 2, 4, 8, 16, …</td><td>the array doubled; most inserts were cheap</td></tr>
+      <tr><td>the same metric, split by category</td><td>only one facet is sick</td><td>a “system-wide” problem that was one endpoint</td></tr>
+    </tbody>
+  </table>
+  <p>The third is <em>faceting</em>: same axes, one subplot per category. MS names Python’s matplotlib and R’s ggplot2 for this kind of iterative slice. ggplot2 stays named (R is not the track). matplotlib is the Python one — <code>plt.subplots(2, 1, sharex=True)</code> then <code>fig.savefig('facet.png')</code>. In a box with no display, matplotlib picks the Agg backend and writes a file; you do not need a window.</p>
+
+  <h2>Drill — log tidy, then look</h2>
+  <p>Ghostty + bash + vim. Scratch lives on the Mac at <code>/tmp/ms-viz/</code> and is the container’s working directory (L0030 <code>-v</code>/<code>-w</code>), so PNGs are waiting when you <code>open</code> them. gnuplot and matplotlib are Linux packages here — apt in the box, nothing on the Mac. An SSH Linux remote works identically (add <code>sudo</code> for installs).</p>
+  <ol>
+    <li>
+      Cold-name the slice: why a graph beats a table; the tidy CSV shape; the three things a plot can name that a mean will not.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Eyes find spikes and steps in a picture; a table (or a mean) averages them away. Tidy: <code>timestamp,value</code> (CSV) or structured JSON — not a sentence. Three names: a periodic slowdown (GC/cron/traffic); a doubling-array copy spike; a problem that is one category, not the whole system.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot the box with the scratch dir mounted.</strong> On the Mac:
+      <pre><code>mkdir -p /tmp/ms-viz
+docker run --rm -it -v /tmp/ms-viz:/work -w /work --name ms-viz debian bash
+# inside:
+apt-get update &amp;&amp; apt-get install -y gnuplot-nox python3 python3-matplotlib</code></pre>
+      Confirm gnuplot will not try to open a window:
+      <pre><code>gnuplot -e "show terminal"</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>gnuplot-nox</code> has no X11 terminal. <code>show terminal</code> should mention something like unknown/dumb/png — not <code>x11</code> or <code>qt</code>. If a later plot errors about a display, you forgot <code>set terminal dumb</code> or <code>png</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Doubling spikes.</strong> Still in the box, in <code>/work</code>:
+      <pre><code>cat &gt; grow.py &lt;&lt;'EOF'
+cap = 1
+for k in range(1, 65):
+    if k == cap:
+        cost = k      # this insert copied the live buffer into one twice as big
+        cap *= 2
+    else:
+        cost = 1
+    print(f"{k},{cost}")
+EOF
+python3 grow.py &gt; grow.csv
+awk -F, '{s+=$2; n++} END {print "mean", s/n}' grow.csv
+gnuplot -e "set terminal dumb; set datafile separator ','; plot 'grow.csv' using 1:2 with lines"</code></pre>
+      Compare the mean to the picture. Then take a PNG home:
+      <pre><code>gnuplot -e "set terminal png; set output 'grow.png'; set datafile separator ','; plot 'grow.csv' using 1:2 with lines"</code></pre>
+      On the Mac (another pane): <code>open /tmp/ms-viz/grow.png</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Mean is a little under 2 — “inserts are cheap.” The plot spikes at 1, 2, 4, 8, 16, 32: those inserts copied the whole buffer. That is MS’s vector-insert example. The mean told you nothing about <em>when</em> it was expensive.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Periodic latency.</strong> MS’s other picture: a slowdown that repeats.
+      <pre><code>cat &gt; latency.py &lt;&lt;'EOF'
+for t in range(120):
+    ms = 200 if t % 15 == 0 else 20
+    print(f"{t},{ms}")
+EOF
+python3 latency.py &gt; latency.csv
+awk -F, '{s+=$2; n++} END {print "mean", s/n}' latency.csv
+gnuplot -e "set terminal dumb; set datafile separator ','; plot 'latency.csv' using 1:2 with lines"
+gnuplot -e "set terminal png; set output 'latency.png'; set datafile separator ','; plot 'latency.csv' using 1:2 with lines"</code></pre>
+      Mean should be 32. One sentence: is the service “32&nbsp;ms p50-ish fine,” or is something waking every 15 samples?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>32&nbsp;ms is the average of a 20&nbsp;ms baseline and a 200&nbsp;ms spike every 15 samples (GC, a cron, a traffic burst). The plot names the period; the mean names a service that looks only a bit slow. This is why L0031 asked for CSV-shaped logs.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Facet by endpoint.</strong> Same metric, a third column. matplotlib for the split (MS: iterative slice; <code>plt.subplots</code> + <code>savefig</code>):
+      <pre><code>cat &gt; by_endpoint.py &lt;&lt;'EOF'
+for t in range(60):
+    print(f"{t},20,/api")
+    chk = 200 if t % 15 == 0 else 22
+    print(f"{t},{chk},/checkout")
+EOF
+python3 by_endpoint.py &gt; by_endpoint.csv
+awk -F, '{s+=$2; n++} END {print "pooled mean", s/n}' by_endpoint.csv
+
+cat &gt; facet.py &lt;&lt;'EOF'
+import csv
+from matplotlib import pyplot as plt
+
+by = {"/api": ([], []), "/checkout": ([], [])}
+with open("by_endpoint.csv") as f:
+    for t, ms, ep in csv.reader(f):
+        by[ep][0].append(int(t))
+        by[ep][1].append(int(ms))
+
+fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+ax1.plot(by["/api"][0], by["/api"][1])
+ax1.set_title("/api")
+ax2.plot(by["/checkout"][0], by["/checkout"][1])
+ax2.set_title("/checkout")
+fig.savefig("facet.png")
+EOF
+python3 facet.py</code></pre>
+      On the Mac: <code>open /tmp/ms-viz/facet.png</code>. Which facet is sick? Would the pooled mean have sent you looking at <code>/api</code>?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Pooled mean is mid-20s — slightly off, nowhere. <code>/api</code> is a flat 20&nbsp;ms. <code>/checkout</code> carries the 200&nbsp;ms period. Split before you average. That is MS’s facet point (ggplot2 does the same in R — named, not run).</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Why log <code>t,value</code> instead of a sentence.</li>
+        <li>What <code>using 1:2 with lines</code> means.</li>
+        <li>Why the MS one-liner as written fails in this box, and the two terminals that fix it.</li>
+        <li>Doubling plot: what the spikes are, and what the mean said instead.</li>
+        <li>Faceting: one sentence on “system-wide.”</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) A CSV is already a plot; a sentence is not.<br>
+        (b) Column 1 → x, column 2 → y, connected as a series.<br>
+        (c) Default terminal is a GUI window; the box has no display. <code>dumb</code> (ASCII) or <code>png</code> + <code>set output</code>.<br>
+        (d) Copies when the buffer doubled (powers of two). The mean looked like “cheap inserts.”<br>
+        (e) A system-wide number can be one category. Split first.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). <strong>Memory profilers</strong> — Valgrind <code>massif</code>. <strong>Benchmarking</strong> — <code>hyperfine</code>. ggplot2 stays named. matplotlib beyond <code>subplots</code>/<code>savefig</code> waits until you have a real dataset to slice.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Why write diagnostic output as <code>1705012345,42.5</code> instead of a sentence?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">A timestamp,value CSV is already a plot; a prose sentence is not</li>
+      <li class="option">A sentence has more context, so gnuplot can parse it automatically</li>
+      <li class="option">bash time prints CSV by default if you add any print first</li>
+      <li class="option">JSON is illegal in log files; CSV is the only format Linux accepts</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span><code>plot 'latency.csv' using 1:2 with lines</code> — what is <code>using 1:2</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">column 1 as x, column 2 as y</li>
+      <li class="option">skip the first two rows of the file</li>
+      <li class="option">plot only the first two points in the file</li>
+      <li class="option">read the twelfth column of a TSV</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Append-cost spikes at 2, 4, 8, 16; the mean of those costs is tiny. What did the plot name?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Doubling copies of a growing array — a complexity shape a mean hides</li>
+      <li class="option">The CPU is pegged; time’s real line is each spike</li>
+      <li class="option">gnuplot draws a spike on every even x as a default grid</li>
+      <li class="option">The CSV was not tidy, so every other point is garbage</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Faceting latency by endpoint shows <code>/api</code> flat and <code>/checkout</code> spiking. Point?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">A “system-wide” problem can be one category — split before you average</li>
+      <li class="option">Always average first so the facet has less noise to look at</li>
+      <li class="option">Faceting is ggplot2-only; matplotlib cannot show two series</li>
+      <li class="option">The spikes are a gnuplot bug when the CSV has a third column</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the doubling spikes beat the mean? Did faceting make the “not actually system-wide” point? Prefer gnuplot’s <code>dumb</code> terminal or the PNG?</p>
+    <p style="margin-bottom:0">Next when ready: CPU profilers (<code>perf</code> / callgrind), or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: Visualizing Performance Data (tidy logs; gnuplot one-liner; matplotlib / ggplot2; three use cases).</li>
+      <li>gnuplot: <code>set datafile separator</code>, <code>plot … using … with lines</code>, terminals <code>dumb</code> / <code>png</code> (<code>help plot</code> inside gnuplot). matplotlib: <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html"><code>pyplot.subplots</code></a>, <code>Figure.savefig</code>; Agg backend when no display. Tidy logs: L0031. Container mount: L0030. Filters: L0016 / L0017.</li>
+    </ul>
+    <p>Previous: <a href="./0036-ms-timing-resource-monitoring.html">Lesson 0036 — timing and resource monitoring</a>. Reference: <a href="../reference/debug-prof-visualizing.html">visualizing performance data</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild tidy CSV, using 1:2, dumb/png, doubling-vs-mean, and faceting once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

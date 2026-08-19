@@ -119,7 +119,7 @@ apt-get update &amp;&amp; apt-get install -y htop python3 procps iproute2 lsof s
   <div class="beyond">
     <h2>Beyond this slice</h2>
     <ul>
-      <li><strong>Visualizing</strong> — tidy logs (L0031 CSV-ish) → gnuplot / matplotlib / ggplot2.</li>
+      <li><strong>Visualizing</strong> — tidy logs (L0031 CSV-ish) → gnuplot / matplotlib / ggplot2. Lesson: <a href="../lessons/0037-ms-visualizing-performance.html">0037</a>.</li>
       <li><strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). <code>perf</code> wants hardware counters — likely the same Docker-on-Mac gap as <code>rr</code> (L0034).</li>
       <li><strong>Memory profilers</strong> — Valgrind <code>massif</code>.</li>
       <li><strong>Benchmarking</strong> — <code>hyperfine</code> (MS’s example uses <code>fd</code> vs <code>find</code>; fancy-CLI decision later).</li>

@@ -430,3 +430,18 @@
 - **Skill win:** cold-rebuild real/user/sys + the four-tool map; live: three `time` shapes on the Mac; in the box, watch `stress` in `htop`, then pin it with `taskset` and see why two workers share one core; `free -h` available-vs-free; occupied-port loop (`python3 -m http.server 4444` → `ss -tlnp` → `kill`); `lsof -p` / htop `l`.
 - **Skip / Defer:** visualizing (gnuplot / matplotlib / ggplot2 — L0031 tidy-logs payoff); CPU profilers (`perf stat`/`record` + flame graphs, callgrind); massif; `hyperfine` (fancy CLI — same class as fd/ripgrep in MS’s own example; decide later). `perf` likely hits the same Docker-on-Mac hardware-counter gap as `rr` (L0034) — flag when that slice is designed. `btop`/`iotop`/`nethogs`/`iftop` named only.
 - **Next when asked:** visualizing performance data, or CPU profilers (`perf` / callgrind), or more vim practice, or L0020 workbook re-run.
+
+## L0036 complete (4/4; timing + resource-monitoring floor set)
+- `time` real/user/sys, the curl gap as wait, the four-tool map, available-vs-free, and `taskset` pinning (N workers ≠ N CPUs) all landed. No friction reported; assume cold rebuilds done.
+- Functionally correct is now a known non-proof of “fast enough.” `h` in htop is help; threads are `H`. `top` / `btop` / `iotop` / `nethogs` / `iftop` stay named-only.
+- Next when asked: user said ready without picking; took lecture order → L0037 visualizing performance data.
+
+## L0037 design notes (MS Lecture 4 — visualizing performance data, seventh slice)
+- **Topic choice:** user gave no preference ("ready for next lesson"); took next in MS lecture order after timing/resource monitoring — “Visualizing Performance Data,” as the L0036 ask box named it first.
+- **Primary sources:** MS Debugging and Profiling — “Visualizing Performance Data” (full 2026 page fetched: tidy CSV/JSON; gnuplot one-liner `set datafile separator ','` + `plot … using 1:2 with lines`; matplotlib / ggplot2 for iterative slice / facets; three use cases — periodic latency, vector-insert doubling spikes, facet-by-category). gnuplot `set datafile separator` docs (default whitespace; CSV needs the comma). `set terminal dumb` / `png` (headless). matplotlib `pyplot.subplots` + `Figure.savefig`; Agg backend when no display.
+- **Scope:** tidy logs as the L0031 payoff; gnuplot as the CLI one-liner with the real gotcha (default terminal is a GUI — box needs `dumb`/`png`); three use cases as the drill; matplotlib facets as the Python-track split; ggplot2 named (R, not the track).
+- **Reuse:** L0031 tidy CSV; L0030 `-v`/`-w` so PNGs land on the Mac at `/tmp/ms-viz`; L0016/L0017 `awk` for a mean that lies; L0036 `time` as “one point,” this slice as a series.
+- **Environment:** gnuplot and matplotlib are not on this Mac (not a brew-install / pip-install lesson). Drill box: `debian` + `gnuplot-nox python3 python3-matplotlib`, mount `/tmp/ms-viz:/work`. Docker daemon was down on the agent host at write time; lesson still uses the corpus’s container posture. Generators verified locally (grow spikes at 1,2,4,8,16,32; latency mean 32 with period-15 spikes; pooled endpoint mean hides `/checkout`).
+- **Skill win:** cold-rebuild tidy shape + `using 1:2` + why the MS one-liner needs a terminal in the box; live: doubling plot vs mean, periodic latency vs mean, matplotlib facet vs pooled mean.
+- **Skip / Defer:** CPU profilers (`perf stat`/`record` + flame graphs, callgrind); massif; `hyperfine` (fancy CLI — same class as fd/ripgrep in MS’s own example). ggplot2 hands-on. matplotlib beyond subplots/savefig. `perf` likely hits the same Docker-on-Mac hardware-counter gap as `rr` (L0034) — flag when that slice is designed.
+- **Next when asked:** CPU profilers (`perf` / callgrind), or more vim practice, or L0020 workbook re-run.
