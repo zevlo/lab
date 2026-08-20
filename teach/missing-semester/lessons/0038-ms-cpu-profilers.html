@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0038 — MS CPU profilers</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0038 · <a href="../reference/debug-prof-cpu-profilers.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>CPU profilers</h1>
+    <p class="lede"><code>time</code> says the program is slow. A profiler names the function. Sample in production; trace when you need exact call counts.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>L0036 gave you three numbers for the whole command. L0037 gave you a series. Neither names <em>which function</em> is on the CPU. MS: people say “profiler” and usually mean a <strong>CPU profiler</strong> — the tool that turns “it’s slow” into a stack. Premature optimization is still the root of all evil; today is how you find the hot spot before you rewrite anything.</p>
+  <p><strong>Read first (≈8 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — “CPU Profilers” (stop before “Memory Profilers”). Skim the <code>slow.c</code> exercise so the drill looks familiar.</p>
+
+  <h2>Knowledge 1 — two kinds of profiler</h2>
+  <table>
+    <thead><tr><th>Kind</th><th>What it does</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>sampling</td><td>wakes up on a timer (often ~1&nbsp;ms), records the current stack, goes back to sleep</td><td>low — the default for production</td></tr>
+      <tr><td>tracing</td><td>records <em>every</em> function call</td><td>high — exact call counts, caller/callee</td></tr>
+    </tbody>
+  </table>
+  <p>A sample is a vote: “this stack was on-CPU just now.” Ten thousand votes later, the wide frames are the hot path. You miss a function that ran for 50&nbsp;µs between ticks; you do not miss the one that ate 80% of the run. Tracing never misses a call — and pays for it (Valgrind-class slowdown, L0034).</p>
+
+  <h2>Knowledge 2 — perf, then a flame graph</h2>
+  <p><code>perf</code> is the standard Linux sampler. No recompile. Two invocations from MS:</p>
+  <pre><code>perf stat ./slow_program          # counters for the whole run
+perf record -g ./my_program       # stack samples → perf.data
+perf report                       # read them</code></pre>
+  <p><code>perf-record(1)</code>: <code>-g</code> means record a call graph. Default unwind is <code>fp</code> (frame pointers). gcc <code>-O2</code> omits those unless you pass <code>-fno-omit-frame-pointer</code> — that is why L0035 treated frame pointers as a profiling habit, not a debugger nicety. Without them the stacks come out truncated; <code>--call-graph dwarf</code> is the fallback that uses <code>-g</code> debug info instead.</p>
+  <p><code>perf stat</code>’s hardware lines (<code>cycles</code>, <code>instructions</code>, <code>branches</code>) need a PMU. This Docker-on-Mac VM does not expose one — same gap as <code>rr</code> (L0034). Those lines print <code>&lt;not supported&gt;</code>. Software events still work: <code>task-clock</code>, context-switches, page-faults. For recording stacks, pick the software timer Gregg uses in VMs:</p>
+  <pre><code>perf record -e cpu-clock -g ./slow</code></pre>
+  <p>A <strong>flame graph</strong> (Brendan Gregg) turns those stacks into a picture:</p>
+  <table>
+    <thead><tr><th>Axis</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>y</td><td>stack depth — bottom is <code>main</code>’s ancestors, top edge is what is on-CPU</td></tr>
+      <tr><td>width</td><td>how often that frame appeared in the samples (∝ time on CPU)</td></tr>
+      <tr><td>left → right</td><td><em>not</em> a timeline — stacks are sorted alphabetically</td></tr>
+    </tbody>
+  </table>
+  <p>MS’s “time taken proportional to the X axis” is the width claim. The gotcha operators miss: a frame on the right is not “later.” Click-to-zoom is why the SVG is interactive. MS’s pipeline:</p>
+  <pre><code>perf script | stackcollapse-perf.pl | flamegraph.pl &gt; flamegraph.svg</code></pre>
+  <p>Speedscope and Perfetto are named viewers for the same data (not drilled). Language-specific cousins — Python <code>cProfile</code> / <code>py-spy</code>, Go <code>pprof</code>, Rust <code>cargo-flamegraph</code> — named only.</p>
+
+  <div class="gotcha"><strong>This box needs two extra flags MS does not write.</strong> (1) <code>-e cpu-clock</code> — default <code>cycles</code> is hardware and will fail here. (2) <code>docker run --privileged</code> — <code>perf_event</code> is blocked otherwise. Not a production posture; callgrind does not need it. If <code>perf</code> complains it cannot find a binary for this kernel, Debian’s <code>/usr/bin/perf</code> is a wrapper: run the versioned binary it names (<code>perf_*</code> under <code>/usr/bin</code> or <code>/usr/lib/linux-tools-*</code>).</div>
+
+  <h2>Knowledge 3 — callgrind, the tracing profiler</h2>
+  <p>L0034’s forward pointer: Valgrind is “a really powerful controlled execution environment.” <strong>callgrind</strong> is the CPU tool in that suite. It traces every instruction, so you get exact call counts and caller/callee — and a large slowdown. MS:</p>
+  <pre><code>valgrind --tool=callgrind ./my_program
+callgrind_annotate callgrind.out.&lt;pid&gt;</code></pre>
+  <p><code>callgrind_annotate</code> lists functions by <em>self</em> cost (instructions in that function, not its children). Pass <code>--inclusive=yes</code> to fold callees in — <code>main</code> should sit near 100%. <code>--cache-sim=yes</code> optionally simulates the cache (named, not run). <code>kcachegrind</code> is the GUI (named, like gnuplot’s window in L0037).</p>
+  <p>Sampling vs tracing on the same program: <code>perf</code> is the one you attach to a live service; callgrind is the one you run overnight on a short test when you need “<code>sin</code> was called N times.”</p>
+
+  <h2>Drill — name the hot function</h2>
+  <p>Ghostty + bash + vim. Scratch on the Mac at <code>/tmp/ms-cpu/</code> is the container’s <code>/work</code> (L0030 <code>-v</code>/<code>-w</code>), so the SVG is waiting for <code>open</code>. <code>perf</code> and callgrind are Linux — apt in the box, nothing on the Mac. An SSH Linux remote works identically (and there the PMU may actually work — try <code>perf stat</code> without <code>-e</code> and see).</p>
+  <ol>
+    <li>
+      Cold-name the slice: sampling vs tracing; why production prefers sampling; the three flame-graph facts (y, width, not a timeline).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Sampling: periodic stack snapshots, low overhead. Tracing: every call, exact counts, slow. Production → sampling, you can afford it on the live box. Flame graph: y = stack depth (top = on-CPU); width ∝ samples; left-to-right is alphabetical, not time.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot a privileged box with the scratch dir mounted.</strong> On the Mac:
+      <pre><code>mkdir -p /tmp/ms-cpu
+docker run --rm -it --privileged -v /tmp/ms-cpu:/work -w /work --name ms-cpu debian bash
+# inside:
+apt-get update &amp;&amp; apt-get install -y gcc valgrind linux-perf git ca-certificates</code></pre>
+      If <code>perf stat -- sleep 0.1</code> says it cannot find a kernel-matched binary, run the versioned one the message names. Confirm software events live and hardware does not:
+      <pre><code>perf stat -- sleep 0.1</code></pre>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>task-clock</code> / context-switches / page-faults have numbers. <code>cycles</code> / <code>instructions</code> / <code>branches</code> are <code>&lt;not supported&gt;</code> — no PMU in this VM, same class as <code>rr</code>. If even software events fail, you forgot <code>--privileged</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>MS’s <code>slow.c</code></strong> (CC BY-NC-SA), with two knobs so callgrind can finish. In <code>/work</code>:
+      <pre><code>cat &gt; slow.c &lt;&lt;'EOF'
+#include &lt;math.h&gt;
+#include &lt;stdio.h&gt;
+
+#ifndef OUTER
+#define OUTER 100
+#endif
+#ifndef WORK
+#define WORK 1000
+#endif
+
+double slow_computation(int n) {
+    double result = 0;
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = 0; j &lt; WORK; j++) {
+            result += sin(i * j) * cos(i + j);
+        }
+    }
+    return result;
+}
+
+int main(void) {
+    double r = 0;
+    for (int i = 0; i &lt; OUTER; i++) {
+        r += slow_computation(WORK);
+    }
+    printf("Result: %f\n", r);
+    return 0;
+}
+EOF
+gcc -g -O2 -fno-omit-frame-pointer slow.c -o slow -lm
+time ./slow</code></pre>
+      MS compiled <code>-g -O2 -lm</code>; the extra flag is L0035, so <code>perf record -g</code> can walk frames. <code>time</code> prints three numbers (L0036). One sentence: what does it <em>not</em> name?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>real ≈ user (this is CPU work, not wait). It does not name <code>slow_computation</code>, <code>sin</code>, or <code>cos</code>. That is the gap this slice fills.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong><code>perf stat</code>, then record.</strong> Still the full binary:
+      <pre><code>perf stat ./slow
+perf record -e cpu-clock -g ./slow
+perf report --stdio | head -n 40</code></pre>
+      Where is the time? Then the flame graph (MS’s pipeline; scripts from Gregg’s repo):
+      <pre><code>git clone --depth 1 https://github.com/brendangregg/FlameGraph.git
+perf script | FlameGraph/stackcollapse-perf.pl | FlameGraph/flamegraph.pl &gt; flame.svg</code></pre>
+      On the Mac (another pane): <code>open /tmp/ms-cpu/flame.svg</code>. Click the wide leaf. What is on-CPU, and who called it?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p><code>perf stat</code>: <code>task-clock</code> near 100% of one CPU; hardware lines unsupported. <code>perf report</code> / the SVG: wide top frames are <code>sin</code> and <code>cos</code> (libm); under them <code>slow_computation</code>, then <code>main</code>. Width is samples, not a timeline — the two trig leaves sit side by side because they both ran a lot, not because one happened “after” the other.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>callgrind — exact counts, smaller run.</strong> Full <code>OUTER=100</code> / <code>WORK=1000</code> is ~20–50× slower under Valgrind; shrink it:
+      <pre><code>gcc -g -O2 -fno-omit-frame-pointer -DOUTER=4 -DWORK=50 slow.c -o tiny -lm
+valgrind --tool=callgrind ./tiny
+callgrind_annotate --auto=no --inclusive=yes --show-percs=yes callgrind.out.*</code></pre>
+      Self vs inclusive: which function has the instructions, and which one <em>includes</em> them? One sentence on when you would pick this over <code>perf</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Self cost piles up in <code>sin</code> / <code>cos</code> (or inlined trig). Inclusive: <code>slow_computation</code> and <code>main</code> near the top of the run — they called the leaves. Pick callgrind when you need exact call counts or a caller/callee graph on a short test; pick <code>perf</code> on anything live. <code>--cache-sim=yes</code> and kcachegrind stay named.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Sampling vs tracing, and which one production uses.</li>
+        <li>The two <code>perf</code> invocations, plus the extra event this box needs.</li>
+        <li>Why <code>-fno-omit-frame-pointer</code> sits next to <code>-g</code> for <code>perf record -g</code>.</li>
+        <li>Flame graph: y, width, and the timeline mistake.</li>
+        <li>callgrind: the two commands, self vs inclusive.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Periodic stacks vs every call; production → sampling.<br>
+        (b) <code>perf stat ./prog</code>; <code>perf record -g ./prog</code> then <code>perf report</code>. Here: <code>-e cpu-clock</code> (and <code>--privileged</code>).<br>
+        (c) Default unwind is frame pointers; <code>-O2</code> drops them unless you keep them. <code>-g</code> names the frames; pointers let <code>-g</code> (the perf flag) walk them.<br>
+        (d) y = depth, top = on-CPU; width ∝ samples; left-to-right is not time.<br>
+        (e) <code>valgrind --tool=callgrind ./prog</code>; <code>callgrind_annotate callgrind.out.*</code>. Self = instructions in that function; inclusive = self + callees.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <strong>Memory profilers</strong> — Valgrind <code>massif</code> (heap over time). <strong>Benchmarking</strong> — <code>hyperfine</code> (MS’s example compares <code>fd</code> vs <code>find</code>; fancy-CLI decision still later). kcachegrind, Speedscope, Perfetto, and language-specific profilers stay named. Hardware <code>perf</code> events wait for a real Linux box (or PMU passthrough).</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A sampling profiler vs a tracing profiler — what is the difference that matters in production?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Sampling records periodic stacks (low overhead); tracing records every call (exact, slow)</li>
+      <li class="option">Sampling needs a recompile; tracing attaches to any binary with no flags</li>
+      <li class="option">Sampling only works on Python; tracing is the C/C++/Rust tool</li>
+      <li class="option">Sampling prints time’s three numbers; tracing is just perf stat with more rows</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>On a flame graph, a wide frame on the right means:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">That stack appeared in many samples — width ∝ on-CPU time; left-to-right is not a timeline</li>
+      <li class="option">That function ran last, because X is wall-clock from start to exit</li>
+      <li class="option">That function allocated the most heap; CPU flame graphs plot RSS</li>
+      <li class="option">gnuplot sorted the CSV by the second column again</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span><code>perf record -g</code> on a <code>-O2</code> binary: why also compile with <code>-fno-omit-frame-pointer</code>?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Default unwind is frame pointers; -O2 drops them, so stacks come out truncated</li>
+      <li class="option">Frame pointers are how gcc writes the perf.data file format</li>
+      <li class="option">Without them callgrind cannot count instructions at all</li>
+      <li class="option">-g (the compiler flag) is illegal unless frame pointers are on</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>In this Docker-on-Mac box, <code>perf stat</code> prints <code>&lt;not supported&gt;</code> for <code>cycles</code>. What still works, and why?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Software events (task-clock, cpu-clock) — the VM has no PMU, same gap as rr</li>
+      <li class="option">Nothing — perf cannot run in any container, only on bare metal</li>
+      <li class="option">Hardware events still work if you pass -g; software events never do</li>
+      <li class="option">cycles is a callgrind counter; perf stat is the wrong tool</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did <code>sin</code>/<code>cos</code> show as the wide leaves? Did <code>&lt;not supported&gt;</code> on <code>cycles</code> make the PMU gap click? Prefer the SVG or <code>perf report</code>’s text?</p>
+    <p style="margin-bottom:0">Next when ready: memory profilers (<code>massif</code>), or <code>hyperfine</code>, or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: CPU Profilers (sampling vs tracing; <code>perf stat</code> / <code>perf record -g</code>; flame graphs; callgrind). Exercise program <code>slow.c</code> used with loop-size knobs.</li>
+      <li><code>perf-stat(1)</code>, <code>perf-record(1)</code> (<code>-g</code> call-graph; default unwind <code>fp</code>). Valgrind Callgrind manual (<code>--tool=callgrind</code>, <code>callgrind_annotate</code>, inclusive vs self). <a href="https://www.brendangregg.com/flamegraphs.html">Brendan Gregg — Flame Graphs</a> (width ∝ samples; x is not a timeline). Frame pointers: L0035. Valgrind as a VM: L0034. <code>time</code>: L0036.</li>
+    </ul>
+    <p>Previous: <a href="./0037-ms-visualizing-performance.html">Lesson 0037 — visualizing performance data</a>. Reference: <a href="../reference/debug-prof-cpu-profilers.html">CPU profilers</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild sampling vs tracing, -e cpu-clock, flame-graph axes, and callgrind annotate once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — CPU profilers (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Debugging &amp; Profiling</p>
+    <h1>CPU profilers</h1>
+    <p class="lede">Lecture 4 slice — sampling vs tracing, <code>perf</code> + flame graphs, Valgrind callgrind. Grounded in <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Debugging and Profiling</a>.</p>
+  </header>
+
+  <h2>Sampling vs tracing</h2>
+  <table>
+    <thead><tr><th>Kind</th><th>Records</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>sampling</td><td>periodic stacks (often ~1&nbsp;ms)</td><td>production — low overhead</td></tr>
+      <tr><td>tracing</td><td>every function call</td><td>short tests — exact counts, caller/callee</td></tr>
+    </tbody>
+  </table>
+  <p>Linux sampler: <code>perf</code>. Linux tracer in this lecture: Valgrind <code>callgrind</code>.</p>
+
+  <h2>perf</h2>
+  <pre><code># Overview (software events work in Docker-on-Mac; hardware often does not):
+perf stat ./slow
+
+# Stacks — this box: software timer. Bare-metal Linux: omit -e to use cycles.
+perf record -e cpu-clock -g ./slow
+perf report --stdio
+
+# MS flame graph:
+perf script | stackcollapse-perf.pl | flamegraph.pl &gt; flame.svg</code></pre>
+  <table>
+    <thead><tr><th>Bit</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>perf stat</code></td><td>whole-run counters</td></tr>
+      <tr><td><code>task-clock</code> / <code>cpu-clock</code></td><td>software events — no PMU</td></tr>
+      <tr><td><code>cycles</code> / <code>instructions</code> / <code>branches</code></td><td>hardware PMU — <code>&lt;not supported&gt;</code> in this VM</td></tr>
+      <tr><td><code>-g</code></td><td>record call graph (<code>perf-record(1)</code>)</td></tr>
+      <tr><td>default unwind</td><td><code>fp</code> — needs <code>-fno-omit-frame-pointer</code> under <code>-O2</code></td></tr>
+      <tr><td><code>--call-graph dwarf</code></td><td>unwind from <code>-g</code> DWARF instead</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><code>docker run --privileged</code> for <code>perf_event</code>. If Debian’s <code>/usr/bin/perf</code> wrapper cannot find a kernel-matched binary, run the versioned one it names. Same PMU gap as <code>rr</code> (L0034). Mac: no <code>perf</code>; not a brew-install slice.</div>
+
+  <h2>Flame graph (Gregg)</h2>
+  <table>
+    <thead><tr><th>Axis</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>y</td><td>stack depth; top edge = on-CPU</td></tr>
+      <tr><td>width</td><td>∝ samples ≈ time on CPU</td></tr>
+      <tr><td>left → right</td><td>alphabetical — <em>not</em> a timeline</td></tr>
+    </tbody>
+  </table>
+  <p>Scripts: <a href="https://github.com/brendangregg/FlameGraph">brendangregg/FlameGraph</a>. Named viewers: Speedscope, Perfetto.</p>
+
+  <h2>callgrind (tracing)</h2>
+  <pre><code>valgrind --tool=callgrind ./tiny
+callgrind_annotate --auto=no --inclusive=yes --show-percs=yes callgrind.out.*</code></pre>
+  <p>Self cost = instructions in that function. Inclusive = self + callees (<code>main</code> ≈ 100%). Writes <code>callgrind.out.&lt;pid&gt;</code>. <code>--cache-sim=yes</code> and kcachegrind: named. Shrink the workload — Valgrind is tens of times slower.</p>
+
+  <h2>Compile line (MS <code>slow.c</code>)</h2>
+  <pre><code>gcc -g -O2 -fno-omit-frame-pointer slow.c -o slow -lm
+# callgrind: -DOUTER=4 -DWORK=50  (lesson knobs; MS defaults 100 / 1000)</code></pre>
+
+  <h2>Drill box</h2>
+  <pre><code>mkdir -p /tmp/ms-cpu
+docker run --rm -it --privileged -v /tmp/ms-cpu:/work -w /work --name ms-cpu debian bash
+apt-get update &amp;&amp; apt-get install -y gcc valgrind linux-perf git ca-certificates</code></pre>
+  <p>SVG lands on the Mac: <code>open /tmp/ms-cpu/flame.svg</code>. Named only: cProfile, py-spy, <code>go tool pprof</code>, cargo-flamegraph.</p>
+
+  <div class="beyond">
+    <h2>Beyond this slice</h2>
+    <ul>
+      <li><strong>Memory profilers</strong> — Valgrind <code>massif</code> + <code>ms_print</code>.</li>
+      <li><strong>Benchmarking</strong> — <code>hyperfine</code> (MS’s example uses <code>fd</code> vs <code>find</code>; fancy-CLI decision later).</li>
+      <li><strong>Hardware <code>perf</code></strong> — real Linux box or PMU passthrough; then omit <code>-e cpu-clock</code>.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: CPU Profilers. <code>perf-stat(1)</code> / <code>perf-record(1)</code>. <a href="https://valgrind.org/docs/manual/cl-manual.html">Callgrind</a>. <a href="https://www.brendangregg.com/flamegraphs.html">Flame Graphs</a>. Frame pointers: L0035. Container: L0030. Lesson: <a href="../lessons/0038-ms-cpu-profilers.html">0038</a>.</p>
+  </footer>
+</body>
+</html>

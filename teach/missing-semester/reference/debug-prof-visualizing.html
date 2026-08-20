@@ -104,7 +104,7 @@ apt-get update &amp;&amp; apt-get install -y gnuplot-nox python3 python3-matplot
   <div class="beyond">
     <h2>Beyond this slice</h2>
     <ul>
-      <li><strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). <code>perf</code> wants hardware counters — likely the same Docker-on-Mac gap as <code>rr</code> (L0034).</li>
+      <li><strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). Lesson: <a href="../lessons/0038-ms-cpu-profilers.html">0038</a>.</li>
       <li><strong>Memory profilers</strong> — Valgrind <code>massif</code>.</li>
       <li><strong>Benchmarking</strong> — <code>hyperfine</code> (MS’s example uses <code>fd</code> vs <code>find</code>; fancy-CLI decision later).</li>
     </ul>

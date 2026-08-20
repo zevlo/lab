@@ -238,7 +238,7 @@ python3 facet.py</code></pre>
     </li>
   </ol>
 
-  <div class="gotcha"><strong>Later.</strong> <strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). <strong>Memory profilers</strong> — Valgrind <code>massif</code>. <strong>Benchmarking</strong> — <code>hyperfine</code>. ggplot2 stays named. matplotlib beyond <code>subplots</code>/<code>savefig</code> waits until you have a real dataset to slice.</div>
+  <div class="gotcha"><strong>Later.</strong> <strong>CPU profilers</strong> — sampling (<code>perf stat</code> / <code>perf record -g</code> + flame graphs) vs tracing (Valgrind <code>callgrind</code>). Lesson: <a href="./0038-ms-cpu-profilers.html">0038</a>. <strong>Memory profilers</strong> — Valgrind <code>massif</code>. <strong>Benchmarking</strong> — <code>hyperfine</code>. ggplot2 stays named. matplotlib beyond <code>subplots</code>/<code>savefig</code> waits until you have a real dataset to slice.</div>
 
   <h2>Check your understanding</h2>
   <p>Four questions. Shuffled answers.</p>
@@ -291,7 +291,7 @@ python3 facet.py</code></pre>
 
   <div class="ask">
     <p><strong>Ask the teacher.</strong> Did the doubling spikes beat the mean? Did faceting make the “not actually system-wide” point? Prefer gnuplot’s <code>dumb</code> terminal or the PNG?</p>
-    <p style="margin-bottom:0">Next when ready: CPU profilers (<code>perf</code> / callgrind), or more vim practice, or another L0020 workbook pass. Say which.</p>
+    <p style="margin-bottom:0">Next: <a href="./0038-ms-cpu-profilers.html">Lesson 0038 — CPU profilers</a>. After that: memory profilers (<code>massif</code>), or <code>hyperfine</code>, or more vim practice, or another L0020 workbook pass.</p>
   </div>
 
   <footer>
@@ -300,7 +300,7 @@ python3 facet.py</code></pre>
       <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: Visualizing Performance Data (tidy logs; gnuplot one-liner; matplotlib / ggplot2; three use cases).</li>
       <li>gnuplot: <code>set datafile separator</code>, <code>plot … using … with lines</code>, terminals <code>dumb</code> / <code>png</code> (<code>help plot</code> inside gnuplot). matplotlib: <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html"><code>pyplot.subplots</code></a>, <code>Figure.savefig</code>; Agg backend when no display. Tidy logs: L0031. Container mount: L0030. Filters: L0016 / L0017.</li>
     </ul>
-    <p>Previous: <a href="./0036-ms-timing-resource-monitoring.html">Lesson 0036 — timing and resource monitoring</a>. Reference: <a href="../reference/debug-prof-visualizing.html">visualizing performance data</a>.</p>
+    <p>Previous: <a href="./0036-ms-timing-resource-monitoring.html">Lesson 0036 — timing and resource monitoring</a>. Next: <a href="./0038-ms-cpu-profilers.html">Lesson 0038 — CPU profilers</a>. Reference: <a href="../reference/debug-prof-visualizing.html">visualizing performance data</a>.</p>
   </footer>
 
 <script>

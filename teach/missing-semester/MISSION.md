@@ -6,7 +6,7 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** L0037 in flight — MS lecture 4, seventh slice: visualizing performance data (tidy CSV logs from L0031; gnuplot one-liner + headless `dumb`/`png`; matplotlib facets; ggplot2 named). L0036 done (timing + resource monitoring). Remaining Profiling slices: CPU profilers (`perf` + flame graphs, callgrind), massif, `hyperfine`.
+**Next up:** L0038 in flight — MS lecture 4, eighth slice: CPU profilers (sampling `perf stat`/`perf record -g` + flame graphs vs tracing Valgrind `callgrind`; MS `slow.c`). L0037 done (visualizing). Remaining Profiling slices: massif, `hyperfine`.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.

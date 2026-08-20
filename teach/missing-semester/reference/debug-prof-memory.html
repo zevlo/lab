@@ -123,7 +123,7 @@ SUMMARY: AddressSanitizer: heap-use-after-free uaf.c:12 in main</code></pre>
     <ul>
       <li><strong><code>rr</code></strong> — record once (<code>rr record ./prog</code>), replay deterministically (<code>rr replay</code>, opens gdb), debug backwards: <code>reverse-continue</code> runs to the last moment a watchpoint changed. For Heisenbugs and MS’s <code>corruption.c</code> exercise — a write to the wrong slot <em>inside</em> a valid object, which ASan/Valgrind cannot see (redzones guard borders, not wrong addresses within). Linux-only, needs hardware performance counters — fails in most VMs, including Docker-on-Mac; macOS → Warpspeed (named).</li>
       <li><strong><code>bpftrace</code>/eBPF</strong> — kernel-wide syscall tracing with aggregation, root-only: strace’s lower-overhead cousin for system-level questions (MS, System Call Tracing).</li>
-      <li><strong>callgrind / massif</strong> — Valgrind’s CPU and heap profilers (<code>--tool=callgrind</code>, <code>--tool=massif</code>): the Profiling half of Lecture 4.</li>
+      <li><strong>callgrind / massif</strong> — Valgrind’s CPU and heap profilers. callgrind: Lesson <a href="../lessons/0038-ms-cpu-profilers.html">0038</a>. massif still later in the Profiling half.</li>
       <li><strong>LeakSanitizer standalone</strong> — <code>ASAN_OPTIONS=detect_leaks=1</code> toggles leak detection where it isn’t default (e.g. some platforms/CI setups).</li>
     </ul>
   </div>
