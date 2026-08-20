@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 0006 — tmux sessions, windows, panes</title>
+<title>Lesson 0006 — tmux</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -38,7 +38,7 @@
   h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
   .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
   h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
-  h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
   p { margin: 0.7rem 0; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
   pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
@@ -46,9 +46,9 @@
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
   th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 9em; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
   ol, ul { padding-left: 1.3rem; }
-  li { margin: 0.3rem 0; }
+  li { margin: 0.35rem 0; }
   .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
   details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
   details[open] summary { margin-bottom: 0.3rem; }
@@ -57,7 +57,7 @@
   .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
   .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
   .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
-  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; transition: background 80ms, color 80ms, border-color 80ms; user-select: none; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
   .option:hover { border-color: var(--accent); }
   .quiz.answered .option { cursor: default; }
   .quiz.answered .option:hover { border-color: var(--rule); }
@@ -76,138 +76,166 @@
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0006 · <a href="../reference/tmux-fundamentals.html">Phase 3 — tmux</a></p>
-    <h1>Sessions, windows, panes</h1>
-    <p class="lede">One mental model and a handful of default keys. Detach, come back, and the work is still there — the unlock for remote SSH ops on a bare tmux.</p>
+    <p class="kicker">Lesson 0006 · <a href="../reference/tmux.html">tmux</a></p>
+    <h1>tmux</h1>
+    <p class="lede">A session is a place that survives the client. Windows are tabs; panes are splits; copy-mode is the scrollback that exists on a bare remote.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>Your mission needs three tmux outcomes early: survive an SSH drop, keep several shells organized without tab chaos, and split a window when two views must stay visible. This lesson is only the hierarchy and the keys that get you 80% of daily use. Copy-mode, synchronize-panes, and layouts wait for later.</p>
+  <p>Close Ghostty, lose SSH, sleep the laptop — a process in a raw shell dies (<code>SIGHUP</code>). tmux keeps a server of sessions on the machine. Missing Semester’s multiplexer section is this hierarchy plus detach/reattach. This file is that, plus the daily keys: copy-mode, sync-panes, named workspaces. Defaults only.</p>
+  <p><strong>Read first (≈10 min):</strong> <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> DESCRIPTION and DEFAULT KEY BINDINGS. Skim MS <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Terminal Multiplexers</a>.</p>
+  <div class="gotcha"><strong>This is the whole tmux floor.</strong> Spread sittings. Prefix is <code>Ctrl-b</code>, then release, then the key — not all three at once. Your local conf may set <code>base-index 1</code>; stock remotes start at <code>0</code>. Train <code>C-b 0</code> for strangers’ machines.</div>
 
-  <h2>Knowledge 1 — the hierarchy</h2>
-  <p>From <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>: a <strong>session</strong> is a persistent collection of terminals; each session has one or more <strong>windows</strong> (full-screen tabs); each window may be split into <strong>panes</strong> (each a separate pty). The status line at the bottom names the session and lists windows.</p>
+  <h2>Knowledge 1 — hierarchy and the daily keys</h2>
   <pre><code>session  (survives detach / SSH drop)
-  └── window  (a "tab" — full screen)
-        └── pane   (a split region — one shell)</code></pre>
-  <p>You talk to tmux with a <strong>prefix</strong>, then a command key. Default prefix is <code>Ctrl-b</code> (written <code>C-b</code>). Press prefix, release, then the command key — not all three at once.</p>
-
-  <h2>Knowledge 2 — outside tmux (shell commands)</h2>
-  <p>These run in bash <em>before</em> you are attached. Aliases: <code>ls</code> = <code>list-sessions</code>, <code>attach</code> = <code>attach-session</code>, <code>new</code> = <code>new-session</code>.</p>
+  └── window  (a tab — full screen)
+        └── pane   (a split — one pty)</code></pre>
+  <p>The terminal is a <strong>client</strong> attached to one session. Detach ≠ kill.</p>
   <table>
-    <thead><tr><th>Command</th><th>Does</th></tr></thead>
+    <thead><tr><th>Where</th><th>Command</th></tr></thead>
     <tbody>
-      <tr><td><code>tmux new -s ops</code></td><td>Create and attach a session named <code>ops</code></td></tr>
-      <tr><td><code>tmux ls</code></td><td>List sessions on this machine's tmux server</td></tr>
-      <tr><td><code>tmux attach -t ops</code></td><td>Attach to session <code>ops</code> (must already exist)</td></tr>
-      <tr><td><code>tmux attach</code></td><td>Attach to the most recent / only session</td></tr>
+      <tr><td>shell</td><td><code>tmux new -s ops</code> · <code>tmux ls</code> · <code>tmux attach -t ops</code></td></tr>
+      <tr><td>detach / windows</td><td><code>C-b d</code> · <code>c</code> new · <code>n</code>/<code>p</code> next/prev · <code>0</code>–<code>9</code> by index</td></tr>
+      <tr><td>panes</td><td><code>C-b %</code> left/right · <code>"</code> top/bottom · <code>o</code> cycle · arrows · <code>z</code> zoom · <code>x</code> kill</td></tr>
+      <tr><td>sessions</td><td><code>C-b s</code> picker · <code>(</code>/<code>)</code> prev/next · <code>L</code> last · <code>$</code> rename</td></tr>
+      <tr><td>help</td><td><code>C-b ?</code></td></tr>
     </tbody>
   </table>
-  <div class="gotcha"><strong>Detach ≠ kill.</strong> <code>C-b d</code> leaves the session running. Closing the Ghostty window without detaching can also leave it running. <code>tmux ls</code> is how you find orphans. Destroying a session is a different, intentional act — not in this lesson's pareto set.</div>
+  <p>Name sessions by job (<code>ops</code>, <code>edit</code>), not by number. <code>tmux new -s name -d</code> creates without leaving the current client.</p>
 
-  <h2>Knowledge 3 — inside tmux (default keys only)</h2>
-  <p>All chords below are <code>C-b</code> then the key. Sourced from the DEFAULT KEY BINDINGS section of <a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a>.</p>
+  <h2>Knowledge 2 — copy-mode is not bash history</h2>
   <table>
-    <thead><tr><th>Keys</th><th>Does</th></tr></thead>
+    <thead><tr><th>Store</th><th>Holds</th><th>Reach with</th></tr></thead>
     <tbody>
-      <tr><td><code>C-b d</code></td><td>Detach this client — session keeps running</td></tr>
-      <tr><td><code>C-b c</code></td><td>Create a new window</td></tr>
-      <tr><td><code>C-b n</code> / <code>C-b p</code></td><td>Next / previous window</td></tr>
-      <tr><td><code>C-b 0</code>…<code>9</code></td><td>Select window by index</td></tr>
-      <tr><td><code>C-b %</code></td><td>Split pane left / right</td></tr>
-      <tr><td><code>C-b "</code></td><td>Split pane top / bottom</td></tr>
-      <tr><td><code>C-b o</code></td><td>Cycle to the next pane</td></tr>
-      <tr><td><code>C-b ←↑↓→</code></td><td>Move to the pane in that direction</td></tr>
-      <tr><td><code>C-b z</code></td><td>Zoom pane full-window (toggle)</td></tr>
-      <tr><td><code>C-b x</code></td><td>Kill the current pane (confirms)</td></tr>
-      <tr><td><code>C-b ?</code></td><td>List all key bindings</td></tr>
+      <tr><td>bash</td><td>commands you typed</td><td><code>↑</code> / <code>Ctrl-r</code></td></tr>
+      <tr><td>tmux scrollback</td><td>pane output</td><td><code>C-b [</code></td></tr>
+      <tr><td>Ghostty</td><td>emulator buffer</td><td>mouse — gone on a bare remote</td></tr>
     </tbody>
   </table>
-  <div class="gotcha"><strong>Window numbers on remotes.</strong> Stock tmux indexes windows from <code>0</code>. Your local <code>~/.tmux.conf</code> sets <code>base-index 1</code>. On a bare SSH host, <code>C-b 0</code> is the first window — train that habit for strangers' machines.</div>
+  <p>Stock <code>mode-keys</code> is emacs unless <code>EDITOR</code> contains <code>vi</code>. Confirm: <code>tmux show -g mode-keys</code>.</p>
+  <table>
+    <thead><tr><th>Keys (emacs)</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>C-b [</code></td><td>enter copy-mode</td></tr>
+      <tr><td>arrows / PgUp</td><td>move</td></tr>
+      <tr><td><code>C-Space</code></td><td>begin selection</td></tr>
+      <tr><td><code>C-w</code></td><td>copy to tmux buffer and exit (Meta-free — prefer on this Mac)</td></tr>
+      <tr><td><code>q</code></td><td>leave without copying</td></tr>
+      <tr><td><code>C-b ]</code></td><td>paste the buffer into the pane</td></tr>
+    </tbody>
+  </table>
+  <div class="gotcha"><strong>This Mac — buffer ≠ pasteboard.</strong> Yank fills the tmux paste buffer. Prove it with <code>tmux show-buffer</code> then <code>C-b ]</code>. It does <em>not</em> put text on the macOS clipboard. Option is not Meta in stock Ghostty, so <code>Option-w</code> is not <code>M-w</code> — use <code>C-w</code> after <code>C-Space</code>, or mouse-drag in copy-mode. If <code>C-Space</code> is stolen by input-source switching, use the mouse. Vi mode on some remotes: <code>Space</code> begins, <code>Enter</code> copies.</div>
 
-  <h2>Drill — one session you can abandon and reclaim</h2>
-  <p>Do this in <strong>Ghostty</strong>. If you already have a tmux client attached, detach first (<code>C-b d</code>) so the shell commands below run outside tmux.</p>
-  <ol>
-    <li>
-      Create a named session and confirm the status line shows the name:
-      <pre><code>tmux new -s drill</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Status line bottom-left should include <code>drill</code>. You are attached: one window, one pane.</p>
-      </div></details>
-    </li>
-    <li>
-      Split left/right, then top/bottom in the active pane, so you have three panes. Cycle with <code>C-b o</code> until each pane has run <code>hostname</code> once.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>C-b %</code> then <code>C-b "</code> (order flexible). <code>C-b o</code> cycles focus. Arrow keys after prefix also move by direction — use whichever is faster.</p>
-      </div></details>
-    </li>
-    <li>
-      Zoom the pane where your cursor is (<code>C-b z</code>), read a long <code>man tmux</code> page if you want, then un-zoom with <code>C-b z</code> again.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Zoom is the high-leverage pane trick: temporarily fullscreen without destroying the layout. Same key toggles off.</p>
-      </div></details>
-    </li>
-    <li>
-      Create a second window (<code>C-b c</code>). In it, run <code>echo window-two</code>. Flip with <code>C-b n</code> / <code>C-b p</code> (or the window number).
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Status line should show two window entries. Numbers depend on <code>base-index</code> — locally likely <code>1</code> and <code>2</code>; on stock remotes <code>0</code> and <code>1</code>.</p>
-      </div></details>
-    </li>
-    <li>
-      Detach (<code>C-b d</code>). From bash:
-      <pre><code>tmux ls
+  <h2>Knowledge 3 — sync-panes and many sessions</h2>
+  <p>No default key for synchronize. Command prompt: <code>C-b :</code> then <code>setw synchronize-panes on</code> (or <code>off</code> / toggle with no argument). Window-scoped: only panes in this window. Habit: on → burst → <em>off</em> before exploratory typing. Real use: several SSH panes, identical triage, then off.</p>
+  <p>One tmux server, many sessions. After an SSH drop: <code>tmux ls</code> then <code>tmux attach -t ops</code>.</p>
+
+  <h2>Setup</h2>
+  <pre><code>tmux -V   # this machine: 3.7b
+# If already attached: C-b d first so the drills’ shell commands run outside tmux.</code></pre>
+
+  <h2>Exercises</h2>
+  <p>Ghostty. Try before <code>show answer</code>.</p>
+
+  <h3>1 — Abandon and reclaim</h3>
+  <pre><code>tmux new -s drill
+# C-b % then C-b "  → three panes; C-b o; hostname in each
+# C-b z zoom, C-b z unzoom
+# C-b c second window; C-b n / p
+# C-b d
+tmux ls
 tmux attach -t drill</code></pre>
-      Confirm both windows and your pane layout are intact.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>tmux ls</code> should list <code>drill:</code> with a window count. After attach, you are back where you left off — this is the SSH-drop survival story, practiced locally.</p>
-      </div></details>
-    </li>
-  </ol>
+  <p>Are both windows and the pane layout intact?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Yes — that is the SSH-drop story, practiced locally. Status line should show <code>drill</code> and two windows. Window numbers depend on <code>base-index</code>.</p>
+  </div></details>
 
-  <div class="gotcha"><strong>Pareto cut (not this lesson).</strong> Copy-mode (<code>C-b [</code>), paste buffer (<code>C-b ]</code>), synchronize-panes, preset layouts, renaming, and killing sessions/windows are deferred. Need a binding you forgot? <code>C-b ?</code> is the escape hatch on any stock tmux.</div>
+  <h3>2 — Yank a token</h3>
+  <p>In the session:</p>
+  <pre><code>seq 1 80
+echo "TOKEN-$(date +%s)-COPYMODE"</code></pre>
+  <p><code>C-b [</code>, land on the TOKEN line, select, <code>C-w</code>. Prove with <code>tmux show-buffer</code> and <code>C-b ]</code>. Did Notes.app get the string?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Buffer has the token; <code>C-b ]</code> pastes into the pane. Notes.app does not, unless you used Ghostty mouse copy. That is the Mac caveat, not a failed yank.</p>
+  </div></details>
+
+  <h3>3 — Sync, then off</h3>
+  <p>Three panes, different prompts (<code>export PS1='A&gt; '</code> etc.). <code>C-b :</code> <code>setw synchronize-panes on</code>. Type <code>date</code> — all three run it. Then <code>off</code>, type in one pane only.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>On: every pane gets the keystrokes. Off: only the focused pane. Leave it off.</p>
+  </div></details>
+
+  <h3>4 — Two workspaces</h3>
+  <pre><code>tmux new -s ops
+# leave a marker file, C-b d
+tmux new -s edit
+# C-b s  (or C-b L) to jump back to ops</code></pre>
+  <p>Both sessions still listed after you detach?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>tmux ls</code> shows <code>ops</code> and <code>edit</code>. <code>C-b L</code> toggles last session; <code>C-b s</code> picks by name.</p>
+  </div></details>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>session / window / pane — one phrase each.</li>
+    <li>Detach vs kill.</li>
+    <li>The three histories.</li>
+    <li>Portable paste after a yank on this Mac.</li>
+    <li>How you turn sync on and off with no custom bind.</li>
+  </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) Persistent workspace / tab / split pty.<br>
+    (b) <code>C-b d</code> leaves the session running; closing panes/windows until none remain destroys it.<br>
+    (c) bash commands, tmux scrollback, Ghostty buffer.<br>
+    (d) <code>C-b ]</code> / <code>tmux show-buffer</code> — not the macOS clipboard.<br>
+    (e) <code>C-b :</code> then <code>setw synchronize-panes on|off</code>.</p>
+  </div></details>
+
+  <div class="gotcha"><strong>Later.</strong> Layouts, buffer list, rectangle copy, OSC 52 / <code>set-buffer -w</code>, nested tmux, kill-session. CLE’s “follow a tmux tutorial” is this file.</div>
 
   <h2>Check your understanding</h2>
-  <p>Four short questions. Answers are shuffled on each page load.</p>
+  <p>Four questions. Shuffled answers.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>What does <code>C-b d</code> do?</p>
+    <p class="quiz-q"><span class="num">Q1</span>What survives an SSH drop?</p>
     <ul class="options">
-      <li class="option" data-correct="true">detach this client</li>
-      <li class="option">destroy the session</li>
-      <li class="option">delete every window</li>
-      <li class="option">disable the prefix</li>
+      <li class="option" data-correct="true">The tmux session on the remote — reattach with tmux attach -t name</li>
+      <li class="option">Only processes started with &amp; in that SSH shell</li>
+      <li class="option">Ghostty’s scrollback, forwarded automatically</li>
+      <li class="option">Nothing — SIGHUP always kills the remote tmux server</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>Which shell command lists sessions?</p>
+    <p class="quiz-q"><span class="num">Q2</span>On this Mac, a copy-mode yank goes to:</p>
     <ul class="options">
-      <li class="option" data-correct="true">tmux ls</li>
-      <li class="option">tmux ps</li>
-      <li class="option">tmux df</li>
-      <li class="option">tmux id</li>
+      <li class="option" data-correct="true">The tmux paste buffer — paste with C-b ]</li>
+      <li class="option">The macOS clipboard, always, via Option-w</li>
+      <li class="option">Vim register + only</li>
+      <li class="option">bash history, as a comment</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>Default keys to split left/right?</p>
+    <p class="quiz-q"><span class="num">Q3</span>synchronize-panes is:</p>
     <ul class="options">
-      <li class="option" data-correct="true">C-b %</li>
-      <li class="option">C-b "</li>
-      <li class="option">C-b x</li>
-      <li class="option">C-b z</li>
+      <li class="option" data-correct="true">A window option, toggled with C-b : — no default prefix chord</li>
+      <li class="option">C-b S, bound by default on every tmux</li>
+      <li class="option">Server-wide: every session’s panes type together</li>
+      <li class="option">The same as zoom (C-b z)</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>Largest unit that survives detach?</p>
+    <p class="quiz-q"><span class="num">Q4</span>Stock remotes number the first window:</p>
     <ul class="options">
-      <li class="option" data-correct="true">session</li>
-      <li class="option">window</li>
-      <li class="option">pane</li>
-      <li class="option">prefix</li>
+      <li class="option" data-correct="true">0 — C-b 0; local conf may use base-index 1</li>
+      <li class="option">1 everywhere; 0 is never a window</li>
+      <li class="option">By session name, not a number</li>
+      <li class="option">Only after you rename with C-b $</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -215,17 +243,17 @@ tmux attach -t drill</code></pre>
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> After the drill: did detach → <code>tmux ls</code> → attach feel boring (good — boring is fluency), or did you lose a layout / hit a second session by mistake? On window numbers: did your local <code>base-index 1</code> trip you when you reached for <code>C-b 0</code>?</p>
-    <p style="margin-bottom:0">Bring concrete observations. The teacher uses them to choose the next slice of Phase 3: <strong>copy-mode on stock defaults</strong> (scrollback + yank into the tmux buffer), <strong>multi-session habits</strong> (<code>C-b s</code>, named sessions per host), or <strong>synchronize-panes</strong> for parallel multi-host ops.</p>
+    <p><strong>Ask the teacher.</strong> Did detach/reattach feel like the SSH story? Did copy-mode yank without touching Notes? Sync off after the burst?</p>
+    <p style="margin-bottom:0">This file is the whole tmux floor. Next sitting: leftover drills, or the shell (L0015).</p>
   </div>
 
   <footer>
-    <p><strong>Primary sources for this lesson</strong></p>
+    <p><strong>Primary sources</strong></p>
     <ul>
-      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — DESCRIPTION (session / window / pane), DEFAULT KEY BINDINGS, <code>new-session</code>, <code>attach-session</code>, <code>list-sessions</code>.</li>
-      <li>Brian Hogan, <em>tmux 2: Productive Mouse-Free Development</em> — early chapters on the hierarchy and detach/attach workflow.</li>
+      <li><a href="https://man.openbsd.org/tmux.1"><code>man tmux</code></a> — DESCRIPTION, DEFAULT KEY BINDINGS, copy-mode, synchronize-panes, sessions.</li>
+      <li>Missing Semester — <a href="https://missing.csail.mit.edu/2026/command-line-environment/">Terminal Multiplexers</a>.</li>
     </ul>
-    <p>Previous: <a href="./0005-registers-and-system-clipboard.html">Lesson 0005 — Registers &amp; system clipboard</a>. Reference: <a href="../reference/tmux-fundamentals.html">tmux fundamentals</a>. Next: <a href="./0007-pareto-shell-commands.html">Lesson 0007 — Pareto shell commands</a>.</p>
+    <p>Previous: <a href="./0001-vim-editing-grammar.html">Lesson 0001 — Vim</a>. Next: <a href="./0015-intro-to-the-shell.html">Lesson 0015 — the shell</a>. Reference: <a href="../reference/tmux.html">tmux</a>. Older slices (0011–0013) are retrieval only.</p>
   </footer>
 
 <script>
@@ -265,10 +293,10 @@ tmux attach -t drill</code></pre>
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Hierarchy locked. Ask the teacher what to cut next.'
+            ? ' — flawless. Cold-rebuild hierarchy, detach, the three histories, C-b ], and sync on/off.'
             : correct >= quizzes.length - 1
-            ? ' — solid. Revisit the miss, then continue.'
-            : ' — re-read the tmux fundamentals reference before moving on.'
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
         }`;
       }
     }));

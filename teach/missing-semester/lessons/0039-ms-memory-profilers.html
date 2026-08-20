@@ -80,7 +80,7 @@
     <p class="lede">Memcheck tells you a pointer was lost. Massif tells you <em>when</em> the heap grew, and which call owned the peak. A live pointer to unused memory is still a leak of space.</p>
   </header>
 
-  <div class="gotcha"><strong>Withdrawn — skip this page.</strong> Lecture 4 is closed. Massif is in the notes, not the exercise set. Next lesson is <a href="./0040-ms-version-control-git.html">0040 — Version Control and Git</a>.</div>
+  <div class="gotcha"><strong>Withdrawn — skip this page.</strong> Massif is in the notes, not the exercise set. Canonical profiling: <a href="./0036-ms-timing-resource-monitoring.html">0036</a>. Next: <a href="./0040-ms-version-control-git.html">0040 — Git</a>.</div>
 
   <h2>Why this matters</h2>
   <p>L0034’s Memcheck answers one question at exit: was a pointer lost? L0036’s <code>free -h</code> / htop answer a different one: how big is the box right now? Neither draws the heap over the run, and neither names the <code>malloc</code> site that owned the high-water mark. MS: a memory profiler is how you find leaks and excessive allocation <em>as a series</em> — same move as L0037, for bytes instead of latency.</p>

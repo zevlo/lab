@@ -12,12 +12,13 @@
 ## Lesson cadence
 - A few sessions per week, 30–45 min each.
 
-## MS-era pedagogy (from L0015; current default)
-- **Spine:** Missing Semester 2026 lecture order and notes. **One lecture → one lesson** (important topics + that lecture’s exercises in the same HTML; spread sittings if needed). Do not micro-slice subsections. Historical L0015–0038 slicing stays as-is; do not add more slices to those lectures.
+## MS-era pedagogy (current default)
+- **Spine:** Missing Semester 2026 lecture order and notes. **One lecture → one lesson** (important topics + that lecture’s exercises in the same HTML; spread sittings if needed). Shape = L0040: Why + Read first + gotcha + Knowledge × 3 + Setup + MS/adapted exercises + cold rebuilds + Later + quiz × 4. Do not micro-slice subsections. Do not add new slice files.
+- **Lectures 1–4 retrofitted** to that shape in 0001 / 0006 / 0015 / 0019 / 0024 / 0026 / 0031 / 0036 (plus 0040 already). Historical slices remain on disk, bannered “Superseded,” retrieval only.
 - **Tone:** Teach the material plainly — why it matters, how it works, drill, quiz. Do **not** put “pareto,” “high-rep,” “storage strength,” or similar meta in lesson copy.
 - **Still good:** cold rebuilds, hidden drill answers, quiz shuffle, citing MS + `man`, deferring out-of-slice topics as “later” (not “pareto cut”).
 - **Still constrained:** defaults-only, POSIX-lean bash, skip MS “consider installing …” fancy CLIs unless mission changes.
-- Pre-MS NOTES below are historical context for older lessons — do not let them steer new MS lesson wording.
+- Pre-MS NOTES below are historical context for older slice files — do not let them steer new MS lesson wording.
 
 ## Pedagogical decisions (mostly pre-MS; keep where still useful)
 - **Reference docs built just-in-time** alongside each lesson.
@@ -479,7 +480,13 @@
 ## L0039 withdrawn (pacing correction)
 - User (2026-08-20): too many lessons per MS lecture; hit important topics + the **exercise section**; move on to Version Control and Git.
 - Massif is in the lecture notes, **not** in the exercises. Hyperfine is an exercise but MS’s example is `fd` vs `find` (fancy-CLI constraint); skip rather than another slice. `rr` / `corruption.c` stay named (no PMU in this VM). Merge-sort debugger: pdb floor already exists (L0031).
-- Lecture 4 closed at L0038. L0039 HTML kept with a skip banner. Policy: one lecture → one lesson from L0040 on.
+- Lecture 4 closed at L0038. L0039 HTML kept with a skip banner. Policy: one lecture → one lesson from L0040 on; lectures 1–4 later retrofitted (see Catalog rewrite).
+
+## Catalog rewrite (2026-08-20) — nine-lesson path, L0040 density
+- User asked to edit **previous** lessons to L0040 length and depth, cover the first four MS lectures, **reduce lesson count**, not one-file-per-lecture if a lecture is huge. Decision: do **not** delete 0001–0014; rewrite survivors in place; banner absorbed files.
+- **Canonical path:** 0001 Vim (absorbs 0002–0005, 0027) → 0006 tmux (0011–0013) → 0015 Shell / MS 1 (0007, 0009, 0014, 0016–0018, 0020) → 0019 CLI conventions / MS 2a (0008, 0021–0023) → 0024 Remote & home / MS 2b (0025) → 0026 Dev environment / MS 3 (0028–0030) → 0031 Debugging / MS 4a (0010, 0032–0035) → 0036 Profiling / MS 4b (0037–0038) → 0040 Git / MS 5. L0039 still withdrawn (massif notes-only; hyperfine skipped). Completions already logged for the slices still count — this is a catalog rewrite, not a re-take.
+- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, plus existing `git-version-control.html`. Older slice refs stay.
+- **Do not** add micro-slices. Next lesson when asked: leftover Git sittings, or MS lecture 6 Packaging.
 
 ## L0040 design notes (MS Lecture 5 — Version Control and Git, whole lecture)
 - **Topic choice:** user-requested jump. First lesson under the one-lecture rule.

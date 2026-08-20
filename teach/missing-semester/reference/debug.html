@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — Debugging</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Debugging</p>
+    <h1>Lecture 4a — observation ladder</h1>
+    <p class="lede">Inspect the actual value, call, or packet. Paste the artifact; re-run the tool.</p>
+  </header>
+  <table>
+    <thead><tr><th>Point</th><th>Tool</th></tr></thead>
+    <tbody>
+      <tr><td>client</td><td><code>curl -si</code></td></tr>
+      <tr><td>DNS</td><td><code>dig</code> / <code>+short</code> / <code>@1.1.1.1</code></td></tr>
+      <tr><td>sockets</td><td><code>ss -tlnp</code> · Mac <code>lsof -nP -iTCP -sTCP:LISTEN</code></td></tr>
+      <tr><td>inside</td><td><code>pdb</code>: <code>b c n s p l w q</code> · <code>breakpoint()</code></td></tr>
+      <tr><td>syscalls</td><td><code>strace</code> · <code>-e trace=file</code> · <code>-f</code> · <code>-p</code> · <code>-T</code></td></tr>
+      <tr><td>wire</td><td><code>tcpdump -i any port 80</code> · <code>[S][S.][.]</code> handshake · RST vs silence</td></tr>
+      <tr><td>heap</td><td>ASan if you can recompile · Valgrind if you cannot</td></tr>
+    </tbody>
+  </table>
+  <div class="note">strace rides stderr. rr / bpftrace / Wireshark named. AI-for-debug ≠ lecture-3 form factors — paste compiler/strace/ASan output.</div>
+  <div class="beyond"><h2>Older slices</h2><p>0032–0035, 0010 — retrieval. Lesson: <a href="../lessons/0031-ms-debugging-fundamentals.html">0031</a>.</p></div>
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> (debugging half). pdb, strace, tcpdump, ASan, Valgrind, dig, ss.</p>
+  </footer>
+</body>
+</html>

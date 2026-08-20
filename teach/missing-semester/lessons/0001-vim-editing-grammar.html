@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 0001 — The vim editing grammar</title>
+<title>Lesson 0001 — Vim</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -33,129 +33,32 @@
     font-size: 17px;
   }
   header { margin-bottom: 2rem; }
-  .kicker {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.72rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin: 0 0 0.5rem;
-  }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
   .kicker a { color: var(--accent); text-decoration: none; }
-  h1 {
-    font-size: 2rem;
-    line-height: 1.15;
-    margin: 0 0 0.6rem;
-    font-weight: 600;
-  }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
   .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
-  h2 {
-    font-size: 1.2rem;
-    margin: 2.2rem 0 0.7rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--rule);
-    font-weight: 600;
-  }
-  h3 {
-    font-size: 0.95rem;
-    margin: 1.3rem 0 0.4rem;
-    color: var(--accent);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    letter-spacing: 0.04em;
-  }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
   p { margin: 0.7rem 0; }
-  code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    background: var(--code-bg);
-    color: var(--code-fg);
-    padding: 0.08em 0.35em;
-    border-radius: 3px;
-    font-size: 0.92em;
-  }
-  pre {
-    background: var(--code-bg);
-    color: var(--code-fg);
-    padding: 0.9rem 1.1rem;
-    border-radius: 4px;
-    overflow-x: auto;
-    line-height: 1.5;
-    font-size: 0.92rem;
-  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
   pre code { background: none; padding: 0; }
-  .grammar {
-    background: #efe6cf;
-    padding: 1rem 1.25rem;
-    border-radius: 6px;
-    text-align: center;
-    margin: 1rem 0 1.4rem;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 1.05rem;
-    letter-spacing: 0.04em;
-  }
-  .grammar .lbl { color: var(--muted); font-size: 0.7rem; display: block; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 0.4rem; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0.6rem 0 1rem;
-    font-size: 0.95rem;
-  }
-  th, td {
-    text-align: left;
-    padding: 0.4rem 0.6rem;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: top;
-  }
-  th {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    font-weight: 500;
-  }
-  td:first-child {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    color: var(--code-fg);
-    white-space: nowrap;
-    width: 6em;
-  }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
   ol, ul { padding-left: 1.3rem; }
-  li { margin: 0.3rem 0; }
-  li code { font-size: 0.88em; }
-  .drill-answer {
-    margin-top: 0.4rem;
-    padding-left: 1rem;
-    color: var(--muted);
-    font-size: 0.92rem;
-    font-style: italic;
-  }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
   details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
   details[open] summary { margin-bottom: 0.3rem; }
-
-  .quiz-q {
-    margin: 1.4rem 0 0.4rem;
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  .quiz-q .num {
-    color: var(--accent);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    margin-right: 0.5rem;
-  }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .grammar { background: #efe6cf; padding: 1rem 1.25rem; border-radius: 6px; text-align: center; margin: 1rem 0 1.4rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
   .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
-  .option {
-    display: inline-block;
-    margin: 0.25rem 0.4rem 0.25rem 0;
-    padding: 0.35rem 0.85rem;
-    border: 1px solid var(--rule);
-    border-radius: 4px;
-    background: #fff;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.92rem;
-    cursor: pointer;
-    transition: background 80ms, color 80ms, border-color 80ms;
-    user-select: none;
-  }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
   .option:hover { border-color: var(--accent); }
   .quiz.answered .option { cursor: default; }
   .quiz.answered .option:hover { border-color: var(--rule); }
@@ -163,198 +66,196 @@
   .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
   .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
   .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
-  .score {
-    margin-top: 1.5rem;
-    padding: 0.7rem 1rem;
-    background: #efe6cf;
-    border-radius: 4px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.9rem;
-    display: none;
-  }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
   .score.show { display: block; }
-  .ask {
-    margin-top: 2.5rem;
-    padding: 1.1rem 1.3rem;
-    background: #efe6cf;
-    border-left: 3px solid var(--accent);
-    border-radius: 4px;
-  }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
   .ask p:first-child { margin-top: 0; }
   .ask p:last-child { margin-bottom: 0; }
-  footer {
-    margin-top: 2.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--rule);
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
   a { color: var(--accent); }
 </style>
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0001 · <a href="../reference/vim-modal-grammar.html">Phase 2 — vim</a></p>
-    <h1>The vim editing grammar</h1>
-    <p class="lede">Operators, counts, and motions combine into one sentence. Learn the sentence and you stop pressing keys one at a time.</p>
+    <p class="kicker">Lesson 0001 · <a href="../reference/vim.html">Vim grammar</a></p>
+    <h1>Vim</h1>
+    <p class="lede">Operators, motions, and text objects are a sentence. Arrive by name, change a chosen subset, then put the result where it belongs.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>As a DevOps engineer you edit configs constantly — sometimes locally, often over a flaky SSH session. The dabbler's habit of pressing <code>x</code> eight times, or arrow-keying into position and hitting <code>i</code>, is what separates slow operators from fluent ones. Vim isn't a bag of shortcuts; it's a tiny grammar. Once you internalize it, your edits become single sentences your fingers type at the speed of thought.</p>
+  <p>DevOps editing is navigate, read a snippet, and change a small piece — often over SSH, never with a mouse. Vim’s interface is a language for that distribution of work. Missing Semester lecture 3 assumes this grammar; this file is the floor, not a plugin tour.</p>
+  <p><strong>Read first (≈15 min):</strong> <code>:help usr_02.txt</code> through <code>usr_04.txt</code> (modes, moving, small changes). Optional: MS <a href="https://missing.csail.mit.edu/2026/development-environment/">Text editing and Vim</a> — same idea, thinner map.</p>
+  <div class="gotcha"><strong>This is the whole vim floor</strong> — grammar, how you jump, substitute vs visual, registers and clipboard. Spread sittings. Scratch lives under <code>/tmp/ms-vim/</code>. Create files from bash with <code>cat &gt; file &lt;&lt;'EOF'</code>, not by pasting into Insert (autoindent). No arrow keys. Defaults only — no remaps, no plugins.</div>
 
-  <h2>The grammar</h2>
-  <p>In normal mode, most editing commands have this shape:</p>
-  <div class="grammar">
-    [count] &nbsp; operator &nbsp; [count] &nbsp; motion / text-object
-    <span class="lbl">e.g. <code>d3w</code> &nbsp;·&nbsp; <code>2dd</code> &nbsp;·&nbsp; <code>ci"</code> &nbsp;·&nbsp; <code>&gt;ip</code></span>
-  </div>
-  <p>Read it as a sentence. <code>d3w</code> is "delete three words". The <em>operator</em> (<code>d</code>) says <strong>what</strong>; the <em>motion</em> (<code>3w</code>) says <strong>where</strong>. The count can sit on either side and they multiply: <code>d3w</code> = <code>3dw</code> = delete three words. You never memorize <code>dw</code>, <code>d2w</code>, <code>d3w</code> as separate commands — you compose them on the fly.</p>
-
-  <h2>The three building blocks</h2>
-
-  <h3>Operators — what to do</h3>
+  <h2>Knowledge 1 — the sentence, then arrive by name</h2>
+  <p>Normal is home. Insert is for typed replacement only. Lost? <code>Esc</code> (or <code>Ctrl-[</code>), then speak the next sentence:</p>
+  <div class="grammar">[count] operator [count] motion / text-object<br>e.g. <code>d3w</code> · <code>ci"</code> · <code>&gt;ip</code></div>
   <table>
+    <thead><tr><th>Kind</th><th>What it is</th></tr></thead>
     <tbody>
-      <tr><td><code>d</code></td><td>delete (also yanks)</td></tr>
-      <tr><td><code>c</code></td><td>change — delete, then enter insert</td></tr>
-      <tr><td><code>y</code></td><td>yank (copy)</td></tr>
-      <tr><td><code>p</code> / <code>P</code></td><td>put after / before</td></tr>
-      <tr><td><code>&gt;</code> / <code>&lt;</code></td><td>indent / dedent</td></tr>
-      <tr><td><code>=</code></td><td>auto-indent</td></tr>
-      <tr><td><code>~</code></td><td>toggle case</td></tr>
-      <tr><td><code>gu</code> / <code>gU</code></td><td>lowercase / uppercase</td></tr>
+      <tr><td>operators</td><td><code>d</code> delete (also yanks) · <code>c</code> change · <code>y</code> yank · <code>p</code>/<code>P</code> put · <code>&gt;</code>/<code>&lt;</code> indent · <code>=</code> auto-indent</td></tr>
+      <tr><td>motions</td><td><code>w</code>/<code>b</code>/<code>e</code> word · <code>0</code>/<code>^</code>/<code>$</code> line · <code>gg</code>/<code>G</code> file · <code>f{x}</code>/<code>t{x}</code> on the line · <code>%</code> matching brace</td></tr>
+      <tr><td>text objects</td><td><code>i</code> inner / <code>a</code> around: <code>w</code> word, <code>p</code> paragraph, <code>"</code> quotes, <code>(</code> parens, <code>{</code> braces</td></tr>
     </tbody>
   </table>
+  <p><code>ciw</code> is “change inner word.” <code>da"</code> takes the quotes; <code>di"</code> leaves them. Counts multiply: <code>d3w</code> = <code>3dw</code>.</p>
+  <p>Do not scroll to the edit. Search is a motion: <code>/pat</code>, <code>n</code>/<code>N</code>, <code>*</code> for the word under the cursor. <code>f{x}</code> then <code>;</code> repeats on the line. Mark a line with <code>ma</code>, return with <code>'a</code>. Every jump is in the jump list: <code>Ctrl-o</code> back, <code>Ctrl-i</code> forward. Regex in search: escape dots (<code>/db\.internal</code>).</p>
 
-  <h3>Motions — where to go</h3>
+  <h2>Knowledge 2 — substitute, visual, repeat</h2>
+  <p>Bulk rename is <code>:s</code>. Prefer it for whole-file work; <code>cgn</code>+<code>.</code> when you want to skip matches by hand.</p>
   <table>
+    <thead><tr><th>Command</th><th>Does</th></tr></thead>
     <tbody>
-      <tr><td><code>w</code> / <code>b</code> / <code>e</code></td><td>next start / prev start / end of word</td></tr>
-      <tr><td><code>0</code> / <code>^</code> / <code>$</code></td><td>start / first non-blank / end of line</td></tr>
-      <tr><td><code>gg</code> / <code>G</code></td><td>top / bottom of file</td></tr>
-      <tr><td><code>f{x}</code> / <code>F{x}</code></td><td>next / prev occurrence of <code>{x}</code> on the line</td></tr>
-      <tr><td><code>{</code> / <code>}</code></td><td>prev / next blank line</td></tr>
+      <tr><td><code>:s/old/new/g</code></td><td>all matches on this line</td></tr>
+      <tr><td><code>:%s/old/new/g</code></td><td>all matches in the file</td></tr>
+      <tr><td><code>:%s/\&lt;old\&gt;/new/gc</code></td><td>whole-word, confirm each (<code>y</code>/<code>n</code>/<code>a</code>/<code>q</code>)</td></tr>
+      <tr><td><code>v</code> / <code>V</code> / <code>Ctrl-v</code></td><td>char / line / block select, then an operator</td></tr>
+      <tr><td><code>.</code></td><td>repeat last change</td></tr>
     </tbody>
   </table>
+  <p>Word boundaries matter: <code>:%s/prod/production/g</code> turns <code>production</code> into <code>productionuction</code>. Use <code>\&lt;prod\&gt;</code>. Visual is for seeing the target when the motion is awkward: <code>vip</code>, <code>vi"</code>, then <code>d</code>/<code>y</code>/<code>&gt;</code>. <code>gv</code> reselects. Block (<code>Ctrl-v</code>) is a column — insert with <code>I</code> / <code>A</code> after the selection.</p>
 
-  <h3>Text objects — a thing, not a direction</h3>
-  <p>Use <code>a</code> for "around" (includes delimiters), <code>i</code> for "inner" (excludes them).</p>
+  <h2>Knowledge 3 — registers and the clipboard</h2>
+  <p>Every <code>y</code>/<code>d</code>/<code>c</code> writes a register; <code>p</code> reads one. Prefix <code>"{name}</code> then the operator.</p>
   <table>
+    <thead><tr><th>Register</th><th>Role</th></tr></thead>
     <tbody>
-      <tr><td><code>aw</code> / <code>iw</code></td><td>a / inner word</td></tr>
-      <tr><td><code>ap</code> / <code>ip</code></td><td>a / inner paragraph</td></tr>
-      <tr><td><code>a"</code> / <code>i"</code></td><td>a / inner double-quoted string</td></tr>
-      <tr><td><code>a(</code> / <code>i(</code></td><td>a / inner parenthesized block</td></tr>
-      <tr><td><code>a{</code> / <code>i{</code></td><td>a / inner braced block</td></tr>
+      <tr><td><code>"</code></td><td>unnamed default — last delete clobbers it</td></tr>
+      <tr><td><code>0</code></td><td>last yank only — paste with <code>"0p</code> after a stray <code>dd</code></td></tr>
+      <tr><td><code>a</code>–<code>z</code></td><td>named stash; <code>A</code> appends</td></tr>
+      <tr><td><code>+</code></td><td>system clipboard — <code>"+y</code> / <code>"+p</code></td></tr>
+      <tr><td><code>_</code></td><td>black hole — delete without clobbering <code>"</code></td></tr>
     </tbody>
   </table>
+  <p>Local Mac: <code>:echo has('clipboard')</code> should be <code>1</code>. Remote vim’s <code>"+y</code> is the <em>remote</em> pasteboard. Pull text to this Mac via tmux copy-mode (next lesson), not <code>"+y</code> over SSH.</p>
+  <div class="gotcha"><strong>No <code>clipboard=unnamedplus</code>.</strong> Explicit <code>"+</code> keeps the default unnamed register for in-buffer edits. Do not remap Caps Lock; use <code>Esc</code>.</div>
 
-  <h2>Worked examples — read each as a sentence</h2>
-  <ul>
-    <li><code>d3w</code> — delete three words forward</li>
-    <li><code>ciw</code> — change inner word (the fastest rename you'll ever learn)</li>
-    <li><code>da"</code> — delete a quoted string <em>including</em> the quotes</li>
-    <li><code>ci(</code> — change everything inside the parens (function args!)</li>
-    <li><code>&gt;ip</code> — indent the current paragraph</li>
-    <li><code>c$</code> (or just <code>C</code>) — change from cursor to end of line</li>
-    <li><code>gg=G</code> — re-indent the entire file</li>
-  </ul>
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-vim &amp;&amp; cd /tmp/ms-vim
+vim --version | head -n 1</code></pre>
+  <p>Ghostty + bash + vim 9. Habits: Normal is home; arrive by name; speak the sentence; <code>u</code> / <code>Ctrl-o</code> are cheap.</p>
 
-  <h2>Drill — one sentence per task, no arrow keys (~6 min)</h2>
-  <ol>
-    <li>
-      In your terminal:
-      <pre><code>cd /tmp &amp;&amp; vim drill.yaml</code></pre>
-    </li>
-    <li>
-      Paste in this broken config (in vim: <code>i</code> to insert, paste, <code>Esc</code>):
-      <pre><code>server:
-  host = "localhost"
-  port = "8080"
-  tags = ["prod", "us-east-1", "prod", "primary"]
-  timeout = "30"</code></pre>
-    </li>
-    <li>For each task below, do it with <strong>one vim sentence</strong>, not by arrow-keying in and editing by hand. Reveal the answer only after you've tried.</li>
+  <h2>Exercises</h2>
+  <p>One config, mixed edits. Try before <code>show answer</code>. Pocket card after you struggle.</p>
+
+  <h3>1 — One sentence per edit</h3>
+  <pre><code>cd /tmp/ms-vim
+cat &gt; service.yaml &lt;&lt;'EOF'
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-api
+  labels:
+    app: payments
+    env: staging
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: payments
+---
+# downstream: redis://cache.internal:6379/0
+# owner: "platform-team"
+# retry: 3
+endpoints:
+  - host: db-blue.internal
+    role: primary
+  - host: db-green.internal
+    role: replica
+EOF
+vim service.yaml</code></pre>
+  <p>(a) Search to <code>staging</code>, change the word to <code>production</code> with a text object.<br>
+  (b) On the owner comment, <code>ci"</code> to <code>sre-oncall</code>.<br>
+  (c) Both <code>8080</code> → <code>8443</code> with <code>:%s</code> (or <code>cgn</code> + <code>.</code>).<br>
+  (d) Mark <code>endpoints:</code> as <code>e</code>, <code>gg</code>, return with <code>'e</code>.<br>
+  (e) On the primary host, change <code>blue</code> → <code>amber</code> with <code>f</code> or search, not <code>l</code> held down.<br>
+  (f) Visual-line yank the two host entries into register <code>a</code>; paste once with <code>"ap</code> (undo after if you want).</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) <code>/staging</code> then <code>ciw</code> → <code>production</code> → <code>Esc</code>.<br>
+    (b) <code>/owner</code> → <code>ci"</code> → <code>sre-oncall</code>.<br>
+    (c) <code>:%s/8080/8443/g</code>. Word-boundary not needed here; the digits are unique.<br>
+    (d) <code>me</code> on <code>endpoints:</code>, <code>gg</code>, <code>'e</code>. <code>Ctrl-o</code> also walks back.<br>
+    (e) <code>/blue</code> or <code>f.</code> then <code>ciw</code> on <code>blue</code>.<br>
+    (f) <code>V</code> over the two <code>- host</code> lines (or <code>vip</code> if it fits), <code>"ay</code>, then <code>"ap</code>.</p>
+  </div></details>
+
+  <h3>2 — Registers vs clipboard</h3>
+  <pre><code>cat &gt; /tmp/ms-vim/secrets.yaml &lt;&lt;'EOF'
+stringData:
+  publishable: pk_live_abcd1234
+  secret: sk_live_wxyz9876
+  webhook: whsec_qwer4567
+EOF
+vim /tmp/ms-vim/secrets.yaml</code></pre>
+  <p>Yank the webhook line into <code>w</code>. Delete another line with <code>dd</code>. Paste the webhook with <code>"wp</code>. Then yank the secret value to the system clipboard (<code>"+y</code>) and prove it with <code>pbpaste</code> in another pane. Why would this last step fail in remote vim?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>"wyy</code> (or <code>V"wy</code>) on the webhook line. After <code>dd</code>, unnamed is the delete; <code>"wp</code> still has the webhook. <code>viw"+y</code> on the secret token, then <code>pbpaste</code>. Remote <code>"+</code> is the remote pasteboard — use tmux copy-mode to bring text home.</p>
+  </div></details>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>The grammar, in one line.</li>
+    <li>Inner vs around on quotes.</li>
+    <li>How you jump to a name, then get back.</li>
+    <li>When <code>:%s</code> needs <code>\&lt; \&gt;</code>.</li>
+    <li>What <code>"0</code> saves you from.</li>
   </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) [count] operator [count] motion/text-object.<br>
+    (b) <code>i"</code> keeps quotes; <code>a"</code> takes them.<br>
+    (c) <code>/pat</code> (or <code>f</code>/<code>%</code>); mark <code>ma</code>/<code>'a</code> or <code>Ctrl-o</code>.<br>
+    (d) When <code>old</code> is a substring of something you must not touch.<br>
+    (e) A delete overwriting the unnamed register after a yank.</p>
+  </div></details>
 
-  <h3>Tasks</h3>
-  <ol>
-    <li>
-      On <code>localhost</code>, rename it to <code>0.0.0.0</code>.
-      <details><summary>show answer</summary><div class="drill-answer"><code>ciw</code> then type <code>0.0.0.0</code> then <code>Esc</code>. (<code>c</code>hange <code>i</code>nner <code>w</code>ord.)</div></details>
-    </li>
-    <li>
-      On <code>"8080"</code>, try <code>da"</code> first. Observe. Then undo with <code>u</code> and try <code>di"</code>. Observe.
-      <details><summary>show what happens &amp; why</summary>
-      <div class="drill-answer">
-        <p><code>da"</code> (<code>d</code>elete <code>a</code>round) removes the quoted string <strong>and</strong> its content — you're left with <code>port = </code>.</p>
-        <p><code>di"</code> (<code>d</code>elete <code>i</code>nner) removes <strong>only</strong> the content — you're left with <code>port = ""</code>.</p>
-        <p>Neither strips just the quotes. To remove the quotes and keep the content, use <code>:s/"//g</code> (substitute all <code>"</code> on the line with nothing) or the keystroke sequence <code>f"x;x</code> (find quote, delete char, find next quote, delete char).</p>
-        <p><strong>Takeaway:</strong> text objects come in <code>i</code>/<code>a</code> pairs — pick the one matching your intent. <code>ci"</code> or <code>di"</code> when the content is what you want to act on; <code>ca"</code>/<code>da"</code> when you want the whole quoted unit gone.</p>
-      </div></details>
-    </li>
-    <li>
-      On the first <code>prod</code> in <code>tags</code>, rename to <code>production</code>.
-      <details><summary>show answer</summary><div class="drill-answer"><code>ciw</code> then <code>production</code> then <code>Esc</code>.</div></details>
-    </li>
-    <li>
-      Change the timeout value from <code>30</code> to <code>60</code>.
-      <details><summary>show answer</summary><div class="drill-answer">Cursor inside the quotes, then <code>ci"</code> then <code>60</code> then <code>Esc</code>.</div></details>
-    </li>
-    <li>
-      Indent the entire <code>server:</code> block one shiftwidth to the right.
-      <details><summary>show answer</summary><div class="drill-answer">Cursor anywhere inside the paragraph, then <code>&gt;ip</code> — <code>&gt;</code> indent <code>i</code>nner <code>p</code>aragraph.</div></details>
-    </li>
-    <li>
-      Bonus: re-indent the whole file cleanly.
-      <details><summary>show answer</summary><div class="drill-answer"><code>gg=G</code> — go to top, auto-indent, to bottom. <code>gg</code> and <code>G</code> are motions; <code>=</code> is the operator in the middle.</div></details>
-    </li>
-  </ol>
-  <p>Save and read it back: <code>:w</code> then <code>:e!</code> if you want to verify against the original. If every task took one sentence, you've already doubled your vim speed.</p>
+  <div class="gotcha"><strong>Later.</strong> <code>cgn</code> as a habit, numbered-register rotation, OSC 52 from vim itself, vim-mode in other apps. MS lecture 3 composes this grammar on a broken fizzbuzz — that is L0026.</div>
 
   <h2>Check your understanding</h2>
-  <p>Four short questions. Click an option; feedback is immediate.</p>
+  <p>Four questions. Shuffled answers.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>Which command changes the inner word and enters insert mode?</p>
+    <p class="quiz-q"><span class="num">Q1</span>The vim sentence is:</p>
     <ul class="options">
-      <li class="option" data-correct="true">ciw</li>
-      <li class="option">diw</li>
-      <li class="option">yiw</li>
-      <li class="option">&gt;iw</li>
+      <li class="option" data-correct="true">Operator plus a motion or text-object (counts optional)</li>
+      <li class="option">Insert mode plus arrow keys, then Escape to save</li>
+      <li class="option">A plugin that expands snippets when you tab</li>
+      <li class="option">Visual mode only — Normal cannot delete</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>Which operator deletes from the cursor to the end of the line?</p>
+    <p class="quiz-q"><span class="num">Q2</span><code>ci"</code> vs <code>ca"</code>:</p>
     <ul class="options">
-      <li class="option" data-correct="true">d$</li>
-      <li class="option">dG</li>
-      <li class="option">d0</li>
-      <li class="option">dd</li>
+      <li class="option" data-correct="true">Inner changes the contents; around takes the quotes too</li>
+      <li class="option">Inner is linewise; around is characterwise</li>
+      <li class="option">Around writes the system clipboard; inner does not</li>
+      <li class="option">They are aliases — vim treats quotes the same</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>Which motion moves to the end of the current word?</p>
+    <p class="quiz-q"><span class="num">Q3</span>You yanked a line, then <code>dd</code> another. Paste the yank with:</p>
     <ul class="options">
-      <li class="option" data-correct="true">e</li>
-      <li class="option">w</li>
-      <li class="option">b</li>
-      <li class="option">$</li>
+      <li class="option" data-correct="true">"0p — register 0 still holds the last yank</li>
+      <li class="option">p — unnamed is never written by delete</li>
+      <li class="option">"+p — deletes always go to the macOS clipboard</li>
+      <li class="option">u then p — undo is the only way back to a yank</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>How do you indent the current paragraph?</p>
+    <p class="quiz-q"><span class="num">Q4</span>In vim over SSH, <code>"+y</code> copies to:</p>
     <ul class="options">
-      <li class="option" data-correct="true">&gt;ip</li>
-      <li class="option">&lt;ip</li>
-      <li class="option">=ip</li>
-      <li class="option">dip</li>
+      <li class="option" data-correct="true">The remote clipboard — use tmux copy-mode to bring text to this Mac</li>
+      <li class="option">Your Mac pasteboard automatically, via SSH magic</li>
+      <li class="option">Register 0 only; + is ignored on remote hosts</li>
+      <li class="option">The unnamed register, same as a plain y</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -362,18 +263,17 @@
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> Where did this break? Did <code>ciw</code> feel like magic rather than understanding? Did <code>&gt;ip</code> refuse to indent the way you expected? Anything at all fuzzy — say so, and the next lesson untangles it.</p>
-    <p style="margin-bottom:0">Bring your question to the next session (or write it in <code>NOTES.md</code> now while it's fresh). Your teacher reads those before designing the next lesson.</p>
+    <p><strong>Ask the teacher.</strong> Did <code>ciw</code> feel like a sentence? Did <code>:%s</code> catch a substring you did not mean? Clipboard confusing on this Mac?</p>
+    <p style="margin-bottom:0">This file is the whole vim floor. Finish leftover exercises next sitting, or say when you want tmux (L0006).</p>
   </div>
 
   <footer>
-    <p><strong>Primary sources for this lesson</strong></p>
+    <p><strong>Primary sources</strong></p>
     <ul>
-      <li>Run <code>:help usr_04.txt</code> inside vim — the canonical "making small changes" chapter.</li>
-      <li>Run <code>:help operator</code> and <code>:help text-objects</code> for the full reference.</li>
-      <li>Drew Neil, <em>Practical Vim</em> (2nd ed.), Tips 12–14: "Edit text as if you were speaking it."</li>
+      <li><code>:help usr_02.txt</code> / <code>usr_03.txt</code> / <code>usr_04.txt</code> — modes, moving, small changes. <code>:help operator</code>, <code>:help text-objects</code>, <code>:help registers</code>.</li>
+      <li>Drew Neil, <em>Practical Vim</em> — Tips 12–14 (speak the sentence). Missing Semester — <a href="https://missing.csail.mit.edu/2026/development-environment/">Text editing and Vim</a>.</li>
     </ul>
-    <p>Next: <a href="#">Lesson 0002 — Modal audit &amp; navigation</a> (planned). See the <a href="../reference/vim-modal-grammar.html">vim grammar reference</a> for the full cheat-sheet.</p>
+    <p>Next: <a href="./0006-tmux-sessions-windows-panes.html">Lesson 0006 — tmux</a>. Reference: <a href="../reference/vim.html">Vim grammar</a>. Older slices (0002–0005, 0027) are retrieval only.</p>
   </footer>
 
 <script>
@@ -413,10 +313,10 @@
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Move on to Lesson 0002.'
+            ? ' — flawless. Cold-rebuild the sentence, inner vs around, jump+return, word-boundary substitute, and register 0.'
             : correct >= quizzes.length - 1
-            ? ' — solid. Revisit the miss, then continue.'
-            : ' — re-read the grammar section and retry the drill before moving on.'
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
         }`;
       }
     }));

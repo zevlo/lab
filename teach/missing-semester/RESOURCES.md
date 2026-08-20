@@ -5,9 +5,9 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 ## Knowledge — primary (canonical, read these first)
 
 - **Vim's built-in `:help`**
-  Open with `:help` (overview) or `:help usr_01.txt` (user manual). The user manual (`usr_*.txt`) is tutorial-style; the reference manual (`:help :s`, `:help operator`, etc.) is the source of truth for every command. Use for: every vim question.
+  Open with `:help` (overview) or `:help usr_01.txt` (user manual). The user manual (`usr_*.txt`) is tutorial-style; the reference manual (`:help :s`, `:help operator`, etc.) is the source of truth for every command. Use for: every vim question. Canonical lesson: 0001. Pocket card: `reference/vim.html`.
 - **`man 1 tmux`** — https://man.openbsd.org/tmux
-  Tmux ships an excellent man page covering every command, format string, and option. Use for: every tmux question.
+  Tmux ships an excellent man page covering every command, format string, and option. Use for: every tmux question. Canonical lesson: 0006. Pocket card: `reference/tmux.html`.
 - **`info coreutils`** — https://www.gnu.org/software/coreutils/manual/coreutils.html
   The canonical reference for `ls`, `cp`, `cut`, `sort`, `tee`, `head`, `tail`, `uniq`, etc. Use for: POSIX utility semantics — better than the BSD man pages that ship with macOS.
 - **`man bash`** — https://www.gnu.org/software/bash/manual/bash.html
@@ -18,11 +18,11 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 ## Knowledge — books
 
 - **_The Linux Command Line_ — William Shotts** (free) — https://linuxcommand.org/tlcl.php
-  Best-in-class beginner-to-intermediate shell book, POSIX-aware. Use for: structured reading on coreutils, processes, networking, shell scripting. Ch. 6 (Redirection) is the primary source for Lesson 0007’s filter pipeline.
+  Best-in-class beginner-to-intermediate shell book, POSIX-aware. Use for: structured reading on coreutils, processes, networking, shell scripting. Ch. 6 (Redirection) backs the compose half of Lesson 0015.
 - **"I/O Redirection" — linuxcommand.org** — https://www.linuxcommand.org/lc3_lts0070.php
   Short companion to Shotts ch. 6: stdout/stdin, `>`, `>>`, pipes, and the common filter list. Use for: quick refresh before pipeline drills.
 - **_Practical Vim_ (2nd ed.) — Drew Neil** — https://pragprog.com/titles/dnvim2/practical-vim-second-edition/
-  The canonical vim-as-language text. Tips 12–14 alone rewire how you think about editing. Use for: vim editing fluency. Lesson 0027 (motions practice) reuses L0001–0005 only; book is optional depth after drills.
+  The canonical vim-as-language text. Tips 12–14 alone rewire how you think about editing. Use for: vim editing fluency. Lesson 0001 is the vim floor; older slices 0002–0005, 0027 are retrieval. Book is optional depth after drills.
 - **_tmux 2: Productive Mouse-Free Development_ — Brian Hogan** — https://pragprog.com/titles/bhtmux2/tmux-2/
   Pragmatic, project-driven tmux guide. Use for: tmux mastery beyond the man page.
 
@@ -31,13 +31,13 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **The Missing Semester of Your CS Education (MIT)** — https://missing.csail.mit.edu/
   **Curriculum spine (from L0015).** User-recommended MIT IAP course. 2026 lecture order drives shell/tooling lessons. Notes are default lesson sources; still defer to `man` / Shotts / `:help` for exact semantics. Skip “consider installing” fancy CLIs while constraints say defaults/POSIX-only.
 - **Introduction to the Shell (2026)** — https://missing.csail.mit.edu/2026/course-shell/
-  Lecture 1 notes + exercises. Use for: shell vs terminal, navigation, PATH, core tools intro, redirects/pipes, light bash. Lesson 0015 = nav/PATH/`man`; Lesson 0016 = pipes + core filters; Lesson 0017 = `find` / light `sed` / `awk`; Lesson 0018 = light bash scripting (`if`/`for`/shebang/`set -euo pipefail`). Lesson 0020 = full MS lecture 1 exercises workbook (no new Knowledge; includes MS `jq` exercise as a one-off exception).
+  Lecture 1 notes + exercises. Canonical: **Lesson 0015** (nav/PATH, pipes + filters, `find`/`sed`/`awk`, light bash, MS exercises including `jq` as a one-off). Pocket card: `reference/shell.html`. Older slices 0016–0018, 0020 (and pre-MS 0007, 0009, 0014) are retrieval only.
 - **Command-line Environment (2026)** — https://missing.csail.mit.edu/2026/command-line-environment/
-  Lecture 2. Lesson 0019 = Signals & job control (`Ctrl-C`/`Z`, `fg`/`bg`/`jobs`, `SIGHUP`/`nohup`). Lesson 0021 = Arguments & globs (`$0`/`$@`/`$#`, flags, `*`/`?`/`{}`, shell expands before exec). Lesson 0022 = Environment variables & `export` (shell-local vs env, one-shot `VAR=cmd`, `printenv`/`unset`). Lesson 0023 = Return codes (`$?`, `&&`/`||`). Lesson 0024 = SSH / remote machines (connect, keys, `scp`/`rsync`, `~/.ssh/config`). Lesson 0025 = Aliases & dotfiles (`alias`/`unalias`, bashrc, PATH append). Skip fancy “consider installing” tools while defaults-only holds. Tmux hierarchy already covered in L0006–0013 — do not re-teach from CLE’s multiplexer section. CLE AI / Terminal Emulator sections out of scope (Ghostty already chosen).
+  Lecture 2. Canonical: **Lesson 0019** (argv/globs, streams, env/`export`, return codes, signals/jobs, `pgrep`/`curl`/`kill`) and **Lesson 0024** (SSH, keys, `scp`/`rsync`, `~/.ssh/config`, aliases/dotfiles). Pocket cards: `reference/shell-cli.html`, `reference/shell-home.html`. Skip fancy “consider installing” tools while defaults-only holds. Tmux is **Lesson 0006** — do not re-teach from CLE’s multiplexer section. CLE AI / Terminal Emulator sections out of scope (Ghostty already chosen). Older slices 0021–0023, 0025, 0008 are retrieval only.
 - **Development Environment and Tools (2026)** — https://missing.csail.mit.edu/2026/development-environment/
-  Lecture 3. Lesson 0026 = terminal workflow vs IDE map + vim compose retrieval (MS fizzbuzz). Lesson 0028 = language servers (LSP concept) + CLI checkers (`py_compile`, `gofmt`/`go vet`, `mypy` one-off install). Lesson 0029 = AI form factors (autocomplete / inline chat / agents) mapped to the user’s real surfaces (Zed IDE, opencode terminal agent, vim no-AI floor); gates AI output with L0028 checkers. Lesson 0030 = dev containers (image/container/dev container; `docker` CLI core; `devcontainer.json` as editor-agnostic, versioned config; L0028 checkers baked into the image). Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Prior vim floor: L0001–0005; practice workbook L0027.
+  Lecture 3. Canonical: **Lesson 0026** (terminal vs IDE map, LSP + CLI checkers, AI form factors, dev containers) and **Lesson 0001** (vim grammar floor). Pocket cards: `reference/devenv.html`, `reference/vim.html`. Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Older slices 0028–0030, 0002–0005, 0027 are retrieval only.
 - **Debugging and Profiling (2026)** — https://missing.csail.mit.edu/2026/debugging-profiling/
-  Lecture 4. Sliced too finely (L0031–0038); lecture closed at CPU profilers. Debugging: fundamentals, strace, tcpdump, ASan/Valgrind memcheck, AI-for-debugging. Profiling: `time`/`htop`, visualizing, `perf` + flame graphs + callgrind. Massif / `hyperfine` named only (L0039 withdrawn — massif is not in the exercise set). `rr` named (no PMU in Docker-on-Mac). From L0040: one lecture → one lesson.
+  Lecture 4. Canonical: **Lesson 0031** (debugging: printf/`pdb`, dig/`ss`/`lsof`, strace, tcpdump, ASan/Valgrind, AI-for-debug) and **Lesson 0036** (profiling: `time`/`htop`, tidy plots, `perf` + flame graphs + callgrind). Pocket cards: `reference/debug.html`, `reference/profiling.html`. Massif / `hyperfine` named only (L0039 withdrawn — massif is not in the exercise set). `rr` named (no PMU in Docker-on-Mac). Older slices 0032–0035, 0037–0038, 0010 are retrieval only.
 - **Version Control and Git (2026)** — https://missing.csail.mit.edu/2026/version-control/
   Lecture 5. Lesson 0040 = the whole lecture: data model (blob / tree / commit DAG / objects / refs / HEAD), staging area, command map, and the nine MS exercises (class-site clone/blame, history rewrite on `/tmp` only, stash, alias, gitignore, merge conflict; Learn Git Branching optional; class-site PR only if useful). Git ≠ GitHub.
 
@@ -50,43 +50,42 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **_Learn Vimscript the Hard Way_ — Steve Losh** — https://learnvimscriptthehardway.stevelosh.com/
   For later: scripting vim. Out of scope until fundamentals are locked.
 - **`man 1 dig`** / BIND dig
-  DNS lookup utility. Use for: A/AAAA/MX, `+short`, `@server`, reading `status:` in full output. Lesson 0010.
+  DNS lookup utility. Use for: A/AAAA/MX, `+short`, `@server`, reading `status:` in full output. Lesson 0031 (older slice 0010).
 - **`man 8 ss`** — https://manpages.debian.org/bookworm/iproute2/ss.8.en.html
-  Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only.
-
+  Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only. Lesson 0031; Mac listen sockets = `lsof -nP -iTCP -sTCP:LISTEN`.
 - **Development Containers spec** — https://containers.dev/
-  Editor-agnostic `devcontainer.json` reference (read by VS Code, Cursor, Codespaces, JetBrains, and the `devcontainer` CLI). Use for: the dev-container config shape (build, mounts, forwardPorts, postCreateCommand). Lesson 0030. Container build depth (multi-stage, registries, CI) is MS Packaging and Shipping Code, not this slice.
+  Editor-agnostic `devcontainer.json` reference (read by VS Code, Cursor, Codespaces, JetBrains, and the `devcontainer` CLI). Use for: the dev-container config shape (build, mounts, forwardPorts, postCreateCommand). Lesson 0026. Container build depth (multi-stage, registries, CI) is MS Packaging and Shipping Code.
 - **Docker CLI reference** — https://docs.docker.com/reference/cli/docker/
-  Official `docker` verb/flag reference (`build`, `run`, `exec`, `ps`, `stop`/`rm`, `rmi`, `logs`; `-it`, `--rm`, `-v`, `-w`, `-p`). Use for: exact flag semantics. On macOS the daemon runs via Docker Desktop or `colima`; commands are identical to Linux. Lesson 0030.
+  Official `docker` verb/flag reference (`build`, `run`, `exec`, `ps`, `stop`/`rm`, `rmi`, `logs`; `-it`, `--rm`, `-v`, `-w`, `-p`). Use for: exact flag semantics. On macOS the daemon runs via Docker Desktop or `colima`; commands are identical to Linux. Lesson 0026.
 - **`pdb` — Python debugger** — https://docs.python.org/3/library/pdb.html
   Python’s language-specific debugger. Use for: breakpoints, step/next, inspect values, backtrace (`b`/`c`/`n`/`s`/`p`/`l`/`w`/`q`; `breakpoint()` inline since 3.7). Lesson 0031. `gdb` (https://www.gnu.org/software/gdb/) is the de-facto standard for C/C++/Rust — command shapes mirror `pdb`; named, not the hands-on debugger under this mission.
 - **`tcpdump(1)` / `pcap-filter(7)`** — https://www.man7.org/linux/man-pages/man1/tcpdump.1.html
-  Packet capture CLI (libpcap). Use for: `-i any`/`-n`/`-c`/`-w`/`-r`/`-A`; filter primitives (`host`/`port`/`src`/`dst` + and/or/not); TCP output format (`Flags [S.]`, relative seqs); the two MS invocations. Ships on macOS too (`lo0`/`en0`). Lesson 0033. Wireshark (https://www.wireshark.org/) opens the same `.pcap` — named, not on the terminal stack.
+  Packet capture CLI (libpcap). Use for: `-i any`/`-n`/`-c`/`-w`/`-r`/`-A`; filter primitives (`host`/`port`/`src`/`dst` + and/or/not); TCP output format (`Flags [S.]`, relative seqs); the two MS invocations. Ships on macOS too (`lo0`/`en0`). Lesson 0031. Wireshark (https://www.wireshark.org/) opens the same `.pcap` — named, not on the terminal stack.
 - **AddressSanitizer (sanitizers wiki)** — https://github.com/google/sanitizers/wiki/AddressSanitizer
-  Canonical ASan reference. Use for: error kinds (heap-use-after-free, stack/heap/global overflow, leak), report anatomy (access ← freed by ← allocated by), redzones/quarantine. Invoke with `gcc -fsanitize=address -g`; family: TSan/MSan/UBSan one flag each. Compiles on macOS clang too. Lesson 0034.
+  Canonical ASan reference. Use for: error kinds (heap-use-after-free, stack/heap/global overflow, leak), report anatomy (access ← freed by ← allocated by), redzones/quarantine. Invoke with `gcc -fsanitize=address -g`; family: TSan/MSan/UBSan one flag each. Compiles on macOS clang too. Lesson 0031.
 - **Valgrind quick start** — https://valgrind.org/docs/manual/quick-start.html
-  Memcheck on an existing binary, no recompilation: `valgrind --leak-check=full ./prog`; leak verdicts (definitely lost / indirectly lost / possibly lost / still reachable); `Invalid write … that was freed` for use-after-free. Linux-only (unusable on modern macOS). callgrind → Lesson 0038; massif named only. Lesson 0034.
+  Memcheck on an existing binary, no recompilation: `valgrind --leak-check=full ./prog`; leak verdicts (definitely lost / indirectly lost / possibly lost / still reachable); `Invalid write … that was freed` for use-after-free. Linux-only (unusable on modern macOS). callgrind → Lesson 0036; massif named only. Lesson 0031.
 - **rr — record and replay** — https://rr-project.org/
-  Deterministic record/replay with reverse debugging (`rr record`, `rr replay`, `reverse-continue` in gdb). Linux-only, needs hardware performance counters — fails in most VMs (incl. Docker-on-Mac). Named, not drilled. Lesson 0034.
+  Deterministic record/replay with reverse debugging (`rr record`, `rr replay`, `reverse-continue` in gdb). Linux-only, needs hardware performance counters — fails in most VMs (incl. Docker-on-Mac). Named, not drilled. Lesson 0031.
 - **AI for debugging (MS lecture 4)** — https://missing.csail.mit.edu/2026/debugging-profiling/
-  LLM as a debugging aid, distinct from lecture 3 form factors. Use for: four shine areas (cryptic errors, language/FFI boundaries, symptom↔cause, crash dumps/stacks); limitations (hallucinate, mask, always verify); debug symbols (`-g`, DWARF, `-fno-omit-frame-pointer`). Lesson 0035.
+  LLM as a debugging aid, distinct from lecture 3 form factors. Use for: four shine areas (cryptic errors, language/FFI boundaries, symptom↔cause, crash dumps/stacks); limitations (hallucinate, mask, always verify); debug symbols (`-g`, DWARF, `-fno-omit-frame-pointer`). Lesson 0031.
 - **bash `time` keyword** — `help time` (also bash manual, Pipelines). Reports real / user / sys for a pipeline. Distinct from `/usr/bin/time`. Lesson 0036.
 - **`htop(1)`** — https://man7.org/linux/man-pages/man1/htop.1.html
   Interactive process viewer. Use for: `P`/`M` sort, `t` tree, `H` hide user threads, `q` quit; `l` opens `lsof` for the selected process. Lesson 0036. `top` is the default that ships (different keys).
 - **`free(1)`** — https://man7.org/linux/man-pages/man1/free.1.html
   procps-ng memory summary from `/proc/meminfo`. Use for: `free -h`; **available** (new apps without swapping) vs **free** (currently unused). Linux-only. Lesson 0036.
-- **`lsof`** — list open files. Use for: which process holds a file (`lsof FILE`); what a PID has open (`lsof -p PID`); Mac listen-sockets (`lsof -nP -iTCP -sTCP:LISTEN`, L0010). Lesson 0036.
+- **`lsof`** — list open files. Use for: which process holds a file (`lsof FILE`); what a PID has open (`lsof -p PID`); Mac listen-sockets (`lsof -nP -iTCP -sTCP:LISTEN`). Lessons 0031 / 0036.
 - **`taskset(1)`** — https://man7.org/linux/man-pages/man1/taskset.1.html
   Set/retrieve CPU affinity (`taskset --cpu-list 0 command`). Linux-only (util-linux). Lesson 0036.
-- **gnuplot** — http://www.gnuplot.info/ (in-program `help plot`). Use for: CLI plots from tidy CSV (`set datafile separator ','`; `plot 'f.csv' using 1:2 with lines`); headless terminals `dumb` (ASCII) and `png` + `set output`. Debian package `gnuplot-nox` (no X11). Lesson 0037.
+- **gnuplot** — http://www.gnuplot.info/ (in-program `help plot`). Use for: CLI plots from tidy CSV (`set datafile separator ','`; `plot 'f.csv' using 1:2 with lines`); headless terminals `dumb` (ASCII) and `png` + `set output`. Debian package `gnuplot-nox` (no X11). Lesson 0036.
 - **matplotlib** — https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html
-  Python plotting. Use for: iterative slice / facets (`pyplot.subplots`, `Figure.savefig`); Agg backend writes a PNG with no display. Lesson 0037. ggplot2 (https://ggplot2.tidyverse.org/) is the R equivalent — named, not drilled.
+  Python plotting. Use for: iterative slice / facets (`pyplot.subplots`, `Figure.savefig`); Agg backend writes a PNG with no display. Lesson 0036. ggplot2 (https://ggplot2.tidyverse.org/) is the R equivalent — named, not drilled.
 - **`perf-stat(1)` / `perf-record(1)`** — https://man7.org/linux/man-pages/man1/perf-stat.1.html
-  Linux sampling profiler. Use for: `perf stat` (task-clock vs hardware `cycles`); `perf record -g` (call-graph; default unwind `fp`); `perf report` / `perf script`. Software event `cpu-clock` when the PMU is missing (Docker-on-Mac / most VMs). Debian package `linux-perf`. Lesson 0038.
+  Linux sampling profiler. Use for: `perf stat` (task-clock vs hardware `cycles`); `perf record -g` (call-graph; default unwind `fp`); `perf report` / `perf script`. Software event `cpu-clock` when the PMU is missing (Docker-on-Mac / most VMs). Debian package `linux-perf`. Lesson 0036.
 - **Flame graphs** — https://www.brendangregg.com/flamegraphs.html (scripts: https://github.com/brendangregg/FlameGraph)
-  Visualization of sampled stacks: y = depth, width ∝ samples, x is **not** a timeline. Pipeline: `perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg`. Lesson 0038. Speedscope / Perfetto named as viewers.
+  Visualization of sampled stacks: y = depth, width ∝ samples, x is **not** a timeline. Pipeline: `perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg`. Lesson 0036. Speedscope / Perfetto named as viewers.
 - **Valgrind Callgrind** — https://valgrind.org/docs/manual/cl-manual.html
-  Tracing CPU profiler: `valgrind --tool=callgrind ./prog`; `callgrind_annotate` (self vs `--inclusive=yes`). Exact call counts; much slower than sampling. kcachegrind is the GUI — named. Lesson 0038.
+  Tracing CPU profiler: `valgrind --tool=callgrind ./prog`; `callgrind_annotate` (self vs `--inclusive=yes`). Exact call counts; much slower than sampling. kcachegrind is the GUI — named. Lesson 0036.
 - **Valgrind Massif** — https://valgrind.org/docs/manual/ms-manual.html
   Heap profiler: `valgrind --tool=massif ./prog`; `ms_print massif.out.<pid>`. Named only (L0039 withdrawn — not an MS exercise). Python `memory-profiler` named (MS).
 - **Git documentation** — https://git-scm.com/docs (`git help <cmd>`)

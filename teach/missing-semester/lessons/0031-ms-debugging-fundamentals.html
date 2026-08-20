@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 0031 — MS debugging fundamentals</title>
+<title>Lesson 0031 — Debugging</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -38,6 +38,7 @@
   h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
   .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
   h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
   p { margin: 0.7rem 0; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
   pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
@@ -45,7 +46,7 @@
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
   th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 16em; }
   ol, ul { padding-left: 1.3rem; }
   li { margin: 0.35rem 0; }
   .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
@@ -75,203 +76,146 @@
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0031 · <a href="../reference/debug-prof-fundamentals.html">Missing Semester — Debugging &amp; Profiling</a></p>
-    <h1>Debugging fundamentals</h1>
-    <p class="lede">The golden rule, print-vs-log discipline, and a debugger (<code>pdb</code>) for when prints run out. The first slice of MS lecture 4 — what reaches for after the L0028 checkers pass and the program is still wrong.</p>
+    <p class="kicker">Lesson 0031 · <a href="../reference/debug.html">Missing Semester — Debugging</a></p>
+    <h1>Debugging</h1>
+    <p class="lede">Code does what you told it to, not what you expected. Pick an observation point: client, DNS, sockets, debugger, syscalls, packets, sanitizer — then paste the artifact, and verify.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>L0030 closed MS lecture 3 (Dev Environment). Lecture 4 opens with the line every bug fixes back to: <em>code does not do what you expect it to do, but what you tell it to do</em>. Debugging is the work of closing that gap. The lecture is dense — it splits, the way Lectures 1–3 did. <strong>This slice is the foundational debugging half:</strong> the golden rule, printf debugging vs logging, and one debugger driven by hand. It targets the bug class the L0028 checkers can’t touch: a program that is syntactically valid, type-clean, and <em>still wrong</em> — a logic bug.</p>
-  <p><strong>Read first (≈10 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — the “Printf Debugging and Logging” and “Debuggers” sections only. Skim the rest; it is later slices.</p>
+  <p>Lecture 4’s debugging half is one ladder. Checkers (L0026) can pass while the program is still wrong — a logic bug, or a bug outside the process. Golden rule: inspect the <em>actual</em> value / call / packet. Profiling is L0036.</p>
+  <p><strong>Read first (≈20 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — Debugging through AI for Debugging, and the Debugging exercises. Skim Profiling; that is next.</p>
+  <div class="gotcha"><strong>This is the debugging half.</strong> Spread sittings. Scratch: <code>/tmp/ms-debug/</code>. Linux-only tools (<code>strace</code>, ASan/Valgrind in the notes’ C examples, <code>ss</code>) run in a disposable Debian box or an SSH Linux host — same as L0026’s container. <code>rr</code> needs hardware counters; this Docker-on-Mac VM does not have them — named only.</div>
 
-  <h2>Knowledge 1 — the golden rule + printf vs logging</h2>
-  <p>Once <code>py_compile</code> / <code>mypy</code> / <code>gofmt</code> (L0028) pass — <code>0</code> exit status (L0023) — syntax and type errors are off the table. What remains is a logic bug: the code runs, and does the wrong thing. MS names two escalating approaches:</p>
+  <h2>Knowledge 1 — print, log, debugger</h2>
+  <p>Printf when you know roughly where and re-running is cheap. Logging is printing with care (severity, routing, structure) — convert a successful print into a log before you delete it. Third-party: <code>-v</code>, <code>/var/log/</code>, <code>journalctl -u</code> (Linux). A <strong>debugger</strong> wins when you do not know what to print, or restart is expensive. Hands-on: <code>pdb</code>. <code>gdb</code> is the same verbs for C — named.</p>
+  <pre><code>python3 -m pdb script.py
+breakpoint()          # inline, 3.7+</code></pre>
+  <p>Core: <code>b</code> break · <code>c</code> continue · <code>n</code> next · <code>s</code> step · <code>p</code> print · <code>l</code> list · <code>w</code> where · <code>q</code> quit. Loop: reproduce → isolate → inspect → fix → gate with checkers. Cardinal rule: look at the actual value.</p>
+
+  <h2>Knowledge 2 — the ladder (client → kernel → wire)</h2>
   <table>
-    <thead><tr><th>Approach</th><th>What it is</th><th>Reach for it when</th></tr></thead>
+    <thead><tr><th>Point</th><th>Tool</th><th>Shows</th></tr></thead>
     <tbody>
-      <tr><td>printf</td><td>ad-hoc <code>print()</code> around the suspected region; iterate until the cause is visible</td><td>you know roughly where the bug is and re-running is cheap</td></tr>
-      <tr><td>logging</td><td>“printing with care” — a framework with severity levels, routable output, structured fields</td><td>the diagnostic should survive the fix; for services / long-running code</td></tr>
+      <tr><td>client</td><td><code>curl -si</code></td><td>what the conversation claimed</td></tr>
+      <tr><td>DNS</td><td><code>dig name</code> / <code>+short</code> / <code>@1.1.1.1</code></td><td>status: NOERROR vs NXDOMAIN; A/AAAA/MX</td></tr>
+      <tr><td>box sockets</td><td><code>ss -tlnp</code></td><td>listeners + process (Linux). Mac: <code>lsof -nP -iTCP -sTCP:LISTEN</code></td></tr>
+      <tr><td>inside the program</td><td><code>pdb</code></td><td>variables, stack</td></tr>
+      <tr><td>program↔kernel</td><td><code>strace</code></td><td>syscalls. First line is usually <code>execve</code>. <code>write(1,…)</code> is stdout. <code>= -1 ENOENT</code> is the smoking gun. Trace rides stderr.</td></tr>
+      <tr><td>wire</td><td><code>tcpdump</code></td><td>packets. <code>[S]</code> <code>[S.]</code> <code>[.]</code> = handshake. Refused = <code>[R.]</code> fast; dropped = silence. tcpdump cannot name processes — <code>ss</code> can.</td></tr>
     </tbody>
   </table>
-  <p>MS’s durable advice: once a print finds the bug, <strong>convert it into a proper log statement</strong> instead of deleting it — next time a similar bug appears, the diagnostic is already there. Severity levels (<code>DEBUG</code> / <code>INFO</code> / <code>WARNING</code> / <code>ERROR</code>) let you filter after the fact.</p>
-  <p><strong>Third-party logs.</strong> Many programs take <code>-v</code> / <code>--verbose</code> (repeatable on some) to print more. Services write logs under <code>/var/log/</code> on Linux; systemd services show theirs via <code>journalctl -u &lt;service&gt;</code>. That is the ops-triage counterpart to in-code prints, and it pairs with the L0008 ops loop (<code>pgrep</code> → <code>curl -i</code> → <code>kill</code>).</p>
+  <p>strace shapes: plain · <code>-e trace=file</code> · <code>-f</code> (children) · <code>-p PID</code> · <code>-T</code> (time in call). macOS: <code>dtruss</code> named, not drilled. tcpdump MS invocations: <code>tcpdump -i any port 80</code> and <code>-w file.pcap</code>; add <code>-n</code> / <code>-c</code> / <code>-A</code>. HTTPS payload needs a proxy (mitmproxy named). This Mac has tcpdump (<code>lo0</code>); drills that need a quiet net still use the box.</p>
 
-  <h2>Knowledge 2 — the debugger concept + <code>pdb</code></h2>
-  <p>Prints work when you know what to print and re-running is cheap. A <strong>debugger</strong> wins when you don’t yet know what to print, when the bug only shows under hard-to-reproduce conditions, or when a restart is expensive (long startup, complex state). It lets you interact with execution as it happens: halt at a line, step one instruction at a time, inspect variable values, halt conditionally, read the call stack.</p>
-  <p>Launch Python’s <code>pdb</code> three ways:</p>
-  <pre><code>python3 -m pdb script.py            # from the start
-python3 -m pdb -c continue script.py # run until a breakpoint/error
-# or inline in the source (Python 3.7+):
-breakpoint()                         # drops into pdb here</code></pre>
-  <table>
-    <thead><tr><th>Command</th><th>Does</th><th>Recall hook</th></tr></thead>
-    <tbody>
-      <tr><td><code>b</code> / <code>break</code></td><td>set a breakpoint (function or <code>file:line</code>)</td><td>“stop here”</td></tr>
-      <tr><td><code>c</code> / <code>continue</code></td><td>run to next breakpoint / error</td><td>“go”</td></tr>
-      <tr><td><code>n</code> / <code>next</code></td><td>step <strong>over</strong> a line (no descent)</td><td>same line, next</td></tr>
-      <tr><td><code>s</code> / <code>step</code></td><td>step <strong>into</strong> a called function</td><td>descend</td></tr>
-      <tr><td><code>p expr</code></td><td>print an expression / variable</td><td>the actual value</td></tr>
-      <tr><td><code>l</code> / <code>list</code></td><td>show source around current line</td><td>“where am I”</td></tr>
-      <tr><td><code>w</code> / <code>where</code></td><td>backtrace (call stack)</td><td>“how did I get here”</td></tr>
-      <tr><td><code>q</code> / <code>quit</code></td><td>exit pdb</td><td>done</td></tr>
-    </tbody>
-  </table>
-  <div class="gotcha"><strong>Mission framing.</strong> The hands-on debugger here is <code>pdb</code> — Python is the primary language track. MS’s de-facto debugger for C/C++/Rust is <a href="https://www.gnu.org/software/gdb/"><code>gdb</code></a>, whose command shapes mirror <code>pdb</code> (<code>run</code>/<code>break</code>/<code>step</code>/<code>next</code>/<code>print</code>/<code>bt</code>) — named so you recognize it on a compiled-language remote, not drilled tonight.</div>
+  <h2>Knowledge 3 — memory bugs, then paste the artifact</h2>
+  <p>Overflow / use-after-free / leak: the symptom is far from the act. pdb does not see the heap; strace sees <code>mmap</code> not the write; checkers pass. <strong>ASan:</strong> recompile <code>gcc -fsanitize=address -g</code> — report is three stacks (access ← freed by ← allocated by); abort. <strong>Valgrind Memcheck:</strong> no recompile; <code>--leak-check=full</code>; verdicts definitely/indirectly/possibly/still reachable. Decision: can recompile → ASan (CI-fast); cannot → Valgrind; races → TSan (named); heisenbug → <code>rr</code> (named). Intra-object overflow can blind both — that is the <code>corruption.c</code> teaser.</p>
+  <p>AI-for-debug is distinct from L0026 form factors: you paste a <em>compiler wall, strace, or ASan report</em>, not a paraphrase. Shine: cryptic errors, FFI boundaries, symptom↔cause, crash stacks. Limitations: hallucinate, mask the bug (e.g. “delete the free”). Always re-run the tool. <code>-g</code> / frame pointers are why a native stack is readable.</p>
 
-  <h2>Knowledge 3 — the debug loop + tidy logs</h2>
-  <p>The loop, stated as a discipline:</p>
-  <pre><code>reproduce  →  isolate  →  inspect  →  fix  →  gate
-   make it      narrow       look at      change      re-run the
-   happen       the blast    the ACTUAL   the code    L0028 checkers
-   on demand    radius       value                      + the bug case</code></pre>
-  <p>The cardinal rule sits in <strong>inspect</strong>: look at the value the program <em>actually holds</em>, not the one you assumed. An init-to-zero bug is invisible until you <code>p biggest</code> and see <code>0</code> where a negative number should be. Most “I don’t understand the bug” moments are really “I haven’t looked at the actual value” moments.</p>
-  <p><strong>Tidy logs.</strong> MS’s profiling half makes the same point, and it matters here too: when you add diagnostic output, shape it so it can be graphed later. A line like <code>1705012345,42.5</code> (timestamp,value) is trivial to plot; a prose sentence is not. Prints you add to chase a slow path today become the dataset you profile tomorrow — that sets up the later Lecture-4 profiling slice.</p>
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-debug &amp;&amp; cd /tmp/ms-debug
+# Linux tools, when needed:
+# docker run --rm -it -v /tmp/ms-debug:/work -w /work --name ms-dbg debian bash
+# apt-get update &amp;&amp; apt-get install -y gcc strace tcpdump python3</code></pre>
 
-  <h2>Drill — print, step, gate</h2>
-  <p>Ghostty + bash + vim. Scratch: <code>/tmp/ms-debug/</code>. Reuses the Python track (functions, lists, loops) and the L0028 checkers.</p>
-  <ol>
-    <li>
-      Cold-name the golden rule, and the printf-vs-logging distinction — one sentence each.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Golden rule: code does what you <em>tell</em> it, not what you <em>expect</em> — debugging closes that gap. Printf = ad-hoc <code>print()</code> around the suspected region when re-running is cheap; logging = a framework with severity levels and routable, structured output, kept after the fix so the diagnostic survives.</p>
-      </div></details>
-    </li>
-    <li>
-      <strong>Reproduce with a print.</strong> Write a buggy <code>running_max</code>, run it, watch it return wrong output, then add a print to isolate:
-      <pre><code>mkdir -p /tmp/ms-debug &amp;&amp; cd /tmp/ms-debug
-cat &gt; running_max.py &lt;&lt;'EOF'
-def running_max(numbers: list[int]) -> list[int]:
-    result = []
-    biggest = 0            # BUG: fails for all-negative input
-    for n in numbers:
-        if n > biggest:
-            biggest = n
-        result.append(biggest)
-    return result
+  <h2>Exercises</h2>
+  <p>MS debugging set. Try before <code>show answer</code>.</p>
 
-print(running_max([-5, -2, -9]))   # expect [-5, -2, -2]
-EOF
-python3 running_max.py</code></pre>
-      Output is <code>[0, 0, 0]</code>. Now add <code>print(n, biggest)</code> inside the loop and re-run. One sentence: what does the print show, and what is the fix?
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>The print shows <code>biggest</code> stuck at <code>0</code> across every iteration — the negatives never beat it. Fix: initialize <code>biggest</code> to the first element (<code>biggest = numbers[0]</code>) instead of <code>0</code>, so a negative first value can become the running max. (Empty-input is a separate edge — out of scope here.)</p>
-      </div></details>
-    </li>
-    <li>
-      <strong>Re-do it in <code>pdb</code>.</strong> Remove the print, drop a <code>breakpoint()</code> on the loop body, and step:
-      <pre><code>cat &gt; running_max.py &lt;&lt;'EOF'
-def running_max(numbers: list[int]) -> list[int]:
-    result = []
-    biggest = 0
-    for n in numbers:
-        breakpoint()        # &lt;-- drops into pdb here each iteration
-        if n > biggest:
-            biggest = n
-        result.append(biggest)
-    return result
+  <h3>1 — merge-sort in <code>pdb</code></h3>
+  <p>MS’s merge has a bug (<code>right[i]</code> on the else branch). Implement in Python, <code>breakpoint()</code> in <code>merge</code>, step until the wrong element is selected. Test: <code>[3,1,4,1,5,9,2,6]</code> → sorted.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Else branch should append <code>right[j]</code> and increment <code>j</code>, not <code>right[i]</code>. <code>p left, right, i, j</code> at the bad comparison. Fix, gate with <code>py_compile</code>.</p>
+  </div></details>
 
-print(running_max([-5, -2, -9]))
-EOF
-python3 running_max.py</code></pre>
-      In pdb: type <code>p n</code>, <code>p biggest</code>, then <code>n</code> to step, <code>c</code> to continue to the next iteration. Watch <code>biggest</code> never move off <code>0</code>. Quit with <code>q</code>. One sentence: what did the debugger show that the print did, without editing the source twice?
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Same fact (<code>biggest</code> pinned at <code>0</code>), but the debugger inspected every variable live without re-editing/re-running for each new value — one <code>p biggest</code> per stop, <code>c</code> to advance. The bug is the init; the debugger just let you stare at the actual value on demand.</p>
-      </div></details>
-    </li>
-    <li>
-      <strong>Fix, then gate (L0028/L0023 callback).</strong> Apply the fix (<code>biggest = numbers[0]</code>) and drop the <code>breakpoint()</code> — write the clean fixed file, then run the L0028 checkers against it:
-      <pre><code>cat &gt; running_max.py &lt;&lt;'EOF'
-def running_max(numbers: list[int]) -> list[int]:
-    result = []
-    biggest = numbers[0]   # FIXED: was 0 — failed for all-negative input
-    for n in numbers:
-        if n > biggest:
-            biggest = n
-        result.append(biggest)
-    return result
+  <h3>2 — <code>rr</code> / <code>corruption.c</code></h3>
+  <p>MS: record-replay the intra-object overflow. <strong>Skip the run</strong> — no PMU in this VM. Read the program: <code>scores[3]</code> walks onto the next <code>Student.id</code>. Named: <code>rr record</code> / <code>rr replay</code> / <code>reverse-continue</code>. Warpspeed on macOS.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>The loop bound is 4 on a 3-element array. ASan/Valgrind often miss intra-object overflow. rr would watchpoint <code>students[1].id</code> and reverse to the write.</p>
+  </div></details>
 
-print(running_max([-5, -2, -9]))
-EOF
-python3 -m py_compile running_max.py &amp;&amp; \
-  { command -v mypy &gt;/dev/null &amp;&amp; mypy running_max.py || true; }; \
-  echo "status=$?"
-python3 running_max.py   # now prints [-5, -2, -2]</code></pre>
-      Expect <code>status=0</code> and <code>[-5, -2, -2]</code>. One sentence: why was this bug invisible to the L0028 checkers in the first place?
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Syntax (<code>py_compile</code>) and types (<code>mypy</code>) were already valid — <code>biggest = 0</code> is legal, well-typed Python. The bug is a <em>logic</em> bug (a wrong initial value), which checkers cannot see; only running the code or stepping it reveals it. That is exactly the bug class this slice targets after L0028 passes.</p>
-      </div></details>
-    </li>
-    <li>
-      <strong>Third-party logs (L0008 callback).</strong> In one pane, start the stdlib server; in another, hit it and read the request log lines it prints:
-      <pre><code># pane A
-python3 -m http.server 4444
-# pane B
-curl -i http://localhost:4444/ &gt;/dev/null</code></pre>
-      Pane A logs a line like <code>127.0.0.1 - - [...] "GET / HTTP/1.1" 200 -</code>. One sentence: how is this the same idea as an in-code <code>print</code>, and where would you look on a systemd Linux remote instead?
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Both expose runtime behavior as text you can read after the fact — the server’s access log is a built-in, routable version of a print. On a systemd Linux remote the equivalent lives in the journal: <code>journalctl -u &lt;service&gt;</code> (or under <code>/var/log/</code>); macOS has no direct <code>journalctl</code> equivalent, same posture as the <code>ss</code>-vs-<code>lsof</code> and BSD-vs-GNU caveats from earlier lessons.</p>
-      </div></details>
-    </li>
-    <li>
-      <strong>Cold rebuilds</strong> (no peeking):
-      <ol type="a">
-        <li>State MS’s golden rule from memory.</li>
-        <li>Name the one circumstance where a debugger clearly beats a print.</li>
-        <li>One sentence: why won’t <code>py_compile</code> / <code>mypy</code> catch the <code>biggest = 0</code> bug?</li>
-      </ol>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>(a) Code does what you <em>tell</em> it to do, not what you <em>expect</em> it to do.<br>
-        (b) When you don’t yet know what to print, the bug is hard to reproduce, or re-running is expensive.<br>
-        (c) The code is syntactically valid and type-clean — it’s a logic bug (wrong initial value), which only execution or stepping reveals. Checkers raise the floor; they don’t catch wrong intent.</p>
-      </div></details>
-    </li>
+  <h3>3 — ASan on <code>uaf.c</code></h3>
+  <p>MS’s program verbatim: malloc, print, free, write through the pointer. Plain build may “work” and exit 0. Then <code>gcc -fsanitize=address -g</code>. What bug? Fix (use after last use, then free). Optional: comment the free, compare LeakSanitizer vs Valgrind on the plain binary.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>heap-use-after-free: write at the line after <code>free</code>. Exit 0 on the plain binary is not proof (UB). Connect the three stacks: allocate, free, then write.</p>
+  </div></details>
+
+  <h3>4 — <code>strace ls -l</code></h3>
+  <p>In the Linux box: <code>strace ls -l</code>, then <code>-e trace=file</code>. What is the first syscall? What files did it open? Try a more complex program (python -c, or a pipeline with <code>-f</code>).</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>execve</code> first. File trace shows <code>openat</code> on the directory and loader libs. <code>-f</code> is required when the program spawns (shell pipelines).</p>
+  </div></details>
+
+  <h3>5 — paste an artifact</h3>
+  <p>Paste the ASan report (or a C++ template wall, or the strace ENOENT) into an LLM. Apply a fix only after you re-run the tool to <code>status=0</code> / a clean report. Reject “delete the free.”</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Paste the raw output. A fluent “fix” that removes <code>free</code> masks a leak. Verify with ASan/strace/compile — the LLM is a draft.</p>
+  </div></details>
+
+  <h3>6 — dig and who is listening</h3>
+  <p>Local: <code>dig example.com</code> (status line + ANSWER), <code>+short</code>, <code>@1.1.1.1</code>, <code>AAAA</code> / <code>MX</code>. Then: who listens on a port? Linux <code>ss -tlnp</code>; Mac <code>lsof -nP -iTCP -sTCP:LISTEN</code>.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>NOERROR</code> vs <code>NXDOMAIN</code>. Empty <code>+short</code> with NXDOMAIN is an answer. <code>ss</code> is not on this Mac.</p>
+  </div></details>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>When a debugger beats print.</li>
+    <li>The ladder, in order.</li>
+    <li>Five strace shapes.</li>
+    <li>Refused vs dropped on the wire.</li>
+    <li>ASan vs Valgrind; what you paste to an LLM.</li>
   </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) Unknown what to print, or restart is expensive.<br>
+    (b) curl → dig → ss/lsof → pdb → strace → tcpdump → sanitizer.<br>
+    (c) plain, -e file, -f, -p, -T.<br>
+    (d) RST fast vs silence; ss confirms a listener.<br>
+    (e) Recompile vs cannot; paste the tool output, then re-run the tool.</p>
+  </div></details>
 
-  <div class="gotcha"><strong>Later.</strong> The rest of MS lecture 4 is its own set of slices: record-replay debugging (<a href="https://rr-project.org/"><code>rr</code></a>, reverse debugging for Heisenbugs — Linux only), system-call tracing (<code>strace</code> / <code>dtruss</code> / <code>bpftrace</code> — the highest-leverage DevOps debug tool on the list), network debugging (<code>tcpdump</code> / Wireshark — relates to L0010 <code>dig</code>/<code>ss</code>), memory debugging (ASan / Valgrind — mostly C/C++/Rust), AI-for-debugging (distinct from the L0029 AI authoring form factors), and the whole Profiling half (<code>time</code>, <code>htop</code>, <code>perf</code> + flame graphs, <code>hyperfine</code>).</div>
+  <div class="gotcha"><strong>Later.</strong> <code>rr</code> hands-on, bpftrace, Wireshark/mitmproxy, TSan/MSan/UBSan, massif. Profiling: L0036.</div>
 
   <h2>Check your understanding</h2>
   <p>Four questions. Shuffled answers.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>MS’s golden rule: code does not do what you ____ it to do, but what you ____ it to do.</p>
+    <p class="quiz-q"><span class="num">Q1</span>Checkers pass, the program is still wrong. That is:</p>
     <ul class="options">
-      <li class="option" data-correct="true">expect; tell</li>
-      <li class="option">tell; expect</li>
-      <li class="option">compile; run</li>
-      <li class="option">print; log</li>
+      <li class="option" data-correct="true">A logic bug (or a bug outside the process) — inspect actual values / calls / packets</li>
+      <li class="option">Proof the checkers are broken; skip them</li>
+      <li class="option">Always a memory error; start with ASan first</li>
+      <li class="option">An LLM problem; do not use pdb</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>Which is the clearest reason to reach for a debugger instead of a print?</p>
+    <p class="quiz-q"><span class="num">Q2</span><code>strace</code> shows:</p>
     <ul class="options">
-      <li class="option" data-correct="true">you don’t yet know what value to print, or the bug is hard to reproduce</li>
-      <li class="option">your editor has no syntax highlighting</li>
-      <li class="option">the program has no functions</li>
-      <li class="option">the file has not been saved</li>
+      <li class="option" data-correct="true">System calls at the program↔kernel boundary — not Python variable values</li>
+      <li class="option">The same stack pdb would print, with types</li>
+      <li class="option">Packets on the wire, including HTTPS bodies</li>
+      <li class="option">Only file contents, never execve</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>Which is Python’s language-specific debugger?</p>
+    <p class="quiz-q"><span class="num">Q3</span>You cannot recompile a third-party binary. Suspected leak:</p>
     <ul class="options">
-      <li class="option" data-correct="true"><code>pdb</code></li>
-      <li class="option"><code>gdb</code></li>
-      <li class="option"><code>lldb</code></li>
-      <li class="option"><code>strace</code></li>
+      <li class="option" data-correct="true">Valgrind Memcheck — no recompile; ASan needs -fsanitize</li>
+      <li class="option">ASan anyway — it attaches like strace -p</li>
+      <li class="option">tcpdump — leaks always show as RSTs</li>
+      <li class="option">mypy — types catch heap errors</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>Why won’t <code>py_compile</code> / <code>mypy</code> catch an init-to-zero logic bug (<code>biggest = 0</code>)?</p>
+    <p class="quiz-q"><span class="num">Q4</span>When asking an LLM about a crash, paste:</p>
     <ul class="options">
-      <li class="option" data-correct="true">valid syntax and valid types — it’s a logic/value bug they can’t see</li>
-      <li class="option">they only check shell scripts, not Python</li>
-      <li class="option">they refuse to run without <code>-g</code> debug symbols</li>
-      <li class="option">they require a running container first</li>
+      <li class="option" data-correct="true">The raw compiler / strace / ASan output — then verify with the same tool</li>
+      <li class="option">A paraphrase of what you think happened</li>
+      <li class="option">Only the source, never the sanitizer report</li>
+      <li class="option">The binary, base64, so it can disassemble</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -279,18 +223,16 @@ curl -i http://localhost:4444/ &gt;/dev/null</code></pre>
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> Did the golden rule + printf/logging split click, and did stepping the <code>biggest = 0</code> bug in <code>pdb</code> land the “inspect the actual value” point? Any surprise that the L0028 checkers are useless against this bug class by design?</p>
-    <p style="margin-bottom:0">Next when ready: the next Lecture-4 slice — system-call tracing (<code>strace</code>/<code>dtruss</code>), network debugging (<code>tcpdump</code>), or the Profiling half (<code>time</code>/<code>htop</code>/<code>perf</code>) — or more vim practice, or another L0020 workbook pass. Say which.</p>
+    <p><strong>Ask the teacher.</strong> Did the ladder replace “which tool”? ASan three-stack readable? rr skip acceptable?</p>
+    <p style="margin-bottom:0">This file is lecture 4 debugging. Next: profiling (L0036).</p>
   </div>
 
   <footer>
     <p><strong>Primary sources</strong></p>
     <ul>
-      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Sections: Printf Debugging and Logging; Debuggers.</li>
-      <li><a href="https://docs.python.org/3/library/pdb.html"><code>pdb</code> — Python docs</a>. <a href="https://www.gnu.org/software/gdb/"><code>gdb</code> — GNU Debugger</a> (named, not drilled).</li>
-      <li>Checkers: L0028. Exit status: L0023. Ops / logs triage: L0008. Prior Python track (functions, lists, loops). Lecture-4 later slices → rr, strace/bpftrace, tcpdump, ASan/Valgrind, profiling (<code>time</code>/<code>htop</code>/<code>perf</code>).</li>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). <code>pdb</code> docs. <code>strace(1)</code>, <code>tcpdump(1)</code>, AddressSanitizer wiki, Valgrind quick start. <code>man dig</code> / <code>ss</code>.</li>
     </ul>
-    <p>Previous: <a href="./0030-ms-dev-containers.html">Lesson 0030 — dev containers</a>. Reference: <a href="../reference/debug-prof-fundamentals.html">debugging fundamentals</a>.</p>
+    <p>Previous: <a href="./0026-ms-dev-env-map.html">Lesson 0026 — dev environment</a>. Next: <a href="./0036-ms-timing-resource-monitoring.html">Lesson 0036 — profiling</a>. Reference: <a href="../reference/debug.html">Debugging</a>.</p>
   </footer>
 
 <script>
@@ -330,7 +272,7 @@ curl -i http://localhost:4444/ &gt;/dev/null</code></pre>
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Cold-rebuild the golden rule, the pdb core (b/c/n/s/p/q), and the why-checkers-miss-it line once from memory before advancing.'
+            ? ' — flawless. Cold-rebuild the ladder, strace shapes, ASan vs Valgrind, and paste-then-verify.'
             : correct >= quizzes.length - 1
             ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
             : ' — re-read Knowledge 1–3 and the reference.'

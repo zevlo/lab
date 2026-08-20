@@ -38,6 +38,7 @@
   h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
   .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
   h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
   p { margin: 0.7rem 0; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
   pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
@@ -45,7 +46,7 @@
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
   th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 10em; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
   ol, ul { padding-left: 1.3rem; }
   li { margin: 0.35rem 0; }
   .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
@@ -75,155 +76,234 @@
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0015 · <a href="../reference/shell-navigation.html">Missing Semester — shell</a></p>
+    <p class="kicker">Lesson 0015 · <a href="../reference/shell.html">Missing Semester — Shell</a></p>
     <h1>Introduction to the Shell</h1>
-    <p class="lede">Terminal vs shell, where you are, how programs are found — the foundation of Missing Semester lecture 1.</p>
+    <p class="lede">A terminal draws the prompt. A shell finds programs, connects their streams, and is itself a small language. Compose filters; do not memorize spells.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>Your course path follows <a href="https://missing.csail.mit.edu/">Missing Semester</a>. Lecture 1 is dense; this lesson is the navigation and PATH foundation. DevOps still owns the mission — bash on Ghostty, defaults-only, <code>man</code> as primary docs.</p>
-  <p><strong>Read first (15–20 min):</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">Course Overview + Introduction to the Shell</a> through “Navigating in the shell” and “What is available” (PATH / <code>which</code> / <code>ls</code>). Stop before the long SSH pipeline / full scripting section — those come in later slices.</p>
+  <p>Missing Semester lecture 1 is how you live in a Unix machine: where you are, how programs are found, how you glue them, and just enough bash to put that in a file. The GUI cannot press a button that is not there. The shell can.</p>
+  <p><strong>Read first (≈20 min):</strong> <a href="https://missing.csail.mit.edu/2026/course-shell/">MS Course Overview + Introduction to the Shell</a> — the whole lecture, including Exercises. Skip “consider installing” replacements (eza, fd, ripgrep, zoxide, bat, tldr). Stay on bash.</p>
+  <div class="gotcha"><strong>This is the whole lecture</strong> — navigation, composition, find/sed/awk, light bash, and the exercise set. Spread sittings. Scratch: <code>/tmp/ms-shell/</code>. Confirm <code>echo $SHELL</code> is bash.</div>
 
-  <h2>Knowledge 1 — terminal vs shell</h2>
-  <p>From Missing Semester: a <strong>terminal</strong> is the visual interface (Ghostty). A <strong>shell</strong> (bash) reads your commands, runs programs, and shows output. Nearly every platform has a shell; we stay on bash.</p>
-  <pre><code>date                 # run a program
-echo hello           # program + arguments
-echo $SHELL          # confirm you are in bash/zsh-class Unix shell</code></pre>
+  <h2>Knowledge 1 — where you are, how programs are found</h2>
+  <p>Ghostty is the <strong>terminal</strong> (pixels). bash is the <strong>shell</strong> (parses a line, runs programs). <code>date</code> runs a program; <code>echo hello</code> is a program plus arguments. <code>man date</code> is the manual; <code>--help</code> is the short form.</p>
+  <p><code>cd</code> is a <strong>builtin</strong> — it must run inside the shell process, or a child could not change the parent’s directory. Paths: <code>/</code> is the root; <code>~</code> is home; relative paths start from <code>pwd</code>. <code>.</code> is this directory, <code>..</code> the parent.</p>
+  <p><code>$PATH</code> is a colon-separated list of directories. The shell searches it for the first executable named like the command. <code>which echo</code> shows which file. An absolute path bypasses PATH. <code>ls /bin</code> is “what could I run.”</p>
 
-  <h2>Knowledge 2 — cwd, cd, paths</h2>
-  <p>The prompt shows where you are. <code>~</code> is home. <code>pwd</code> (or <code>echo $PWD</code>) prints the working directory. <code>cd</code> changes it — and is a <strong>builtin</strong>, not a separate binary.</p>
+  <h2>Knowledge 2 — compose streams; find, substitute, columns</h2>
+  <p>Most filters take a file or read <strong>stdin</strong>. <code>|</code> connects stdout to the next stdin. <code>&gt;</code> / <code>&gt;&gt;</code> write a <em>file</em>; <code>tee</code> does both. Stdout is fd 1; stderr is 2. Merge: <code>cmd &gt;f 2&gt;&amp;1</code> (order matters — not <code>2&gt;&amp;1 &gt;f</code>).</p>
   <table>
-    <thead><tr><th>Form</th><th>Means</th></tr></thead>
+    <thead><tr><th>Tool</th><th>Job</th></tr></thead>
     <tbody>
-      <tr><td><code>/bin</code></td><td>Absolute path (from root)</td></tr>
-      <tr><td><code>bin</code></td><td>Relative (from cwd)</td></tr>
-      <tr><td><code>.</code> / <code>..</code></td><td>This dir / parent</td></tr>
-      <tr><td><code>cd -</code></td><td>Previous directory</td></tr>
+      <tr><td><code>cat</code> <code>head</code> <code>tail</code></td><td>print / first / last lines</td></tr>
+      <tr><td><code>grep PAT</code></td><td>keep matching lines</td></tr>
+      <tr><td><code>sort</code> · <code>uniq -c</code></td><td>order lines; count <em>adjacent</em> dupes</td></tr>
+      <tr><td><code>find . -type f -name '*.py'</code></td><td>recursive search; quote the glob</td></tr>
+      <tr><td><code>sed 's/old/new/g'</code></td><td>substitute; preview, then in-place</td></tr>
+      <tr><td><code>awk '{print $2}'</code></td><td>columns; <code>-F,</code> for CSV</td></tr>
     </tbody>
   </table>
-  <div class="gotcha"><strong>Why <code>cd</code> is a builtin.</strong> A child process cannot change its parent’s working directory. If <code>cd</code> were an external program, it would change cwd only for itself and exit — your shell would stay put. (Missing Semester exercise.)</div>
+  <p>Muscle: <code>sort | uniq -c | sort -nr | head</code>. <code>uniq</code> without sort is a lie.</p>
+  <div class="gotcha"><strong>macOS <code>sed -i</code> needs <code>''</code>.</strong> <code>sed -i '' 's/…/…/g' file</code> (BSD). Linux remotes: <code>sed -i 's/…/…/g'</code>. Quote <code>'*.py'</code> for <code>find -name</code> so the shell does not expand it first. <code>find … -exec cmd {} \;</code> — <code>{}</code> is the path, <code>\;</code> ends the action.</div>
 
-  <h2>Knowledge 3 — PATH, which, man</h2>
-  <p>The shell finds <code>echo</code> / <code>date</code> by searching directories in <code>$PATH</code> (<code>:</code>-separated). <code>which name</code> shows which file runs. <code>man name</code> is the manual — your primary docs habit.</p>
-  <pre><code>echo $PATH
-which echo
-man ls          # q to quit; space/ arrows to scroll
-ls -l /         # then ask: what do the first columns mean?</code></pre>
+  <h2>Knowledge 3 — bash is a small language</h2>
+  <pre><code>host=db01              # no spaces around =
+echo "$host"
+if [ -f "$1" ]; then echo exists; else echo missing; fi
+for i in $(seq 1 3); do echo "$i"; done</code></pre>
+  <p>A script file starts with a shebang and usually a strict <code>set</code>:</p>
+  <pre><code>#!/bin/bash
+set -euo pipefail      # -e fail-fast; -u no unset; pipefail = failed stage fails the script
+chmod +x check.sh
+./check.sh notes.txt   # needs +x so the kernel honors the shebang; bash check.sh does not</code></pre>
+  <p><code>$1</code> is the first argument; <code>"$@"</code> is all of them as a list. <code>$(date +%Y-%m-%d)</code> is command substitution (prefer over backticks).</p>
 
-  <h2>Drill</h2>
-  <p>Do every step in Ghostty + bash. Say the answer out loud before you press Enter when you can.</p>
-  <ol>
-    <li>
-      Confirm shell and home:
-      <pre><code>echo $SHELL
-pwd
-cd /
-pwd
-cd ~
-pwd</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>You should see something like <code>/bin/bash</code>, then <code>/</code>, then your home path. <code>cd</code> with no args also goes home.</p>
-      </div></details>
-    </li>
-    <li>
-      Absolute vs relative (from Missing Semester):
-      <pre><code>cd /
-cd bin
-pwd
-cd ..
-pwd
-cd /bin
-pwd</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>cd bin</code> from <code>/</code> lands in <code>/bin</code>. <code>..</code> returns to <code>/</code>. Absolute <code>/bin</code> works from anywhere.</p>
-      </div></details>
-    </li>
-    <li>
-      Dot path nonsense that still works — predict <code>pwd</code> before running:
-      <pre><code>cd /
-cd bin/../bin/../bin/././../bin/..
-pwd</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>You end at <code>/</code>. <code>.</code> and <code>..</code> are real path components — walk them carefully.</p>
-      </div></details>
-    </li>
-    <li>
-      Repeat navigation three times (muscle): from home → <code>/tmp</code> → <code>..</code> → home using only <code>cd</code> and <code>pwd</code> after each hop. Then <code>cd -</code> twice and watch it toggle.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>cd /tmp</code>, <code>pwd</code>, <code>cd ..</code>, <code>pwd</code>, <code>cd ~</code>, <code>pwd</code>. <code>cd -</code> swaps with the previous directory.</p>
-      </div></details>
-    </li>
-    <li>
-      PATH:
-      <pre><code>echo $PATH
-which date
-which ls
-/bin/echo "full path works"</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>which</code> prints a path under one of the <code>PATH</code> directories. Full-path execution skips the search.</p>
-      </div></details>
-    </li>
-    <li>
-      <code>man</code> habit (Missing Semester exercise):
-      <pre><code>man ls</code></pre>
-      Find what <code>-l</code> does. Run <code>ls -l /</code>. Note the first ~10 characters of a line — you do not need to memorize every bit yet; just open <code>man ls</code> and locate the long-format description.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>-l</code> is long format. The leading block is file type + permissions (e.g. <code>drwxr-xr-x</code>). Details deepen later; the win today is using <code>man</code>.</p>
-      </div></details>
-    </li>
-    <li>
-      Tiny programs three times each: <code>date</code>, <code>echo hello world</code>, <code>ls ~</code>, <code>cat</code> a small file you create with <code>echo 'hi' &gt; /tmp/ms-hi.txt</code>.
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p><code>echo 'hi' &gt; /tmp/ms-hi.txt</code> then <code>cat /tmp/ms-hi.txt</code>. Redirects deepen next; here just feel create → print.</p>
-      </div></details>
-    </li>
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-shell &amp;&amp; cd /tmp/ms-shell
+echo $SHELL</code></pre>
+
+  <h2>Exercises</h2>
+  <p>Missing Semester’s set, in order. Try before <code>show answer</code>. Pocket card after you struggle.</p>
+
+  <h3>1 — <code>ls -l</code></h3>
+  <p>What does <code>-l</code> do? Run <code>ls -l /</code>. What do the first 10 characters of each line mean?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Long listing. First char = type (<code>-</code> file, <code>d</code> dir, <code>l</code> symlink). Next nine = <code>rwx</code> for user, group, other.</p>
+  </div></details>
+
+  <h3>2 — globs</h3>
+  <p>In <code>find ~/Downloads -type f -name "*.zip" -mtime +30</code>, what is a glob? Experiment:</p>
+  <pre><code>mkdir -p /tmp/ms-shell/glob &amp;&amp; cd /tmp/ms-shell/glob
+touch a.txt b.txt c.txt file1.txt file2.txt file10.txt notes.md
+ls *.txt
+ls file?.txt
+ls {a,b,c}.txt</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>A glob is a pathname pattern the <em>shell</em> expands before exec (<code>*</code> any string, <code>?</code> one char, <code>{a,b}</code> brace). Quote <code>"*.zip"</code> so <code>find</code> matches it. <code>file?.txt</code> misses <code>file10.txt</code>.</p>
+  </div></details>
+
+  <h3>3 — quoting</h3>
+  <p>Difference between <code>'…'</code>, <code>"…"</code>, and <code>$'…'</code>? Echo a string with a literal <code>$</code>, a <code>!</code>, and a newline.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Single: literal. Double: expand <code>$var</code> / <code>$(…)</code>. ANSI <code>$'…'</code>: C escapes. <code>echo $'literal $ and !\nand a newline'</code></p>
+  </div></details>
+
+  <h3>4 — three streams</h3>
+  <p><code>ls /nonexistent /tmp</code> — stdout to one file, stderr to another. Then both to the same file.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>ls /nonexistent /tmp &gt;/tmp/ms-shell/out.txt 2&gt;/tmp/ms-shell/err.txt</code><br>
+    Both: <code>ls /nonexistent /tmp &gt;/tmp/ms-shell/both.txt 2&gt;&amp;1</code></p>
+  </div></details>
+
+  <h3>5 — <code>$?</code></h3>
+  <p>Write a one-liner that creates <code>/tmp/mydir</code> only if it does not exist.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>[ -d /tmp/mydir ] || mkdir /tmp/mydir</code> — or <code>mkdir -p /tmp/mydir</code>.</p>
+  </div></details>
+
+  <h3>6 — why <code>cd</code> is a builtin</h3>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>A standalone <code>cd</code> would run in a child. Changing that child’s cwd cannot change the parent shell.</p>
+  </div></details>
+
+  <h3>7–9 — <code>check.sh</code>, <code>chmod</code>, <code>set -x</code></h3>
+  <p>Script: argument <code>$1</code>, <code>[ -f ]</code>, different messages. Run <code>./check.sh</code> before and after <code>chmod +x</code>. Add <code>-x</code> to <code>set</code> and watch stderr.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <pre><code>cat &gt; /tmp/ms-shell/check.sh &lt;&lt;'EOF'
+#!/bin/bash
+set -euo pipefail
+if [ -f "$1" ]; then echo "exists: $1"; else echo "missing: $1"; fi
+EOF
+bash /tmp/ms-shell/check.sh /tmp/ms-shell/check.sh
+chmod +x /tmp/ms-shell/check.sh
+./check.sh somefile   # from that directory</code></pre>
+    <p>Without <code>+x</code>, <code>./</code> is “Permission denied”; <code>bash check.sh</code> still works. <code>set -x</code> traces expanded commands to stderr.</p>
+  </div></details>
+
+  <h3>10 — dated backup</h3>
+  <p>Copy a file to <code>notes_YYYY-MM-DD.txt</code>.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>cp notes.txt "notes_$(date +%Y-%m-%d).txt"</code></p>
+  </div></details>
+
+  <h3>11 — flaky runner takes a command</h3>
+  <p>MS’s loop-until-fail script, but the test is <code>"$@"</code> instead of hardcoded <code>cargo test</code>. (No <code>stress</code> required.)</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <pre><code>#!/bin/bash
+set -euo pipefail
+LOGFILE="test_runs_$(date +%s).log"
+RUN=1
+while "$@" &gt; "$LOGFILE" 2&gt;&amp;1; do
+  echo "Run $RUN passed"
+  ((RUN++)) || true
+done
+echo "Failed on run $RUN"
+tail -n 20 "$LOGFILE"</code></pre>
+    <p><code>./flaky.sh true</code> loops (Ctrl-C). <code>"$@"</code> keeps arguments separate.</p>
+  </div></details>
+
+  <h3>12 — top extensions</h3>
+  <p>Five most common file extensions under home (bound the walk).</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <pre><code>find ~ -maxdepth 3 -type f 2&gt;/dev/null \
+  | sed 's/.*\.//' | sort | uniq -c | sort -nr | head -5</code></pre>
+  </div></details>
+
+  <h3>13 — <code>find</code> + <code>xargs</code></h3>
+  <p>Line-count every <code>.sh</code> in a dir, not via <code>-exec</code>. Bonus: spaces (<code>-print0</code> / <code>-0</code>).</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>find dir -name '*.sh' -print0 | xargs -0 wc -l</code></p>
+  </div></details>
+
+  <h3>14 — <code>curl</code> the course site</h3>
+  <p>Fetch <a href="https://missing.csail.mit.edu/">https://missing.csail.mit.edu/</a> silently and count lectures.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Inspect once with <code>less</code>, then e.g. <code>curl -s https://missing.csail.mit.edu/ | grep -c 'href="/2026/'</code> — pick a pattern that appears once per lecture.</p>
+  </div></details>
+
+  <h3>15 — <code>jq</code></h3>
+  <p>Fetch the dummy JSON and print names whose <code>version &gt; 6</code>.</p>
+  <div class="gotcha"><strong>Exception.</strong> Fancy CLIs are out of scope; this MS exercise stays. <code>brew install jq</code> if needed.</div>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>curl -s https://microsoftedge.github.io/Demos/json-dummy-data/64KB.json | jq '.[] | select(.version &gt; 6) | .name'</code></p>
+  </div></details>
+
+  <h3>16 — <code>awk</code> filter and swap</h3>
+  <pre><code>printf 'a 50 x\nb 150 y\nc 200 z\n'</code></pre>
+  <p>Print lines where column 2 &gt; 100; swap first and third columns.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>printf 'a 50 x\nb 150 y\nc 200 z\n' | awk '$2 &gt; 100 {print $3, $2, $1}'</code></p>
+  </div></details>
+
+  <h3>17 — dissect, then history</h3>
+  <p>What does each stage of the lecture’s SSH-log pipeline do? Then rank commands from <code>~/.bash_history</code>.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Remote journal → grep disconnects → sed username → sort | uniq -c → sort by count → tail 10 → awk name → paste commas.<br>
+    History: <code>awk '{print $1}' ~/.bash_history | sort | uniq -c | sort -nr | head -20</code></p>
+  </div></details>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>Terminal vs shell.</li>
+    <li>Why <code>cd</code> is a builtin; what PATH is.</li>
+    <li>Pipe vs redirect; the ranking recipe.</li>
+    <li>macOS vs Linux <code>sed -i</code>.</li>
+    <li>Shebang + <code>set -euo pipefail</code> + why <code>chmod +x</code>.</li>
   </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) Pixels vs the program that parses commands.<br>
+    (b) Child cannot change parent cwd. PATH = search list for executables.<br>
+    (c) Program-to-program vs file. <code>sort | uniq -c | sort -nr | head</code>.<br>
+    (d) BSD needs <code>sed -i ''</code>; GNU takes <code>sed -i</code>.<br>
+    (e) Kernel runs that interpreter; strict mode; <code>./</code> needs the execute bit.</p>
+  </div></details>
 
-  <div class="gotcha"><strong>Later in this lecture.</strong> Pipes, redirects, <code>find</code>/<code>sed</code>/<code>awk</code>, shell scripts, and Missing Semester’s suggested alternate tools. Next lessons continue the remaining core.</div>
+  <div class="gotcha"><strong>Later.</strong> Full job control, env vs export, SSH quoting — L0019 / L0024. Fancy CLIs. Deep sed/awk languages.</div>
 
   <h2>Check your understanding</h2>
   <p>Four questions. Shuffled answers.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>Ghostty is the…?</p>
+    <p class="quiz-q"><span class="num">Q1</span>Why is <code>cd</code> a builtin?</p>
     <ul class="options">
-      <li class="option" data-correct="true">terminal program</li>
-      <li class="option">shell interpreter</li>
-      <li class="option">kernel process</li>
-      <li class="option">PATH variable</li>
+      <li class="option" data-correct="true">A child process cannot change the parent shell’s working directory</li>
+      <li class="option">PATH never contains a cd binary on Unix</li>
+      <li class="option">cd must run as root to touch /</li>
+      <li class="option">man pages forbid external implementations</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>What does <code>..</code> mean in a path?</p>
+    <p class="quiz-q"><span class="num">Q2</span>POSIX merge of stdout and stderr into one file:</p>
     <ul class="options">
-      <li class="option" data-correct="true">parent directory</li>
-      <li class="option">home directory</li>
-      <li class="option">root directory</li>
-      <li class="option">empty directory</li>
+      <li class="option" data-correct="true">cmd &gt;f 2&gt;&amp;1 — redirect stdout first, then point stderr at it</li>
+      <li class="option">cmd 2&gt;&amp;1 &gt;f — same effect, order never matters</li>
+      <li class="option">cmd &lt;f 2&gt;&amp;1 — stdin is where errors go</li>
+      <li class="option">cmd &gt;f 1&gt;&amp;2 — stdout already is stderr</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>How does the shell find <code>echo</code>?</p>
+    <p class="quiz-q"><span class="num">Q3</span>Why quote <code>'*.py'</code> for <code>find -name</code>?</p>
     <ul class="options">
-      <li class="option" data-correct="true">search $PATH dirs</li>
-      <li class="option">search only /tmp</li>
-      <li class="option">search the kernel</li>
-      <li class="option">search man pages</li>
+      <li class="option" data-correct="true">So the shell does not expand the glob before find sees it</li>
+      <li class="option">So find becomes case-insensitive</li>
+      <li class="option">So brace expansion runs inside find</li>
+      <li class="option">So find searches only the current directory</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>Why must <code>cd</code> be a builtin?</p>
+    <p class="quiz-q"><span class="num">Q4</span><code>uniq -c</code> without <code>sort</code> first:</p>
     <ul class="options">
-      <li class="option" data-correct="true">child can't set cwd</li>
-      <li class="option">PATH forbids binaries</li>
-      <li class="option">man pages require it</li>
-      <li class="option">root owns all paths</li>
+      <li class="option" data-correct="true">Counts only adjacent duplicates — unsorted input lies</li>
+      <li class="option">Counts the whole file correctly; sort is cosmetic</li>
+      <li class="option">Deletes every line; sort is required to print</li>
+      <li class="option">Invokes awk internally, so order never matters</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -231,17 +311,16 @@ which ls
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> After the drill: did absolute vs relative click? Was <code>man ls</code> usable, or did you bounce out? Any path hop that still feels slow?</p>
-    <p style="margin-bottom:0">Next: continue Missing Semester lecture 1 (pipes and core filters), or re-do this navigation drill cold tomorrow before advancing.</p>
+    <p><strong>Ask the teacher.</strong> Did PATH vs <code>cd</code> click? Ranking recipe cold? BSD <code>sed -i</code> bite you?</p>
+    <p style="margin-bottom:0">This file is the whole shell lecture. Finish leftover exercises next sitting, or say when you want CLI conventions (L0019).</p>
   </div>
 
   <footer>
-    <p><strong>Primary source</strong></p>
+    <p><strong>Primary sources</strong></p>
     <ul>
-      <li><a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Course Overview + Introduction to the Shell</a> (CC BY-NC-SA). Sections: What is the shell, Navigating, PATH / <code>which</code> / <code>ls</code>, related exercises.</li>
-      <li><code>man ls</code>, <code>man bash</code> — flag and builtin details.</li>
+      <li><a href="https://missing.csail.mit.edu/2026/course-shell/">Missing Semester — Introduction to the Shell</a> (CC BY-NC-SA). <code>man bash</code>, <code>info coreutils</code>, <code>man find</code> / <code>sed</code> / <code>awk</code>.</li>
     </ul>
-    <p>Previous: <a href="./0014-spaced-shell-retrieval.html">Lesson 0014 — spaced shell retrieval</a>. Reference: <a href="../reference/shell-navigation.html">shell navigation</a>. Next: <a href="./0016-ms-pipes-core-filters.html">Lesson 0016 — pipes &amp; core filters</a>.</p>
+    <p>Previous: <a href="./0006-tmux-sessions-windows-panes.html">Lesson 0006 — tmux</a>. Next: <a href="./0019-ms-signals-job-control.html">Lesson 0019 — CLI conventions</a>. Reference: <a href="../reference/shell.html">Shell</a>.</p>
   </footer>
 
 <script>
@@ -281,10 +360,10 @@ which ls
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Do the navigation drill once more cold before the next MS slice.'
+            ? ' — flawless. Cold-rebuild builtin cd, PATH, merge redirects, quoted find globs, and the ranking pipeline.'
             : correct >= quizzes.length - 1
-            ? ' — solid. Revisit the miss, then re-do the drill.'
-            : ' — re-read the MS navigation section and the shell-navigation reference.'
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
         }`;
       }
     }));

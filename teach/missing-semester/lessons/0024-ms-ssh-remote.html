@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lesson 0024 — MS SSH / remote machines</title>
+<title>Lesson 0024 — Remote machines and dotfiles</title>
 <style>
   :root {
     --bg: #fdfbf6;
@@ -38,6 +38,7 @@
   h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
   .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
   h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
   p { margin: 0.7rem 0; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
   pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
@@ -45,7 +46,7 @@
   table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
   th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
   th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
-  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 14em; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 16em; }
   ol, ul { padding-left: 1.3rem; }
   li { margin: 0.35rem 0; }
   .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
@@ -75,193 +76,174 @@
 </head>
 <body>
   <header>
-    <p class="kicker">Lesson 0024 · <a href="../reference/shell-ssh-remote.html">Missing Semester — CLE</a></p>
-    <h1>SSH / remote machines</h1>
-    <p class="lede">Secure Shell for login, one-shot remote commands, keys, <code>scp</code>/<code>rsync</code>, and short Host names in <code>~/.ssh/config</code>.</p>
+    <p class="kicker">Lesson 0024 · <a href="../reference/shell-home.html">Missing Semester — remote &amp; home</a></p>
+    <h1>Remote machines and dotfiles</h1>
+    <p class="lede">SSH is a remote shell with quoting rules. Keys replace passwords. Dotfiles are sourced config — aliases die with the process unless a file brings them back.</p>
   </header>
 
   <h2>Why this matters</h2>
-  <p>Half your work is already over SSH. Missing Semester’s CLE “Remote Machines” section names the operator floor: open a remote shell, run a command without an interactive session, prove who you are with keys (not shared passwords), move files with <code>scp</code>/<code>rsync</code>, and stop typing <code>user@long.host.name -p 2222</code> every time by putting defaults in <code>~/.ssh/config</code>. You already survive disconnects with <strong>tmux</strong> (L0006) and know why a naked SSH drop sends <code>SIGHUP</code> (L0019) — this slice is the SSH client side.</p>
-  <p><strong>Read first (10–15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — the “Remote Machines” section only (connect, remote commands, keys, <code>scp</code>/<code>rsync</code>, <code>~/.ssh/config</code>). Skip Mosh. Skip the Terminal Multiplexers re-teach (you have L0006–0013). Skip Customizing the Shell for now.</p>
+  <p>The other half of lecture 2 is the machine you live on: a remote box you reach with SSH, and the hidden files that make the next shell yours. Long work on a remote belongs in tmux (L0006). This file is connect, keys, copy, config, then persist aliases without editing production configs unless you choose to.</p>
+  <p><strong>Read first (≈15 min):</strong> <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> — Remote Machines and Customizing the Shell (aliases / PATH / bashrc). Skip Mosh, sshd hardening, port-forward challenges, oh-my-*, fancy CLIs, Terminal Emulator shopping (Ghostty stays).</p>
+  <div class="gotcha"><strong>This is CLE’s “where you live” half.</strong> Spread sittings. Scratch: <code>/tmp/ms-home/</code>. Never dump private key material into chat, git, or screenshots. Owned <code>~/.bashrc</code> / <code>~/.ssh/config</code> — optional apply, like Git’s global alias.</div>
 
-  <h2>Knowledge 1 — connect and remote commands</h2>
-  <p>Interactive login:</p>
-  <pre><code>ssh alice@server.example.com</code></pre>
-  <p>Often overlooked: <code>ssh</code> can run a command and exit. Stdin/stdout cross the tunnel, so you can pipe into local tools — but quoting decides <em>where</em> the pipeline runs:</p>
-  <pre><code># ls on remote; wc on your Mac
-ssh alice@server ls | wc -l
-
-# both ls and wc on the remote
-ssh alice@server 'ls | wc -l'</code></pre>
-  <div class="gotcha"><strong>Local shell sees unquoted <code>|</code>.</strong> Without quotes, your Mac parses the pipe. Quote the remote command string when the whole pipeline (or any shell metacharacters) should run on the server. Same idea as <code>bash -c '…'</code> (L0022): the string is for a <em>other</em> shell.</div>
-
-  <h2>Knowledge 2 — keys instead of passwords</h2>
-  <p>The server must authorize you: password, or better, <strong>public-key</strong> crypto. You keep a private key; the server stores the matching public key in <code>~/.ssh/authorized_keys</code>. The private key is effectively a password — never paste or commit it.</p>
+  <h2>Knowledge 1 — SSH is a shell elsewhere</h2>
+  <pre><code>ssh alice@server.example.com          # interactive
+ssh alice@server ls | wc -l           # ls remote, wc local
+ssh alice@server 'ls | wc -l'         # both remote</code></pre>
+  <p>Unquoted <code>|</code> is parsed by <em>this</em> shell. Quote when the pipeline (or any metacharacter) belongs on the server — same idea as <code>bash -c '…'</code>.</p>
   <table>
     <thead><tr><th>File</th><th>Role</th></tr></thead>
     <tbody>
-      <tr><td><code>~/.ssh/id_ed25519</code></td><td>Private — secret</td></tr>
-      <tr><td><code>~/.ssh/id_ed25519.pub</code></td><td>Public — install on servers</td></tr>
-      <tr><td><code>~/.ssh/authorized_keys</code></td><td>On server — allowed pubkeys</td></tr>
+      <tr><td><code>~/.ssh/id_ed25519</code></td><td>private — secret</td></tr>
+      <tr><td><code>~/.ssh/id_ed25519.pub</code></td><td>public — install on servers</td></tr>
+      <tr><td><code>~/.ssh/authorized_keys</code></td><td>on the server — allowed pubkeys</td></tr>
     </tbody>
   </table>
-  <pre><code># generate once (skip if you already have ed25519)
-ssh-keygen -a 100 -t ed25519 -f ~/.ssh/id_ed25519
-
-# print the public key for this private key (validates passphrase too)
-ssh-keygen -y -f ~/.ssh/id_ed25519
-
-# install pubkey on a host (if not already key-based)
+  <pre><code>ssh-keygen -a 100 -t ed25519 -f ~/.ssh/id_ed25519   # skip if you have one
+ssh-keygen -y -f ~/.ssh/id_ed25519                  # print pubkey (passphrase check)
 ssh-copy-id -i ~/.ssh/id_ed25519 alice@server</code></pre>
-  <div class="gotcha"><strong>Do not <code>cat</code> the private key into chat, git, or screenshots.</strong> <code>*.pub</code> and <code>ssh-keygen -y</code> output are the shareable side.</div>
-
-  <h2>Knowledge 3 — files and <code>~/.ssh/config</code></h2>
-  <p><code>scp</code> copies over SSH. <code>rsync</code> is usually better for repeated syncs: it skips identical files and can resume with <code>--partial</code>. Both understand Host aliases from your config.</p>
-  <pre><code>scp notes.txt alice@server:~/inbox/
-scp alice@server:~/inbox/notes.txt ./
-
-rsync -av notes.txt alice@server:~/inbox/
-rsync -av --partial big.bin alice@server:~/</code></pre>
-  <p>Client defaults live in <code>~/.ssh/config</code> (also used by <code>scp</code> and <code>rsync</code>):</p>
+  <p><code>scp</code> copies; <code>rsync -av --partial</code> is better for repeats. Both honor <code>~/.ssh/config</code>:</p>
   <pre><code>Host vm
     User alice
     HostName 172.16.174.141
     Port 2222
-    IdentityFile ~/.ssh/id_ed25519
+    IdentityFile ~/.ssh/id_ed25519</code></pre>
+  <p>Then <code>ssh vm</code>. Mode <code>600</code> on config and private keys. Interactive triage that must survive a flap: remote tmux first.</p>
 
-Host *.example.com
-    User alice</code></pre>
-  <p>After that, <code>ssh vm</code> is enough. Keep <code>~/.ssh/config</code> and private keys mode <code>600</code>.</p>
-  <div class="gotcha"><strong>Long remote work → tmux first.</strong> Interactive triage that must survive a laptop sleep or VPN flap belongs in a remote tmux session (detach / reattach). Plain <code>ssh</code> alone is not a session manager — you already practiced that floor.</div>
+  <h2>Knowledge 2 — a dotfile is a hidden config</h2>
+  <p>Names starting with <code>.</code> are hidden from bare <code>ls</code> (<code>ls -a</code>). Convention: <code>~/.bashrc</code>, <code>~/.vimrc</code>, <code>~/.tmux.conf</code>, <code>~/.ssh/config</code>, <code>~/.gitconfig</code>. Interactive bash customizations usually live in <code>~/.bashrc</code>; login shells often <code>source</code> it from <code>~/.bash_profile</code>.</p>
 
-  <h2>Drill A — keys &amp; config (local)</h2>
-  <p>Ghostty + bash. Scratch: <code>/tmp/ms-ssh/</code>. Do <strong>not</strong> print or copy private key material.</p>
-  <ol>
-    <li>
-      Inventory (names only):
-      <pre><code>mkdir -p /tmp/ms-ssh &amp;&amp; cd /tmp/ms-ssh
-ls -la ~/.ssh
-# expect something like: config, id_ed25519, id_ed25519.pub, known_hosts</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>You should see a private key (no <code>.pub</code>) and matching <code>.pub</code>. Mode on the private file should be restrictive (<code>600</code> / <code>-rw-------</code>). If you have no ed25519 pair yet, generate with the Knowledge 2 <code>ssh-keygen</code> line, then re-list.</p>
-      </div></details>
-    </li>
-    <li>
-      Validate the private key (prints the <em>public</em> form):
-      <pre><code>ssh-keygen -y -f ~/.ssh/id_ed25519 | head -c 40; echo "…"</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Starts like <code>ssh-ed25519 AAAA…</code>. If it asks for a passphrase, that is expected. Never redirect the private file itself into a paste buffer.</p>
-      </div></details>
-    </li>
-    <li>
-      Draft a Host stanza (scratch only — do not overwrite real config unless you mean to):
-      <pre><code>cat &gt; /tmp/ms-ssh/config.example &lt;&lt;'EOF'
-Host practice
+  <h2>Knowledge 3 — aliases and PATH, then persist</h2>
+  <pre><code>export PATH="$PATH:/path/to/append"
+alias ll='ls -lh'
+alias ll                 # print definition
+\ls                      # ignore alias once
+unalias ll</code></pre>
+  <p>No spaces around <code>=</code>. Aliases compose; they cannot insert arguments in the middle of a template (that is a function — later). Typed at the prompt, they die with the shell. Put durable lines in a file and <code>source</code> it. MS’s career pattern: a versioned folder + <code>ln -s</code> install script. You already have real dotfiles — inventory tonight; migrate/publish is optional.</p>
+
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-home &amp;&amp; cd /tmp/ms-home
+ls -la ~/.ssh | awk '{print $NF}'    # names only — not key contents</code></pre>
+
+  <h2>Exercises</h2>
+  <p>MS remote + aliases/dotfiles, adapted. Try before <code>show answer</code>.</p>
+
+  <h3>1 — keys, names only</h3>
+  <p>List <code>~/.ssh</code>. Do you already have <code>id_ed25519</code> and a <code>config</code>? If generating, use the <code>ssh-keygen</code> line above. Print the <em>public</em> key with <code>ssh-keygen -y</code> or <code>cat …pub</code>. Never <code>cat</code> the private file.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Expect <code>config</code>, <code>id_ed25519</code>, <code>id_ed25519.pub</code>, <code>known_hosts</code>. <code>ssh-keygen -y</code> reprints the public half and checks the passphrase.</p>
+  </div></details>
+
+  <h3>2 — config as a Host alias</h3>
+  <p>In the scratch dir, write a <em>practice</em> ssh config fragment (do not overwrite real config unless you mean to):</p>
+  <pre><code>cat &gt; /tmp/ms-home/config.example &lt;&lt;'EOF'
+Host vm
     User YOURUSER
-    HostName YOUR.HOST.EXAMPLE
+    HostName YOURHOST
     IdentityFile ~/.ssh/id_ed25519
+EOF</code></pre>
+  <p>What does each keyword do? Optional: the same block in real <code>~/.ssh/config</code> if you have a host.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>Host</code> is the alias you type. <code>User</code> / <code>HostName</code> / <code>Port</code> / <code>IdentityFile</code> fill in what you would otherwise pass as flags. <code>ssh vm</code> then works.</p>
+  </div></details>
+
+  <h3>3 — quoting a remote pipeline</h3>
+  <p>On a host you use (or skip if none tonight): <code>ssh HOST hostname</code>; then <code>ssh HOST ls | wc -l</code> vs <code>ssh HOST 'ls | wc -l'</code>. One sentence: who ran <code>wc</code>?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Unquoted: <code>wc</code> is local. Quoted: both on the remote. Counts will differ if the remote listing is not what local <code>wc</code> saw.</p>
+  </div></details>
+
+  <h3>4 — <code>scp</code> / <code>rsync</code></h3>
+  <p>Copy a tiny file to the remote (or between two local paths with <code>rsync -av</code> to see the flags). What does <code>-a</code> / <code>-v</code> / <code>--partial</code> buy you?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>-a</code> archive (perms, times, recurse). <code>-v</code> verbose. <code>--partial</code> keeps incomplete files so a retry can continue. <code>scp</code> is fine for one file; <code>rsync</code> for trees and repeats.</p>
+  </div></details>
+
+  <h3>5 — alias <code>dc</code>, then persist in a practice file</h3>
+  <pre><code>alias dc='cd'
+alias dc
+\dc          # should fail — dc is not a real command
+cat &gt; /tmp/ms-home/bashrc.practice &lt;&lt;'EOF'
+alias ll='ls -lh'
+alias dc='cd'
+export PATH="$PATH:/tmp/ms-home/bin"
 EOF
-cat /tmp/ms-ssh/config.example</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Four lines: short name <code>practice</code>, then User / HostName / IdentityFile. In real life you would merge a Host block into <code>~/.ssh/config</code> (or use <code>ssh -F /tmp/ms-ssh/config.example practice</code> after filling real values).</p>
-      </div></details>
-    </li>
-    <li>
-      One sentence (say it out loud): what is the difference between <code>id_ed25519</code> and <code>id_ed25519.pub</code>?
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Private key stays on your machine and proves identity; public key is what servers keep in <code>authorized_keys</code>.</p>
-      </div></details>
-    </li>
-  </ol>
+source /tmp/ms-home/bashrc.practice
+type ll
+mkdir -p /tmp/ms-home/bin</code></pre>
+  <p>MS also wants your top commands from history — consider aliases; do not have to add them to real bashrc tonight.</p>
+  <pre><code>history | awk '{$1="";print substr($0,2)}' | sort | uniq -c | sort -n | tail -n 10</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>alias dc</code> prints <code>dc='cd'</code>. After <code>source</code>, <code>ll</code> works in this shell. Real persist = a line in <code>~/.bashrc</code> (your call). History ranking is L0015 exercise 17’s cousin.</p>
+  </div></details>
 
-  <h2>Drill B — remote (SSH to a host you use)</h2>
-  <p>Pick a Host alias or <code>user@host</code> you already reach (same pattern as L0010). Replace <code>HOST</code> below. If you have no remote tonight, finish Drill A + quiz, then run Drill B next session.</p>
-  <ol>
-    <li>
-      One-shot remote facts:
-      <pre><code>ssh HOST 'hostname; whoami; pwd'</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Three lines: remote hostname, your remote username, remote cwd (usually home for a non-login one-shot — exact home path is fine).</p>
-      </div></details>
-    </li>
-    <li>
-      Quoting: local vs remote pipe:
-      <pre><code>ssh HOST ls | wc -l
-ssh HOST 'ls | wc -l'</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Both print a number. First: remote <code>ls</code>, local <code>wc</code>. Second: both on the remote. Counts can match; the point is where each side runs.</p>
-      </div></details>
-    </li>
-    <li>
-      Push a tiny file with <code>scp</code>, then pull a copy back with <code>rsync</code>:
-      <pre><code>echo "ssh-drill $(date +%F)" &gt; /tmp/ms-ssh/hello.txt
-scp /tmp/ms-ssh/hello.txt HOST:~/ms-ssh-hello.txt
-rsync -av HOST:~/ms-ssh-hello.txt /tmp/ms-ssh/hello-back.txt
-cat /tmp/ms-ssh/hello-back.txt</code></pre>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>Remote home gets <code>ms-ssh-hello.txt</code>. Local <code>hello-back.txt</code> matches the echo line. Clean up remote with <code>ssh HOST 'rm -f ~/ms-ssh-hello.txt'</code> when done.</p>
-      </div></details>
-    </li>
-    <li>
-      <strong>Cold rebuilds</strong> (no peeking):
-      <ol type="a">
-        <li>Command: run <code>hostname</code> on <code>HOST</code> without an interactive shell.</li>
-        <li>One-liner shape: count remote home files with <code>wc</code> running <em>on the remote</em>.</li>
-        <li>One sentence: why put <code>Host</code> / <code>User</code> / <code>HostName</code> in <code>~/.ssh/config</code>?</li>
-      </ol>
-      <details><summary>show answer</summary><div class="drill-answer">
-        <p>(a) <code>ssh HOST hostname</code> or <code>ssh HOST 'hostname'</code><br>
-        (b) <code>ssh HOST 'ls | wc -l'</code> (quoted)<br>
-        (c) Short name + defaults (user, real hostname, key, port) for <code>ssh</code>/<code>scp</code>/<code>rsync</code> so you stop retyping them.</p>
-      </div></details>
-    </li>
-  </ol>
+  <h3>6 — inventory, do not migrate</h3>
+  <p><code>ls -a ~ | grep '^\.' | head</code>. Name the ones this mission already uses (bashrc, vim, tmux, ghostty, ssh, gitconfig). MS’s “dotfiles repo + install script + publish” is the pattern — skip the full migrate unless you want it later.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>You already have those configs. The floor is: hidden name, sourced on shell start, version them if you clone a new machine. Not a GitHub homework tonight.</p>
+  </div></details>
 
-  <div class="gotcha"><strong>Later.</strong> Server hardening (<code>PasswordAuthentication</code>, <code>PermitRootLogin</code>); port forwarding (<code>-L</code>/<code>-R</code>/<code>-N</code>/<code>-f</code>); deeper <code>ssh-agent</code>. Aliases &amp; dotfiles → <a href="./0025-ms-aliases-dotfiles.html">Lesson 0025</a>. Skip MS “consider installing” tools (mosh, fzf, ripgrep, oh-my-*).</div>
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>Quoted vs unquoted remote <code>|</code>.</li>
+    <li>Private vs public key files.</li>
+    <li>Why <code>~/.ssh/config</code>.</li>
+    <li>What a dotfile is; why an alias vanishes.</li>
+    <li>How to ignore an alias once.</li>
+  </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) Unquoted: local shell parses the pipe. Quoted: remote shell.<br>
+    (b) <code>id_ed25519</code> secret; <code>.pub</code> / <code>authorized_keys</code> shareable.<br>
+    (c) Host aliases so <code>ssh vm</code> fills user/host/key.<br>
+    (d) Hidden config file; aliases are per-process until sourced from a file.<br>
+    (e) <code>\cmd</code> or <code>unalias</code>.</p>
+  </div></details>
+
+  <div class="gotcha"><strong>Later.</strong> Mosh, <code>sshd_config</code> hardening, <code>-L</code>/<code>-R</code>/<code>-N</code>/<code>-f</code>, ssh-agent depth, shell functions, a published dotfiles repo. AI-in-the-shell / emulator shopping: out of scope.</div>
 
   <h2>Check your understanding</h2>
   <p>Four questions. Shuffled answers.</p>
 
   <div class="quiz" data-q="1">
-    <p class="quiz-q"><span class="num">Q1</span>What does <code>ssh user@host</code> open?</p>
+    <p class="quiz-q"><span class="num">Q1</span><code>ssh host ls | wc -l</code> runs <code>wc</code>:</p>
     <ul class="options">
-      <li class="option" data-correct="true">remote shell as that user</li>
-      <li class="option">local root shell only</li>
-      <li class="option">FTP file browser GUI</li>
-      <li class="option">DNS lookup for host</li>
+      <li class="option" data-correct="true">On this machine — the local shell saw the unquoted pipe</li>
+      <li class="option">On the remote — ssh always takes the rest of the line</li>
+      <li class="option">Twice, once each side, and diffs the counts</li>
+      <li class="option">Nowhere; ssh refuses pipelines</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="2">
-    <p class="quiz-q"><span class="num">Q2</span>In <code>ssh host ls | wc -l</code>, where does <code>wc</code> run?</p>
+    <p class="quiz-q"><span class="num">Q2</span>The file you may share is:</p>
     <ul class="options">
-      <li class="option" data-correct="true">locally — unquoted pipe</li>
-      <li class="option">only on the remote</li>
-      <li class="option">nowhere — syntax error</li>
-      <li class="option">inside authorized_keys</li>
+      <li class="option" data-correct="true">id_ed25519.pub — the public key, also printed by ssh-keygen -y</li>
+      <li class="option">id_ed25519 — the private key, so the server can impersonate you</li>
+      <li class="option">known_hosts — it contains your private key in disguise</li>
+      <li class="option">authorized_keys on your laptop — it is the private half</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="3">
-    <p class="quiz-q"><span class="num">Q3</span>What must you never share?</p>
+    <p class="quiz-q"><span class="num">Q3</span>An alias typed at the prompt:</p>
     <ul class="options">
-      <li class="option" data-correct="true">the private key file</li>
-      <li class="option">the .pub public key</li>
-      <li class="option">HostName in config</li>
-      <li class="option">known_hosts entries</li>
+      <li class="option" data-correct="true">Dies with that shell — put it in a sourced file to persist</li>
+      <li class="option">Is written to disk automatically by bash</li>
+      <li class="option">Applies to every user on the machine</li>
+      <li class="option">Survives reboot via /etc/aliases</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
 
   <div class="quiz" data-q="4">
-    <p class="quiz-q"><span class="num">Q4</span>What does a <code>Host</code> block in <code>~/.ssh/config</code> buy you?</p>
+    <p class="quiz-q"><span class="num">Q4</span>Long interactive work over SSH should:</p>
     <ul class="options">
-      <li class="option" data-correct="true">short name + ssh defaults</li>
-      <li class="option">root on every server</li>
-      <li class="option">automatic mosh install</li>
-      <li class="option">disables all passwords</li>
+      <li class="option" data-correct="true">Run inside remote tmux so a drop is a reattach, not a SIGHUP</li>
+      <li class="option">Use nohup on every command instead of a multiplexer</li>
+      <li class="option">Rely on Ghostty’s local scrollback for the remote pane</li>
+      <li class="option">Disable keys and use passwords so sshd can resume</li>
     </ul>
     <p class="quiz-feedback"></p>
   </div>
@@ -269,17 +251,16 @@ cat /tmp/ms-ssh/hello-back.txt</code></pre>
   <div class="score" id="score"></div>
 
   <div class="ask">
-    <p><strong>Ask the teacher.</strong> After the drills: did local-vs-remote quoting click? Any friction with keys, <code>scp</code>/<code>rsync</code>, or an existing <code>~/.ssh/config</code>?</p>
-    <p style="margin-bottom:0">Next: <a href="./0025-ms-aliases-dotfiles.html">Lesson 0025 — aliases &amp; dotfiles</a>.</p>
+    <p><strong>Ask the teacher.</strong> Did remote quoting click? Optional config apply, or leave the practice file? Alias persist via source?</p>
+    <p style="margin-bottom:0">This file closes lecture 2. Next: development environment (L0026).</p>
   </div>
 
   <footer>
-    <p><strong>Primary source</strong></p>
+    <p><strong>Primary sources</strong></p>
     <ul>
-      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). Section: Remote Machines.</li>
-      <li><code>man ssh</code>, <code>man ssh_config</code>, <code>man ssh-keygen</code>, <code>man scp</code>, <code>man rsync</code>.</li>
+      <li><a href="https://missing.csail.mit.edu/2026/command-line-environment/">Missing Semester — Command-line Environment</a> (CC BY-NC-SA). <code>man ssh</code> / <code>ssh_config</code> / <code>scp</code> / <code>rsync</code>. <code>man bash</code> (ALIASES, INVOCATION).</li>
     </ul>
-    <p>Previous: <a href="./0023-ms-return-codes.html">Lesson 0023 — return codes</a>. Reference: <a href="../reference/shell-ssh-remote.html">SSH / remote</a>. Tmux for durable remotes: L0006+. Signals / <code>SIGHUP</code>: L0019.</p>
+    <p>Previous: <a href="./0019-ms-signals-job-control.html">Lesson 0019 — CLI conventions</a>. Next: <a href="./0026-ms-dev-env-map.html">Lesson 0026 — dev environment</a>. Reference: <a href="../reference/shell-home.html">Remote &amp; home</a>.</p>
   </footer>
 
 <script>
@@ -319,10 +300,10 @@ cat /tmp/ms-ssh/hello-back.txt</code></pre>
         score.classList.add('show');
         score.textContent = `Score: ${correct} / ${quizzes.length}${
           correct === quizzes.length
-            ? ' — flawless. Cold-rebuild remote hostname + quoted ls|wc once from memory before advancing.'
+            ? ' — flawless. Cold-rebuild remote quoting, pubkey vs private, ssh config, and why aliases need a file.'
             : correct >= quizzes.length - 1
             ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
-            : ' — re-read the MS Remote Machines section and the reference.'
+            : ' — re-read Knowledge 1–3 and the reference.'
         }`;
       }
     }));

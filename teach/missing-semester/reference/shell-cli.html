@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — CLI conventions</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · CLI</p>
+    <h1>Lecture 2a — process interface</h1>
+    <p class="lede">argv, streams, environment, status, signals, then find/probe/stop.</p>
+  </header>
+  <table>
+    <thead><tr><th>Contract</th><th>Remember</th></tr></thead>
+    <tbody>
+      <tr><td>argv</td><td><code>$0 $1 $@ $#</code> · flags <code>-</code>/<code>--</code> · <code>--</code> ends options</td></tr>
+      <tr><td>globs</td><td>shell expands <code>* ? {}</code> before exec; quotes freeze</td></tr>
+      <tr><td>streams</td><td>pipeline starts all stages · <code>&gt;f 2&gt;&amp;1</code></td></tr>
+      <tr><td>env</td><td><code>VAR=cmd</code> one-shot · <code>export</code> sticks · <code>printenv</code> is what children see</td></tr>
+      <tr><td>status</td><td>0 = success = true for <code>if</code>/<code>&amp;&amp;</code> · capture <code>$?</code> immediately</td></tr>
+      <tr><td>signals</td><td>Ctrl-C/Z/\ · <code>jobs fg bg %N</code> · SIGHUP vs tmux · <code>kill -0</code></td></tr>
+      <tr><td>ops</td><td><code>pgrep -f</code> · <code>curl -si</code> · <code>cut -d' ' -f2</code> · <code>kill</code> TERM</td></tr>
+    </tbody>
+  </table>
+  <div class="note"><code>jobs</code> is per-shell. Mac pgrep list: <code>-lf</code>. <code>pidwait</code>: loop <code>kill -0</code> + <code>sleep</code>.</div>
+  <div class="beyond"><h2>Older slices</h2><p>0021–0023, 0008 — retrieval. Lesson: <a href="../lessons/0019-ms-signals-job-control.html">0019</a>.</p></div>
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/command-line-environment/">MS Command-line Environment</a> (Arguments–Signals). man bash, pgrep, kill, curl.</p>
+  </footer>
+</body>
+</html>

@@ -6,9 +6,11 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Pacing (from L0040):** one MS lecture → one lesson when possible. Cover that lecture’s important topics **and** its exercise section in the same HTML (spread across sittings if needed). Do not micro-slice lecture subsections into their own lessons.
+**Pacing:** L0040 shape — Why + Read first + gotcha + Knowledge × 3 + Setup + that lecture’s exercises + cold rebuilds + Later + quiz × 4. One MS lecture → one lesson when possible (vim and tmux sit before the MS spine). Cover important topics **and** the exercise section in the same HTML (spread across sittings if needed). Do not micro-slice lecture subsections into their own lessons. Historical slice files stay on disk for retrieval; they are not the path.
 
-**Next up:** L0040 in flight — MS lecture 5, Version Control and Git (data model + CLI map + the lecture’s exercises). Lecture 4 closed at L0038; L0039 (massif) withdrawn.
+**Canonical path (9 lessons):** `0001` Vim → `0006` tmux → `0015` Shell (MS 1) → `0019` CLI conventions (MS 2a) → `0024` Remote & home (MS 2b) → `0026` Dev environment (MS 3) → `0031` Debugging (MS 4a) → `0036` Profiling (MS 4b) → `0040` Git (MS 5).
+
+**Next up:** leftover Git sittings on L0040 if needed, then MS lecture 6 Packaging and Shipping Code. L0039 (massif) stays withdrawn — notes-only, not an exercise.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
@@ -27,7 +29,7 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - Environment: ghostty 1.3.1 (Gruvbox Dark), tmux 3.7b, vim 9.1, macOS.
 - Work pattern: roughly half local, half remote over SSH.
 - Cadence: a few sessions per week, 30–45 min each.
-- Pedagogy: Missing Semester lecture notes set the spine and tone. One lecture → one lesson (exercises in the same file). Drills and cold rebuilds are fine — do not narrate “pareto,” “reps,” or other teaching-meta in lesson copy.
+- Pedagogy: Missing Semester lecture notes set the spine and tone. L0040 shape; one lecture → one lesson when possible (exercises in the same file). Drills and cold rebuilds are fine — do not narrate “pareto,” “reps,” or other teaching-meta in lesson copy.
 
 ## Out of scope (for now)
 - zsh, fish, neovim, helix, emacs.
