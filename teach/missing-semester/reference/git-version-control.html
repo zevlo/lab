@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference — Version Control and Git (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Version Control</p>
+    <h1>Git data model and commands</h1>
+    <p class="lede">Lecture 5 — objects + refs. Grounded in <a href="https://missing.csail.mit.edu/2026/version-control/">Version Control and Git</a>.</p>
+  </header>
+
+  <h2>Data model</h2>
+  <pre><code>blob   = file bytes
+tree   = map of name → blob | tree
+commit = parents + author + message + snapshot (a tree)
+object = blob | tree | commit     # stored by SHA-1
+ref    = mutable name for a commit hash
+HEAD   = “where we are” (usually a branch ref)
+repo   = objects + references</code></pre>
+  <p>History is a <strong>DAG</strong>, not a line. A merge commit has two parents. Commits are immutable; “editing history” means new commits + moving refs.</p>
+  <pre><code>git cat-file -p HEAD
+git cat-file -p HEAD^{tree}
+git log --all --graph --decorate --oneline</code></pre>
+
+  <h2>Three trees</h2>
+  <table>
+    <thead><tr><th>Place</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>working directory</td><td>files you edit</td></tr>
+      <tr><td>staging area (index)</td><td>what the <em>next</em> commit will contain</td></tr>
+      <tr><td>HEAD commit</td><td>last snapshot on this branch</td></tr>
+    </tbody>
+  </table>
+  <p><code>git add</code> copies working → index. <code>git commit</code> turns the index into a new commit and moves the current branch (and HEAD).</p>
+
+  <h2>Command map (MS)</h2>
+  <table>
+    <thead><tr><th>Command</th><th>DAG move</th></tr></thead>
+    <tbody>
+      <tr><td><code>git init</code></td><td>empty repo in <code>.git</code></td></tr>
+      <tr><td><code>git status</code> / <code>diff</code></td><td>read working vs index vs HEAD</td></tr>
+      <tr><td><code>git add</code> / <code>commit</code></td><td>new commit object; move branch ref</td></tr>
+      <tr><td><code>git branch</code> / <code>switch</code></td><td>create / move HEAD to a ref</td></tr>
+      <tr><td><code>git merge</code></td><td>commit with two parents (or fast-forward)</td></tr>
+      <tr><td><code>git rebase</code></td><td>replay commits as new objects on a new parent</td></tr>
+      <tr><td><code>git fetch</code></td><td>download objects + remote-tracking refs</td></tr>
+      <tr><td><code>git pull</code></td><td><code>fetch</code> then <code>merge</code></td></tr>
+      <tr><td><code>git push</code></td><td>send objects; update remote ref</td></tr>
+      <tr><td><code>git reset FILE</code></td><td>unstage (MS)</td></tr>
+      <tr><td><code>git restore</code></td><td>discard working-tree changes</td></tr>
+      <tr><td><code>git stash</code></td><td>park uncommitted work on a side ref</td></tr>
+      <tr><td><code>git blame</code> / <code>show</code></td><td>who last touched a line; show that commit</td></tr>
+    </tbody>
+  </table>
+  <div class="note">MS notes say <code>master</code>. This machine’s <code>git init -b main</code> uses <code>main</code> — same role. Git ≠ GitHub. Conflict markers: <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> current / <code>=======</code> / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> incoming. Resolve in vim, then <code>git add</code> + <code>git commit</code>.</div>
+
+  <h2>Exercise scratch</h2>
+  <pre><code>mkdir -p /tmp/ms-git &amp;&amp; cd /tmp/ms-git
+# history rewrite only here — never in /Users/za/lab
+git clone https://github.com/missing-semester/missing-semester.git class-site</code></pre>
+  <p>Alias (repo-local): <code>git config alias.graph 'log --all --graph --decorate --oneline'</code> then <code>git graph</code>. Global ignore is optional (<code>core.excludesfile</code>) — owned <code>~/.gitconfig</code>.</p>
+
+  <div class="beyond">
+    <h2>Beyond this lesson</h2>
+    <ul>
+      <li><code>git bisect</code>, <code>git worktree</code>, <code>git rebase -i</code> beyond dropping a toy commit, <code>git add -p</code>.</li>
+      <li>GitHub pull requests — MS exercise 8 only if you have a <em>useful</em> class-site fix.</li>
+      <li>Pro Git chapters 1–5 for depth. Next MS lecture: Packaging and Shipping Code.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/version-control/">Missing Semester — Version Control and Git</a> (CC BY-NC-SA). <a href="https://git-scm.com/docs">git documentation</a> / <code>git help &lt;cmd&gt;</code>. <a href="https://git-scm.com/book/en/v2">Pro Git</a>. Lesson: <a href="../lessons/0040-ms-version-control-git.html">0040</a>.</p>
+  </footer>
+</body>
+</html>

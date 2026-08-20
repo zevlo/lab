@@ -13,7 +13,7 @@
 - A few sessions per week, 30–45 min each.
 
 ## MS-era pedagogy (from L0015; current default)
-- **Spine:** Missing Semester 2026 lecture order and notes. Slice a dense lecture into focused lessons.
+- **Spine:** Missing Semester 2026 lecture order and notes. **One lecture → one lesson** (important topics + that lecture’s exercises in the same HTML; spread sittings if needed). Do not micro-slice subsections. Historical L0015–0038 slicing stays as-is; do not add more slices to those lectures.
 - **Tone:** Teach the material plainly — why it matters, how it works, drill, quiz. Do **not** put “pareto,” “high-rep,” “storage strength,” or similar meta in lesson copy.
 - **Still good:** cold rebuilds, hidden drill answers, quiz shuffle, citing MS + `man`, deferring out-of-slice topics as “later” (not “pareto cut”).
 - **Still constrained:** defaults-only, POSIX-lean bash, skip MS “consider installing …” fancy CLIs unless mission changes.
@@ -460,3 +460,32 @@
 - **Skill win:** cold-rebuild sampling vs tracing + flame-graph axes + why this box needs `-e cpu-clock`; live: `time` then `perf stat` (read `<not supported>`), `perf record` + report + SVG, callgrind_annotate names `sin`/`cos`.
 - **Skip / Defer:** massif; `hyperfine` (fancy CLI — same class as fd/ripgrep in MS’s own example). kcachegrind GUI. `--cache-sim=yes`. Speedscope/Perfetto hands-on. Language-specific profilers. `perf` hardware events (need a real Linux box / PMU passthrough).
 - **Next when asked:** memory profilers (`massif`), or `hyperfine`, or more vim practice, or L0020 workbook re-run.
+
+## L0038 complete (4/4; CPU-profilers floor set)
+- Sampling vs tracing, `perf stat` / `perf record -e cpu-clock -g` + flame-graph axes, the Docker-on-Mac PMU gap, and callgrind self vs inclusive all landed. No friction reported; assume cold rebuilds done.
+- `time` is now a known non-proof of “which function.” Hardware `perf` events, kcachegrind / Speedscope / Perfetto stay named. `--privileged` was the `perf_event` tax, not a Valgrind need.
+- Next when asked: user said ready without picking; took lecture order → L0039 memory profilers.
+
+## L0039 design notes (MS Lecture 4 — memory profilers, ninth slice)
+- **Topic choice:** user gave no preference ("ready for next lesson"); took next in MS lecture order after CPU profilers — “Memory Profilers,” as the L0038 ask box named it first.
+- **Primary sources:** MS Debugging and Profiling — “Memory Profilers” (full 2026 page: `valgrind --tool=massif`; `ms_print massif.out.<pid>`; Python `memory-profiler` named). Valgrind Massif manual verified: `--time-unit=i|ms|B` (default `i` empty-graphs short programs); snapshot glyphs `:` / `@` / `#`; useful vs extra heap; space leaks Memcheck misses (still reachable, unused); default is malloc-heap only (`--pages-as-heap=yes` / `--stacks=yes` named); peak recorded after a deallocation.
+- **Scope:** Memcheck-vs-Massif-vs-htop question split; the two MS commands; `--time-unit=B` gotcha; graph glyphs; peak allocation tree; space leak as leftover heap that Memcheck will not call “lost.”
+- **Reuse:** L0034 Memcheck verdicts + “appears to work”; L0036 `free`/htop RSS; L0038 callgrind as the other `--tool`; L0030 container (`debian` + `gcc valgrind`, **no** `--privileged`).
+- **Skill win:** cold-rebuild the three questions + two commands + glyphs + time-unit; live: empty graph without `B`, climb with `B`, peak during `burst`, leftover = `hold` (still reachable) + `leak` (definitely lost).
+- **Scratch:** `/tmp/ms-massif/`. Docker daemon down on the agent host at write time; lesson still uses the corpus’s container posture.
+- **Skip / Defer:** `hyperfine` (last Profiling slice; fancy CLI — same class as fd/ripgrep in MS’s own example). `massif-visualizer`, `--pages-as-heap`, `--stacks=yes`, Python `memory-profiler` hands-on, DHAT.
+- **Next when asked:** `hyperfine`, or more vim practice, or L0020 workbook re-run.
+
+## L0039 withdrawn (pacing correction)
+- User (2026-08-20): too many lessons per MS lecture; hit important topics + the **exercise section**; move on to Version Control and Git.
+- Massif is in the lecture notes, **not** in the exercises. Hyperfine is an exercise but MS’s example is `fd` vs `find` (fancy-CLI constraint); skip rather than another slice. `rr` / `corruption.c` stay named (no PMU in this VM). Merge-sort debugger: pdb floor already exists (L0031).
+- Lecture 4 closed at L0038. L0039 HTML kept with a skip banner. Policy: one lecture → one lesson from L0040 on.
+
+## L0040 design notes (MS Lecture 5 — Version Control and Git, whole lecture)
+- **Topic choice:** user-requested jump. First lesson under the one-lecture rule.
+- **Primary sources:** https://missing.csail.mit.edu/2026/version-control/ (full page fetched). Pro Git ch. 1–5 named. `git help` / `man git` for flag semantics. Class-site clone: `https://github.com/missing-semester/missing-semester` (README last author and `_config.yml` `collections:` blame verified 2026-08-20).
+- **Scope:** data model (blob / tree / commit DAG / content-addressed objects / refs / HEAD / repo = objects+refs); staging; command map (basics, branch/merge, remotes, undo); advanced named with drills for stash, blame, alias, gitignore, history-delete-on-a-toy-repo, merge conflict. Git ≠ GitHub.
+- **Exercises:** all 9 MS items in this HTML. (1) Learn Git Branching / Pro Git — optional if they already use git (they do). (2–3) clone + log/blame. (4) throwaway `/tmp` only — never rewrite `/Users/za/lab`. (5) stash. (6–7) alias + excludesfile: teach locally; real `~/.gitconfig` is owned (L0025 posture) — optional apply. (8) class-site PR — skip unless a real useful fix (MS: don’t spam). (9) recipe.txt conflict on `main` (MS wrote `master`; `git init -b main`).
+- **Skip:** fugitive.vim, oh-my-zsh prompt, GUI clients, `git mergetool` hands-on (resolve in vim), worktree hands-on, bisect (named; not in the exercise list), SHA-256 object format.
+- **Scratch:** `/tmp/ms-git/`. User already has `user.name` / `user.email` / `init.defaultbranch`. Git 2.55.0.
+- **Next when asked:** remaining Git exercises if they split sittings, or MS lecture 6 Packaging and Shipping Code.

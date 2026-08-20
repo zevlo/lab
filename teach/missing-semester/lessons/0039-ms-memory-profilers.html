@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0039 — MS memory profilers</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0039 · <a href="../reference/debug-prof-memory-profilers.html">Missing Semester — Debugging &amp; Profiling</a></p>
+    <h1>Memory profilers</h1>
+    <p class="lede">Memcheck tells you a pointer was lost. Massif tells you <em>when</em> the heap grew, and which call owned the peak. A live pointer to unused memory is still a leak of space.</p>
+  </header>
+
+  <div class="gotcha"><strong>Withdrawn — skip this page.</strong> Lecture 4 is closed. Massif is in the notes, not the exercise set. Next lesson is <a href="./0040-ms-version-control-git.html">0040 — Version Control and Git</a>.</div>
+
+  <h2>Why this matters</h2>
+  <p>L0034’s Memcheck answers one question at exit: was a pointer lost? L0036’s <code>free -h</code> / htop answer a different one: how big is the box right now? Neither draws the heap over the run, and neither names the <code>malloc</code> site that owned the high-water mark. MS: a memory profiler is how you find leaks and excessive allocation <em>as a series</em> — same move as L0037, for bytes instead of latency.</p>
+  <p><strong>Read first (≈5 min):</strong> <a href="https://missing.csail.mit.edu/2026/debugging-profiling/">MS Debugging and Profiling</a> — “Memory Profilers” (stop before “Benchmarking”).</p>
+
+  <h2>Knowledge 1 — three heap questions</h2>
+  <table>
+    <thead><tr><th>Tool</th><th>Question it answers</th></tr></thead>
+    <tbody>
+      <tr><td>Memcheck</td><td>At exit: definitely / indirectly / possibly lost, or still reachable (L0034)</td></tr>
+      <tr><td><code>free</code> / htop</td><td>Whole-process RSS this second — no function names, no history (L0036)</td></tr>
+      <tr><td>Massif</td><td>Heap size over the run, plus an allocation tree at the peak</td></tr>
+    </tbody>
+  </table>
+  <p>Valgrind’s own Massif manual names a class Memcheck is built to miss: the pointer is still live, so nothing is “lost,” but the memory is unused and the heap never comes down. That is a <strong>space leak</strong>. Massif’s graph is the tell — the line that should have fallen, didn’t.</p>
+  <p>CPU profilers (L0038) name who is on the CPU. Massif names who asked for heap. Same Valgrind VM as callgrind / Memcheck; different <code>--tool</code>.</p>
+
+  <h2>Knowledge 2 — massif, then ms_print</h2>
+  <p>MS’s two commands:</p>
+  <pre><code>valgrind --tool=massif ./my_program
+ms_print massif.out.&lt;pid&gt;</code></pre>
+  <p>Nothing useful prints to the commentary. The profile is the file. <code>ms_print</code> turns it into (a) an ASCII graph of heap over “time” and (b) snapshot tables, with an allocation tree on detailed snapshots. Compile with <code>-g</code> so those trees name file:line. Optimisation level barely matters for heap.</p>
+  <p>Read the graph as three glyphs:</p>
+  <table>
+    <thead><tr><th>Bar</th><th>Kind of snapshot</th></tr></thead>
+    <tbody>
+      <tr><td><code>:</code></td><td>normal — totals only</td></tr>
+      <tr><td><code>@</code></td><td>detailed — includes the allocation tree (default: every 10th)</td></tr>
+      <tr><td><code>#</code></td><td>peak — also detailed; the greatest recorded heap</td></tr>
+    </tbody>
+  </table>
+  <p>Each snapshot row has <code>useful-heap</code> (bytes the program asked for) and <code>extra-heap</code> (allocator admin + alignment — Massif’s default admin guess is 8 bytes per block). <code>stacks</code> stays 0 unless you pass <code>--stacks=yes</code> (slow; leave it off).</p>
+  <div class="gotcha"><strong>Short programs look empty.</strong> Default time unit is instructions executed (<code>i</code>). Loading and dynamic linking dominate a tiny C program, so the graph is flat until the last columns. Pass <code>--time-unit=B</code> — time becomes bytes allocated and freed — and the climb shows up. Other units: <code>ms</code> (wall clock). Peak bars are taken after a <code>free</code>; a program that never deallocates may show no <code>#</code>.</div>
+  <p>No <code>--privileged</code> tonight. That flag was <code>perf_event</code> (L0038). Massif is ordinary Valgrind.</p>
+
+  <h2>Knowledge 3 — the peak tree, and what the number is not</h2>
+  <p>Start at the <code>#</code> snapshot. The tree under it is every live heap block, collated by stack: <code>malloc</code> at the root, then the call sites that asked for the bytes. Percentages are of total memory at that instant. Entries under ~1% get aggregated (both Massif and <code>ms_print</code> have <code>--threshold</code>).</p>
+  <p>By default Massif measures <code>malloc</code> / <code>new</code> and friends — not <code>mmap</code>, not the binary’s code/data/BSS, not the stack. htop RSS can be much larger; that is not a Massif bug. <code>--pages-as-heap=yes</code> switches to page-level accounting (named, not run). <code>massif-visualizer</code> is the GUI for the same file (named, like kcachegrind). Python’s <code>memory-profiler</code> is MS’s language-specific cousin — named only.</p>
+
+  <h2>Drill — heap over time</h2>
+  <p>Ghostty + bash + vim. Scratch on the Mac at <code>/tmp/ms-massif/</code> is the container’s <code>/work</code>. Valgrind is Linux — apt in the box, nothing on the Mac. An SSH Linux remote works identically. No <code>--privileged</code>.</p>
+  <ol>
+    <li>
+      Cold-name the slice: Memcheck vs Massif vs htop; what a space leak is; the two MS commands.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Memcheck: lost-pointer verdict at exit. Massif: heap over the run + who allocated at the peak. htop/<code>free</code>: RSS now, no history, no call site. Space leak: pointer still held, memory unused, heap never falls — Memcheck says still reachable. Commands: <code>valgrind --tool=massif ./prog</code> then <code>ms_print massif.out.*</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Boot a box with the scratch dir mounted.</strong> On the Mac:
+      <pre><code>mkdir -p /tmp/ms-massif
+docker run --rm -it -v /tmp/ms-massif:/work -w /work --name ms-massif debian bash
+# inside:
+apt-get update &amp;&amp; apt-get install -y gcc valgrind</code></pre>
+      Confirm <code>ms_print --help</code> exists (it ships with the <code>valgrind</code> package).
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Prompt inside the box. No <code>--privileged</code> — if Massif refused to run, you are in the wrong mental model (that was <code>perf</code>). <code>ms_print --help</code> prints the post-processor’s flags.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>A program with three heap shapes.</strong> In <code>/work</code>:
+      <pre><code>cat &gt; heap.c &lt;&lt;'EOF'
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+#define UNIT 1000
+
+static char *kept;
+
+void leak(void) {
+    malloc(4 * UNIT);          /* pointer dropped */
+}
+
+void hold(void) {
+    kept = malloc(8 * UNIT);   /* still reachable at exit */
+    memset(kept, 0, 8 * UNIT);
+}
+
+void burst(void) {
+    char *p = malloc(16 * UNIT);
+    memset(p, 0, 16 * UNIT);
+    free(p);
+}
+
+int main(void) {
+    char *bufs[10];
+    for (int i = 0; i &lt; 10; i++) {
+        bufs[i] = malloc(UNIT);
+        memset(bufs[i], 0, UNIT);
+    }
+    burst();
+    hold();
+    leak();
+    for (int i = 0; i &lt; 10; i++)
+        free(bufs[i]);
+    return 0;
+}
+EOF
+gcc -g heap.c -o heap
+./heap; echo $?</code></pre>
+      Exit 0. One sentence: what does that <em>not</em> prove about the heap? (L0034 callback.)
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Exit 0 means the process finished. It does not mean the heap came back down, and it does not mean every <code>malloc</code> still had a pointer. “Appears to work” is not a heap profile.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>The empty-graph gotcha.</strong>
+      <pre><code>valgrind --tool=massif --massif-out-file=massif-i.out ./heap
+ms_print massif-i.out</code></pre>
+      Where is the climb? Why? Do not hunt for a bug in <code>heap.c</code>.
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Most of the graph is empty; the bars pile up at the right. Default time unit is instructions executed. A tiny program spends almost all of those in load/link; <code>main</code>’s mallocs are a blip at the end. That is why the next step passes <code>--time-unit=B</code>.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Bytes as time, then read the peak.</strong>
+      <pre><code>valgrind --tool=massif --time-unit=B --massif-out-file=massif.out ./heap
+ms_print massif.out</code></pre>
+      Find the <code>#</code> bar. Does the graph climb, spike, and fail to return to zero? In the peak tree, which function asked for the 16&nbsp;KiB? After the final <code>free</code> loop, what is still on the heap — and which two functions own it?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>With <code>B</code>, the climb is visible. Peak (<code>#</code>) is during <code>burst</code> while the ten <code>bufs</code> are still live (~10&nbsp;KiB + 16&nbsp;KiB useful, plus extra-heap). <code>burst</code> then frees, so the graph drops; <code>hold</code> + <code>leak</code> push it back up; freeing <code>bufs</code> drops it again — but not to zero. Leftover useful heap ≈ 8&nbsp;KiB (<code>hold</code> / <code>kept</code>) + 4&nbsp;KiB (<code>leak</code>). Extra-heap is a few dozen bytes of admin, not the story. Exact byte counts include rounding; the <em>shape</em> and the <em>names</em> are the floor.</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Same binary, Memcheck.</strong>
+      <pre><code>valgrind --leak-check=full ./heap</code></pre>
+      Match the leftover Massif heap to the two verdicts. One sentence: what did Massif see as one leftover that Memcheck split?
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>Definitely lost ≈ 4&nbsp;KiB in <code>leak</code> (pointer dropped). Still reachable ≈ 8&nbsp;KiB in <code>hold</code> (<code>kept</code> still points at it). Massif does not care about that split — both are live heap until process exit, so both sit on the graph after the last drop. The still-reachable 8&nbsp;KiB is the space leak Memcheck will not call “lost.”</p>
+      </div></details>
+    </li>
+    <li>
+      <strong>Cold rebuilds</strong> (no peeking):
+      <ol type="a">
+        <li>Memcheck vs Massif vs htop — one question each.</li>
+        <li>The two MS commands, plus the extra flag a short program needs.</li>
+        <li>Graph glyphs: <code>:</code> <code>@</code> <code>#</code>.</li>
+        <li>Why Massif’s number can be much smaller than htop RSS.</li>
+        <li>What a space leak looks like on each tool.</li>
+      </ol>
+      <details><summary>show answer</summary><div class="drill-answer">
+        <p>(a) Lost pointer at exit / heap over time + peak tree / RSS right now.<br>
+        (b) <code>valgrind --tool=massif ./prog</code>; <code>ms_print massif.out.*</code>. Short: <code>--time-unit=B</code>.<br>
+        (c) normal / detailed / peak.<br>
+        (d) Default is malloc-heap only — not mmap, code, BSS, or stack.<br>
+        (e) Graph never returns to zero; Memcheck says still reachable if the pointer is kept, definitely lost if it was dropped.</p>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="gotcha"><strong>Later.</strong> <strong>Benchmarking</strong> — <code>hyperfine</code> (MS’s example compares <code>fd</code> vs <code>find</code>; fancy-CLI decision still later). <code>--pages-as-heap=yes</code>, <code>--stacks=yes</code>, <code>massif-visualizer</code>, and Python <code>memory-profiler</code> stay named.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>Memcheck vs Massif — what split actually matters?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Memcheck: lost-pointer verdict at exit. Massif: heap over time + who allocated at the peak</li>
+      <li class="option">Memcheck: heap over time and peak trees. Massif: lost-pointer verdicts like ASan</li>
+      <li class="option">Memcheck: sampling stacks every 1 ms. Massif: tracing every call like callgrind</li>
+      <li class="option">Memcheck: RSS as shown in htop. Massif: stack frames only, never malloc</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>On an <code>ms_print</code> graph, a <code>#</code> bar means:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">The peak snapshot — greatest recorded heap; also detailed (allocation tree)</li>
+      <li class="option">A normal snapshot — totals only, no tree; every tenth bar is a peak</li>
+      <li class="option">CPU on fire — Massif plots task-clock the way perf stat does</li>
+      <li class="option">The first snapshot — Massif always treats startup as the peak</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>A 20-line C program under Massif: the graph is empty until the last columns. Why, and the fix?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Default time unit is instructions executed (load/link dominate); pass --time-unit=B</li>
+      <li class="option">Massif cannot profile programs that exit in under a second; use perf instead</li>
+      <li class="option">You forgot --privileged; Massif needs a PMU the way perf record does</li>
+      <li class="option">Default time unit is wall-clock ms; pass --time-unit=i to see mallocs</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>A pointer is kept in a global, the memory is unused, the process exits 0. Memcheck vs Massif?</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Memcheck: still reachable. Massif: leftover heap on the graph — a space leak, not “lost”</li>
+      <li class="option">Both print definitely lost; Massif is just Memcheck with an ASCII sparkline</li>
+      <li class="option">Memcheck: invalid write. Massif: the # bar sits at zero because globals are not heap</li>
+      <li class="option">Neither sees it — only --pages-as-heap=yes can count malloc of a global</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did <code>--time-unit=B</code> flip the graph from empty-right to a real climb? Did the leftover heap match Memcheck’s lost + reachable split? ASCII <code>ms_print</code> enough, or would you want the GUI later?</p>
+    <p style="margin-bottom:0">Next when ready: <code>hyperfine</code> (last Profiling slice), or more vim practice, or another L0020 workbook pass. Say which.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/debugging-profiling/">Missing Semester — Debugging and Profiling</a> (CC BY-NC-SA). Section: Memory Profilers (<code>valgrind --tool=massif</code>; <code>ms_print massif.out.&lt;pid&gt;</code>; Python <code>memory-profiler</code> named).</li>
+      <li><a href="https://valgrind.org/docs/manual/ms-manual.html">Valgrind Massif manual</a> — time units (<code>i</code>/<code>ms</code>/<code>B</code>); snapshot glyphs <code>:</code>/<code>@</code>/<code>#</code>; useful vs extra heap; space leaks Memcheck misses; default is malloc-heap only. Memcheck verdicts: L0034. <code>time</code> / htop: L0036. callgrind: L0038.</li>
+    </ul>
+    <p>Previous: <a href="./0038-ms-cpu-profilers.html">Lesson 0038 — CPU profilers</a>. Reference: <a href="../reference/debug-prof-memory-profilers.html">memory profilers</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild Memcheck vs Massif, the two commands, --time-unit=B, and the space-leak split once from memory before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

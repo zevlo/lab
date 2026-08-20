@@ -6,7 +6,9 @@ Move from comfortable dabbler to fluent operator on a bare bash + vim + tmux + g
 ## Curriculum path
 Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture order as the spine for shell/tooling lessons. Primary lecture notes are the default lesson sources; `man` / `info` / `:help` remain the sources of truth for exact flag semantics. Stay POSIX-lean and defaults-only — skip Missing Semester “consider installing …” fancy replacements (eza, fd, ripgrep, zoxide, etc.) unless a later decision changes constraints.
 
-**Next up:** L0038 in flight — MS lecture 4, eighth slice: CPU profilers (sampling `perf stat`/`perf record -g` + flame graphs vs tracing Valgrind `callgrind`; MS `slow.c`). L0037 done (visualizing). Remaining Profiling slices: massif, `hyperfine`.
+**Pacing (from L0040):** one MS lecture → one lesson when possible. Cover that lecture’s important topics **and** its exercise section in the same HTML (spread across sittings if needed). Do not micro-slice lecture subsections into their own lessons.
+
+**Next up:** L0040 in flight — MS lecture 5, Version Control and Git (data model + CLI map + the lecture’s exercises). Lecture 4 closed at L0038; L0039 (massif) withdrawn.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
@@ -15,6 +17,7 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - Drive tmux copy-mode, splits, `synchronize-panes`, and named sessions from muscle memory.
 - Survive an SSH drop with remote tmux; reattach and the work is intact.
 - Debug a service with `curl -i`, `dig`, `ss -tlnp`, `pgrep`/`kill` by reflex.
+- Explain Git as a DAG of snapshots (blob / tree / commit / ref); stage and commit without treating commands as magic.
 - Read `man`, `:help`, and `info` as primary references instead of searching blogs.
 
 ## Constraints
@@ -24,7 +27,7 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - Environment: ghostty 1.3.1 (Gruvbox Dark), tmux 3.7b, vim 9.1, macOS.
 - Work pattern: roughly half local, half remote over SSH.
 - Cadence: a few sessions per week, 30–45 min each.
-- Pedagogy: Missing Semester lecture notes set the spine and tone. Slice dense topics into workable lessons; drills and cold rebuilds are fine — do not narrate “pareto,” “reps,” or other teaching-meta in lesson copy.
+- Pedagogy: Missing Semester lecture notes set the spine and tone. One lecture → one lesson (exercises in the same file). Drills and cold rebuilds are fine — do not narrate “pareto,” “reps,” or other teaching-meta in lesson copy.
 
 ## Out of scope (for now)
 - zsh, fish, neovim, helix, emacs.

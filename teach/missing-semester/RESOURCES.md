@@ -37,7 +37,9 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **Development Environment and Tools (2026)** — https://missing.csail.mit.edu/2026/development-environment/
   Lecture 3. Lesson 0026 = terminal workflow vs IDE map + vim compose retrieval (MS fizzbuzz). Lesson 0028 = language servers (LSP concept) + CLI checkers (`py_compile`, `gofmt`/`go vet`, `mypy` one-off install). Lesson 0029 = AI form factors (autocomplete / inline chat / agents) mapped to the user’s real surfaces (Zed IDE, opencode terminal agent, vim no-AI floor); gates AI output with L0028 checkers. Lesson 0030 = dev containers (image/container/dev container; `docker` CLI core; `devcontainer.json` as editor-agnostic, versioned config; L0028 checkers baked into the image). Skip vim plugins, Caps Lock remaps, and IDE extension shopping while defaults-only / no-IDE mission holds. Prior vim floor: L0001–0005; practice workbook L0027.
 - **Debugging and Profiling (2026)** — https://missing.csail.mit.edu/2026/debugging-profiling/
-  Lecture 4. Sliced like Lectures 1–3. Lesson 0031 = debugging fundamentals (the golden rule; printf vs logging + severity levels; third-party logs `-v`/`journalctl`; the debugger concept; `pdb` core + `gdb` named; the reproduce→isolate→inspect→fix→gate loop; bug class = L0028 checkers pass and the program is still wrong, a logic bug). Lesson 0032 = system-call tracing (`strace` five shapes incl. `-e trace=file`/`-f`/`-p`/`-T`; `execve` first, `write(1, …)`, `= -1 ENOENT`, `exit_group` ↔ `$?`; triage patterns; container drill; `dtruss`/`bpftrace` named). Lesson 0033 = network debugging (`tcpdump`: observation ladder curl→ss→strace→packets; MS invocations + `-n`/`-c`/`-r`/`-A`; libpcap filters; TCP flags `S`/`S.`/`.`/`P.`/`F.`/`R.`; refused-RST vs dropped-silence with `ss -tlnp` cross-check; HTTPS caveat; Wireshark/mitmproxy named). Lesson 0034 = memory debugging (ASan `-fsanitize=address -g`, three-stack report, sanitizer family map, Valgrind `--leak-check=full` + leak verdicts; MS `uaf.c`; `rr`/`bpftrace` named). Lesson 0035 = AI-for-debugging (LLM as a reader of tool output — cryptic compiler errors, stack traces, ASan/strace; four shine areas; limitations + always-verify; debug symbols `-g` / `-fno-omit-frame-pointer`; distinct from L0029 form factors). Lesson 0036 = timing + resource monitoring (`time` real/user/sys, `htop`/`free`/`lsof`, `ss` retrieval, `taskset` affinity). Lesson 0037 = visualizing performance data (tidy CSV/JSON logs, gnuplot one-liner + headless `dumb`/`png`, matplotlib facets; ggplot2 named). Lesson 0038 = CPU profilers (sampling vs tracing; `perf stat` / `perf record -e cpu-clock -g` + flame graphs; Valgrind `callgrind` + `callgrind_annotate`; MS `slow.c`; Docker-on-Mac PMU gap). Later Profiling slices: massif, `hyperfine`. `pdb` is the hands-on debugger (Python is the primary track); `gdb` named for compiled-language remotes.
+  Lecture 4. Sliced too finely (L0031–0038); lecture closed at CPU profilers. Debugging: fundamentals, strace, tcpdump, ASan/Valgrind memcheck, AI-for-debugging. Profiling: `time`/`htop`, visualizing, `perf` + flame graphs + callgrind. Massif / `hyperfine` named only (L0039 withdrawn — massif is not in the exercise set). `rr` named (no PMU in Docker-on-Mac). From L0040: one lecture → one lesson.
+- **Version Control and Git (2026)** — https://missing.csail.mit.edu/2026/version-control/
+  Lecture 5. Lesson 0040 = the whole lecture: data model (blob / tree / commit DAG / objects / refs / HEAD), staging area, command map, and the nine MS exercises (class-site clone/blame, history rewrite on `/tmp` only, stash, alias, gitignore, merge conflict; Learn Git Branching optional; class-site PR only if useful). Git ≠ GitHub.
 
 ## Knowledge — focused references
 
@@ -63,7 +65,7 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **AddressSanitizer (sanitizers wiki)** — https://github.com/google/sanitizers/wiki/AddressSanitizer
   Canonical ASan reference. Use for: error kinds (heap-use-after-free, stack/heap/global overflow, leak), report anatomy (access ← freed by ← allocated by), redzones/quarantine. Invoke with `gcc -fsanitize=address -g`; family: TSan/MSan/UBSan one flag each. Compiles on macOS clang too. Lesson 0034.
 - **Valgrind quick start** — https://valgrind.org/docs/manual/quick-start.html
-  Memcheck on an existing binary, no recompilation: `valgrind --leak-check=full ./prog`; leak verdicts (definitely lost / indirectly lost / possibly lost / still reachable); `Invalid write … that was freed` for use-after-free. Linux-only (unusable on modern macOS). callgrind → Lesson 0038; massif → later Profiling slice. Lesson 0034.
+  Memcheck on an existing binary, no recompilation: `valgrind --leak-check=full ./prog`; leak verdicts (definitely lost / indirectly lost / possibly lost / still reachable); `Invalid write … that was freed` for use-after-free. Linux-only (unusable on modern macOS). callgrind → Lesson 0038; massif named only. Lesson 0034.
 - **rr — record and replay** — https://rr-project.org/
   Deterministic record/replay with reverse debugging (`rr record`, `rr replay`, `reverse-continue` in gdb). Linux-only, needs hardware performance counters — fails in most VMs (incl. Docker-on-Mac). Named, not drilled. Lesson 0034.
 - **AI for debugging (MS lecture 4)** — https://missing.csail.mit.edu/2026/debugging-profiling/
@@ -85,6 +87,14 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Visualization of sampled stacks: y = depth, width ∝ samples, x is **not** a timeline. Pipeline: `perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg`. Lesson 0038. Speedscope / Perfetto named as viewers.
 - **Valgrind Callgrind** — https://valgrind.org/docs/manual/cl-manual.html
   Tracing CPU profiler: `valgrind --tool=callgrind ./prog`; `callgrind_annotate` (self vs `--inclusive=yes`). Exact call counts; much slower than sampling. kcachegrind is the GUI — named. Lesson 0038.
+- **Valgrind Massif** — https://valgrind.org/docs/manual/ms-manual.html
+  Heap profiler: `valgrind --tool=massif ./prog`; `ms_print massif.out.<pid>`. Named only (L0039 withdrawn — not an MS exercise). Python `memory-profiler` named (MS).
+- **Git documentation** — https://git-scm.com/docs (`git help <cmd>`)
+  Canonical CLI reference. Use for: exact flag semantics after the data model is in place. Lesson 0040.
+- **Pro Git** — https://git-scm.com/book/en/v2
+  MS-recommended. Chapters 1–5 after the data model. Lesson 0040.
+- **Learn Git Branching** — https://learngitbranching.js.org
+  Browser DAG game. MS exercise 1; optional if you already commit daily. Lesson 0040.
 
 ## Wisdom (communities)
 

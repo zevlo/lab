@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0040 — MS Version Control and Git</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0040 · <a href="../reference/git-version-control.html">Missing Semester — Version Control</a></p>
+    <h1>Version Control and Git</h1>
+    <p class="lede">Git’s interface is leaky. The data model is not. Once you see blobs, trees, commits, and refs, the commands stop being spells.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>A VCS is a history of snapshots of a folder, plus who/when/why. Alone, that is “what did this look like last Tuesday.” With others, it is how you combine parallel work without <code>rm -rf; git clone</code>. Git is the default. MS’s bet: learn the model first, then the CLI is just how you edit the graph.</p>
+  <p><strong>Read first (≈20 min):</strong> <a href="https://missing.csail.mit.edu/2026/version-control/">MS Version Control and Git</a> — the whole lecture, including Exercises. You already use git; read for the data model, not for “how to commit.”</p>
+  <div class="gotcha"><strong>This is the whole lecture</strong> — model, command map, and the exercise set. Spread across sittings if you want. Scratch lives under <code>/tmp/ms-git/</code>. History-rewrite (exercise 4) never runs in <code>/Users/za/lab</code>.</div>
+
+  <h2>Knowledge 1 — the data model</h2>
+  <p>A file is a <strong>blob</strong> (bytes). A directory is a <strong>tree</strong> (names → blobs or trees). A snapshot is the top-level tree. A <strong>commit</strong> is that snapshot plus parents, author, and message. History is a <strong>DAG</strong>: each commit points at one parent, or two when you merge. Commits are immutable; fixing a mistake means new objects and moving a pointer.</p>
+  <pre><code>type blob   = array&lt;byte&gt;
+type tree   = map&lt;string, tree | blob&gt;
+type commit = struct {
+    parents:  array&lt;commit&gt;
+    author:   string
+    message:  string
+    snapshot: tree
+}</code></pre>
+  <p>On disk, blob / tree / commit are all <strong>objects</strong>, stored by SHA-1 hash. They point at each other by hash, not by embedding. Humans cannot remember 40 hex chars, so <strong>references</strong> are mutable names for hashes (<code>main</code>, <code>salty</code>, <code>origin/main</code>). <strong>HEAD</strong> is “where we are” — usually a pointer to a branch, which points at a commit. A repository is objects + references. That is the whole model. Every command adds objects and/or moves refs.</p>
+  <p>See it: <code>git cat-file -p HEAD</code> prints the commit; <code>git cat-file -p HEAD^{tree}</code> prints the tree (mode, type, hash, name). MS’s example tree is exactly that listing.</p>
+
+  <h2>Knowledge 2 — the staging area</h2>
+  <p>Git does not snapshot the working directory blindly. The <strong>staging area</strong> (index) is the proposed next commit. <code>git add</code> copies chosen changes into it; <code>git commit</code> freezes the index as a new commit and advances the current branch. That is how you commit a bugfix without the debug prints, or two features as two commits.</p>
+  <table>
+    <thead><tr><th>Place</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>working directory</td><td>what you edit</td></tr>
+      <tr><td>index</td><td>what the next snapshot will contain</td></tr>
+      <tr><td>HEAD</td><td>last snapshot on this branch</td></tr>
+    </tbody>
+  </table>
+  <p><code>git status</code> and <code>git diff</code> (working vs index) / <code>git diff --staged</code> (index vs HEAD) are how you read those three states.</p>
+
+  <h2>Knowledge 3 — commands as graph edits</h2>
+  <p>MS does not re-teach every flag — <a href="https://git-scm.com/book/en/v2">Pro Git</a> and <code>git help &lt;cmd&gt;</code> do. Map the verbs to the model:</p>
+  <table>
+    <thead><tr><th>Command</th><th>What it does to the graph</th></tr></thead>
+    <tbody>
+      <tr><td><code>git init</code></td><td>empty <code>.git</code> (objects + refs)</td></tr>
+      <tr><td><code>git add</code> / <code>commit</code></td><td>new commit; move current branch</td></tr>
+      <tr><td><code>git log --all --graph --decorate</code></td><td>draw the DAG</td></tr>
+      <tr><td><code>git branch</code> / <code>switch</code></td><td>create a ref / point HEAD at it</td></tr>
+      <tr><td><code>git merge</code></td><td>commit with two parents, or fast-forward</td></tr>
+      <tr><td><code>git fetch</code></td><td>download objects + remote-tracking refs</td></tr>
+      <tr><td><code>git pull</code></td><td><code>fetch</code> then <code>merge</code></td></tr>
+      <tr><td><code>git push</code></td><td>send objects; update the remote’s ref</td></tr>
+      <tr><td><code>git reset FILE</code></td><td>unstage (MS)</td></tr>
+      <tr><td><code>git restore</code></td><td>throw away working-tree changes</td></tr>
+      <tr><td><code>git stash</code></td><td>park uncommitted work; clean the tree</td></tr>
+      <tr><td><code>git blame</code> / <code>show</code></td><td>who last touched a line; show that commit</td></tr>
+    </tbody>
+  </table>
+  <p>MS notes say <code>master</code>. Use <code>main</code> here (<code>git init -b main</code>) — same ref role. <code>git switch</code> for branches; <code>git restore</code> for files. <code>git checkout</code> still does both; the split is clearer. Git is not GitHub. A pull request is a GitHub workflow on top of fetch/merge. Named advanced: <code>rebase -i</code>, <code>add -p</code>, <code>bisect</code>, <code>revert</code>, <code>worktree</code>, <code>clone --depth=1</code> (do <em>not</em> shallow-clone for blame/log drills).</p>
+
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-git &amp;&amp; cd /tmp/ms-git
+git --version   # this machine: 2.55</code></pre>
+  <p>Ghostty + bash + vim. Your global <code>user.name</code> / <code>user.email</code> are already set — commits in <code>/tmp</code> will use them.</p>
+
+  <h2>Exercises</h2>
+  <p>Missing Semester’s set, in order. Try before <code>show answer</code>. Open the <a href="../reference/git-version-control.html">pocket card</a> after you struggle, not first.</p>
+
+  <h3>1 — Relate commands to the model</h3>
+  <p>MS: if you are new to git, read Pro Git ch. 1–2 or play <a href="https://learngitbranching.js.org">Learn Git Branching</a>, and relate each command to the DAG. You already commit daily — skip the game unless you want it. Instead, build MS’s tiny tree and <em>look at the objects</em>:</p>
+  <pre><code>cd /tmp/ms-git
+mkdir -p model/foo &amp;&amp; cd model
+git init -b main
+printf 'hello world\n' &gt; foo/bar.txt
+printf 'git is wonderful\n' &gt; baz.txt
+git add foo/bar.txt baz.txt
+git commit -m 'initial snapshot'
+git cat-file -p HEAD
+git cat-file -p HEAD^{tree}
+git log --all --graph --decorate --oneline</code></pre>
+  <p>One sentence: what in that <code>cat-file</code> output is a hash pointer vs a name?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>The commit object lists a <code>tree</code> hash and a <code>parent</code> if any — pointers. The tree listing is <code>blob &lt;hash&gt; baz.txt</code> and <code>tree &lt;hash&gt; foo</code> — the name is the key; the hash is the object. <code>main</code> and <code>HEAD</code> are refs sitting on that commit. The files in the working tree are not the objects; they are a checkout of them.</p>
+  </div></details>
+
+  <h3>2–3 — Class website history</h3>
+  <p>Clone the class site (<strong>full</strong> clone — blame needs history):</p>
+  <pre><code>cd /tmp/ms-git
+git clone https://github.com/missing-semester/missing-semester.git class-site
+cd class-site
+git log --all --graph --decorate --oneline | head -n 40</code></pre>
+  <p>Who last modified <code>README.md</code>? (<code>git log</code> with a path.) What was the commit <em>message</em> for the last change to the <code>collections:</code> line of <code>_config.yml</code>? (<code>git blame</code> then <code>git show</code>.)</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>git log -1 -- README.md</code> — as of 2026-08-20, Anish Athalye, “Tweak text about license” (will drift if they commit again).</p>
+    <p><code>git blame -L 19,19 _config.yml</code> then <code>git show &lt;hash&gt;</code> — that line was added in “Redo lectures as a collection” (Anish Athalye, 2020). Confirm the line number with <code>grep -n collections: _config.yml</code> if the file moved.</p>
+  </div></details>
+
+  <h3>4 — Delete a file from history</h3>
+  <p>A later <code>git rm</code> only adds a new commit. The blob is still in old snapshots. Do this on a <strong>throwaway</strong> repo.</p>
+  <pre><code>cd /tmp/ms-git
+mkdir hist &amp;&amp; cd hist &amp;&amp; git init -b main
+printf 'ok\n' &gt; keep.txt &amp;&amp; git add keep.txt &amp;&amp; git commit -m 'keep'
+printf 'whsec_fake\n' &gt; secret.txt &amp;&amp; git add secret.txt &amp;&amp; git commit -m 'oops secret'
+printf 'more\n' &gt;&gt; keep.txt &amp;&amp; git add keep.txt &amp;&amp; git commit -m 'more work'
+git log --all --full-history -- secret.txt
+# secret still there. Now drop the commit that added it:
+git rebase -i --root</code></pre>
+  <p>In vim: on the <code>oops secret</code> line, change <code>pick</code> to <code>drop</code>, save, quit. Then prove the file is gone from history. (MS points at GitHub’s “removing sensitive data” guide if you ever have to do this on a repo you already pushed — assume leaked, rotate the secret, and coordinate with anyone who cloned.)</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>After <code>drop</code>, <code>git log --all --full-history -- secret.txt</code> is empty. <code>git log --oneline</code> shows <code>keep</code> then <code>more work</code> — two commits, new hashes (rebase rewrote the “more work” commit because its parent changed). <code>ls</code> has no <code>secret.txt</code>. Never run this in a shared repo that others have fetched; you would have to force-push and they would have to reset.</p>
+  </div></details>
+
+  <h3>5 — stash</h3>
+  <p>In the class-site clone, dirty one existing file, then:</p>
+  <pre><code>cd /tmp/ms-git/class-site
+# edit a line in README.md (vim), leave it uncommitted
+git status
+git stash
+git status
+git log --all --oneline | head
+git stash pop</code></pre>
+  <p>What did <code>stash</code> do to the working tree? What extra line did <code>log --all</code> show? When is this useful?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Working tree is clean; the edit is gone from the file. <code>git log --all --oneline</code> shows a <code>WIP on main: …</code> (or similar) under <code>refs/stash</code> — a commit that is not on any branch. <code>stash pop</code> reapplies it and drops the stash. Useful: you need a clean tree to <code>switch</code> / <code>pull</code> / bisect, and the work is not ready to commit.</p>
+  </div></details>
+
+  <h3>6 — <code>git graph</code> alias</h3>
+  <p>MS wants <code>git graph</code> → <code>git log --all --graph --decorate --oneline</code>. Do it <em>in the toy repo</em> first (does not touch <code>~/.gitconfig</code>):</p>
+  <pre><code>cd /tmp/ms-git/model
+git config alias.graph 'log --all --graph --decorate --oneline'
+git graph</code></pre>
+  <p>Optional later: the same with <code>git config --global</code>, or an <code>[alias]</code> block in your existing gitconfig. Owned dotfile — your call, not required tonight.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Repo-local config lives in <code>.git/config</code>. <code>git config --get alias.graph</code> prints the command. <code>git graph</code> is <code>git log</code> with those flags. Global equivalent: <code>git config --global alias.graph 'log --all --graph --decorate --oneline'</code>.</p>
+  </div></details>
+
+  <h3>7 — ignore junk</h3>
+  <p>In the toy repo, ignore editor/OS crumbs so they never get staged:</p>
+  <pre><code>cd /tmp/ms-git/model
+printf '.DS_Store\n*.swp\n' &gt; .gitignore
+git add .gitignore &amp;&amp; git commit -m 'ignore DS_Store and vim swaps'
+touch .DS_Store foo/.DS_Store
+git status</code></pre>
+  <p>MS’s global version: <code>git config --global core.excludesfile ~/.gitignore_global</code>, then create that file. Same posture as exercise 6 — optional on the real machine. The idea is one ignore list for every repo.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>git status</code> should not list <code>.DS_Store</code>. A tracked file is not ignored — <code>gitignore</code> only applies to untracked paths. Global excludesfile is the same patterns, applied everywhere, without committing a <code>.gitignore</code>.</p>
+  </div></details>
+
+  <h3>8 — pull request</h3>
+  <p>MS: fork the class site, fix a real typo, open a useful PR. <strong>Skip unless you have a real improvement.</strong> They asked not to be spammed. GitHub PRs are “push a branch, ask them to merge” — not a new data-model idea.</p>
+
+  <h3>9 — merge conflict</h3>
+  <p>MS’s recipe drill, on <code>main</code>:</p>
+  <pre><code>cd /tmp/ms-git
+mkdir recipe &amp;&amp; cd recipe
+git init -b main
+cat &gt; recipe.txt &lt;&lt;'EOF'
+Pancakes
+1 cup flour
+1 cup sugar
+1 cup milk
+EOF
+git add recipe.txt &amp;&amp; git commit -m 'base recipe'
+git branch salty
+git branch sweet
+git switch salty
+vim recipe.txt   # 1 cup sugar → 1 cup salt
+git add recipe.txt &amp;&amp; git commit -m 'salty'
+git switch sweet
+vim recipe.txt   # 1 cup sugar → 2 cups sugar
+git add recipe.txt &amp;&amp; git commit -m 'sweet'
+git switch main
+git merge salty
+git merge sweet</code></pre>
+  <p>What happens on the second merge? What do <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> / <code>=======</code> / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> mean? Resolve in vim (keep what you want, delete the markers), then finish the merge. Visualize with <code>git log --graph --oneline</code>.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>git merge salty</code> fast-forwards (or merges cleanly) — <code>main</code> has salt. <code>git merge sweet</code> conflicts: both sides edited the same line. Markers: current branch (<code>HEAD</code> / <code>main</code>) above <code>=======</code>, incoming (<code>sweet</code>) below. After editing, <code>git add recipe.txt &amp;&amp; git commit</code> (or <code>git merge --continue</code>). <code>git log --graph --oneline</code> shows a merge commit with two parents. <code>git mergetool</code> is named; vim is enough.</p>
+  </div></details>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>blob / tree / commit / ref / HEAD — one phrase each.</li>
+    <li>Why the staging area exists.</li>
+    <li>The DAG-view command.</li>
+    <li>What <code>git pull</code> is in two commands.</li>
+    <li>What the three conflict markers mean.</li>
+  </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) File bytes / directory map / snapshot+parents+message / mutable name for a hash / where we are.<br>
+    (b) Next commit is a chosen subset of the working tree, not “everything dirty.”<br>
+    (c) <code>git log --all --graph --decorate</code> (plus <code>--oneline</code> if you aliased <code>graph</code>).<br>
+    (d) <code>git fetch</code> then <code>git merge</code>.<br>
+    (e) Ours / split / theirs. Delete markers; leave the resolved text; add; commit.</p>
+  </div></details>
+
+  <div class="gotcha"><strong>Later.</strong> <code>git bisect</code>, <code>worktree</code>, interactive rebase beyond dropping a toy commit, <code>add -p</code>. Packaging and Shipping Code is the next MS lecture.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Shuffled answers.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A Git commit object contains:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Parent hash(es), author, message, and a pointer to a tree</li>
+      <li class="option">A diff against the previous commit, stored as a patch</li>
+      <li class="option">The full working tree including untracked files and the index</li>
+      <li class="option">Only the files from git add, zipped under .git/commits/</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>The staging area exists so that:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">The next snapshot can include a chosen subset of working-tree changes</li>
+      <li class="option">Blobs can be stored before they have a SHA-1 hash</li>
+      <li class="option">Remotes can receive files without creating a commit</li>
+      <li class="option">Merge conflicts have a place to live besides the working tree</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>HEAD is:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">“Where we are” — usually the current branch ref, which points at a commit</li>
+      <li class="option">The SHA-1 of the first commit in the repository (the root)</li>
+      <li class="option">GitHub’s name for the default remote, same as origin</li>
+      <li class="option">The staging area’s other name; git add updates HEAD</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span><code>git pull</code> is:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">git fetch plus git merge — download objects/refs, then merge into the current branch</li>
+      <li class="option">Only a download; it never moves your branch or creates a merge</li>
+      <li class="option">The same as cloning a subdirectory of a remote repository</li>
+      <li class="option">git push in reverse: it sends your commits to origin</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did <code>cat-file</code> make blob/tree/commit click? Did dropping the secret rewrite the later commit’s hash? Conflict markers readable in vim?</p>
+    <p style="margin-bottom:0">This file is the whole Git lecture. Finish any leftover exercises next sitting, or say when you want Packaging and Shipping Code.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/version-control/">Missing Semester — Version Control and Git</a> (CC BY-NC-SA). Data model, staging, command list, exercises 1–9. Class site: <a href="https://github.com/missing-semester/missing-semester">missing-semester/missing-semester</a>.</li>
+      <li><code>git help &lt;command&gt;</code> / <a href="https://git-scm.com/docs">git documentation</a>. <a href="https://git-scm.com/book/en/v2">Pro Git</a> (ch. 1–5). <a href="https://learngitbranching.js.org">Learn Git Branching</a>. Aliases: <code>git help config</code>.</li>
+    </ul>
+    <p>Previous: <a href="./0038-ms-cpu-profilers.html">Lesson 0038 — CPU profilers</a> (lecture 4 closed; <a href="./0039-ms-memory-profilers.html">0039 withdrawn</a>). Reference: <a href="../reference/git-version-control.html">Git data model</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite — see the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? ' — flawless. Cold-rebuild blob/tree/commit/ref/HEAD, staging, the graph log, pull = fetch+merge, and conflict markers before advancing.'
+            : correct >= quizzes.length - 1
+            ? ' — solid. Fix the miss, then re-do the cold rebuilds.'
+            : ' — re-read Knowledge 1–3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
