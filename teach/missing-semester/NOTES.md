@@ -486,7 +486,7 @@
 ## Catalog rewrite (2026-08-20) — nine-lesson path, L0040 density
 - User asked to edit **previous** lessons to L0040 length and depth, cover the first four MS lectures, **reduce lesson count**, not one-file-per-lecture if a lecture is huge. Decision: do **not** delete 0001–0014; rewrite survivors in place; banner absorbed files.
 - **Canonical path:** 0001 Vim (absorbs 0002–0005, 0027) → 0006 tmux (0011–0013) → 0015 Shell / MS 1 (0007, 0009, 0014, 0016–0018, 0020) → 0019 CLI conventions / MS 2a (0008, 0021–0023) → 0024 Remote & home / MS 2b (0025) → 0026 Dev environment / MS 3 (0028–0030) → 0031 Debugging / MS 4a (0010, 0032–0035) → 0036 Profiling / MS 4b (0037–0038) → 0040 Git / MS 5 → 0041 Shipping / MS 6. L0039 still withdrawn (massif notes-only; hyperfine skipped). Completions already logged for the slices still count — this is a catalog rewrite, not a re-take.
-- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`. Older slice refs stay.
+- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`, `agentic-coding.html`. Older slice refs stay.
 - **Do not** add micro-slices.
 
 ## L0040 design notes (MS Lecture 5 — Version Control and Git, whole lecture)
@@ -512,3 +512,18 @@
 - **Reuse:** L0026 image/container nouns; L0022 env; L0025 owned dotfiles (don’t write secrets); L0028 checkers named only; L0040 clone path.
 - **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
 - **Next when asked:** leftover shipping sittings, or MS lecture 7 Agentic Coding.
+
+## L0041 complete (4/4; shipping floor set)
+- Artifact vs environment, venv + PATH/`deactivate`, wheel vs source, SemVer, library ranges vs app locks, image vs container vs VM, runtime config, and Compose DNS all landed. No friction reported; leftover TestPyPI / ghcr / Pages sittings are optional.
+- Next when asked: user said ready without picking; took lecture order → L0042 Agentic Coding.
+
+## L0042 design notes (MS Lecture 7 — Agentic Coding, whole lecture)
+- **Topic choice:** lecture order after L0041 4/4. Third lesson under the one-lecture rule.
+- **Primary sources:** https://missing.csail.mit.edu/2026/agentic-coding/ (full page + GitHub `_2026/agentic-coding.md` fetched). AGENTS.md / skills / subagents / llms.txt for the context model. L0028 checkers for the feedback loop. L0029 form factors as the floor this lecture deepens.
+- **Scope:** agent = LLM + tools + harness; intern-manager; confirm tool calls; privacy (cloud by default); use cases (feature / fix / refactor / review / understand / shell / vibe); feedback loop (agent runs mypy/`py_compile`); context (clear / rewind / compact / llms.txt); AGENTS.md always-on vs skills on demand vs subagents for isolated context; review and spirals.
+- **Exercises:** all 6 MS items in this HTML. (1) same small feature four ways (hand / autocomplete / inline chat / agent) on `/tmp/ms-agent/extract.py`. (2) navigate unfamiliar code: prefer a real project; fallback = class-site “how do I run this locally?” plus this agent’s tool-confirmation model. (3) vibe-code a tiny stdlib app; review in vim; gate with `py_compile`. (4) write `AGENTS.md` + a skill + a subagent prompt in `/tmp/ms-agent/` (Cursor mapping; Claude Code / Codex named). (5) Markdown `-` bullets → `*` via `sed`, after seeing the agent try a direct edit. (6) skip unless they want isolation: auto-run / yolo only inside a disposable container (L0030/L0041).
+- **Skip / named:** installing Claude Code or Codex; ruff (Code Quality lecture); MCP shopping; git worktree hands-on (named; L0040 skipped it); `--dangerously-skip-permissions` on the host.
+- **Scratch:** `/tmp/ms-agent/`. Python 3.12.14 (mise). `mypy` is not on PATH at write time; install in the scratch venv if they want types, otherwise `py_compile` is the gate. Docker is up.
+- **Reuse:** L0029 three form factors + stack (Cursor is the live agent this sitting; Zed owned; vim review; opencode named). L0028/L0023 checkers and exit status. L0035 paste-the-artifact / draft-not-verdict. L0017 `sed`. L0040 class-site clone if present.
+- **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
+- **Next when asked:** leftover agentic sittings, or MS lecture 8 Beyond the Code.

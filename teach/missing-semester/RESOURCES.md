@@ -42,6 +42,8 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Lecture 5. Lesson 0040 = the whole lecture: data model (blob / tree / commit DAG / objects / refs / HEAD), staging area, command map, and the nine MS exercises (class-site clone/blame, history rewrite on `/tmp` only, stash, alias, gitignore, merge conflict; Learn Git Branching optional; class-site PR only if useful). Git ≠ GitHub.
 - **Packaging and Shipping Code (2026)** — https://missing.csail.mit.edu/2026/shipping-code/
   Lecture 6. Lesson 0041 = the whole lecture: environments (`venv`), artifacts (`pyproject.toml` / wheels), SemVer + lockfiles, VMs vs containers, runtime config, Compose, publishing named (TestPyPI / ghcr / Pages). Floor is `venv` + `pip` (`uv` named, not required). Compose at MS-exercise depth; Kubernetes named. Pocket card: `reference/shipping-code.html`.
+- **Agentic Coding (2026)** — https://missing.csail.mit.edu/2026/agentic-coding/
+  Lecture 7. Lesson 0042 = the whole lecture: agent loop (LLM + tools + harness), intern-manager, confirm tool calls, privacy, use cases, checker feedback loop, context (`AGENTS.md` / skills / subagents / `llms.txt`), review. Pocket card: `reference/agentic-coding.html`. Builds on L0029 form factors. Cursor is the drill agent; Claude Code / Codex / opencode named.
 
 ## Knowledge — focused references
 
@@ -104,6 +106,12 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   `MAJOR.MINOR.PATCH` contract. Use for: what a bump promises; `0.x` may break on minor. Lesson 0041.
 - **Dockerfile reference** — https://docs.docker.com/reference/dockerfile/
   Instruction semantics (`FROM`, `RUN`, `COPY`, `WORKDIR`, `CMD`, `ENV`). Lesson 0041. Multi-stage / non-root named, not drilled.
+- **AGENTS.md** — https://agents.md/
+  Project README for coding agents. Always loaded into context. Lesson 0042. Claude Code analog: `CLAUDE.md`.
+- **llms.txt** — https://llmstxt.org/
+  Inference-time docs for LLMs (dense per token vs HTML). Example: https://cursor.com/llms.txt. Lesson 0042.
+- **Model Context Protocol** — https://modelcontextprotocol.io/
+  Open protocol for connecting agents to extra tools (Notion, etc.). Named in Lesson 0042; directories Pulse / Glama. Not drilled.
 
 ## Wisdom (communities)
 

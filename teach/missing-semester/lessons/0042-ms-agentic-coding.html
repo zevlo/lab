@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0042: Agentic Coding</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0042 · <a href="../reference/agentic-coding.html">Missing Semester: Agentic Coding</a></p>
+    <h1>Agentic Coding</h1>
+    <p class="lede">A coding agent is a conversational model with tools. You steer it, confirm what it runs, and gate what it writes.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Lesson 0029 named three form factors: autocomplete, inline chat, and agent. The agent is the one that edits across files and runs commands. That autonomy is the win, and it is also the risk. You already use that form factor in Cursor (this chat). Zed still covers autocomplete and inline chat. vim stays the place you review the diff.</p>
+  <p>Missing Semester’s picture: you are the manager of an intern. The intern does the nitty-gritty. You give a spec, you interrupt a wrong turn, and you check the work. The intern samples text. You still own the mental model of the machine.</p>
+  <p><strong>Read first (about 20 minutes):</strong> <a href="https://missing.csail.mit.edu/2026/agentic-coding/">Missing Semester: Agentic Coding</a>, including the Exercises section.</p>
+  <div class="gotcha"><strong>This file covers the whole lecture:</strong> the agent loop, privacy, use cases, context (<code>AGENTS.md</code>, skills, subagents), and review. Spread the work across sittings if you want. Scratch directory: <code>/tmp/ms-agent/</code>. Confirm tool calls unless you are inside a disposable container. Gate Python edits with <code>python3 -m py_compile</code>. If you want types, install <code>mypy</code> in a project venv (it is not on PATH on this machine right now). Missing Semester also names Claude Code, Codex, and opencode. This lesson drills in Cursor.</div>
+
+  <h2>Knowledge 1: The agent loop</h2>
+  <p>An LLM models the probability of a completion given a prompt, then <strong>samples</strong> from that distribution. It has a fixed <strong>context window</strong>: the maximum length of input plus output. Chat apps send the whole conversation, with turn markers, as the next prompt.</p>
+  <p>A <strong>coding agent</strong> adds tools: read and write files, search the web, run shell commands. The <strong>harness</strong> is the program around the model. When the model emits a tool request, the harness runs that tool (after you confirm) and pastes the result back into the prompt. Inference runs again. The interesting part of an agent is that loop. The core of it fits in a couple of hundred lines of code.</p>
+  <p>Those tools can change your disk and run programs. By default, the harness asks you to confirm each call. If the agent picks <code>python -m mypy</code> and you have a <code>mypy</code> binary on <code>PATH</code>, reply in text: “run <code>mypy</code> directly.” Multi-turn chat is how you steer. Interrupt when the track is wrong.</p>
+  <p>Most setups send a lot of your data to the cloud. Sometimes only inference is remote. Sometimes the provider also sees the repository and the chat. Open models you run locally exist. Bleeding-edge local inference is still a hardware problem for most machines. Treat the default as: the vendor can read this workspace.</p>
+
+  <h2>Knowledge 2: Use cases and feedback loops</h2>
+  <p>Missing Semester’s list, in the order you will reach for them:</p>
+  <table>
+    <thead><tr><th>Job</th><th>How you steer</th></tr></thead>
+    <tbody>
+      <tr><td>New feature</td><td>A spec that points the right way. Tests first, then “implement until the tests pass.”</td></tr>
+      <tr><td>Fix errors</td><td>Point at compiler, linter, type checker, or test output. “Fix the mypy issues.”</td></tr>
+      <tr><td>Refactor</td><td>Rename, split a module, move a function. Language servers also rename; the agent handles wider edits.</td></tr>
+      <tr><td>Review / understand</td><td>“Review uncommitted changes.” “How do I run this locally?”</td></tr>
+      <tr><td>As a shell</td><td>“Use <code>find</code> to list files older than 30 days.” You name the tool from lesson 0015.</td></tr>
+      <tr><td>Vibe coding</td><td>You write the prompt. The agent writes every line. You still review.</td></tr>
+    </tbody>
+  </table>
+  <p>The high-leverage trick is a <strong>feedback loop</strong>. Give the agent a command it can run, and let it read the output. “Fix mypy” works when the agent can invoke mypy, see the errors, edit, and run it again until the status is 0 (lesson 0023). If it cannot run the check, paste the artifact (lesson 0035) and stay in the loop yourself.</p>
+  <p>Spec writing is an art. Enough detail that the intern heads the right way. Enough room that you are still delegating. Models change; keep a feel for what they can do this month.</p>
+  <p>The lecture demo is the Markdown-link extractor from lesson 0029, plus a download helper. The prompt they use:</p>
+  <pre><code>Turn this into a proper command-line program, with argparse
+for argument parsing. Add type annotations, and make sure
+the program passes type checking.</code></pre>
+  <p>Then: run the script, and ask for a change (only absolute URLs). That is one sitting of implement → run → iterate.</p>
+
+  <h2>Knowledge 3: Context, skills, and review</h2>
+  <p>The context window is scarce. Extra tokens slow the model down even before you overflow it. Start a <strong>new conversation</strong> for an unrelated task. Some harnesses let you <strong>rewind</strong> a bad turn, which clears it more cleanly than arguing with the next message. <strong>Compaction</strong> summarizes the prefix when the history gets long. You lose detail; that is the trade.</p>
+  <p><a href="https://llmstxt.org/"><code>/llms.txt</code></a> is a dense doc meant for models at inference time. When a library is newer than the model’s training cutoff, point the agent at that file. It carries more per token than an HTML page. Example: <a href="https://cursor.com/llms.txt">cursor.com/llms.txt</a>.</p>
+  <p>Three ways to give standing advice:</p>
+  <table>
+    <thead><tr><th>Thing</th><th>When it loads</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://agents.md/">AGENTS.md</a></td><td>every session, in full</td><td>short project rules: how to test, “run py_compile after Python edits”</td></tr>
+      <tr><td>Skill</td><td>when the agent opens it</td><td>optional depth that would bloat AGENTS.md</td></tr>
+      <tr><td>Subagent</td><td>its own context</td><td>a long tool dump (web research, a checker run) that the parent chat should not swallow</td></tr>
+    </tbody>
+  </table>
+  <p>Claude Code looks for <code>CLAUDE.md</code>. Cursor reads <code>AGENTS.md</code> and skills (<code>SKILL.md</code>). A subagent in Cursor is a separate agent run with its own context. Keep <code>AGENTS.md</code> short. Put rare procedures in a skill. Put noisy work in a subagent.</p>
+  <p>MCP (Model Context Protocol) plugs extra tools into the harness: a Notion server, a browser, an issue tracker. Parallel agents can work on the same task (sample twice, keep the better diff) or on disjoint tasks. Isolate their trees with <code>git worktree</code> (named in lesson 0040; hands-on stays later).</p>
+  <p>The model is next-token prediction. Review the diff for correctness and security. If verifying would take longer than writing the critical path, write that path yourself. If the agent is circling or talking you into a bad fix, stop and clear context. The vim grammar and the shell still matter on a box where the agent is down.</p>
+  <div class="gotcha"><strong>Auto-run / yolo.</strong> Some agents have a mode that skips confirmation (Claude Code: <code>--dangerously-skip-permissions</code>). Use that only inside an isolated VM or container with no host secrets and no mount of <code>$HOME</code>. Default on this machine: confirm each call.</div>
+
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-agent &amp;&amp; cd /tmp/ms-agent
+python3 --version    # this machine: 3.12.14 (mise)</code></pre>
+  <p>Use Ghostty, bash, and vim to review. Use Cursor (this agent) to implement. Zed is fine for the autocomplete and inline-chat legs of exercise 1.</p>
+
+  <h2>Exercises</h2>
+  <p>These are Missing Semester’s exercises, mapped to this stack. Attempt each one, then open <code>show answer</code>. Open the <a href="../reference/agentic-coding.html">pocket card</a> if you get stuck.</p>
+
+  <h3>1. Four form factors, one task</h3>
+  <p>Missing Semester: do the same small feature four times: by hand, with autocomplete, with inline chat, and with an agent. Seed file:</p>
+  <pre><code>cd /tmp/ms-agent
+cat &gt; extract.py &lt;&lt;'EOF'
+from urllib.request import urlopen
+
+def download_contents(url: str) -&gt; str:
+    with urlopen(url) as response:
+        return response.read().decode("utf-8")
+
+def extract(content: str) -&gt; list[str]:
+    import re
+    pattern = r"\[.*?\]\((.*?)\)"
+    return re.findall(pattern, content)
+
+print(extract(download_contents(
+    "https://raw.githubusercontent.com/missing-semester/"
+    "missing-semester/refs/heads/master/_2026/development-environment.md"
+)))
+EOF
+python3 -m py_compile extract.py; echo "status=$?"</code></pre>
+  <p>The feature: turn <code>extract.py</code> into a CLI with <code>argparse</code> (URL argument, optional <code>--limit N</code>), move <code>import re</code> to module level, and keep type annotations. Restore the seed from the heredoc before each attempt so the four runs start equal.</p>
+  <ol type="a">
+    <li>Hand: vim only.</li>
+    <li>Autocomplete: Zed or Cursor Tab. You still type the structure.</li>
+    <li>Inline chat: select the file or a block, prompt in the editor.</li>
+    <li>Agent: paste Missing Semester’s prompt (Knowledge 2), then ask it to add <code>--limit</code> and to run the script.</li>
+  </ol>
+  <p>After each attempt: <code>python3 -m py_compile extract.py</code>, then run it. One sentence per attempt: what was fast, and what you still had to catch.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Hand is slow and precise. Autocomplete fills beyond the cursor; rearranging <code>import re</code> still takes a delete and retype. Inline chat proposes a diff you accept. The agent reads, edits, and can run the checker. Expect a working <code>argparse</code> CLI; <code>--limit</code> slices the list. <code>py_compile</code> status 0 means the file parses. Confirm the flag by running the program. Read the help text and try a URL you control if GitHub is slow. The point is the comparison.</p>
+  </div></details>
+
+  <h3>2. Navigate unfamiliar code</h3>
+  <p>Missing Semester: use an agent to find your way around a codebase you do not know, ideally one you actually need to change. If nothing is on fire, pick one of these:</p>
+  <ul>
+    <li>The class-site clone from lesson 0040: “How do I run this site locally?” (Compose from lesson 0041 is a valid answer.)</li>
+    <li>This agent: “When do you ask me to confirm a tool call, and what does auto-run change?” That is the security question Missing Semester points at in opencode, asked of the harness you are in.</li>
+  </ul>
+  <p>Write two facts you learned that you could not have guessed from the README filename alone.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Class site: <code>docker compose up --build</code>, host port 4000, bind-mount so Jekyll rebuilds. Confirmation: the harness treats file and shell tools as dangerous by default, so you approve them; auto-run skips that prompt. A good answer names a file or a setting. If the agent hallucinates a path, open that path in vim and check.</p>
+  </div></details>
+
+  <h3>3. Vibe-code a tiny app</h3>
+  <p>Missing Semester: vibe-code a small app from scratch. You type the prompt. The agent types the code. Stay in <code>/tmp/ms-agent/vibe/</code>. Stdlib only (same posture as the shipping drill): an HTTP server on port 8080 that returns a greeting. Then gate and review:</p>
+  <pre><code>python3 -m py_compile /tmp/ms-agent/vibe/*.py; echo "status=$?"
+# in another pane: curl -s http://127.0.0.1:8080
+# review the files in vim; Ctrl-C to stop the server</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>A few dozen lines around <code>http.server</code> is enough. Status 0 means the files parse. Curl proves it listens. vim is where you look for a bind to <code>0.0.0.0</code> you did not ask for, a secret, or extra files. Tear down with Ctrl-C. Treat the result as a draft you accepted.</p>
+  </div></details>
+
+  <h3>4. AGENTS.md, a skill, and a subagent</h3>
+  <p>Missing Semester: create and test an <code>AGENTS.md</code>, a skill, and a subagent for your agent. In Cursor those are <code>AGENTS.md</code>, a <code>SKILL.md</code>, and a subagent (a separate agent run). Write them under scratch so this course repo stays clean. <code>AGENTS.md</code> loads automatically only if that folder is the workspace. Here, paste it into the prompt or open <code>/tmp/ms-agent</code> as a workspace.</p>
+  <pre><code>cd /tmp/ms-agent
+mkdir -p .cursor/skills/ms-py-check
+cat &gt; AGENTS.md &lt;&lt;'EOF'
+After any Python edit, run:
+  python3 -m py_compile FILE
+Treat a nonzero exit as a failed edit: fix and re-run.
+Use the project venv if one exists. Install packages only there.
+EOF
+cat &gt; .cursor/skills/ms-py-check/SKILL.md &lt;&lt;'EOF'
+---
+name: ms-py-check
+description: Type-check and syntax-check Python files with py_compile and mypy when available. Use when Python files changed or the user asks to gate AI edits.
+---
+
+# Python check
+
+Run `python3 -m py_compile` on each changed `.py` file.
+If `python3 -m mypy` imports, run it too.
+Print `status=$?`. Nonzero means keep editing.
+EOF
+cat &gt; subagent-check.txt &lt;&lt;'EOF'
+You are a Python checking subagent.
+Look at `.py` files in this directory.
+Run python3 -m py_compile on them.
+If mypy is importable, run python3 -m mypy too.
+Return only the commands, their output, and status=N.
+EOF</code></pre>
+  <p>Test: ask this agent (or a new chat pointed at <code>/tmp/ms-agent</code>) to follow <code>AGENTS.md</code>, then “open the ms-py-check skill,” then “use a subagent and the prompt in <code>subagent-check.txt</code>.” One sentence: when you would pick each of the three.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>AGENTS.md</code>: short rules you want in every session. Skill: extra procedure, loaded when relevant, so the always-on file stays small. Subagent: a checker or research dump whose raw output would crowd the parent chat. If Cursor does not auto-load the scratch skill, pasting the skill body once still tests the idea. Claude Code / Codex are the same three knobs with different filenames.</p>
+  </div></details>
+
+  <h3>5. Convert bullets with sed</h3>
+  <p>Missing Semester: same goal as the Code Quality lecture’s Markdown-bullet exercise, done by an agent. Convert <code>-</code> list markers to <code>*</code>. Dates, flags, and ranges keep their hyphens. First, let the agent try. Then require a lecture-1 tool.</p>
+  <pre><code>cd /tmp/ms-agent
+cat &gt; notes.md &lt;&lt;'EOF'
+# Shipping notes
+Date: 2026-01-21
+- Pack the artifact
+- Name the environment
+See also: pre-commit and CI (later).
+Run: python3 extract.py --limit 3
+Cost: 5-10 minutes
+EOF</code></pre>
+  <p>Prompt A: “In <code>/tmp/ms-agent/notes.md</code>, change Markdown dash bullets to asterisks.” Notice whether it edited the file directly, and whether <code>2026-01-21</code> / <code>--limit</code> / <code>5-10</code> survived. Restore the file from the heredoc. Prompt B: “Use <code>sed</code> on Markdown bullet lines only. Leave editor tools unused.”</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>A direct edit is fast and easy to overshoot (rewriting the whole file, touching hyphens that are not bullets). <code>sed</code> makes the rule visible and repeatable:</p>
+    <pre><code>sed -E 's/^([[:space:]]*)- /\1* /' notes.md
+# then, if the preview is right:
+sed -i '' -E 's/^([[:space:]]*)- /\1* /' notes.md   # macOS BSD sed</code></pre>
+    <p>Bullets become asterisks. The date, <code>--limit</code>, <code>pre-commit</code>, and <code>5-10</code> stay. Downside of a silent file rewrite: you cannot grep the transcript for the rule, and a wrong pattern is harder to notice. Lesson 0017: macOS needs <code>sed -i ''</code>; Linux remotes use <code>sed -i</code>.</p>
+  </div></details>
+
+  <h3>6. Auto-run only after isolation</h3>
+  <p>Missing Semester: get “yolo mode” running inside a VM or container. Skip this sitting unless you want that setup. Confirming tool calls is the default, and it is the right default on a machine that has your ssh keys and this repo. If you do run it: a disposable container (lessons 0030 and 0041), no bind of <code>$HOME</code>, no secrets in the image, then enable auto-run only there. Claude Code documents devcontainers and Docker sandboxes; Cursor’s equivalent is auto-run inside a sandbox. Tear the box down when you are done.</p>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>What is a coding agent, in one sentence?</li>
+    <li>Why does the harness confirm tool calls?</li>
+    <li>What makes “fix the mypy errors” work well?</li>
+    <li>AGENTS.md versus a skill versus a subagent.</li>
+    <li>What do you do with the diff before you trust it?</li>
+  </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) A conversational LLM plus a harness that can read/write files, search, and run a shell.<br>
+    (b) Those tools can change the machine; you review the call first.<br>
+    (c) The agent runs the checker, reads the output, edits, and repeats until status 0.<br>
+    (d) Always-on short rules; on-demand extra procedure; separate context for noisy work.<br>
+    (e) Read it in vim (or the proposed diff). Run <code>py_compile</code> / mypy. Watch for security and for a “fix” that only hides the bug.</p>
+  </div></details>
+
+  <div class="gotcha"><strong>Later.</strong> MCP servers; git worktrees for parallel agents; ruff and the rest of Code Quality; Claude Code / Codex if you want a second harness. Next Missing Semester lecture: Beyond the Code.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Answers shuffle on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A coding agent is:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">A conversational LLM plus tools that read/write files, search the web, and run a shell</li>
+      <li class="option">A language server that completes symbols from a local index of your repo</li>
+      <li class="option">An autocomplete model that only inserts text beyond the cursor position</li>
+      <li class="option">A container image that ships your app together with its Python version</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>Agent harnesses confirm tool calls by default because:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">File and shell tools can change your machine; you review before they run</li>
+      <li class="option">The context window overflows unless you click once on every turn</li>
+      <li class="option">MCP servers require a human in the loop on every HTTP request</li>
+      <li class="option">Compaction only works after you approve the summary of the chat</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>AGENTS.md versus a skill:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">AGENTS.md loads in full every session; a skill loads when the agent opens it</li>
+      <li class="option">Skills always load; AGENTS.md loads only if you mention its filename</li>
+      <li class="option">Both are lockfiles that pin the model version for CI and production</li>
+      <li class="option">AGENTS.md replaces git hooks; skills replace Dockerfiles in Compose</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>The highest-leverage setup for “fix the mypy errors” is:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Let the agent run mypy, read the output, edit, and re-run until status 0</li>
+      <li class="option">Paste a paraphrase of the errors and ask the model to guess the patch</li>
+      <li class="option">Disable the type checker so the agent can finish the edit faster</li>
+      <li class="option">Ask autocomplete to invent annotations without opening the file</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did the intern-manager picture match how you already use Cursor? Did the four-way comparison in exercise 1 change which form factor you reach for? Did <code>sed</code> feel like the right way to keep the hyphen rule visible?</p>
+    <p style="margin-bottom:0">This file is the whole agentic-coding lecture. Finish leftover exercises in a later sitting, or say when you want Beyond the Code.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/agentic-coding/">Missing Semester: Agentic Coding</a> (CC BY-NC-SA). Agent loop, privacy, use cases, context, review. Exercises 1 to 6.</li>
+      <li>Form factors: lesson <a href="./0029-ms-ai-form-factors.html">0029</a>. Checkers: lesson <a href="./0028-ms-lsp-cli-checkers.html">0028</a>. <a href="https://agents.md/">AGENTS.md</a>. <a href="https://llmstxt.org/">llms.txt</a>. Software named: Cursor, Zed, opencode, Claude Code, Codex.</li>
+    </ul>
+    <p>Previous: <a href="./0041-ms-packaging-shipping.html">Lesson 0041: Packaging and Shipping</a>. Reference: <a href="../reference/agentic-coding.html">Agentic coding pocket card</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite. See the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? '. Cold-rebuild the agent loop, why tools confirm, the checker feedback loop, and AGENTS.md versus skill versus subagent before you continue.'
+            : correct >= quizzes.length - 1
+            ? '. Fix the miss, then redo the cold rebuilds.'
+            : '. Re-read Knowledge 1 to 3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>
