@@ -8,9 +8,9 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 
 **Pacing:** L0040 shape — Why + Read first + gotcha + Knowledge × 3 + Setup + that lecture’s exercises + cold rebuilds + Later + quiz × 4. One MS lecture → one lesson when possible (vim and tmux sit before the MS spine). Cover important topics **and** the exercise section in the same HTML (spread across sittings if needed). Do not micro-slice lecture subsections into their own lessons. Historical slice files stay on disk for retrieval; they are not the path.
 
-**Canonical path (9 lessons):** `0001` Vim → `0006` tmux → `0015` Shell (MS 1) → `0019` CLI conventions (MS 2a) → `0024` Remote & home (MS 2b) → `0026` Dev environment (MS 3) → `0031` Debugging (MS 4a) → `0036` Profiling (MS 4b) → `0040` Git (MS 5).
+**Canonical path (10 lessons):** `0001` Vim → `0006` tmux → `0015` Shell (MS 1) → `0019` CLI conventions (MS 2a) → `0024` Remote & home (MS 2b) → `0026` Dev environment (MS 3) → `0031` Debugging (MS 4a) → `0036` Profiling (MS 4b) → `0040` Git (MS 5) → `0041` Shipping (MS 6).
 
-**Next up:** leftover Git sittings on L0040 if needed, then MS lecture 6 Packaging and Shipping Code. L0039 (massif) stays withdrawn — notes-only, not an exercise.
+**Next up:** L0041 in flight — MS lecture 6 Packaging and Shipping Code. Leftover Git sittings on L0040 are optional retrieval. L0039 (massif) stays withdrawn — notes-only, not an exercise.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
@@ -20,6 +20,7 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - Survive an SSH drop with remote tmux; reattach and the work is intact.
 - Debug a service with `curl -i`, `dig`, `ss -tlnp`, `pgrep`/`kill` by reflex.
 - Explain Git as a DAG of snapshots (blob / tree / commit / ref); stage and commit without treating commands as magic.
+- Name the artifact vs the environment; isolate with a venv; install a wheel; distinguish image vs container vs VM; keep secrets out of git and images.
 - Read `man`, `:help`, and `info` as primary references instead of searching blogs.
 
 ## Constraints
@@ -35,6 +36,6 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - zsh, fish, neovim, helix, emacs.
 - vim plugins, tmux plugin managers (TPM), oh-my-* or starship prompts.
 - Missing Semester–suggested alternate CLIs (eza, bat, fd, ripgrep, zoxide, jq-deep) — revisit later if desired; defaults/POSIX stay primary.
-- Container/k8s CLI depth (kubectl, helm, docker-compose) — revisit once fundamentals are locked.
+- kubectl / helm / Kubernetes — Compose is L0041 at lecture-exercise depth; cluster orchestration stays named.
 - IDEs and GUI editors entirely.
 - PowerShell / cmd.exe (use bash on Mac / Linux remotes).

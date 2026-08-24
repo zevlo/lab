@@ -40,6 +40,8 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Lecture 4. Canonical: **Lesson 0031** (debugging: printf/`pdb`, dig/`ss`/`lsof`, strace, tcpdump, ASan/Valgrind, AI-for-debug) and **Lesson 0036** (profiling: `time`/`htop`, tidy plots, `perf` + flame graphs + callgrind). Pocket cards: `reference/debug.html`, `reference/profiling.html`. Massif / `hyperfine` named only (L0039 withdrawn — massif is not in the exercise set). `rr` named (no PMU in Docker-on-Mac). Older slices 0032–0035, 0037–0038, 0010 are retrieval only.
 - **Version Control and Git (2026)** — https://missing.csail.mit.edu/2026/version-control/
   Lecture 5. Lesson 0040 = the whole lecture: data model (blob / tree / commit DAG / objects / refs / HEAD), staging area, command map, and the nine MS exercises (class-site clone/blame, history rewrite on `/tmp` only, stash, alias, gitignore, merge conflict; Learn Git Branching optional; class-site PR only if useful). Git ≠ GitHub.
+- **Packaging and Shipping Code (2026)** — https://missing.csail.mit.edu/2026/shipping-code/
+  Lecture 6. Lesson 0041 = the whole lecture: environments (`venv`), artifacts (`pyproject.toml` / wheels), SemVer + lockfiles, VMs vs containers, runtime config, Compose, publishing named (TestPyPI / ghcr / Pages). Floor is `venv` + `pip` (`uv` named, not required). Compose at MS-exercise depth; Kubernetes named. Pocket card: `reference/shipping-code.html`.
 
 ## Knowledge — focused references
 
@@ -54,9 +56,9 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
 - **`man 8 ss`** — https://manpages.debian.org/bookworm/iproute2/ss.8.en.html
   Linux socket statistics (iproute2). Use for: `ss -tlnp` listening TCP + process. Not on macOS — remote only. Lesson 0031; Mac listen sockets = `lsof -nP -iTCP -sTCP:LISTEN`.
 - **Development Containers spec** — https://containers.dev/
-  Editor-agnostic `devcontainer.json` reference (read by VS Code, Cursor, Codespaces, JetBrains, and the `devcontainer` CLI). Use for: the dev-container config shape (build, mounts, forwardPorts, postCreateCommand). Lesson 0026. Container build depth (multi-stage, registries, CI) is MS Packaging and Shipping Code.
+  Editor-agnostic `devcontainer.json` reference (read by VS Code, Cursor, Codespaces, JetBrains, and the `devcontainer` CLI). Use for: the dev-container config shape (build, mounts, forwardPorts, postCreateCommand). Lesson 0026. Image build, Compose, registries: Lesson 0041.
 - **Docker CLI reference** — https://docs.docker.com/reference/cli/docker/
-  Official `docker` verb/flag reference (`build`, `run`, `exec`, `ps`, `stop`/`rm`, `rmi`, `logs`; `-it`, `--rm`, `-v`, `-w`, `-p`). Use for: exact flag semantics. On macOS the daemon runs via Docker Desktop or `colima`; commands are identical to Linux. Lesson 0026.
+  Official `docker` verb/flag reference (`build`, `run`, `exec`, `ps`, `stop`/`rm`, `rmi`, `logs`; `-it`, `--rm`, `-v`, `-w`, `-p`). Use for: exact flag semantics. On macOS the daemon runs via Docker Desktop or `colima`; commands are identical to Linux. Lessons 0026 / 0041. Compose: https://docs.docker.com/compose/ — Lesson 0041.
 - **`pdb` — Python debugger** — https://docs.python.org/3/library/pdb.html
   Python’s language-specific debugger. Use for: breakpoints, step/next, inspect values, backtrace (`b`/`c`/`n`/`s`/`p`/`l`/`w`/`q`; `breakpoint()` inline since 3.7). Lesson 0031. `gdb` (https://www.gnu.org/software/gdb/) is the de-facto standard for C/C++/Rust — command shapes mirror `pdb`; named, not the hands-on debugger under this mission.
 - **`tcpdump(1)` / `pcap-filter(7)`** — https://www.man7.org/linux/man-pages/man1/tcpdump.1.html
@@ -94,6 +96,14 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   MS-recommended. Chapters 1–5 after the data model. Lesson 0040.
 - **Learn Git Branching** — https://learngitbranching.js.org
   Browser DAG game. MS exercise 1; optional if you already commit daily. Lesson 0040.
+- **`venv`** — https://docs.python.org/3/library/venv.html
+  Stdlib virtual environments. Use for: `python3 -m venv`, activate/PATH, `deactivate` as a function. Lesson 0041.
+- **Writing pyproject.toml / PEP 621** — https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+  Project metadata and build backend. Use for: `[project]`, `[project.scripts]`, `[build-system]`. Lesson 0041.
+- **Semantic Versioning** — https://semver.org
+  `MAJOR.MINOR.PATCH` contract. Use for: what a bump promises; `0.x` may break on minor. Lesson 0041.
+- **Dockerfile reference** — https://docs.docker.com/reference/dockerfile/
+  Instruction semantics (`FROM`, `RUN`, `COPY`, `WORKDIR`, `CMD`, `ENV`). Lesson 0041. Multi-stage / non-root named, not drilled.
 
 ## Wisdom (communities)
 

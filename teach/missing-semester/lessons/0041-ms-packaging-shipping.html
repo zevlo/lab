@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0041: Packaging and Shipping Code</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0041 · <a href="../reference/shipping-code.html">Missing Semester: Packaging and Shipping</a></p>
+    <h1>Packaging and Shipping Code</h1>
+    <p class="lede">To run your code on another machine, ship a packaged artifact and declare the environment that it needs.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>A program that works on your laptop still has to start on a server, in CI, and on a teammate’s machine. Shipping means turning your source into an artifact that someone else can install and run. That someone else is often you, a week later.</p>
+  <p>Libraries, command-line tools, and web services use different artifacts: a wheel, a binary, or a container image. They share one pattern. Name the <strong>artifact</strong> and name the <strong>environment</strong> it assumes: Python version, system libraries, configuration, and network. This lecture uses Python. Rust’s <code>cargo</code> tool covers the same ideas with one CLI. Python splits the work across specifications and several tools.</p>
+  <p><strong>Read first (about 20 minutes):</strong> <a href="https://missing.csail.mit.edu/2026/shipping-code/">Missing Semester: Packaging and Shipping Code</a>, including the Exercises section.</p>
+  <div class="gotcha"><strong>This file covers the whole lecture:</strong> environments, artifacts, versions, lockfiles, virtual machines, containers, configuration, Compose, and publishing. Spread the work across sittings if you want. Scratch directory: <code>/tmp/ms-ship/</code>. Install packages only inside a virtual environment. Use TestPyPI for publish experiments. Exercises 3 and 4 need a running Docker daemon; if <code>docker info</code> fails, start Docker Desktop or colima. Missing Semester recommends <code>uv</code> as a faster installer. This lesson uses <code>venv</code> and <code>pip</code>, which you already have.</div>
+
+  <h2>Knowledge 1: Dependencies and environments</h2>
+  <p>A <strong>dependency</strong> is a library that your program imports and that the language runtime doesn’t include. When you write <code>import requests</code>, Python looks in <code>site-packages</code>. <code>pip</code> fetches a <strong>wheel</strong> from <a href="https://pypi.org">PyPI</a>, installs that library and its dependencies, and copies the files there.</p>
+  <p>If two packages need incompatible versions of <code>numpy</code>, the installer can’t satisfy both. That’s <strong>dependency hell</strong>. A virtual <strong>environment</strong> gives each project its own interpreter and its own package set:</p>
+  <pre><code>python3 -m venv venv
+source venv/bin/activate   # prepends venv/bin to PATH
+which python3              # should show .../venv/bin/python3
+deactivate                 # restores PATH, then unsets this function</code></pre>
+  <p><code>source venv/bin/activate</code> prepends <code>venv/bin</code> to <code>PATH</code>. After that, <code>which python3</code> should print a path under <code>venv/bin</code>. <code>pip</code> and <code>python3</code> then refer to that environment. The shell picks those binaries because of <code>PATH</code> order.</p>
+  <p><code>activate</code> also defines a shell function named <code>deactivate</code>. <code>type deactivate</code> prints the function. <code>which deactivate</code> searches only for files on <code>PATH</code>, so it often prints nothing. When you run <code>deactivate</code>, the function restores your previous <code>PATH</code> and then removes itself.</p>
+  <div class="gotcha"><strong>Install into the project venv.</strong> macOS and Linux tools can depend on the system Python. This machine already pins the interpreter version with mise (Python 3.12.14). Create one virtual environment per project so packages stay isolated too. Use that environment’s <code>pip</code>.</div>
+  <p>Other languages often create a project-local environment for you. <code>cargo</code> does that for Rust. The idea is the same. Missing Semester recommends <code>uv</code> as a faster installer. You can try it later.</p>
+
+  <h2>Knowledge 2: Artifacts, versions, and lockfiles</h2>
+  <p><strong>Source</strong> is the code that you edit. An <strong>artifact</strong> is the packaged file that someone else installs. Python searches a list of known locations for imports. A <code>.py</code> file in the current directory is importable. To import that file from <code>/tmp</code>, add the directory to the search path or install the package. Packaging copies the code into a location that the runtime already searches.</p>
+  <p>The Python manifest is the <code>pyproject.toml</code> file (<a href="https://peps.python.org/pep-0621/">PEP 621</a>). A <strong>wheel</strong> (<code>.whl</code>) is a zip archive of modules, metadata (name, version, dependencies), and the install layout. A <code>.tar.gz</code> file is a source distribution (sdist) for machines that compile from source.</p>
+  <p>The tag <code>py3-none-any</code> means any Python 3, any OS, and any CPU. The tag <code>cp312-macosx_arm64</code> means CPython 3.12 on Apple Silicon. If the tag doesn’t match your platform, pip tries another wheel or builds from the sdist. A source build needs a compiler.</p>
+  <p>You change source continuously. You release artifacts at discrete versions. <a href="https://semver.org">Semantic Versioning</a> uses <code>MAJOR.MINOR.PATCH</code>:</p>
+  <table>
+    <thead><tr><th>Bump</th><th>Promise</th></tr></thead>
+    <tbody>
+      <tr><td>PATCH 1.2.3 to 1.2.4</td><td>bug fix; compatible</td></tr>
+      <tr><td>MINOR 1.2.3 to 1.3.0</td><td>feature; compatible</td></tr>
+      <tr><td>MAJOR 1.2.3 to 2.0.0</td><td>breaking change; callers may need edits</td></tr>
+    </tbody>
+  </table>
+  <p>In <code>0.x</code> versions, a minor bump can include breaking changes. In the <code>pyproject.toml</code> file you constrain versions with specifiers: <code>==2.32.3</code> (this exact version), <code>&gt;=8.0</code> (8.0 or newer), <code>&gt;=1.24,&lt;2.0</code> (at least 1.24 and below 2.0), and <code>~=2.1.0</code> (at least 2.1.0 and below 2.2.0). That last form is Python’s compatible-release operator.</p>
+  <p>SemVer is a convention. A patch release can still change behavior. Calendar Versioning, such as Ubuntu <code>24.04</code>, encodes a date. It describes age, and it leaves compatibility implicit.</p>
+  <p>A library is imported by other projects, so wide version ranges reduce conflicts. An application is the final consumer, so pin exact versions. A <strong>lockfile</strong> records the solver’s exact list: name, version, URL, and often a hash. The next install then matches. <code>pip freeze</code> writes that list as text. Files such as <code>uv.lock</code> add hashes. Nix and Bazel can pin the compiler as well; this lesson names those tools.</p>
+  <p>New versions fix security issues and can change behavior. Test upgrades in CI, and keep a rollback path to a known-good artifact. Tools such as Dependabot watch for new versions. This lesson names them.</p>
+
+  <h2>Knowledge 3: Virtual machines, containers, and configuration</h2>
+  <p>Some dependencies live outside the language: OpenSSL, GPU drivers, a specific libc. A language package manager leaves those to the operating system.</p>
+  <table>
+    <thead><tr><th></th><th>What you pack</th><th>Kernel</th></tr></thead>
+    <tbody>
+      <tr><td>VM</td><td>whole guest OS</td><td>guest’s own</td></tr>
+      <tr><td>container</td><td>app, libraries, and filesystem</td><td>shared with host</td></tr>
+    </tbody>
+  </table>
+  <p>Containers start faster because they share the host kernel. A VM isolates more strongly because it runs a guest kernel. On macOS and Windows, Docker runs a Linux VM, which you already used in lesson 0026.</p>
+  <p>An <strong>image</strong> is a layered template. A <strong>container</strong> is a running instance of that image. You can start many containers from one image.</p>
+  <p>A Dockerfile is the recipe. Each <code>FROM</code>, <code>RUN</code>, and <code>COPY</code> instruction becomes a layer. Docker reuses a layer until that instruction or an earlier one changes. Copy the lockfile or manifest first, then the source, so a code edit leaves the dependency layers cached. Pin image tags. Prefer slim base images. Keep secrets out of layers; old layers remain in the image history.</p>
+  <p>Missing Semester’s improved example copies a <code>uv</code> binary from another image instead of compiling it. That’s the builder pattern. This lesson names it. An <code>amd64</code> image on this arm64 Mac runs under emulation and is slow.</p>
+  <p>Pass <strong>configuration</strong> when the process starts, using environment variables or a file. Use the same artifact in development, staging, and production. For a required secret, read <code>os.environ["API_KEY"]</code> so a missing value raises immediately. Store secrets in the runtime environment. Git commits and image layers keep old copies, so treat a committed secret as leaked.</p>
+  <p>If two processes need conflicting packages, run them in two containers. <a href="https://docs.docker.com/compose/">Compose</a> declares those services in one YAML file. Compose DNS resolves the service name: <code>redis://cache:6379</code> when the service is named <code>cache</code>. Volumes keep data after the container stops. On Linux, production often wraps <code>docker compose up -d</code> in a systemd unit. This Mac uses launchd instead. Kubernetes orchestrates many machines. Missing Semester calls it overkill for small projects. This lesson names it.</p>
+  <p>Services communicate over HTTP. You publish Python packages to TestPyPI (a sandbox) or PyPI, binaries with GitHub Releases, and images to <code>ghcr.io</code> or Docker Hub. Registries verify files with checksums, and sometimes signatures. Use TestPyPI for experiments. Use PyPI for packages that you intend other people to install.</p>
+
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-ship &amp;&amp; cd /tmp/ms-ship
+python3 --version    # this machine: 3.12.14 (mise)
+docker --version     # 29.4.0 + compose v5.1.2
+docker info          # should succeed before exercises 3 and 4</code></pre>
+  <p>Use Ghostty, bash, and vim. If <code>docker info</code> errors, start Docker Desktop or colima, then retry.</p>
+
+  <h2>Exercises</h2>
+  <p>These are Missing Semester’s exercises, adapted to <code>venv</code> and <code>pip</code>. Attempt each one, then open <code>show answer</code>. Open the <a href="../reference/shipping-code.html">pocket card</a> if you get stuck.</p>
+
+  <h3>1. Save the environment</h3>
+  <p>Missing Semester: dump the environment, create a venv, dump again, and diff. Why does the shell pick the venv’s binaries? What is <code>deactivate</code>?</p>
+  <pre><code>cd /tmp/ms-ship
+printenv | sort &gt; before.txt
+python3 -m venv venv
+source venv/bin/activate
+printenv | sort &gt; after.txt
+diff before.txt after.txt
+which python3
+type deactivate
+which deactivate || true
+deactivate
+which python3</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>The diff shows <code>PATH</code> starting with <code>/tmp/ms-ship/venv/bin</code> (macOS may print <code>/private/tmp/...</code>). <code>VIRTUAL_ENV</code> appears, and often <code>VIRTUAL_ENV_PROMPT</code> does too. That prepend is why <code>python3</code> and <code>pip</code> resolve inside the venv. <code>type deactivate</code> shows a function that restores the old <code>PATH</code>, unsets <code>VIRTUAL_ENV</code>, and runs <code>unset -f deactivate</code>. <code>which deactivate</code> usually prints nothing because <code>which</code> searches for files. After <code>deactivate</code>, <code>which python3</code> points at mise or the OS again, and <code>type deactivate</code> fails.</p>
+  </div></details>
+
+  <h3>2. Package, install, and lock</h3>
+  <p>Missing Semester: create a package with a <code>pyproject.toml</code> file, install it in a virtual environment, then create a lockfile and inspect it. Use a tiny stdlib module:</p>
+  <pre><code>cd /tmp/ms-ship
+mkdir pkg &amp;&amp; cd pkg
+cat &gt; greet.py &lt;&lt;'EOF'
+import sys
+
+def greet(name: str) -&gt; str:
+    return f"Hello, {name}!"
+
+def main() -&gt; None:
+    print(greet(sys.argv[1] if len(sys.argv) &gt; 1 else "world"))
+
+if __name__ == "__main__":
+    main()
+EOF
+cat &gt; pyproject.toml &lt;&lt;'EOF'
+[project]
+name = "ms-greet"
+version = "0.1.0"
+description = "tiny shipping drill"
+requires-python = "&gt;=3.11"
+
+[project.scripts]
+greet = "greet:main"
+
+[build-system]
+requires = ["setuptools&gt;=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["greet"]
+EOF
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install .
+greet Ada
+python3 -m pip wheel . -w dist
+ls dist
+python3 -m pip freeze &gt; requirements.lock
+cat requirements.lock
+deactivate</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>greet Ada</code> prints <code>Hello, Ada!</code> because the console script is on <code>PATH</code> while the venv is active. The <code>dist/</code> directory has a wheel, and pip may also emit an sdist. <code>requirements.lock</code> is the output of <code>pip freeze</code>: exact names and versions in this environment, including <code>ms-greet==0.1.0</code> plus setuptools and pip. That’s a pin list. <code>uv lock</code> would add URLs and sha256 hashes. To reinstall later, run <code>pip install -r requirements.lock</code> inside a fresh venv.</p>
+  </div></details>
+
+  <h3>3. Class site with Compose</h3>
+  <p>Missing Semester: install Docker and build the class website locally with Compose. Reuse the lesson 0040 clone if it still exists. Start the daemon first.</p>
+  <pre><code>docker info    # if this fails, start Docker Desktop or colima
+SITE=/tmp/ms-git/class-site
+if [ ! -d "$SITE/.git" ]; then
+  git clone https://github.com/missing-semester/missing-semester.git /tmp/ms-ship/class-site
+  SITE=/tmp/ms-ship/class-site
+fi
+cd "$SITE"
+cat docker-compose.yml
+docker compose up --build</code></pre>
+  <p>Browse <code>http://127.0.0.1:4000</code>. Press Ctrl-C to stop. What did Compose build, and which host port maps to the container?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>The YAML builds <code>missing-semester:latest</code> from the repo <code>Dockerfile</code> (Ruby on Alpine, <code>bundle install</code>, Jekyll serving on all interfaces). Compose publishes <code>4000:4000</code>, so host port 4000 is container port 4000. The bind <code>./:/app</code> lets Jekyll rebuild when you edit files. Ruby stays inside the image. The first build downloads a base image; later builds reuse the cache. Stop with Ctrl-C, or run <code>docker compose down</code> in another pane.</p>
+  </div></details>
+
+  <h3>4. Dockerfile, Compose, and Redis</h3>
+  <p>Missing Semester: write a Dockerfile for a small Python app, then a Compose file that runs it next to Redis. Use the stdlib only. Redis is there so the app can address it by service name:</p>
+  <pre><code>cd /tmp/ms-ship
+mkdir app &amp;&amp; cd app
+cat &gt; app.py &lt;&lt;'EOF'
+import os
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class H(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = f"hello redis={os.environ.get('REDIS_URL', 'missing')}\n".encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, fmt, *args):
+        return
+
+HTTPServer(("0.0.0.0", 8080), H).serve_forever()
+EOF
+cat &gt; Dockerfile &lt;&lt;'EOF'
+FROM python:3.12-slim
+WORKDIR /app
+COPY app.py .
+EXPOSE 8080
+CMD ["python3", "-u", "app.py"]
+EOF
+cat &gt; docker-compose.yml &lt;&lt;'EOF'
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - REDIS_URL=redis://cache:6379
+    depends_on:
+      - cache
+  cache:
+    image: redis:7-alpine
+EOF
+docker compose up --build</code></pre>
+  <p>In another pane, run <code>curl -s http://127.0.0.1:8080</code>. Why does the app use the hostname <code>cache</code>?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Curl prints <code>hello redis=redis://cache:6379</code>. Compose DNS resolves the service name <code>cache</code> to the Redis container. Inside <code>web</code>, <code>localhost</code> is the web container itself. <code>depends_on</code> starts Redis first; it doesn’t wait until Redis accepts connections. Host port 8080 maps to container port 8080. Tear down with Ctrl-C, then <code>docker compose down</code>.</p>
+  </div></details>
+
+  <h3>5. TestPyPI and ghcr.io</h3>
+  <p>Missing Semester: publish a package to TestPyPI, then push an image to <code>ghcr.io</code>. Skip this exercise unless you have TestPyPI and GitHub Container Registry accounts and a package that you intend to upload. Treat tokens as runtime secrets. Keep them out of git and out of image layers. TestPyPI is a sandbox index; install from it with <code>pip install --index-url https://test.pypi.org/simple/</code>. An image registry stores filesystem artifacts the way PyPI stores wheels. Checksums (and sometimes signatures) let the other machine trust the bytes.</p>
+
+  <h3>6. GitHub Pages</h3>
+  <p>Missing Semester: publish a site on GitHub Pages. Extra non-credit: a custom domain. Skip this exercise unless you want a real page. Pages serves static files from a branch or from <code>/docs</code>. A custom domain is DNS (A or CNAME records) plus a Pages setting. That’s the same “configuration at start time” idea as Knowledge 3, applied to hosting.</p>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>Why create a venv, and what does <code>activate</code> change?</li>
+    <li>Source versus wheel, one sentence each.</li>
+    <li>SemVer MAJOR, MINOR, and PATCH, one line.</li>
+    <li>Why a library uses ranges and an app uses a lockfile.</li>
+    <li>Image versus container versus VM.</li>
+    <li>Where secrets belong, and why image history and git matter.</li>
+  </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) Isolate this project’s packages and interpreter copy from other projects and from the OS Python. Activate prepends <code>venv/bin</code> to <code>PATH</code>.<br>
+    (b) Source is the code that you edit. A wheel is the zip that pip installs into a known location.<br>
+    (c) Breaking change, compatible feature, compatible bug fix. In <code>0.x</code>, a minor bump can break callers.<br>
+    (d) Other projects import a library, so wide ranges reduce conflicts. An app is the final product, so pin the resolved set.<br>
+    (e) Image: layered template. Container: running instance. VM: whole guest OS plus its kernel.<br>
+    (f) Pass secrets at run time. Image layers and git commits keep old copies, so rotate a leaked secret.</p>
+  </div></details>
+
+  <div class="gotcha"><strong>Later.</strong> <code>uv</code> and hashed lockfiles; TestPyPI and <code>ghcr.io</code> when you have a real artifact; multi-stage Docker; a non-root user; a systemd unit (Linux); Kubernetes; Nix or Bazel hermetic builds. Next Missing Semester lecture: Agentic Coding.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Answers shuffle on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A virtual environment exists so that:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">This project’s interpreter and packages stay isolated from the OS Python and other projects</li>
+      <li class="option">pip can write into /usr/lib without sudo and share one global site-packages</li>
+      <li class="option">Docker can share the host kernel with the language runtime on macOS</li>
+      <li class="option">Git can snapshot site-packages instead of tracking your source tree</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>A wheel is:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">A zip of code, metadata, and install layout that pip can install</li>
+      <li class="option">The source tree you edit, including tests and the venv directory</li>
+      <li class="option">A lockfile listing exact hashes of every transitive dependency</li>
+      <li class="option">A VM image that bundles a guest kernel with your program</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>Libraries and applications constrain dependencies differently because:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Other projects import a library (wide ranges); an app is a final product (pin and lock)</li>
+      <li class="option">Libraries must pin exact versions; applications must publish version ranges</li>
+      <li class="option">Only applications have transitive dependencies; libraries never do</li>
+      <li class="option">SemVer makes lockfiles unnecessary once the major version is frozen</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>Runtime configuration should be:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Passed in at start time with environment variables, files, or a secret store</li>
+      <li class="option">Compiled into the wheel so production cannot drift from the build</li>
+      <li class="option">Stored as ENV API_KEY=… in the Dockerfile so every replica matches</li>
+      <li class="option">Copied from the developer’s ~/.bashrc so prod equals the laptop</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did <code>PATH</code> explain why the venv’s <code>python3</code> won? Did <code>greet Ada</code> work only while the venv was active? Did Compose’s hostname <code>cache</code> make sense compared with <code>localhost</code>? Was the Docker daemon up for exercises 3 and 4?</p>
+    <p style="margin-bottom:0">This file is the whole shipping lecture. Finish leftover exercises in a later sitting, or say when you want Agentic Coding.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/shipping-code/">Missing Semester: Packaging and Shipping Code</a> (CC BY-NC-SA). Environments, artifacts, SemVer, lockfiles, VMs, containers, configuration, Compose, publishing. Exercises 1 to 6.</li>
+      <li><a href="https://docs.python.org/3/library/venv.html"><code>venv</code></a>, <a href="https://packaging.python.org/en/latest/guides/writing-pyproject-toml/">pyproject.toml</a>, <a href="https://semver.org">SemVer</a>. Docker: <a href="https://docs.docker.com/reference/dockerfile/">Dockerfile</a>, <a href="https://docs.docker.com/compose/">Compose</a>. TestPyPI is optional.</li>
+    </ul>
+    <p>Previous: <a href="./0040-ms-version-control-git.html">Lesson 0040: Git</a>. Reference: <a href="../reference/shipping-code.html">Shipping pocket card</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite. See the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? '. Cold-rebuild venv and PATH, wheel versus source, SemVer, library ranges versus app locks, image versus container, and config at start time before you continue.'
+            : correct >= quizzes.length - 1
+            ? '. Fix the miss, then redo the cold rebuilds.'
+            : '. Re-read Knowledge 1 to 3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

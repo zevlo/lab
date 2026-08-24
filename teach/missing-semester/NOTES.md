@@ -15,7 +15,8 @@
 ## MS-era pedagogy (current default)
 - **Spine:** Missing Semester 2026 lecture order and notes. **One lecture → one lesson** (important topics + that lecture’s exercises in the same HTML; spread sittings if needed). Shape = L0040: Why + Read first + gotcha + Knowledge × 3 + Setup + MS/adapted exercises + cold rebuilds + Later + quiz × 4. Do not micro-slice subsections. Do not add new slice files.
 - **Lectures 1–4 retrofitted** to that shape in 0001 / 0006 / 0015 / 0019 / 0024 / 0026 / 0031 / 0036 (plus 0040 already). Historical slices remain on disk, bannered “Superseded,” retrieval only.
-- **Tone:** Teach the material plainly — why it matters, how it works, drill, quiz. Do **not** put “pareto,” “high-rep,” “storage strength,” or similar meta in lesson copy.
+- **Tone:** Teach the material plainly: why it matters, how it works, drill, quiz. Do **not** put “pareto,” “high-rep,” “storage strength,” or similar meta in lesson copy.
+- **Prose (from L0041):** Follow the [Google developer documentation style guide](https://developers.google.com/style): second person, active voice, present tense, contractions, condition before instruction, sentence-case headings. Write positively (what to do). Avoid negative parallelism (“X, not Y” / stacked “don’t”). Prefer periods and colons to em dashes. Keep sentences short.
 - **Still good:** cold rebuilds, hidden drill answers, quiz shuffle, citing MS + `man`, deferring out-of-slice topics as “later” (not “pareto cut”).
 - **Still constrained:** defaults-only, POSIX-lean bash, skip MS “consider installing …” fancy CLIs unless mission changes.
 - Pre-MS NOTES below are historical context for older slice files — do not let them steer new MS lesson wording.
@@ -484,9 +485,9 @@
 
 ## Catalog rewrite (2026-08-20) — nine-lesson path, L0040 density
 - User asked to edit **previous** lessons to L0040 length and depth, cover the first four MS lectures, **reduce lesson count**, not one-file-per-lecture if a lecture is huge. Decision: do **not** delete 0001–0014; rewrite survivors in place; banner absorbed files.
-- **Canonical path:** 0001 Vim (absorbs 0002–0005, 0027) → 0006 tmux (0011–0013) → 0015 Shell / MS 1 (0007, 0009, 0014, 0016–0018, 0020) → 0019 CLI conventions / MS 2a (0008, 0021–0023) → 0024 Remote & home / MS 2b (0025) → 0026 Dev environment / MS 3 (0028–0030) → 0031 Debugging / MS 4a (0010, 0032–0035) → 0036 Profiling / MS 4b (0037–0038) → 0040 Git / MS 5. L0039 still withdrawn (massif notes-only; hyperfine skipped). Completions already logged for the slices still count — this is a catalog rewrite, not a re-take.
-- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, plus existing `git-version-control.html`. Older slice refs stay.
-- **Do not** add micro-slices. Next lesson when asked: leftover Git sittings, or MS lecture 6 Packaging.
+- **Canonical path:** 0001 Vim (absorbs 0002–0005, 0027) → 0006 tmux (0011–0013) → 0015 Shell / MS 1 (0007, 0009, 0014, 0016–0018, 0020) → 0019 CLI conventions / MS 2a (0008, 0021–0023) → 0024 Remote & home / MS 2b (0025) → 0026 Dev environment / MS 3 (0028–0030) → 0031 Debugging / MS 4a (0010, 0032–0035) → 0036 Profiling / MS 4b (0037–0038) → 0040 Git / MS 5 → 0041 Shipping / MS 6. L0039 still withdrawn (massif notes-only; hyperfine skipped). Completions already logged for the slices still count — this is a catalog rewrite, not a re-take.
+- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`. Older slice refs stay.
+- **Do not** add micro-slices.
 
 ## L0040 design notes (MS Lecture 5 — Version Control and Git, whole lecture)
 - **Topic choice:** user-requested jump. First lesson under the one-lecture rule.
@@ -496,3 +497,18 @@
 - **Skip:** fugitive.vim, oh-my-zsh prompt, GUI clients, `git mergetool` hands-on (resolve in vim), worktree hands-on, bisect (named; not in the exercise list), SHA-256 object format.
 - **Scratch:** `/tmp/ms-git/`. User already has `user.name` / `user.email` / `init.defaultbranch`. Git 2.55.0.
 - **Next when asked:** remaining Git exercises if they split sittings, or MS lecture 6 Packaging and Shipping Code.
+
+## L0040 complete (4/4; Git floor set)
+- Data model + staging + command map + MS exercise shapes landed. No friction reported; leftover Git sittings are optional retrieval, not a blocker. Git ≠ GitHub.
+- Next when asked: user said ready without picking; took lecture order → L0041 Packaging and Shipping Code.
+
+## L0041 design notes (MS Lecture 6 — Packaging and Shipping Code, whole lecture)
+- **Topic choice:** lecture order after L0040 4/4. Second lesson under the one-lecture rule.
+- **Primary sources:** https://missing.csail.mit.edu/2026/shipping-code/ (full page + GitHub `_2026/shipping-code.md` fetched). `venv` / pip / PEP 621 / SemVer / Dockerfile / Compose for flag semantics. Class-site Compose: `https://github.com/missing-semester/missing-semester` (`docker-compose.yml` + Ruby/Jekyll `Dockerfile`, port 4000; verified 2026-08-23).
+- **Scope:** deps + venv isolation; source vs wheel/`pyproject.toml`; SemVer + library-range vs app-lock (`pip freeze` as inspectable pin list); VM vs image vs container; runtime config; Compose DNS; publishing named (TestPyPI, ghcr, Pages).
+- **Exercises:** all 6 MS items in this HTML. (1) `printenv` / venv / PATH / `type deactivate`. (2) tiny stdlib package, `pip install .`, `pip wheel`, freeze lock. (3) class-site `docker compose up --build` (reuse L0040 clone if present). (4) Dockerfile + Compose + Redis hostname `cache`. (5–6) skip unless they have accounts / want a real page (same posture as Git class-site PR).
+- **Skip / named:** `uv` (MS-recommended faster pip; not installed; venv+pip is the floor). TestPyPI/ghcr tokens. systemd (Linux). Kubernetes. Nix/Bazel. Multi-stage/non-root as Later. Do not `pip install` into mise/OS Python. Do not publish junk to real PyPI.
+- **Scratch:** `/tmp/ms-ship/`. Python 3.12.14 (mise). Docker 29.4.0 + compose v5.1.2; daemon was down at write time — exercises 3–4 start Docker Desktop/colima first. arm64 Mac = Docker’s Linux VM.
+- **Reuse:** L0026 image/container nouns; L0022 env; L0025 owned dotfiles (don’t write secrets); L0028 checkers named only; L0040 clone path.
+- **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
+- **Next when asked:** leftover shipping sittings, or MS lecture 7 Agentic Coding.
