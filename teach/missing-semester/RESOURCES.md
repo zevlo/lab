@@ -44,6 +44,8 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Lecture 6. Lesson 0041 = the whole lecture: environments (`venv`), artifacts (`pyproject.toml` / wheels), SemVer + lockfiles, VMs vs containers, runtime config, Compose, publishing named (TestPyPI / ghcr / Pages). Floor is `venv` + `pip` (`uv` named, not required). Compose at MS-exercise depth; Kubernetes named. Pocket card: `reference/shipping-code.html`.
 - **Agentic Coding (2026)** — https://missing.csail.mit.edu/2026/agentic-coding/
   Lecture 7. Lesson 0042 = the whole lecture: agent loop (LLM + tools + harness), intern-manager, confirm tool calls, privacy, use cases, checker feedback loop, context (`AGENTS.md` / skills / subagents / `llms.txt`), review. Pocket card: `reference/agentic-coding.html`. Builds on L0029 form factors. Cursor is the drill agent; Claude Code / Codex / opencode named.
+- **Beyond the Code (2026)** — https://missing.csail.mit.edu/2026/beyond-code/
+  Lecture 8. Lesson 0043 = the whole lecture: comments that record the why, README funnel, commit body (Problem → Solution → Implications), contributing (bug reports, MRE, licenses, PRs), review, asking questions, AI disclosure. Pocket card: `reference/beyond-the-code.html`.
 
 ## Knowledge — focused references
 
@@ -112,6 +114,14 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Inference-time docs for LLMs (dense per token vs HTML). Example: https://cursor.com/llms.txt. Lesson 0042.
 - **Model Context Protocol** — https://modelcontextprotocol.io/
   Open protocol for connecting agents to extra tools (Notion, etc.). Named in Lesson 0042; directories Pulse / Glama. Not drilled.
+- **“How to ask good questions” / “How to get useful answers” — Julia Evans** — https://jvns.ca/blog/good-questions/ and https://jvns.ca/blog/2021/10/21/how-to-get-useful-answers-to-your-questions/
+  Question tactics Missing Semester points at: state your understanding, yes/no, interrupt tangents. Lesson 0043. Same moves apply to LLMs.
+- **choosealicense.com** — https://choosealicense.com/
+  License chooser, including copyleft (GPL family). Use before contributing to a project whose license would bind your employer. Lesson 0043.
+- **Stack Overflow: How to ask / minimal reproducible example** — https://stackoverflow.com/help/how-to-ask and https://stackoverflow.com/help/minimal-reproducible-example
+  Public-question bar that matches the lecture’s bug-report fields. Lesson 0043.
+- **How to code review in curl** — https://curl.se/dev/code-review.html
+  Maintainer-side review norms (nits, commit messages, newcomers). Lesson 0043 exercise 6.
 
 ## Wisdom (communities)
 

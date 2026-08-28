@@ -486,7 +486,7 @@
 ## Catalog rewrite (2026-08-20) — nine-lesson path, L0040 density
 - User asked to edit **previous** lessons to L0040 length and depth, cover the first four MS lectures, **reduce lesson count**, not one-file-per-lecture if a lecture is huge. Decision: do **not** delete 0001–0014; rewrite survivors in place; banner absorbed files.
 - **Canonical path:** 0001 Vim (absorbs 0002–0005, 0027) → 0006 tmux (0011–0013) → 0015 Shell / MS 1 (0007, 0009, 0014, 0016–0018, 0020) → 0019 CLI conventions / MS 2a (0008, 0021–0023) → 0024 Remote & home / MS 2b (0025) → 0026 Dev environment / MS 3 (0028–0030) → 0031 Debugging / MS 4a (0010, 0032–0035) → 0036 Profiling / MS 4b (0037–0038) → 0040 Git / MS 5 → 0041 Shipping / MS 6. L0039 still withdrawn (massif notes-only; hyperfine skipped). Completions already logged for the slices still count — this is a catalog rewrite, not a re-take.
-- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`, `agentic-coding.html`. Older slice refs stay.
+- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`, `agentic-coding.html`, `beyond-the-code.html`. Older slice refs stay.
 - **Do not** add micro-slices.
 
 ## L0040 design notes (MS Lecture 5 — Version Control and Git, whole lecture)
@@ -527,3 +527,18 @@
 - **Reuse:** L0029 three form factors + stack (Cursor is the live agent this sitting; Zed owned; vim review; opencode named). L0028/L0023 checkers and exit status. L0035 paste-the-artifact / draft-not-verdict. L0017 `sed`. L0040 class-site clone if present.
 - **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
 - **Next when asked:** leftover agentic sittings, or MS lecture 8 Beyond the Code.
+
+## L0042 complete (4/4; agentic-coding floor set)
+- Agent loop, confirm tool calls, checker feedback loop, and AGENTS.md vs skill vs subagent all landed. No friction reported; leftover yolo-in-a-container sittings are optional.
+- Next when asked: user said ready without picking; took lecture order → L0043 Beyond the Code.
+
+## L0043 design notes (MS Lecture 8 — Beyond the Code, whole lecture)
+- **Topic choice:** lecture order after L0042 4/4. Fourth lesson under the one-lecture rule.
+- **Primary sources:** https://missing.csail.mit.edu/2026/beyond-code/ (full page + GitHub `_2026/beyond-code.md` fetched). Julia Evans “How to ask good questions” + “How to get useful answers.” choosealicense.com. SO how-to-ask / MRE. curl `lib/http.c` comments and README verified; Redis `sds.h` `sdshdr5` comment verified; curl commit `94c596b` (stale TODO removal) verified.
+- **Scope:** why-not-what for comments / README funnel / commit body (Problem → Solution → Implications); `git add -p` light (named in L0040); contributing (bug report, MRE, license/copyleft, PRs); review habits; question tactics; AI disclose.
+- **Exercises:** all 7 MS items in this HTML. (1) curl/Redis permalinks + optional shallow curl clone. (2) class-site `git log` plus a toy repo rewrite + `git add -p`. (3) curl / class-site / nvm READMEs. (4) evaluate an issue, do not comment. (5) seeded MRE under `/tmp/ms-beyond/mre`. (6) read a merged PR, do not comment. (7) SO compare; start from `2>&1`.
+- **Skip / named:** filing real upstream issues/PRs unless they have a genuine bug (same spam posture as L0040 class-site PR). `git bisect` still named. Code Quality is next.
+- **Scratch:** `/tmp/ms-beyond/`. Browser needed for 1, 3, 4, 6, 7.
+- **Reuse:** L0040 blame / `git show`; L0042 intern-manager and same-session commit messages; L0015/0009 redirects for the SO example.
+- **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
+- **Next when asked:** leftover Beyond-the-Code sittings, or MS lecture 9 Code Quality.

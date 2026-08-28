@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference: Beyond the Code (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Beyond the Code</p>
+    <h1>Write the why</h1>
+    <p class="lede">Lecture 8: comments, commits, issues, review, questions, AI disclosure. From <a href="https://missing.csail.mit.edu/2026/beyond-code/">Beyond the Code</a>.</p>
+  </header>
+
+  <h2>Comments</h2>
+  <table>
+    <thead><tr><th>Kind</th><th>Records</th></tr></thead>
+    <tbody>
+      <tr><td>TODO</td><td>What is unfinished, and why it was deferred</td></tr>
+      <tr><td>Reference</td><td>Permalink to RFC / paper / borrowed code + divergences</td></tr>
+      <tr><td>Correctness</td><td>Why the steps work</td></tr>
+      <tr><td>Hard-learned</td><td>Non-obvious fix that cost real time</td></tr>
+      <tr><td>Constant</td><td>Why this number. “Chosen arbitrarily” counts</td></tr>
+      <tr><td>Load-bearing</td><td>Innocent-looking detail that is required</td></tr>
+      <tr><td>Why not</td><td>Why the obvious approach was skipped</td></tr>
+    </tbody>
+  </table>
+  <p>The code already shows the what. Scale length with complexity. Trust the reader with the how.</p>
+
+  <h2>README funnel</h2>
+  <p>What does this do → why should I care → how do I use it → how do I install it. One-liner (and maybe a demo) first. Usage before install.</p>
+
+  <h2>Commit body</h2>
+  <p>Problem → Solution → Implications. Also: alternatives, trade-offs, surprises. A typo needs only a subject. Split refactors from features.</p>
+  <pre><code>git add -p    # y yes  n no  s split  q quit
+git blame FILE
+git show HASH</code></pre>
+  <p>An LLM looking only at the diff sees the what. Ask for the message in the same agent session that made the change, or tell it to query you for the why.</p>
+
+  <h2>Bug report</h2>
+  <table>
+    <thead><tr><th>Field</th><th>Job</th></tr></thead>
+    <tbody>
+      <tr><td>environment</td><td>OS, versions, relevant config</td></tr>
+      <tr><td>expected vs actual</td><td>two concrete outcomes</td></tr>
+      <tr><td>steps</td><td>specific enough to replay</td></tr>
+      <tr><td>already tried</td><td>cuts duplicate suggestions</td></tr>
+      <tr><td>MRE</td><td>smallest case that still shows the bug</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Search existing issues first. Vulnerabilities go through <code>SECURITY.md</code> / private disclosure, not a public issue. Copyleft (GPL / AGPL) applies to your contribution: <a href="https://choosealicense.com/">choosealicense.com</a>. Read <code>CONTRIBUTING.md</code>. Start small. Upstream before a fork.</div>
+
+  <h2>Review</h2>
+  <p>Name the code, not the person. Actionable. Ask a question. Give the why. Mark blocking versus nit. Name what works. Stop. LLM first pass is not a substitute.</p>
+
+  <h2>Questions</h2>
+  <p>State your understanding, then “is that right?” Yes/no. Specific. Stop on unknown terms. Keep going until you understand. Same moves with an LLM. <a href="https://jvns.ca/blog/good-questions/">Julia Evans</a>.</p>
+
+  <h2>AI etiquette</h2>
+  <p>Disclose that AI contributed, and which parts. Follow the project’s policy. If the point is learning the task, doing the task is the point. Assessments: ask; if they forbid tools, leave them off.</p>
+
+  <h2>Exercise scratch</h2>
+  <pre><code>mkdir -p /tmp/ms-beyond &amp;&amp; cd /tmp/ms-beyond
+# comment hunt: curl lib/http.c  “RFC2616 forbids” / “zlib cannot handle compress”
+# toy commits + git add -p: /tmp/ms-beyond/commits
+# MRE seed: /tmp/ms-beyond/mre</code></pre>
+
+  <div class="beyond">
+    <h2>Beyond this lesson</h2>
+    <ul>
+      <li><code>git bisect</code> as the payoff of one-idea commits (named in lesson 0040).</li>
+      <li>A real upstream issue or PR only when you have a genuine fix. Skip spam.</li>
+      <li>Next Missing Semester lecture: Code Quality.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/beyond-code/">Missing Semester: Beyond the Code</a> (CC BY-NC-SA). <a href="https://jvns.ca/blog/good-questions/">Evans: good questions</a>. <a href="https://stackoverflow.com/help/minimal-reproducible-example">SO: MRE</a>. Lesson: <a href="../lessons/0043-ms-beyond-the-code.html">0043</a>.</p>
+  </footer>
+</body>
+</html>
