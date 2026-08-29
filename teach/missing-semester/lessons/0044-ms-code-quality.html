@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0044: Code Quality</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+    --correct-bg: #d7e8d4;
+    --correct-fg: #2e5e2a;
+    --wrong-bg: #f0d4d0;
+    --wrong-fg: #6e1e16;
+    --picked-wrong-bg: #c8523f;
+    --picked-wrong-fg: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 2.5rem auto;
+    padding: 0 1.25rem 4rem;
+    font-size: 17px;
+  }
+  header { margin-bottom: 2rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+  .kicker a { color: var(--accent); text-decoration: none; }
+  h1 { font-size: 2rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.2rem; margin: 2.2rem 0 0.7rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.5rem; font-weight: 600; }
+  p { margin: 0.7rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.5; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; width: 12em; }
+  ol, ul { padding-left: 1.3rem; }
+  li { margin: 0.35rem 0; }
+  .drill-answer { margin-top: 0.4rem; padding-left: 1rem; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+  details summary { cursor: pointer; color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.85rem; }
+  details[open] summary { margin-bottom: 0.3rem; }
+  details[open] .drill-answer p { margin: 0.3rem 0; }
+  .gotcha { background: #f6e6d8; border-left: 3px solid #a04000; padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .quiz-q { margin: 1.4rem 0 0.4rem; font-weight: 600; font-size: 1rem; }
+  .quiz-q .num { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-right: 0.5rem; }
+  .options { list-style: none; padding: 0; margin: 0.3rem 0 0; }
+  .option { display: inline-block; margin: 0.25rem 0.4rem 0.25rem 0; padding: 0.35rem 0.85rem; border: 1px solid var(--rule); border-radius: 4px; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92rem; cursor: pointer; user-select: none; }
+  .option:hover { border-color: var(--accent); }
+  .quiz.answered .option { cursor: default; }
+  .quiz.answered .option:hover { border-color: var(--rule); }
+  .option.correct { background: var(--correct-bg); color: var(--correct-fg); border-color: var(--correct-bg); }
+  .option.wrong { background: var(--wrong-bg); color: var(--wrong-fg); border-color: var(--wrong-bg); }
+  .option.picked-wrong { background: var(--picked-wrong-bg); color: var(--picked-wrong-fg); border-color: var(--picked-wrong-bg); }
+  .quiz-feedback { font-size: 0.85rem; margin-top: 0.5rem; color: var(--muted); min-height: 1.2em; }
+  .score { margin-top: 1.5rem; padding: 0.7rem 1rem; background: #efe6cf; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem; display: none; }
+  .score.show { display: block; }
+  .ask { margin-top: 2.5rem; padding: 1.1rem 1.3rem; background: #efe6cf; border-left: 3px solid var(--accent); border-radius: 4px; }
+  .ask p:first-child { margin-top: 0; }
+  .ask p:last-child { margin-bottom: 0; }
+  footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Lesson 0044 · <a href="../reference/code-quality.html">Missing Semester: Code Quality</a></p>
+    <h1>Code Quality</h1>
+    <p class="lede">Format the surface. Lint the antipatterns. Test the behavior. Run the same checks on every commit and every push.</p>
+  </header>
+
+  <h2>Why this matters</h2>
+  <p>Lesson 0028 gave you checkers you run beside vim: <code>py_compile</code>, <code>mypy</code>, <code>gofmt</code>. Lesson 0042 made those the agent feedback loop. The remaining failure mode is drift. One laptop uses single quotes. A pull request introduces a nested <code>if</code>. A function works on the author’s input and breaks on yours. Nobody reruns the checks after the last “tiny” edit.</p>
+  <p>Missing Semester’s stack for that: a formatter so the team stops arguing about spaces, a linter so antipatterns fail before review, tests so behavior has a tripwire, and hooks plus CI so the gate runs when you are not watching. Regex is the bonus: it shows up in test selection, search-replace, and log scraping. Learn the building blocks, look up the rest, and reach for a parser when the language is not regular.</p>
+  <p><strong>Read first (about 20 minutes):</strong> <a href="https://missing.csail.mit.edu/2026/code-quality/">Missing Semester: Code Quality</a>, including the Exercises section. Skim <a href="https://docs.astral.sh/ruff/rules/collapsible-if/">Ruff SIM102</a> so a linter rule looks like documentation, not a magic code.</p>
+  <div class="gotcha"><strong>This file covers the whole lecture:</strong> format, lint, tests, coverage, git hooks, CI, command runners, and regex. Spread the work across sittings if you want. Scratch directory: <code>/tmp/ms-quality/</code>. Install Ruff, pytest, and coverage.py inside that project venv (lesson 0041). Leave mise and OS Python alone. Work only under <code>/tmp</code>. A real GitHub push is optional, same posture as the class-site PR. This is the last Missing Semester lecture.</div>
+
+  <h2>Knowledge 1: Format and lint</h2>
+  <p>A <strong>formatter</strong> rewrites surface syntax: quotes, spaces around operators, import layout, line wrapping. The point is a shared style, so review time goes to the change. Some tools (Prettier) have many knobs: check the config file into git. Some (Black, gofmt) have almost none, on purpose. <a href="https://docs.astral.sh/ruff/formatter/">Ruff’s formatter</a> is Black-compatible with a small config surface. Tonight it is the Python floor. <code>gofmt</code> stays the Go floor from lesson 0028.</p>
+  <p>A <strong>linter</strong> runs static analysis: it reads the code without running it, and flags antipatterns the formatter will not touch. Rules come in presets. A good rule page says what it matches, why that is a problem, and what to write instead. Missing Semester’s example is Ruff <a href="https://docs.astral.sh/ruff/rules/collapsible-if/">SIM102</a>: nested <code>if</code> that can be one <code>if</code> with <code>and</code>. Some rules auto-fix. Some false-positive: disable per line (<code># noqa: SIM102</code>) or in project config after you have read the rule.</p>
+  <table>
+    <thead><tr><th>Job</th><th>Tonight</th></tr></thead>
+    <tbody>
+      <tr><td>rewrite style</td><td><code>ruff format</code></td></tr>
+      <tr><td>check style</td><td><code>ruff format --check</code> (exit 1 if it would rewrite)</td></tr>
+      <tr><td>flag issues</td><td><code>ruff check</code></td></tr>
+      <tr><td>apply safe fixes</td><td><code>ruff check --fix</code></td></tr>
+      <tr><td>types / syntax</td><td><code>mypy</code> / <code>py_compile</code> (lesson 0028)</td></tr>
+    </tbody>
+  </table>
+  <p>An <a href="https://editorconfig.org/">EditorConfig</a> file records indent size and charset for the repo. IDEs honor it. This mission’s vim stays plugin-free, so the file is still worth committing: it documents the project for everyone else.</p>
+  <p><a href="https://github.com/semgrep/semgrep">semgrep</a> is a “semantic grep”: it matches the parse tree, not characters. That is how you ban <code>subprocess.Popen(..., shell=True)</code> even when the call is split across lines. Character <code>grep</code> is still the drill. semgrep is optional in the scratch venv.</p>
+
+  <h2>Knowledge 2: Tests, hooks, and CI</h2>
+  <p>A test is code that exercises other code and fails when behavior is wrong. Granularity:</p>
+  <table>
+    <thead><tr><th>Kind</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td>unit</td><td>one function</td></tr>
+      <tr><td>integration</td><td>modules or services together</td></tr>
+      <tr><td>functional</td><td>an end-to-end scenario</td></tr>
+    </tbody>
+  </table>
+  <p>You will mix them. <strong>Test-driven development</strong> writes the test first. A <strong>regression test</strong> locks a bug you already paid for. <strong>Property-based</strong> tests (QuickCheck, Hypothesis for Python) check invariants across many inputs. Mock a database or HTTP API so the suite does not depend on a live third party.</p>
+  <p><strong>Coverage</strong> reports which lines ran during the tests. Use it as a map of untested paths. A high percentage with weak assertions still ships bugs. Services such as Codecov plot that map over time. Tonight: <code>python3 -m coverage run -m pytest</code>, then <code>report -m</code> and <code>html</code>.</p>
+  <p>A Git <strong>pre-commit hook</strong> runs before <code>git commit</code> records the snapshot. Nonzero status blocks the commit (lesson 0023). Projects hang formatters and linters here, and sometimes tests. <code>.git/hooks/</code> is local: it is not committed. The <a href="https://pre-commit.com/">pre-commit framework</a> exists so a YAML file in the repo can install the same hooks for everyone. Tonight the floor is a raw hook that calls a script you <em>do</em> commit.</p>
+  <div class="gotcha"><strong>Hook PATH.</strong> A hook does not source your bashrc. It will not see <code>venv/bin</code> just because you activated the venv in Ghostty. Point the hook at <code>"$root/venv/bin"</code> with <code>git rev-parse --show-toplevel</code>, or it will fail with <code>ruff: command not found</code> (or, worse, run some other <code>python3</code>).</div>
+  <p><strong>Continuous integration</strong> runs the same checks on a machine that is not yours: on every push (main does not rot), on every pull request (contributor submissions), and on a schedule (a dependency that claimed SemVer-compatible and was not: lesson 0041). A <strong>matrix</strong> repeats the job across OS and language versions. The job runs <em>check-only</em>: <code>ruff format --check</code>, not <code>ruff format</code>. CI should fail when the tree is dirty, not rewrite it. Status badges in a README show that result. <strong>Continuous deployment</strong> uses the same machinery to publish: the class site rebuilds GitHub Pages on push; you can also build wheels or images (lesson 0041).</p>
+  <p>Study a project like yours: <code>pyproject.toml</code>, <code>.github/workflows/</code>, <code>DEVELOPMENT.md</code>. The class-site <code>build.yml</code> is <code>push</code> + <code>pull_request</code> + a Saturday cron, then a Jekyll build.</p>
+  <p>A <strong>command runner</strong> is one name for “run the project’s quality tools.” Missing Semester names <a href="https://github.com/casey/just">just</a> (<code>just lint</code>). npm <code>scripts</code> and Hatch do the same inside the language’s manifest. Tonight: <code>scripts/check</code>, which the hook and CI both call. Skip installing <code>just</code>.</p>
+
+  <h2>Knowledge 3: Regular expressions</h2>
+  <p>A regex names a set of strings. This lecture uses <a href="https://docs.python.org/3/library/re.html">Python syntax</a>. Flavors differ: <code>grep -E</code>, vim’s <code>:s</code>, and Python <code>re</code> are not the same language. <a href="https://regex101.com/">regex101</a> (flavor: Python) is a good scratchpad. Learn the blocks below, then look the rest up.</p>
+  <table>
+    <thead><tr><th>Pattern</th><th>Matches</th></tr></thead>
+    <tbody>
+      <tr><td><code>abc</code></td><td>the literal abc</td></tr>
+      <tr><td><code>.</code></td><td>any one character</td></tr>
+      <tr><td><code>[abc]</code> / <code>[^abc]</code></td><td>one of / none of</td></tr>
+      <tr><td><code>a|b</code></td><td>either</td></tr>
+      <tr><td><code>\d</code> <code>\w</code> <code>\b</code></td><td>digit, word char, word boundary</td></tr>
+      <tr><td><code>?</code> <code>*</code> <code>+</code> <code>{N}</code></td><td>0–1, 0+, 1+, exactly N</td></tr>
+      <tr><td><code>^</code> <code>$</code></td><td>start / end of line</td></tr>
+      <tr><td><code>\.</code> <code>\\</code></td><td>a literal dot / backslash</td></tr>
+      <tr><td><code>(...)</code></td><td>a group you can extract</td></tr>
+    </tbody>
+  </table>
+  <p><code>\d{4}-\d{2}-\d{2}</code> matches <code>2026-01-14</code> and also <code>2026-01-99</code>: shape, not a real date. <code>.+@.+</code> is a weak email check. Groups: <code>re.match(r"\d{4}-(\d{2})-\d{2}", s).group(1)</code> is the month. In vim’s replace side, that group is <code>\1</code> (lesson 0003’s <code>:%s</code>, with <code>\(</code> <code>\)</code> on the search side under default magic). VS Code uses <code>$1</code>.</p>
+  <p><code>*</code> and <code>+</code> are greedy: they take as much as they can while the rest of the pattern still matches. <code>.*</code> on a JSON line will run to the <em>last</em> quote. <code>.*?</code> is the non-greedy twin. Even then, escaped quotes and nested structure outgrow a regex. HTML is not a regular language. Use the language’s parser (<code>json</code> in the stdlib; pyparsing named for harder grammars).</p>
+  <p>An LLM can draft a pattern from an example log line. You still test it against cases it should miss.</p>
+
+  <h2>Setup</h2>
+  <pre><code>mkdir -p /tmp/ms-quality &amp;&amp; cd /tmp/ms-quality
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install ruff pytest coverage
+which ruff python3    # both under .../ms-quality/venv/bin</code></pre>
+  <p>Use Ghostty, bash, and vim. Confirm tool calls if you ask this agent to fix lint or tests. Gate with <code>ruff</code> and <code>pytest</code>, not only <code>py_compile</code>.</p>
+
+  <h2>Exercises</h2>
+  <p>These are Missing Semester’s exercises, on a toy repo. Attempt each one, then open <code>show answer</code>. Open the <a href="../reference/code-quality.html">pocket card</a> if you get stuck.</p>
+
+  <h3>1. Formatter, linter, hook</h3>
+  <p>Missing Semester: configure a formatter, linter, and pre-commit hooks on a project. Autoformat first. For leftover linter errors, let an agent run the linter, edit, and re-run until status 0. Read the diff.</p>
+  <pre><code>cd /tmp/ms-quality
+source venv/bin/activate
+cat &gt; clamp.py &lt;&lt;'EOF'
+import os
+def clamp(n,lo,hi):
+    if n&gt;=lo:
+        if n&lt;=hi:
+            return n
+    if n&lt;lo:
+        return lo
+    return hi
+EOF
+cat &gt; pyproject.toml &lt;&lt;'EOF'
+[project]
+name = "ms-quality"
+version = "0.1.0"
+requires-python = "&gt;=3.11"
+
+[tool.ruff.lint]
+select = ["E", "F", "SIM"]
+EOF
+cat &gt; .editorconfig &lt;&lt;'EOF'
+root = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+EOF
+cat &gt; .gitignore &lt;&lt;'EOF'
+venv/
+htmlcov/
+.coverage
+__pycache__/
+.pytest_cache/
+EOF
+ruff format --check clamp.py; echo "status=$?"
+ruff format clamp.py
+ruff check clamp.py; echo "status=$?"
+ruff check --fix clamp.py
+ruff check clamp.py</code></pre>
+  <p>Expect <code>format --check</code> to exit 1 (it would add spaces and a blank line). After <code>ruff format</code> and <code>ruff check --fix</code>, the unused <code>import os</code> is gone. SIM102 remains: nested <code>if</code>. Ask this agent: “In <code>/tmp/ms-quality</code>, run <code>ruff check</code>, fix SIM102, re-run until status 0. Do not touch other files.” Confirm the tool calls. Then read <code>clamp.py</code> in vim. Then:</p>
+  <pre><code>mkdir -p scripts
+cat &gt; scripts/check &lt;&lt;'EOF'
+#!/bin/sh
+set -e
+root=$(git rev-parse --show-toplevel)
+export PATH="$root/venv/bin:$PATH"
+cd "$root"
+ruff format --check .
+ruff check .
+python3 -m pytest
+EOF
+chmod +x scripts/check
+git init -b main
+git add clamp.py pyproject.toml .editorconfig .gitignore scripts/check
+git config user.email drill@example.com
+git config user.name Drill
+# hook: same PATH trick, tests optional here so a missing test file is not a blocker yet
+cat &gt; .git/hooks/pre-commit &lt;&lt;'EOF'
+#!/bin/sh
+set -e
+root=$(git rev-parse --show-toplevel)
+export PATH="$root/venv/bin:$PATH"
+cd "$root"
+ruff format --check .
+ruff check .
+EOF
+chmod +x .git/hooks/pre-commit
+# dirty the format, try to commit, then restore
+printf '\n' &gt;&gt; clamp.py
+ruff format --check clamp.py; echo "dirty=$?"
+git add clamp.py
+git commit -m "add clamp"    # hook should block
+ruff format clamp.py
+git add clamp.py
+git commit -m "Add clamp with ruff-clean style."</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>ruff format --check</code> exits 1 on the cramped <code>def clamp(n,lo,hi)</code>. <code>ruff format</code> rewrites it and exits 0 (a successful rewrite is still 0 unless you pass extra flags). <code>ruff check</code> then reports F401 (<code>os</code> unused, auto-fixable) and SIM102 (nested <code>if</code>; fix is unsafe by default, so <code>--fix</code> leaves it). Combining into <code>if n &gt;= lo and n &lt;= hi</code> is the SIM102 page. The hook blocks a commit whose file would be reformatted. After <code>ruff format</code>, the commit goes through. <code>scripts/check</code> is the command you will hang on CI. The hook must put <code>venv/bin</code> on <code>PATH</code>: it does not inherit your activated shell.</p>
+  </div></details>
+
+  <h3>2. Tests and coverage</h3>
+  <p>Missing Semester: learn a testing library, write a unit test, generate an HTML coverage report, then improve coverage by hand and with an agent. Ask whether the agent’s tests are actually good.</p>
+  <pre><code>cd /tmp/ms-quality
+source venv/bin/activate
+cat &gt; test_clamp.py &lt;&lt;'EOF'
+from clamp import clamp
+
+def test_inside():
+    assert clamp(5, 0, 10) == 5
+EOF
+python3 -m coverage run -m pytest -q
+python3 -m coverage report -m
+python3 -m coverage html
+# open htmlcov/index.html in a browser; the below-lo and above-hi paths should be uncovered</code></pre>
+  <p>Write two more tests: below <code>lo</code>, above <code>hi</code>. Re-run coverage. Then restore to only <code>test_inside</code> and ask this agent to raise coverage while running <code>python3 -m coverage run -m pytest</code> and <code>report -m</code>. Read the tests: would they fail if <code>clamp</code> always returned <code>n</code>?</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>With one inside-path test, the <code>n &lt; lo</code> branch and the final <code>return hi</code> stay red (about 62% on the nested-<code>if</code> shape; similar after SIM102 collapses). <code>assert clamp(-1, 0, 10) == 0</code> and <code>assert clamp(99, 0, 10) == 10</code> cover those paths. HTML: red lines are the map. An agent that only asserts <code>clamp(x, x, x) == x</code> can paint the file green and still miss a broken bounds check. A test is good when a wrong return would fail it. <code>pytest</code> collects <code>test_*</code> functions; <code>assert</code> is the API. <code>unittest</code> is stdlib if you ever want zero extra packages.</p>
+  </div></details>
+
+  <h3>3. CI, check-only</h3>
+  <p>Missing Semester: set up CI on every push to run format, lint, and tests. Break the tree on purpose and confirm CI catches it.</p>
+  <p>Write the workflow. Run the same commands locally (that is the job). Inspect the class-site file. Skip a GitHub push unless you want a throwaway repo.</p>
+  <pre><code>cd /tmp/ms-quality
+mkdir -p .github/workflows
+cat &gt; .github/workflows/ci.yml &lt;&lt;'EOF'
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install ruff pytest
+      - run: ruff format --check .
+      - run: ruff check .
+      - run: python -m pytest
+EOF
+source venv/bin/activate
+# needs test_clamp.py from exercise 2 (pytest exits 5 on an empty suite)
+./scripts/check; echo "clean=$?"
+# break format, same check-only command CI will run:
+python3 -c 'open("clamp.py","a").write("x=1+2\n")'
+ruff format --check .; echo "broken=$?"
+ruff format clamp.py   # restore
+# class-site: push + pull_request + Saturday cron, then Jekyll (check-only build)
+SITE=/tmp/ms-git/class-site
+sed -n '1,20p' "$SITE/.github/workflows/build.yml"</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Local <code>./scripts/check</code> is the CI job: format <em>check</em>, lint, tests. After appending <code>x=1+2</code>, <code>ruff format --check</code> exits 1. That is the catch. A job that ran <code>ruff format</code> (rewrite) would green-pass a dirty PR and hide the drift. Class-site <code>build.yml</code> (verified on current master): <code>on.push</code>, <code>on.pull_request</code>, <code>schedule</code> cron <code>0 8 * * 6</code>, then <code>bundle exec jekyll build</code>. A failed Jekyll build fails the job. Their link checker is a second workflow; it often fails on third-party sites and still earns its keep. A real GitHub push is optional. If you do it, use a throwaway repo, not a spam PR on the class site.</p>
+  </div></details>
+
+  <h3>4. grep versus the parse tree</h3>
+  <p>Missing Semester: write a regex and <code>grep</code> for <code>subprocess.Popen(..., shell=True)</code>. Break the regex. See whether semgrep still matches.</p>
+  <pre><code>cd /tmp/ms-quality
+cat &gt; dangerous.py &lt;&lt;'EOF'
+import subprocess
+subprocess.Popen("true", shell=True)
+subprocess.Popen(
+    "true",
+    shell=True,
+)
+subprocess.Popen("true", shell = True)
+EOF
+grep -n 'Popen.*shell=True' dangerous.py
+grep -n 'shell=True' dangerous.py
+grep -n 'shell = True' dangerous.py</code></pre>
+  <p>Optional: <code>python3 -m pip install semgrep</code> then <code>semgrep -l python -e 'subprocess.Popen(..., shell=True, ...)' dangerous.py</code>. Otherwise skip the install: the point is already on the screen.</p>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>Popen.*shell=True</code> hits only the one-line call. The split call still has <code>shell=True</code> on its own line; a same-line pattern misses it. <code>shell = True</code> (spaces) misses both tight patterns. An AST tool matches the call and the keyword regardless of whitespace and wrapping. semgrep’s <code>-e "subprocess.Popen(..., shell=True, ...)"</code> is that tool. A tiny stdlib stand-in if you skip the install:</p>
+    <pre><code>python3 - &lt;&lt;'PY'
+import ast
+src = open("dangerous.py").read()
+for node in ast.walk(ast.parse(src)):
+    if isinstance(node, ast.Call) and ast.unparse(node.func).endswith("Popen"):
+        for kw in node.keywords:
+            if kw.arg == "shell":
+                print(f"line {node.lineno}: shell={ast.unparse(kw.value)}")
+PY</code></pre>
+    <p>All three calls print. Character grep cannot do that reliably.</p>
+  </div></details>
+
+  <h3>5. Bullet markers in vim</h3>
+  <p>Missing Semester: replace Markdown <code>-</code> bullets with <code>*</code> in <a href="https://raw.githubusercontent.com/missing-semester/missing-semester/master/_2026/code-quality.md">these lecture notes</a>. A replace-all of every hyphen is wrong. Lesson 0042 did this with <code>sed</code>. Tonight: vim (lesson 0003).</p>
+  <pre><code>cd /tmp/ms-quality
+curl -sL https://raw.githubusercontent.com/missing-semester/missing-semester/master/_2026/code-quality.md -o notes.md
+# in vim:  vim notes.md
+#   :%s/^\(\s*\)- /\1* /
+#   :wq
+grep -nE '^\s*[-*] |2026-01-23|--fix|pre-commit' notes.md | head</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p><code>:%s/^\(\s*\)- /\1* /</code> only rewrites a hyphen that starts a list item (optional indent, then <code>- </code>). Dates (<code>2026-01-23</code>), flags (<code>--fix</code>), and words (<code>pre-commit</code>) stay. <code>\(</code> <code>\)</code> is vim’s group under default magic; <code>\1</code> is that indent on the replace side. <code>:%s/-/*/g</code> would smash all of those. Same rule as the <code>sed -E</code> in lesson 0042: <code>s/^([[:space:]]*)- /\1* /</code>.</p>
+  </div></details>
+
+  <h3>6. Greedy JSON, then a parser</h3>
+  <p>Missing Semester: capture the name from <code>{"name": "Alyssa P. Hacker", "college": "MIT"}</code>. Your first regex may swallow the rest of the line. Read greedy quantifiers. Then handle an escaped quote. Then use the JSON parser instead: stdin in, name out.</p>
+  <pre><code>cd /tmp/ms-quality
+source venv/bin/activate
+python3 &lt;&lt;'PY'
+import re
+s = '{"name": "Alyssa P. Hacker", "college": "MIT"}'
+print("greedy:   ", re.search(r'"name": "(.*)"', s).group(1))
+print("nongreedy:", re.search(r'"name": "(.*?)"', s).group(1))
+PY
+# 6a. escaped quote inside the name
+python3 &lt;&lt;'PY'
+import re, json
+s = '{"name": "Alyssa \\"P\\" Hacker", "college": "MIT"}'
+print("json:    ", json.loads(s)["name"])
+m = re.search(r'"name": "((?:\\.|[^"\\])*)"', s)
+print("regex:   ", m.group(1) if m else None)
+PY
+# 6b. the tool you actually ship
+cat &gt; name_from_json.py &lt;&lt;'EOF'
+import json, sys
+print(json.load(sys.stdin)["name"])
+EOF
+printf '%s\n' '{"name": "Alyssa P. Hacker", "college": "MIT"}' | python3 name_from_json.py
+printf '%s\n' '{"name": "Alyssa \"P\" Hacker", "college": "MIT"}' | python3 name_from_json.py</code></pre>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>Greedy <code>.*</code> runs to the last quote: <code>Alyssa P. Hacker", "college": "MIT</code>. <code>.*?</code> stops at the first close-quote: <code>Alyssa P. Hacker</code>. Escaped quotes: the ugly <code>((?:\\.|[^"\\])*)</code> captures <code>Alyssa \"P\" Hacker</code> still with backslashes. <code>json.loads</code> / <code>json.load(sys.stdin)["name"]</code> returns <code>Alyssa "P" Hacker</code> for both inputs. One line past the import. That is the production tool. Regex is for shape checks and editor replace, not for nested structured data.</p>
+  </div></details>
+
+  <h3>Cold rebuilds</h3>
+  <ol type="a">
+    <li>What does a formatter change, and what does a linter look for?</li>
+    <li>Why does CI run <code>ruff format --check</code> instead of <code>ruff format</code>?</li>
+    <li>What does a coverage report measure, and how should you use it?</li>
+    <li>Why does a pre-commit hook need <code>venv/bin</code> on <code>PATH</code>?</li>
+    <li>Why does <code>grep 'Popen.*shell=True'</code> miss a split call?</li>
+    <li>Greedy <code>.*</code> versus a JSON parser for extracting a field.</li>
+  </ol>
+  <details><summary>show answer</summary><div class="drill-answer">
+    <p>(a) Formatter: surface syntax (quotes, spaces, wrapping) so the team shares a style. Linter: static analysis of antipatterns the formatter will not rewrite (SIM102, unused imports).<br>
+    (b) Check-only fails the job when the tree would be rewritten. A rewrite in CI hides drift and surprises the author.<br>
+    (c) Which lines executed. Use it as a map of untested paths. A high percentage is not the same as tests that would fail on a broken return.<br>
+    (d) The hook does not source bashrc or inherit your activated venv. Without <code>venv/bin</code>, it cannot see <code>ruff</code>, or it runs the wrong interpreter.<br>
+    (e) <code>.</code> does not match a newline, so a <code>Popen</code> whose <code>shell=True</code> sits on the next line misses a same-line pattern. An AST search still sees the keyword.<br>
+    (f) Greedy <code>.*</code> eats through later quotes. <code>json.load</code> handles escapes and structure. Ship the parser.</p>
+  </div></details>
+
+  <div class="gotcha"><strong>Later.</strong> The pre-commit framework’s YAML, Codecov accounts, a CI matrix across OS and Python versions, Hatch/<code>just</code>/npm scripts as the runner, Hypothesis property tests, semgrep custom rules in CI. Apply tonight’s gate to a real repo when you want. Missing Semester’s 2026 lecture list ends here.</div>
+
+  <h2>Check your understanding</h2>
+  <p>Four questions. Answers shuffle on each page load.</p>
+
+  <div class="quiz" data-q="1">
+    <p class="quiz-q"><span class="num">Q1</span>A formatter versus a linter:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">A formatter rewrites surface syntax so the team shares a style; a linter analyzes without running and flags antipatterns</li>
+      <li class="option">A formatter proves the program is correct on every input; a linter rewrites quotes and spaces until the file is pretty</li>
+      <li class="option">A formatter runs the test suite on every save; a linter deploys the wheel to the package index for you</li>
+      <li class="option">A formatter records why a constant is 1492; a linter writes the README funnel for a later stranger</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="2">
+    <p class="quiz-q"><span class="num">Q2</span>A CI job should run formatters, linters, and tests:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">In check-only mode, so a drift fails the job instead of rewriting the tree on the CI machine</li>
+      <li class="option">In fix mode, so CI commits a cleaned tree back to the branch the author just pushed</li>
+      <li class="option">Only on the author’s laptop, because those tools already ran before the last commit</li>
+      <li class="option">Only as a coverage percentage, because a green badge means the tests would catch a break</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="3">
+    <p class="quiz-q"><span class="num">Q3</span>A coverage report tells you:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Which lines executed while the tests ran, as a map of untested paths, not a score to maximize</li>
+      <li class="option">How many assertions each test contains, as a proof that a wrong return would fail the suite</li>
+      <li class="option">How fast the suite runs on CI, as a budget you must stay under before you merge</li>
+      <li class="option">How many linter rules fired, as a count of antipatterns the formatter already rewrote</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="quiz" data-q="4">
+    <p class="quiz-q"><span class="num">Q4</span>To pull a name out of a JSON object, you:</p>
+    <ul class="options">
+      <li class="option" data-correct="true">Use the language’s JSON parser; greedy <code>.*</code> swallows later keys, and escaped quotes outgrow a regex</li>
+      <li class="option">Use greedy <code>.*</code> as the production parser, because it is faster than the stdlib and never over-matches</li>
+      <li class="option">Use non-greedy <code>.*?</code> for HTML and JSON with no false positives, so you can skip the stdlib</li>
+      <li class="option">Use vim <code>\1</code> alone to validate dates, emails, and nested JSON objects in one substitute</li>
+    </ul>
+    <p class="quiz-feedback"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+
+  <div class="ask">
+    <p><strong>Ask the teacher.</strong> Did <code>ruff format --check</code> versus <code>ruff format</code> click? Did the hook fail until <code>venv/bin</code> was on <code>PATH</code>? Were the agent-written tests asserting anything that would catch a broken <code>clamp</code>? Anything unclear: ask here. The agent is the teacher for this course.</p>
+    <p style="margin-bottom:0">This file is the whole Code Quality lecture, and the last Missing Semester lecture. Finish leftover exercises in a later sitting, apply the gate to a real project, or say if a floor from an earlier lesson needs retrieval.</p>
+  </div>
+
+  <footer>
+    <p><strong>Primary sources</strong></p>
+    <ul>
+      <li><a href="https://missing.csail.mit.edu/2026/code-quality/">Missing Semester: Code Quality</a> (CC BY-NC-SA). Format, lint, test, hooks, CI, command runners, regex. Exercises 1 to 7.</li>
+      <li><a href="https://docs.astral.sh/ruff/">Ruff</a>, <a href="https://docs.pytest.org/">pytest</a>, <a href="https://coverage.readthedocs.io/">coverage.py</a>, <a href="https://docs.python.org/3/library/re.html">Python <code>re</code></a>, <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks">Git hooks</a>.</li>
+    </ul>
+    <p>Previous: <a href="./0043-ms-beyond-the-code.html">Lesson 0043: Beyond the Code</a>. Reference: <a href="../reference/code-quality.html">Code Quality pocket card</a>.</p>
+  </footer>
+
+<script>
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const quizzes = document.querySelectorAll('.quiz');
+  let answered = 0;
+  let correct = 0;
+  quizzes.forEach(quiz => {
+    const optList = quiz.querySelector('.options');
+    if (optList) {
+      shuffle(Array.from(optList.children)).forEach(el => optList.appendChild(el));
+    }
+    const opts = quiz.querySelectorAll('.option');
+    const feedback = quiz.querySelector('.quiz-feedback');
+    opts.forEach(opt => opt.addEventListener('click', () => {
+      if (quiz.classList.contains('answered')) return;
+      quiz.classList.add('answered');
+      opts.forEach(o => {
+        if (o.dataset.correct === 'true') o.classList.add('correct');
+        else if (o === opt) o.classList.add('picked-wrong');
+        else o.classList.add('wrong');
+      });
+      const isRight = opt.dataset.correct === 'true';
+      if (isRight) correct++;
+      answered++;
+      feedback.textContent = isRight
+        ? 'Correct.'
+        : 'Not quite. See the highlighted option.';
+      if (answered === quizzes.length) {
+        const score = document.getElementById('score');
+        score.classList.add('show');
+        score.textContent = `Score: ${correct} / ${quizzes.length}${
+          correct === quizzes.length
+            ? '. Cold-rebuild format versus lint, check-only CI, coverage as a map, hook PATH, and parser-not-regex before you continue.'
+            : correct >= quizzes.length - 1
+            ? '. Fix the miss, then redo the cold rebuilds.'
+            : '. Re-read Knowledge 1 to 3 and the reference.'
+        }`;
+      }
+    }));
+  });
+</script>
+</body>
+</html>

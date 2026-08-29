@@ -486,7 +486,7 @@
 ## Catalog rewrite (2026-08-20) — nine-lesson path, L0040 density
 - User asked to edit **previous** lessons to L0040 length and depth, cover the first four MS lectures, **reduce lesson count**, not one-file-per-lecture if a lecture is huge. Decision: do **not** delete 0001–0014; rewrite survivors in place; banner absorbed files.
 - **Canonical path:** 0001 Vim (absorbs 0002–0005, 0027) → 0006 tmux (0011–0013) → 0015 Shell / MS 1 (0007, 0009, 0014, 0016–0018, 0020) → 0019 CLI conventions / MS 2a (0008, 0021–0023) → 0024 Remote & home / MS 2b (0025) → 0026 Dev environment / MS 3 (0028–0030) → 0031 Debugging / MS 4a (0010, 0032–0035) → 0036 Profiling / MS 4b (0037–0038) → 0040 Git / MS 5 → 0041 Shipping / MS 6. L0039 still withdrawn (massif notes-only; hyperfine skipped). Completions already logged for the slices still count — this is a catalog rewrite, not a re-take.
-- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`, `agentic-coding.html`, `beyond-the-code.html`. Older slice refs stay.
+- **Pocket cards** for the path: `reference/vim.html`, `tmux.html`, `shell.html`, `shell-cli.html`, `shell-home.html`, `devenv.html`, `debug.html`, `profiling.html`, `git-version-control.html`, `shipping-code.html`, `agentic-coding.html`, `beyond-the-code.html`, `code-quality.html`. Older slice refs stay.
 - **Do not** add micro-slices.
 
 ## L0040 design notes (MS Lecture 5 — Version Control and Git, whole lecture)
@@ -542,3 +542,18 @@
 - **Reuse:** L0040 blame / `git show`; L0042 intern-manager and same-session commit messages; L0015/0009 redirects for the SO example.
 - **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
 - **Next when asked:** leftover Beyond-the-Code sittings, or MS lecture 9 Code Quality.
+
+## L0043 complete (4/4; beyond-the-code floor set)
+- Why-not-what comments, README funnel, Problem → Solution → Implications, bug-report fields, review habits, and AI disclosure all landed. No friction reported; leftover real-upstream sittings are optional.
+- Next when asked: user said ready without picking; took lecture order → L0044 Code Quality (last MS lecture).
+
+## L0044 design notes (MS Lecture 9 — Code Quality, whole lecture)
+- **Topic choice:** lecture order after L0043 4/4. Fifth lesson under the one-lecture rule. Last Missing Semester lecture.
+- **Primary sources:** https://missing.csail.mit.edu/2026/code-quality/ (full page + GitHub `_2026/code-quality.md` fetched). Ruff formatter/linter docs (SIM102, `format --check` exit 1). pytest 9 / coverage.py 7 verified locally. Class-site `.github/workflows/build.yml`: `push`, `pull_request`, Saturday cron, Jekyll build (verified 2026-08-29). Python `re` greedy vs `.*?` and `json.loads` verified.
+- **Scope:** format vs lint (surface vs static analysis); check vs fix; ruff as the Python floor (Black-compatible format; SIM102 as the named rule); EditorConfig named; tests (unit / integration / functional; TDD / regression / Hypothesis named); coverage as a map; raw git hook as the floor (`PATH` must include the venv); CI on push / PR / schedule, check-only; command runner = `scripts/check` (`just` / npm / Hatch named); regex fundamentals + flavors + groups; parser for JSON.
+- **Exercises:** all 7 MS items in this HTML, on `/tmp/ms-quality/` (do not modify owned projects). (1) ruff format + check + hook; agent loop on remaining lint. (2) pytest + `coverage html`; manual tests then agent. (3) write GHA YAML; run the same check-only commands locally; inspect class-site workflow; skip a real GitHub push unless they want a throwaway. (4) grep vs split `Popen(..., shell=True)`; semgrep optional. (5) vim `:%s` on a copy of the lecture notes (L0042 did this with `sed`). (6) greedy JSON capture, escaped quotes, then `json.load`.
+- **Skip / named:** `just` (fancy CLI). `ag` (use `grep`). `uv` still named (venv+pip). pre-commit framework named (committed config); drill is a raw `.git/hooks/pre-commit`. semgrep optional pip in the scratch venv. Codecov / status-badge accounts. Pushing junk CI to a public repo (same spam posture as L0040 class-site PR).
+- **Scratch:** `/tmp/ms-quality/`. Python 3.12.14 (mise). Install ruff / pytest / coverage into the project venv only (L0041). Verified: ruff 0.16.5 `format --check` exit 1 on messy `clamp.py`; F401 + SIM102; coverage 62% on clamp with one inside-path test (misses lines 8–10).
+- **Reuse:** L0028 `py_compile` / mypy / gofmt as the older checker floor; L0023 exit status; L0040 git hooks location + `.gitignore`; L0041 venv+pip+`pyproject.toml`+SemVer-compatible deps; L0042 agent feedback loop; L0003 `:%s`; L0017 capture groups in `sed`; L0042 exercise 5 is the sed twin of exercise 5 here.
+- **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
+- **Next when asked:** leftover Code Quality sittings, apply the gate to a real project, or retrieval of a weak floor. No further MS lectures.

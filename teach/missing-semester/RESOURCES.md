@@ -46,6 +46,8 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Lecture 7. Lesson 0042 = the whole lecture: agent loop (LLM + tools + harness), intern-manager, confirm tool calls, privacy, use cases, checker feedback loop, context (`AGENTS.md` / skills / subagents / `llms.txt`), review. Pocket card: `reference/agentic-coding.html`. Builds on L0029 form factors. Cursor is the drill agent; Claude Code / Codex / opencode named.
 - **Beyond the Code (2026)** — https://missing.csail.mit.edu/2026/beyond-code/
   Lecture 8. Lesson 0043 = the whole lecture: comments that record the why, README funnel, commit body (Problem → Solution → Implications), contributing (bug reports, MRE, licenses, PRs), review, asking questions, AI disclosure. Pocket card: `reference/beyond-the-code.html`.
+- **Code Quality (2026)** — https://missing.csail.mit.edu/2026/code-quality/
+  Lecture 9. Lesson 0044 = the whole lecture: formatting, linting, testing, coverage, git hooks, CI, command runners, regex. Python floor is Ruff + pytest + coverage.py in a project venv. Pocket card: `reference/code-quality.html`.
 
 ## Knowledge — focused references
 
@@ -122,6 +124,22 @@ High-trust sources only. Knowledge for lessons is drawn from here, not from para
   Public-question bar that matches the lecture’s bug-report fields. Lesson 0043.
 - **How to code review in curl** — https://curl.se/dev/code-review.html
   Maintainer-side review norms (nits, commit messages, newcomers). Lesson 0043 exercise 6.
+- **Ruff** — https://docs.astral.sh/ruff/
+  Python linter + Black-compatible formatter. Use for: `ruff format` / `ruff format --check`; `ruff check` / `ruff check --fix`; rule docs (`SIM102`). Lesson 0044. Named in lecture 3; deferred from L0028 / L0042 until this lecture.
+- **pytest** — https://docs.pytest.org/
+  Python test runner. Use for: `python3 -m pytest`; `test_*` functions; `assert`. Lesson 0044. `unittest` is stdlib if you want zero extra packages.
+- **coverage.py** — https://coverage.readthedocs.io/
+  Line coverage: `python3 -m coverage run -m pytest` then `report -m` / `html`. Treat the report as a map of untested lines. Lesson 0044.
+- **Git hooks** — https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
+  `.git/hooks/pre-commit` runs before each commit; nonzero status blocks it. The [pre-commit framework](https://pre-commit.com/) is the committed-config version. Lesson 0044. Hook `PATH` often lacks the project venv: call `venv/bin/ruff` from repo root.
+- **GitHub Actions** — https://docs.github.com/en/actions
+  CI on `push` / `pull_request` / `schedule`. Check-only in the job (`ruff format --check`, not `ruff format`). Matrix across OS and language versions. Lesson 0044. Class-site example: `.github/workflows/build.yml`.
+- **EditorConfig** — https://editorconfig.org/
+  Checked-in indent/charset defaults IDEs and vim-with-a-plugin honor. Named in Lesson 0044; this mission’s vim stays plugin-free, so the file documents the project even if vim ignores it.
+- **Python `re`** — https://docs.python.org/3/library/re.html
+  Lecture regex flavor. Use for: syntax, greedy vs non-greedy quantifiers, groups. Tester: https://regex101.com/ (set flavor to Python). Lesson 0044. vim (`:%s`, `\1`) and `grep -E` are different flavors.
+- **semgrep** — https://github.com/semgrep/semgrep
+  AST-level search across languages. MS example: `semgrep -l python -e "subprocess.Popen(..., shell=True, ...)"`. Named in Lesson 0044; optional one-off in the scratch venv. Character `grep` is the required drill.
 
 ## Wisdom (communities)
 

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reference: Code Quality (Missing Semester)</title>
+<style>
+  :root {
+    --bg: #fdfbf6;
+    --fg: #1f1d1a;
+    --muted: #6e6a62;
+    --accent: #8a5300;
+    --rule: #d8d2c4;
+    --code-bg: #f3ecdd;
+    --code-fg: #4a3327;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Iowan Old Style', 'Charter', 'Source Serif Pro', Georgia, serif;
+    line-height: 1.55;
+    max-width: 820px;
+    margin: 2.5rem auto;
+    padding: 0 1.5rem 4rem;
+    font-size: 16px;
+  }
+  header { margin-bottom: 2.5rem; }
+  .kicker { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; }
+  h1 { font-size: 2.1rem; line-height: 1.15; margin: 0 0 0.6rem; font-weight: 600; }
+  .lede { color: var(--muted); font-size: 1.05rem; margin: 0; }
+  h2 { font-size: 1.25rem; margin: 2.4rem 0 0.8rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); font-weight: 600; }
+  p { margin: 0.6rem 0; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); color: var(--code-fg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-fg); padding: 0.9rem 1.1rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; font-size: 0.85rem; }
+  pre code { background: none; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0 1.2rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  td:first-child { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--code-fg); white-space: nowrap; }
+  .note { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.7rem 1rem; margin: 1rem 0; font-size: 0.92rem; }
+  .beyond { margin-top: 2.5rem; padding: 1rem 1.25rem; background: #f0eee7; border-radius: 4px; font-size: 0.9rem; }
+  .beyond h2 { margin-top: 0; border-bottom: none; padding-bottom: 0; font-size: 1.05rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 0.85rem; }
+  a { color: var(--accent); }
+  @media print { body { max-width: none; margin: 1.5rem; font-size: 11pt; } a { color: var(--fg); text-decoration: none; } }
+</style>
+</head>
+<body>
+  <header>
+    <p class="kicker">Reference · Missing Semester · Code Quality</p>
+    <h1>Gate the tree</h1>
+    <p class="lede">Lecture 9: format, lint, test, hook, CI. From <a href="https://missing.csail.mit.edu/2026/code-quality/">Code Quality</a>.</p>
+  </header>
+
+  <h2>Format versus lint</h2>
+  <table>
+    <thead><tr><th>Job</th><th>Command</th></tr></thead>
+    <tbody>
+      <tr><td>rewrite style</td><td><code>ruff format</code></td></tr>
+      <tr><td>check style</td><td><code>ruff format --check</code> (exit 1 if it would rewrite)</td></tr>
+      <tr><td>flag issues</td><td><code>ruff check</code></td></tr>
+      <tr><td>safe auto-fix</td><td><code>ruff check --fix</code></td></tr>
+      <tr><td>types / syntax</td><td><code>mypy</code> / <code>py_compile</code> (lesson 0028)</td></tr>
+    </tbody>
+  </table>
+  <p>Formatter: quotes, spaces, wrapping, import layout. Linter: static analysis. Rule docs first (example: <a href="https://docs.astral.sh/ruff/rules/collapsible-if/">SIM102</a>). <code># noqa: CODE</code> per line after you have read the rule. EditorConfig documents indent for the repo.</p>
+
+  <h2>Tests and coverage</h2>
+  <pre><code>python3 -m pytest
+python3 -m coverage run -m pytest
+python3 -m coverage report -m
+python3 -m coverage html    # htmlcov/index.html</code></pre>
+  <p>Unit / integration / functional. Regression tests lock a paid-for bug. Coverage is a map of untested lines, not a score to max. A test is good when a wrong return would fail it.</p>
+
+  <h2>Hook and CI</h2>
+  <pre><code># scripts/check and .git/hooks/pre-commit: put venv on PATH
+root=$(git rev-parse --show-toplevel)
+export PATH="$root/venv/bin:$PATH"
+ruff format --check .
+ruff check .
+python3 -m pytest</code></pre>
+  <div class="note">A hook does not source bashrc. <code>.git/hooks/</code> is local. The <a href="https://pre-commit.com/">pre-commit framework</a> is the committed-config version. CI runs the same commands in <em>check-only</em> mode on push, pull request, and sometimes a schedule. A matrix repeats across OS and language versions. CD publishes (Pages, wheels, images).</div>
+
+  <h2>Regex (Python flavor)</h2>
+  <table>
+    <thead><tr><th>Pattern</th><th>Matches</th></tr></thead>
+    <tbody>
+      <tr><td><code>.</code> <code>[abc]</code> <code>a|b</code></td><td>any char; one of; either</td></tr>
+      <tr><td><code>\d</code> <code>\w</code> <code>\b</code></td><td>digit, word char, word boundary</td></tr>
+      <tr><td><code>?</code> <code>*</code> <code>+</code> <code>{N}</code></td><td>0–1, 0+, 1+, exactly N</td></tr>
+      <tr><td><code>^</code> <code>$</code> <code>(...)</code></td><td>line start/end; group</td></tr>
+    </tbody>
+  </table>
+  <pre><code>re.search(r'"name": "(.*)"', s).group(1)    # greedy: swallows later keys
+re.search(r'"name": "(.*?)"', s).group(1)   # first close-quote
+json.load(sys.stdin)["name"]                # the tool you ship
+:%s/^\(\s*\)- /\1* /                       # vim: Markdown bullets only</code></pre>
+  <p><code>grep 'Popen.*shell=True'</code> misses a split call (<code>.</code> is not a newline). AST / semgrep still sees the keyword. vim <code>\1</code>, Python <code>.group(1)</code>, VS Code <code>$1</code>. Flavors differ. <a href="https://regex101.com/">regex101</a> (Python).</p>
+
+  <h2>Exercise scratch</h2>
+  <pre><code>mkdir -p /tmp/ms-quality &amp;&amp; cd /tmp/ms-quality
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install ruff pytest coverage</code></pre>
+
+  <div class="beyond">
+    <h2>Beyond this lesson</h2>
+    <ul>
+      <li>pre-commit framework YAML; Codecov; CI matrix; <code>just</code> / Hatch / npm scripts; Hypothesis; semgrep in CI.</li>
+      <li>Apply the gate to a real repo. Missing Semester 2026 ends here.</li>
+    </ul>
+  </div>
+
+  <footer>
+    <p>Primary: <a href="https://missing.csail.mit.edu/2026/code-quality/">Missing Semester: Code Quality</a> (CC BY-NC-SA). <a href="https://docs.astral.sh/ruff/">Ruff</a>. <a href="https://docs.pytest.org/">pytest</a>. <a href="https://coverage.readthedocs.io/">coverage.py</a>. Lesson: <a href="../lessons/0044-ms-code-quality.html">0044</a>.</p>
+  </footer>
+</body>
+</html>

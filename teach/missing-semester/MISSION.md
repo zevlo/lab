@@ -8,9 +8,9 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 
 **Pacing:** L0040 shape — Why + Read first + gotcha + Knowledge × 3 + Setup + that lecture’s exercises + cold rebuilds + Later + quiz × 4. One MS lecture → one lesson when possible (vim and tmux sit before the MS spine). Cover important topics **and** the exercise section in the same HTML (spread across sittings if needed). Do not micro-slice lecture subsections into their own lessons. Historical slice files stay on disk for retrieval; they are not the path.
 
-**Canonical path (12 lessons):** `0001` Vim → `0006` tmux → `0015` Shell (MS 1) → `0019` CLI conventions (MS 2a) → `0024` Remote & home (MS 2b) → `0026` Dev environment (MS 3) → `0031` Debugging (MS 4a) → `0036` Profiling (MS 4b) → `0040` Git (MS 5) → `0041` Shipping (MS 6) → `0042` Agentic coding (MS 7) → `0043` Beyond the Code (MS 8). Remaining MS lecture: Code Quality (9).
+**Canonical path (13 lessons):** `0001` Vim → `0006` tmux → `0015` Shell (MS 1) → `0019` CLI conventions (MS 2a) → `0024` Remote & home (MS 2b) → `0026` Dev environment (MS 3) → `0031` Debugging (MS 4a) → `0036` Profiling (MS 4b) → `0040` Git (MS 5) → `0041` Shipping (MS 6) → `0042` Agentic coding (MS 7) → `0043` Beyond the Code (MS 8) → `0044` Code Quality (MS 9). Missing Semester spine is complete at L0044.
 
-**Next up:** L0043 in flight — MS lecture 8 Beyond the Code. Leftover agentic sittings on L0042 are optional. L0039 (massif) stays withdrawn — notes-only, not an exercise.
+**Next up:** L0044 in flight — MS lecture 9 Code Quality. Leftover Beyond-the-Code sittings on L0043 are optional. L0039 (massif) stays withdrawn — notes-only, not an exercise.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
@@ -23,6 +23,7 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 - Name the artifact vs the environment; isolate with a venv; install a wheel; distinguish image vs container vs VM; keep secrets out of git and images.
 - Direct a coding agent the way you would an intern: confirm tool calls, put the agent in a checker feedback loop, keep `AGENTS.md` short, review the diff in vim.
 - Capture the why in comments and commit bodies; file high-signal issues; disclose AI use.
+- Run a formatter and a linter in check-only mode; hang them on a git hook and in CI; write a unit test and read a coverage report; use a parser when a regex is the wrong tool.
 - Read `man`, `:help`, and `info` as primary references instead of searching blogs.
 
 ## Constraints
