@@ -70,6 +70,14 @@
   Assigning SAs, automount opt-out, TokenRequest / projected tokens. Use for: lab design and token lifecycle guidance.
 - [Official Docs: Checking API Access](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access)
   `kubectl auth can-i` and impersonation. Use for: diagnosing whether a ServiceAccount (not your admin user) is allowed a verb.
+- [Task: Configure a Security Context for a Pod or Container](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)
+  `securityContext` fields: UID/GID, privileged, capabilities, seccomp, `allowPrivilegeEscalation`. Container fields override overlapping Pod fields. Use for: lesson 0025 lab design and any runtime-privilege claim.
+- [Official Docs: Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/)
+  Three profiles (`privileged`, `baseline`, `restricted`) and the controls each requires. Use for: what “restricted” actually demands (`runAsNonRoot`, drop `ALL`, `RuntimeDefault` seccomp).
+- [Official Docs: Pod Security Admission](https://kubernetes.io/docs/concepts/security/pod-security-admission/)
+  Namespace labels (`enforce` / `warn` / `audit`). Enforce applies to Pod objects, not to the Deployment object itself. Use for: why `kubectl apply` on a Deployment can succeed while Pods are rejected.
+- [Task: Enforce Pod Security Standards with Namespace Labels](https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-namespace-labels/)
+  Label a namespace to opt into a profile. Use for: lab sequences; pin a version in production, `latest` is fine on a local cluster.
 - [OrbStack Kubernetes Documentation](https://docs.orbstack.dev/kubernetes)
   Official docs for the user's local cluster environment (service exposure via `*.k8s.orb.local`, kubelet config, Traefik/Ingress setup). Use for: anything specific to how the local lab cluster behaves on macOS.
 - [Kubernetes the Hard Way — Kelsey Hightower](https://github.com/kelseyhightower/kubernetes-the-hard-way)

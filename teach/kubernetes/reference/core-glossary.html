@@ -125,6 +125,18 @@
   <dd>Asks the API server whether a principal may perform a verb on a resource. Use <code>--as=system:serviceaccount:&lt;ns&gt;:&lt;sa&gt;</code> to check a Pod’s identity — your admin kubeconfig answer is not the Pod’s. <a class="src" href="https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access">[docs]</a></dd>
 </dl>
 
+<h2>Pod runtime security</h2>
+<dl>
+  <dt id="securitycontext">Security context</dt>
+  <dd>Privilege and access-control settings for a Pod or a container: user and group IDs, Linux capabilities, privileged mode, seccomp, and <code>allowPrivilegeEscalation</code>. Container fields override overlapping Pod fields. This is the Linux process, not API authorization. <a class="src" href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">[docs]</a> · <a class="src" href="pod-security-context.html">[patterns]</a></dd>
+
+  <dt id="pod-security-standards">Pod Security Standards</dt>
+  <dd>Three cumulative profiles for Pod isolation: <code>privileged</code> (no restrictions), <code>baseline</code> (blocks known privilege escalations), and <code>restricted</code> (current hardening: non-root, drop <code>ALL</code> capabilities, explicit seccomp). <a class="src" href="https://kubernetes.io/docs/concepts/security/pod-security-standards/">[docs]</a> · <a class="src" href="pod-security-context.html">[patterns]</a></dd>
+
+  <dt id="pod-security-admission">Pod Security Admission</dt>
+  <dd>Built-in admission controller that applies Pod Security Standards per namespace via labels. Modes: <code>enforce</code> (reject), <code>warn</code>, <code>audit</code>. Enforce checks Pod objects, not the Deployment object. <a class="src" href="https://kubernetes.io/docs/concepts/security/pod-security-admission/">[docs]</a> · <a class="src" href="pod-security-context.html">[patterns]</a></dd>
+</dl>
+
 <h2>Rollouts</h2>
 <dl>
   <dt id="rollout">Rollout</dt>

@@ -1,0 +1,38 @@
+---
+description: Google developer documentation style for lessons and reference HTML
+globs: lessons/**/*.html,reference/**/*.html
+alwaysApply: true
+---
+
+# Lesson and reference prose
+
+Follow the [Google developer documentation style guide](https://developers.google.com/style). Clarity, brevity, and inclusivity beat clever phrasing. Do not rewrite lessons 0001–0024 unless the user asks.
+
+## Voice
+
+- Conversational and direct. Sound like a knowledgeable colleague, not a pitch or a joke.
+- Second person (`you`). Active voice. US English. Serial commas.
+- Sentence case for titles and headings. Task headings start with a bare infinitive (`Configure a security context`). Concept headings are noun phrases (`Pod Security Standards`).
+- Put the condition or goal before the instruction: "If the Pod is Running, run `kubectl exec`."
+- Link text is the page title or a short description. Not `docs`, `here`, or a bare URL.
+- Introduce a dedicated cross-reference with "For more information, see...".
+
+## Clarity and brevity
+
+- Prefer short sentences (under 26 words when you can). Lead with the point.
+- Strong verbs. Avoid `there is` / `there are` openers, `simply`, `just`, `please`, and `easy`.
+- Code in `code` font. Define an acronym on first use.
+
+## Inclusivity
+
+- No idioms, metaphors, humor, or culturally specific asides.
+- No ableist or violent figurative language (`crazy`, `dummy`, `hang`, `hit`).
+- Prefer `allowlist` / `blocklist`, `controller` / `replica`. If an API still uses a non-inclusive name, show it in code font once, then use the inclusive term.
+
+```html
+<!-- Not recommended -->
+<p>The binding-scope trap. See <a href="...">[docs]</a>.</p>
+
+<!-- Recommended -->
+<p>A RoleBinding that references a ClusterRole still grants access only in that namespace. For more information, see <a href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/">Using RBAC Authorization</a>.</p>
+```

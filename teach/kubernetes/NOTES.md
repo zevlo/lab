@@ -19,6 +19,14 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 ### Mission
 - Dual: job competence + homelab. Tie lessons to both where possible.
 
+### Writing (from 0025)
+- Follow the [Google developer documentation style guide](https://developers.google.com/style): clarity, brevity, inclusivity.
+- Second person, active voice, sentence-case headings, serial commas, US English.
+- Conditions before instructions. Descriptive link text (page title, not “docs” or “click here”).
+- Short sentences. No idioms, metaphors, slang, or ableist language.
+- Inclusive terms: allowlist/blocklist, controller/replica. Do not use “simply,” “just,” or “please” in procedures.
+- Do not rewrite lessons 0001–0024 unless the user asks.
+
 ### Lesson & manifest edits
 - **Do not change lesson content or lab manifests without explicit user agreement.**
 - **When user is stuck during a lab: explain in chat only.** Do not edit lessons or YAML unless they explicitly ask.
@@ -42,7 +50,7 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 **Fundamentals track:** ✓ **COMPLETE** (2026-06-30) — lessons 0001–0023. Sign-off: lesson 0023 **10/10**, Combined Quiz 02 **12/12**. Prior Combined Quiz 01: 11/12 (HPA gap remediated on 02).
 
-**Ops hardening arc (post-fundamentals):** 0024 RBAC + ServiceAccounts ✓. Candidates next: SecurityContext / Pod Security · Jobs/CronJobs · PDBs · enforced NetworkPolicy · public ACME.
+**Ops hardening arc (post-fundamentals):** 0024 RBAC + ServiceAccounts ✓. **0025** SecurityContext + Pod Security Standards (in progress). Candidates after: Jobs/CronJobs · PDBs · enforced NetworkPolicy · public ACME.
 
 **OrbStack quirk (0021):** k3s starts with `--disable-network-policy` — policies apply to API only, not enforced. Lab is read-and-predict unless kind/other cluster used.
 

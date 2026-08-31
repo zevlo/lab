@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0025 — Configure a Pod security context</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #777;
+    --accent: #326ce5;
+    --rule: #ddd;
+    --bg: #fffff8;
+    --good: #2e7d32;
+    --bad: #c62828;
+    --warn: #b26a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.6;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); margin: 0; }
+  h2 { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: .12em; }
+  a:hover { color: #1d4fbf; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .85rem; color: var(--faint); font-weight: 700; }
+  .step { margin: 1.5rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n {
+    position: absolute; left: 0; top: .15rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    font-family: 'SF Mono', Menlo, monospace; font-size: .85rem;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt {
+    display: block; width: 100%; text-align: left;
+    font-family: inherit; font-size: .98rem;
+    background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px;
+    padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink);
+  }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #f4f6fb; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; }
+  .q .feedback.good { color: var(--good); }
+  .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #f4f6fb; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Lesson 0025 · Ops hardening · Runtime privileges</p>
+  <h1>Configure a Pod security context</h1>
+  <p class="subtitle">RBAC is the API. A security context is the Linux process.</p>
+</header>
+
+<p>Lesson <a href="0024-rbac-serviceaccounts.html">0024</a> covered who a Pod is to the Kubernetes API: a <a href="../reference/core-glossary.html#serviceaccount">ServiceAccount</a> plus <a href="../reference/core-glossary.html#rbac">RBAC</a>. That identity does not limit what the process can do on the node. A container that runs as user ID (UID) 0 can still affect the node if the runtime allows it.</p>
+
+<p>This lesson covers the other half. A <a href="../reference/core-glossary.html#securitycontext">security context</a> sets the process user, Linux capabilities, and related flags. <a href="../reference/core-glossary.html#pod-security-admission">Pod Security Admission</a> can enforce the <a href="../reference/core-glossary.html#pod-security-standards">Pod Security Standards</a> on a namespace. At work, this is how you stop an app from running as root on a node. In the homelab, you use the same fields at a smaller scale.</p>
+
+<h2>Security context and Pod Security Standards</h2>
+
+<p>A security context defines privilege and access-control settings for a Pod or a container. Settings include user and group IDs, privileged mode, Linux capabilities, seccomp, and <code>allowPrivilegeEscalation</code>. For more information, see <a href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">Configure a Security Context for a Pod or Container</a>.</p>
+
+<p>Pod-level fields apply to every container unless a container sets the same field. Container fields override overlapping Pod fields. <code>privileged</code>, <code>capabilities</code>, and <code>allowPrivilegeEscalation</code> exist only on the container.</p>
+
+<p>If you omit <code>securityContext</code>, and the image has no <code>USER</code> instruction, the process runs as UID 0.</p>
+
+<pre><code>spec:
+  securityContext:                    # Pod: UID, seccomp, fsGroup
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+  - name: app
+    securityContext:                  # Container: overrides + Linux flags
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop: ["ALL"]</code></pre>
+
+<p>The Pod Security Standards define three cumulative profiles:</p>
+
+<table>
+  <tr><th>Profile</th><th>Meaning</th></tr>
+  <tr><td><code>privileged</code></td><td>No restrictions. Typical for some system components.</td></tr>
+  <tr><td><code>baseline</code></td><td>Blocks known privilege escalations. Allows a default Pod spec.</td></tr>
+  <tr><td><code>restricted</code></td><td>Current hardening: non-root, drop <code>ALL</code> capabilities, explicit seccomp, <code>allowPrivilegeEscalation: false</code>.</td></tr>
+</table>
+
+<p>For more information, see <a href="https://kubernetes.io/docs/concepts/security/pod-security-standards/">Pod Security Standards</a>.</p>
+
+<p>Pod Security Admission applies those profiles per namespace with labels. Modes are <code>enforce</code> (reject the Pod), <code>warn</code>, and <code>audit</code>. On OrbStack (k3s), the admission plugin is on. Namespaces are not restricted until you set the labels.</p>
+
+<div class="note">
+  <strong>Enforce applies to Pods, not to the Deployment object.</strong> <code>kubectl apply</code> on a Deployment can succeed. The ReplicaSet then fails to create Pods. <code>warn</code> and <code>audit</code> do apply to workload objects. For more information, see <a href="https://kubernetes.io/docs/concepts/security/pod-security-admission/">Pod Security Admission</a>.
+</div>
+
+<h2>Lab: observe, restrict, and recover</h2>
+
+<p>OrbStack, context <code>orbstack</code>. Lab files are in <code>yaml/secctx-lab/</code> in this teaching workspace.</p>
+<pre><code>cd yaml/secctx-lab
+ls</code></pre>
+<p class="expect">Expect <code>namespace.yaml</code>, <code>namespace-restricted.yaml</code>, <code>stack.yaml</code>, and the deploy break and fix files.</p>
+
+<div class="step"><span class="n">0</span>
+<p><strong>Set the lab namespace on the current context.</strong></p>
+<pre><code>kubectl config use-context orbstack
+kubectl apply -f namespace.yaml
+kubectl config set-context --current --namespace=secctx-lab</code></pre>
+</div>
+
+<div class="step"><span class="n">1</span>
+<p><strong>If you have not set a security context, the process is root.</strong> Apply the baseline Deployment and wait until it is Ready.</p>
+<pre><code>kubectl apply -f stack.yaml
+kubectl rollout status deployment/sleeper --timeout=90s
+kubectl exec deploy/sleeper -- id</code></pre>
+<p class="expect">Output similar to <code>uid=0(root) gid=0(root) groups=0(root)</code>. Version-dependent user names can differ; the UID is 0.</p>
+</div>
+
+<div class="step"><span class="n">2</span>
+<p><strong>To match the <code>restricted</code> profile, apply the hardened spec.</strong></p>
+<pre><code>kubectl apply -f deploy-restricted.yaml
+kubectl rollout status deployment/sleeper --timeout=90s
+kubectl exec deploy/sleeper -- id</code></pre>
+<p class="expect">UID 1000, not 0. Confirm the fields:</p>
+<pre><code>kubectl get pod -l app=sleeper -o yaml | grep -A8 securityContext</code></pre>
+<p class="expect"><code>runAsNonRoot: true</code>, <code>runAsUser: 1000</code>, <code>drop: ALL</code>.</p>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+<p><strong>Break A — <code>runAsNonRoot: true</code> with <code>runAsUser: 0</code>.</strong></p>
+<pre><code>kubectl apply -f deploy-root-conflict.yaml
+kubectl get pods -l app=sleeper
+kubectl describe pod -l app=sleeper | tail -n 25</code></pre>
+<p class="expect">The new Pod is not Ready. Events mention <code>runAsNonRoot</code> and UID 0. The kubelet refuses to start the container. This is not an RBAC <code>Forbidden</code>.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f deploy-fixed.yaml
+kubectl rollout status deployment/sleeper --timeout=90s</code></pre>
+<p class="expect">Ready again. <code>kubectl exec deploy/sleeper -- id</code> shows UID 1000.</p>
+</div>
+
+<div class="step broken"><span class="n">4</span>
+<p><strong>Break B — <code>privileged: true</code>.</strong> Privileged mode disables most container isolation.</p>
+<pre><code>kubectl apply -f deploy-privileged.yaml
+kubectl rollout status deployment/sleeper --timeout=90s
+kubectl exec deploy/sleeper -- id
+kubectl exec deploy/sleeper -- grep CapPrm /proc/1/status</code></pre>
+<p class="expect">UID 0 again. <code>CapPrm</code> is a large hex value, not all zeros. Contrast with the restricted Pod: drop <code>ALL</code> clears that mask. Your admin kubeconfig is unchanged. This is the process on the node, not API access from lesson 0024.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f deploy-fixed.yaml
+kubectl rollout status deployment/sleeper --timeout=90s</code></pre>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+<p><strong>Break C — enforce <code>restricted</code> on the namespace, then apply the root Deployment.</strong></p>
+<pre><code>kubectl apply -f namespace-restricted.yaml
+kubectl apply -f stack.yaml
+kubectl get deploy,rs,pods -l app=sleeper
+kubectl get events --field-selector reason=FailedCreate --sort-by=.lastTimestamp | tail -n 8</code></pre>
+<p class="expect">The Deployment object is stored. New Pods are rejected. Events mention PodSecurity <code>restricted</code> (non-root, drop <code>ALL</code>, seccomp, or <code>allowPrivilegeEscalation</code>). Old Ready replicas may keep running during the failed rollout. For more information, see <a href="https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-namespace-labels/">Enforce Pod Security Standards with Namespace Labels</a>.</p>
+<p><strong>Your turn:</strong> read the FailedCreate message. List the controls the profile required.</p>
+<p><strong>Fix:</strong></p>
+<pre><code>kubectl apply -f deploy-fixed.yaml
+kubectl rollout status deployment/sleeper --timeout=90s
+kubectl exec deploy/sleeper -- id</code></pre>
+<p class="expect">Rollout succeeds under <code>enforce=restricted</code>. UID 1000.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+<p><strong>Clean up.</strong></p>
+<pre><code>kubectl delete namespace secctx-lab
+kubectl config set-context --current --namespace=default</code></pre>
+</div>
+
+<div class="warn">
+  <strong>Production:</strong> set a restricted-style <code>securityContext</code> in the workload, and label the namespace to enforce it. Pin <code>enforce-version</code> to a Kubernetes minor version. <code>latest</code> is fine on a local cluster. Prefer a Role plus RoleBinding in the app namespace (lesson 0024) together with a non-root security context. Neither replaces the other.
+</div>
+
+<h2>Quiz</h2>
+
+<div class="q" data-correct="0">
+  <p class="stem">1. A Pod has no <code>securityContext</code>. The image has no <code>USER</code> instruction. Which UID does the container process use?</p>
+  <button class="opt">UID 0 (root) unless the image USER instruction sets another UID</button>
+  <button class="opt">UID 1000 because Kubernetes remaps every root process to nobody</button>
+  <button class="opt">UID taken from the ServiceAccount token mounted in that container</button>
+  <button class="opt">UID assigned by the RoleBinding that grants the Pod API identity</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2">
+  <p class="stem">2. Pod <code>securityContext</code> sets <code>runAsUser: 1000</code>. The container sets <code>runAsUser: 2000</code>. Which UID runs?</p>
+  <button class="opt">UID 1000 because the Pod field always wins over any container field</button>
+  <button class="opt">UID 0 because conflicting fields cancel and the runtime uses root</button>
+  <button class="opt">UID 2000 because the container field overrides the overlapping Pod field</button>
+  <button class="opt">UID 1500 because Kubernetes averages the two runAsUser values equally</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1">
+  <p class="stem">3. <code>runAsNonRoot: true</code> and <code>runAsUser: 0</code> are both set. What happens?</p>
+  <button class="opt">The API server silently rewrites runAsUser to a random non-root UID</button>
+  <button class="opt">The kubelet refuses to start the container; those user IDs conflict</button>
+  <button class="opt">The container starts as root and runAsNonRoot is ignored at runtime</button>
+  <button class="opt">RBAC denies the Pod because root is forbidden by the default Role</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3">
+  <p class="stem">4. The namespace has <code>enforce=restricted</code>. You apply a Deployment whose template is privileged. What happens?</p>
+  <button class="opt">The API server rejects the Deployment object itself right at apply time</button>
+  <button class="opt">The Deployment rolls out, and NetworkPolicy then drops the privileged pods</button>
+  <button class="opt">The kubelet starts the pods then stops them after a UID check</button>
+  <button class="opt">The Deployment object is stored, and new Pods are rejected by admission</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0">
+  <p class="stem">5. A RoleBinding is correct, but the container runs as UID 0 with <code>privileged: true</code>. What is still true?</p>
+  <button class="opt">RBAC limits API verbs; the process can still hold node-level Linux privileges</button>
+  <button class="opt">RBAC remaps the container UID; privileged mode cannot apply to that Pod</button>
+  <button class="opt">RBAC and the securityContext are aliases; both grant the same Linux capabilities</button>
+  <button class="opt">RBAC blocks privileged mode; NetworkPolicy is what then grants Linux capabilities</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2>Primary sources</h2>
+<p><a href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">Configure a Security Context for a Pod or Container</a> · <a href="https://kubernetes.io/docs/concepts/security/pod-security-standards/">Pod Security Standards</a> · <a href="https://kubernetes.io/docs/concepts/security/pod-security-admission/">Pod Security Admission</a> · <a href="https://kubernetes.io/docs/tasks/configure-pod-container/enforce-standards-namespace-labels/">Enforce Pod Security Standards with Namespace Labels</a>.</p>
+
+<footer>
+  <p><strong>If something is unclear, ask your agent.</strong> Useful follow-ups: <em>When do I set runAsUser versus only runAsNonRoot?</em> · <em>How does allowPrivilegeEscalation relate to privileged mode?</em> · <em>Should kube-system stay on the privileged profile?</em> Report your quiz score when you finish.</p>
+  <p>Previous: <a href="0024-rbac-serviceaccounts.html">Lesson 0024 — RBAC and ServiceAccounts</a> · Reference: <a href="../reference/pod-security-context.html">Security context and Pod Security Standards</a> · <a href="../reference/core-glossary.html">Glossary</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) {
+          correct++;
+          fb.textContent = 'Correct.';
+          fb.className = 'feedback shown good';
+        } else {
+          btn.classList.add('wrong');
+          fb.textContent = 'The highlighted answer is correct.';
+          fb.className = 'feedback shown bad';
+        }
+        if (answered === qs.length) {
+          var s = document.getElementById('score');
+          s.style.display = 'block';
+          var msg = 'Score: ' + correct + ' / ' + qs.length;
+          if (correct === qs.length) {
+            msg += ' All five correct. Tell your agent, and the next lesson will go further.';
+          } else if (correct >= 4) {
+            msg += ' Close. Tell your agent which numbers you missed.';
+          } else {
+            msg += ' Tell your agent which items you missed. The next lesson will target them.';
+          }
+          s.textContent = msg;
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

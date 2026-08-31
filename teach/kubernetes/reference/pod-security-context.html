@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security context and Pod Security Standards — Reference</title>
+<style>
+  :root { --ink: #1a1a1a; --faint: #777; --accent: #326ce5; --rule: #ddd; --bg: #fffff8; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg); color: var(--ink);
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem;
+    line-height: 1.55; font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); margin: 0; }
+  h2 {
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .85rem; color: var(--faint); font-weight: 700; }
+  pre { background: #21252b; color: #e6e6e6; padding: .85rem 1rem; border-radius: 6px; overflow-x: auto; font-size: .82rem; line-height: 1.4; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: .12em; }
+  .note { background: #f4f6fb; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; }
+  @media print { body { max-width: 100%; padding: 0; font-size: 10.5pt; } pre { background: #eee; color: #000; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Security context and Pod Security Standards</h1>
+  <p class="subtitle">Quick reference — process privileges on the node, and how admission enforces them.</p>
+</header>
+
+<div class="note">
+  <strong>One sentence:</strong> A <em>security context</em> sets the Linux process (UID, capabilities, privileged mode). <em>Pod Security Admission</em> enforces a Pod Security Standards profile on a namespace. RBAC is a separate axis: API verbs, not the node.
+</div>
+
+<h2>Two axes</h2>
+<table>
+  <tr><th>Control</th><th>Question it answers</th></tr>
+  <tr><td>ServiceAccount + RBAC</td><td>Who is this workload to the API, and which verbs may it call?</td></tr>
+  <tr><td>Security context</td><td>Which user ID and Linux capabilities does the process have on the node?</td></tr>
+  <tr><td>Pod Security Admission</td><td>Does this namespace allow that Pod spec at all?</td></tr>
+</table>
+
+<h2>Pod versus container fields</h2>
+<pre><code>spec.securityContext          → PodSecurityContext (UID, seccomp, fsGroup)
+spec.containers[].securityContext → SecurityContext
+                                  (overrides UID; privileged, caps, allowPrivilegeEscalation)</code></pre>
+
+<p>Container fields override overlapping Pod fields. Volumes follow the Pod <code>fsGroup</code>, not the container UID fields.</p>
+
+<h2>Restricted profile (minimum to remember)</h2>
+<table>
+  <tr><th>Field</th><th>Required value</th></tr>
+  <tr><td><code>runAsNonRoot</code></td><td><code>true</code> (Pod or every container)</td></tr>
+  <tr><td><code>runAsUser</code></td><td>Not <code>0</code></td></tr>
+  <tr><td><code>allowPrivilegeEscalation</code></td><td><code>false</code></td></tr>
+  <tr><td><code>capabilities.drop</code></td><td>Must include <code>ALL</code></td></tr>
+  <tr><td><code>capabilities.add</code></td><td>Empty, or only <code>NET_BIND_SERVICE</code></td></tr>
+  <tr><td><code>seccompProfile.type</code></td><td><code>RuntimeDefault</code> or <code>Localhost</code> (must be set)</td></tr>
+  <tr><td><code>privileged</code></td><td>Not <code>true</code> (already required by <code>baseline</code>)</td></tr>
+</table>
+
+<p>For the full control list, see <a href="https://kubernetes.io/docs/concepts/security/pod-security-standards/">Pod Security Standards</a>.</p>
+
+<h2>Namespace labels</h2>
+<pre><code>pod-security.kubernetes.io/enforce: restricted
+pod-security.kubernetes.io/enforce-version: v1.33   # pin in production
+pod-security.kubernetes.io/warn: restricted
+pod-security.kubernetes.io/audit: restricted</code></pre>
+
+<table>
+  <tr><th>Mode</th><th>Effect</th></tr>
+  <tr><td><code>enforce</code></td><td>Rejects the Pod. Does not reject the Deployment object.</td></tr>
+  <tr><td><code>warn</code></td><td>User-facing warning. Workload objects included.</td></tr>
+  <tr><td><code>audit</code></td><td>Audit annotation. Workload objects included.</td></tr>
+</table>
+
+<div class="note">
+  <strong>Diagnosis:</strong> if <code>kubectl apply -f deploy.yaml</code> succeeds but replicas never become Ready, read ReplicaSet events for <code>FailedCreate</code> and <code>violates PodSecurity</code>. That is admission, not a crash loop.
+</div>
+
+<h2>Common spec conflicts</h2>
+<table>
+  <tr><th>Spec</th><th>Result</th></tr>
+  <tr><td><code>runAsNonRoot: true</code> and <code>runAsUser: 0</code></td><td>Kubelet refuses to start the container.</td></tr>
+  <tr><td><code>runAsNonRoot: true</code>, no UID, image runs as root</td><td>Same: the image USER is still 0.</td></tr>
+  <tr><td><code>privileged: true</code></td><td>Most isolation is off. <code>allowPrivilegeEscalation</code> is effectively true.</td></tr>
+</table>
+
+<footer>
+  Lesson <a href="../lessons/0025-pod-security-context.html">0025</a> · <a href="https://kubernetes.io/docs/tasks/configure-pod-container/security-context/">Configure a Security Context for a Pod or Container</a> · <a href="https://kubernetes.io/docs/concepts/security/pod-security-admission/">Pod Security Admission</a>
+</footer>
+</body>
+</html>
