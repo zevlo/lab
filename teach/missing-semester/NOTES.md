@@ -557,3 +557,8 @@
 - **Reuse:** L0028 `py_compile` / mypy / gofmt as the older checker floor; L0023 exit status; L0040 git hooks location + `.gitignore`; L0041 venv+pip+`pyproject.toml`+SemVer-compatible deps; L0042 agent feedback loop; L0003 `:%s`; L0017 capture groups in `sed`; L0042 exercise 5 is the sed twin of exercise 5 here.
 - **Prose:** Google developer documentation style (see MS-era pedagogy). Positive constructions; colons and periods instead of em dashes.
 - **Next when asked:** leftover Code Quality sittings, apply the gate to a real project, or retrieval of a weak floor. No further MS lectures.
+
+## L0044 complete (4/4; code-quality floor set)
+- Format vs lint, check-only vs fix, ruff + pytest + coverage as a map, raw git hook (`PATH` must include the venv), check-only CI, and parser-not-regex all landed. No friction reported; leftover sittings (real GHA push, semgrep, apply-to-a-real-project) are optional.
+- Missing Semester 2026 spine is complete: lectures 1–9, last lecture = Code Quality. No further 2026 MS lectures.
+- Still not in this path by design: MS “consider installing” fancy CLIs; L0039 massif (notes-only); hyperfine (fancy-CLI exercise); optional publish/PR/yolo sittings. Prior-year topics (data wrangling, security/crypto, potpourri, 2019 extras) were never on the 2026 spine.

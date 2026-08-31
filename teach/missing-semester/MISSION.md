@@ -10,7 +10,7 @@ Follow **[MIT Missing Semester (2026)](https://missing.csail.mit.edu/)** lecture
 
 **Canonical path (13 lessons):** `0001` Vim → `0006` tmux → `0015` Shell (MS 1) → `0019` CLI conventions (MS 2a) → `0024` Remote & home (MS 2b) → `0026` Dev environment (MS 3) → `0031` Debugging (MS 4a) → `0036` Profiling (MS 4b) → `0040` Git (MS 5) → `0041` Shipping (MS 6) → `0042` Agentic coding (MS 7) → `0043` Beyond the Code (MS 8) → `0044` Code Quality (MS 9). Missing Semester spine is complete at L0044.
 
-**Next up:** L0044 in flight — MS lecture 9 Code Quality. Leftover Beyond-the-Code sittings on L0043 are optional. L0039 (massif) stays withdrawn — notes-only, not an exercise.
+**Next up:** Missing Semester 2026 spine complete (L0044). Leftover Code Quality sittings, applying the gate to a real project, or retrieval of a weak floor are optional. L0039 (massif) stays withdrawn — notes-only, not an exercise. Prior-year MS lectures (data wrangling, security/crypto, potpourri, 2019 extras) are not in the 2026 spine.
 
 ## Success looks like
 - Navigate the filesystem and explain cwd / PATH / absolute vs relative paths without hesitation.
