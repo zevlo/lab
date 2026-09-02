@@ -13,6 +13,7 @@
       --line: #d9d6ce;
       --orange: #c45500;
       --blue: #1769aa;
+      --green: #24733f;
       --blue-soft: #eaf4fb;
       --orange-soft: #fff2e8;
       --green-soft: #edf7ef;
@@ -150,6 +151,11 @@
       box-shadow: 0 10px 24px rgb(23 32 42 / 8%);
     }
 
+    .service.complete {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
     .service h3 {
       margin: 0.35rem 0 0.5rem;
       font-size: 1.3rem;
@@ -247,19 +253,20 @@
 
     <h2>Service-by-service path</h2>
     <section class="services" aria-label="AWS service learning sequence">
-      <article class="service current">
-        <span class="number">01 · Network</span>
+      <article class="service complete">
+        <span class="number">01 · Network · Complete</span>
         <h3>VPC</h3>
         <p>Your private network boundary in one AWS Region.</p>
         <p class="cue"><strong>Ask:</strong> Where can traffic go?</p>
-        <p><a href="../lessons/0001-vpc-public-subnet.html">Open lesson 1 →</a></p>
+        <p><a href="../lessons/0001-vpc-public-subnet.html">Review lesson 1 →</a></p>
       </article>
 
-      <article class="service">
+      <article class="service current">
         <span class="number">02 · Compute</span>
         <h3>EC2</h3>
         <p>Virtual servers with chosen CPU, memory, storage, and network settings.</p>
         <p class="cue"><strong>Ask:</strong> What machine runs this?</p>
+        <p><a href="../lessons/0002-trace-ec2-web-request.html">Open lesson 2 →</a></p>
       </article>
 
       <article class="service">

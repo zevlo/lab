@@ -17,6 +17,14 @@
 
 - [What is Amazon EC2?](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/concepts.html)
   The primary EC2 overview. Use for: instances, instance types, networking, and scaling.
+- [EC2 instance configuration parameters](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-launch-parameters.html)
+  AWS's launch-setting reference. Use for: images, instance types, networks, security groups, and user data.
+- [Run commands at launch with user data](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html)
+  AWS guidance for automated instance setup. Use for: bootstrapping repeatable servers.
+- [Security group rules for common use cases](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html)
+  AWS examples for web, SSH, and database traffic. Use for: choosing protocol, port, and source.
+- [EC2 instance status checks](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-system-instance-status-check.html)
+  AWS guidance on system and instance health signals. Use for: separating machine health from application health.
 - [What is Amazon S3?](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html)
   The primary S3 overview. Use for: buckets, objects, access, and storage use cases.
 - [What is IAM?](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)
