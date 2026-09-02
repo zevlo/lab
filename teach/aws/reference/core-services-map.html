@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Core AWS services — job map</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #5d6670;
+      --paper: #fbfaf7;
+      --card: #ffffff;
+      --line: #d9d6ce;
+      --orange: #c45500;
+      --blue: #1769aa;
+      --blue-soft: #eaf4fb;
+      --orange-soft: #fff2e8;
+      --green-soft: #edf7ef;
+      --violet-soft: #f3effb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(100% - 2rem, 980px);
+      margin: 0 auto;
+      padding: 4rem 0 5rem;
+    }
+
+    header {
+      max-width: 760px;
+      margin-bottom: 2.5rem;
+    }
+
+    .eyebrow,
+    .number,
+    .label {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow { color: var(--orange); }
+
+    h1 {
+      margin: 0.35rem 0 0.75rem;
+      font-size: clamp(2.2rem, 7vw, 4.6rem);
+      font-weight: 500;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      max-width: 62ch;
+      margin: 1.25rem 0 0;
+      color: var(--muted);
+      font-size: 1.15rem;
+    }
+
+    .system-map {
+      position: relative;
+      margin: 2.5rem 0 3rem;
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+    }
+
+    .request-path {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    .node {
+      min-height: 118px;
+      padding: 1rem;
+      border-radius: 12px;
+      background: var(--blue-soft);
+    }
+
+    .node:nth-child(2) { background: var(--orange-soft); }
+    .node:nth-child(3) { background: var(--green-soft); }
+    .node:nth-child(4) { background: var(--violet-soft); }
+
+    .node strong {
+      display: block;
+      margin: 0.25rem 0;
+      font-size: 1.1rem;
+    }
+
+    .node p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.93rem;
+    }
+
+    .cross-cut {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .rail {
+      padding: 0.8rem 1rem;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .rail strong { color: var(--ink); }
+
+    h2 {
+      margin: 3rem 0 1.25rem;
+      font-size: 1.65rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+    }
+
+    .services {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+    }
+
+    .service {
+      min-height: 205px;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      break-inside: avoid;
+    }
+
+    .service.current {
+      border: 2px solid var(--orange);
+      box-shadow: 0 10px 24px rgb(23 32 42 / 8%);
+    }
+
+    .service h3 {
+      margin: 0.35rem 0 0.5rem;
+      font-size: 1.3rem;
+    }
+
+    .service p {
+      margin: 0.4rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .cue {
+      padding-top: 0.55rem;
+      border-top: 1px solid var(--line);
+    }
+
+    a {
+      color: var(--blue);
+      text-underline-offset: 0.18em;
+    }
+
+    .footnote {
+      max-width: 72ch;
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 760px) {
+      main { padding-top: 2.5rem; }
+      .request-path,
+      .services { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .request-path,
+      .services,
+      .cross-cut { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      @page { margin: 14mm; }
+      body { background: white; }
+      main { width: 100%; padding: 0; }
+      h1 { font-size: 36pt; }
+      .system-map,
+      .service { box-shadow: none !important; }
+      .services { gap: 6mm; }
+      a { color: var(--ink); text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">AWS field reference · learning path</span>
+      <h1>From request to running workload</h1>
+      <p class="lede">
+        Use this map to decide which service owns a task. The course adds one
+        service at a time until you can operate the whole system.
+      </p>
+    </header>
+
+    <section class="system-map" aria-labelledby="map-title">
+      <span class="label" id="map-title">One simplified request path</span>
+      <div class="request-path">
+        <div class="node">
+          <span class="label">Name</span>
+          <strong>Route 53</strong>
+          <p>Turns a domain name into a destination.</p>
+        </div>
+        <div class="node">
+          <span class="label">Network</span>
+          <strong>VPC</strong>
+          <p>Controls network placement and traffic paths.</p>
+        </div>
+        <div class="node">
+          <span class="label">Compute</span>
+          <strong>EC2 · ECS · EKS</strong>
+          <p>Runs the application code.</p>
+        </div>
+        <div class="node">
+          <span class="label">Data</span>
+          <strong>S3 · RDS</strong>
+          <p>Stores objects or relational data.</p>
+        </div>
+      </div>
+      <div class="cross-cut">
+        <div class="rail"><strong>IAM</strong> controls who can do what.</div>
+        <div class="rail"><strong>CloudWatch</strong> reports what is happening.</div>
+      </div>
+    </section>
+
+    <h2>Service-by-service path</h2>
+    <section class="services" aria-label="AWS service learning sequence">
+      <article class="service current">
+        <span class="number">01 · Network</span>
+        <h3>VPC</h3>
+        <p>Your private network boundary in one AWS Region.</p>
+        <p class="cue"><strong>Ask:</strong> Where can traffic go?</p>
+        <p><a href="../lessons/0001-vpc-public-subnet.html">Open lesson 1 →</a></p>
+      </article>
+
+      <article class="service">
+        <span class="number">02 · Compute</span>
+        <h3>EC2</h3>
+        <p>Virtual servers with chosen CPU, memory, storage, and network settings.</p>
+        <p class="cue"><strong>Ask:</strong> What machine runs this?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">03 · Objects</span>
+        <h3>S3</h3>
+        <p>Durable object storage for files, backups, artifacts, and static assets.</p>
+        <p class="cue"><strong>Ask:</strong> Is this data an object?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">04 · Access</span>
+        <h3>IAM</h3>
+        <p>Identities and policies that authorize AWS actions.</p>
+        <p class="cue"><strong>Ask:</strong> Who may do which action?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">05 · Database</span>
+        <h3>RDS</h3>
+        <p>Managed relational databases such as PostgreSQL and MySQL.</p>
+        <p class="cue"><strong>Ask:</strong> Does the data need SQL relations?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">06 · DNS</span>
+        <h3>Route 53</h3>
+        <p>Domain registration, DNS routing, and endpoint health checks.</p>
+        <p class="cue"><strong>Ask:</strong> Where should this name lead?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">07 · Observe</span>
+        <h3>CloudWatch</h3>
+        <p>Metrics, logs, dashboards, and alarms for workloads.</p>
+        <p class="cue"><strong>Ask:</strong> How will we detect failure?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">08 · Containers</span>
+        <h3>ECS</h3>
+        <p>AWS-native scheduling and management for containers.</p>
+        <p class="cue"><strong>Ask:</strong> Do we need simple AWS orchestration?</p>
+      </article>
+
+      <article class="service">
+        <span class="number">09 · Kubernetes</span>
+        <h3>EKS</h3>
+        <p>A managed Kubernetes control plane with AWS integration.</p>
+        <p class="cue"><strong>Ask:</strong> Do we specifically need Kubernetes?</p>
+      </article>
+    </section>
+
+    <p class="footnote">
+      This map shows responsibilities, not exact network placement. For example,
+      S3 does not live inside your VPC. A workload can reach S3 through a public
+      service endpoint or a VPC endpoint.
+    </p>
+  </main>
+</body>
+</html>

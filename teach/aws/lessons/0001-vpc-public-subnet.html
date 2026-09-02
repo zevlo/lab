@@ -1,0 +1,699 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 1: What makes a subnet public?</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #5f6872;
+      --paper: #fbfaf7;
+      --card: #ffffff;
+      --line: #d9d6ce;
+      --orange: #bd4f00;
+      --orange-soft: #fff1e7;
+      --blue: #116aa3;
+      --blue-soft: #eaf5fb;
+      --green: #24733f;
+      --green-soft: #eaf6ed;
+      --red: #a23131;
+      --red-soft: #faecec;
+      --code: #243240;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.62;
+    }
+
+    .progress {
+      position: fixed;
+      inset: 0 auto auto 0;
+      z-index: 10;
+      width: 0;
+      height: 4px;
+      background: var(--orange);
+      transition: width 180ms ease;
+    }
+
+    main {
+      width: min(100% - 2rem, 880px);
+      margin: 0 auto;
+      padding: 4rem 0 5rem;
+    }
+
+    header {
+      max-width: 740px;
+      margin-bottom: 3.25rem;
+    }
+
+    .eyebrow,
+    .meta,
+    .label,
+    code,
+    th,
+    .option,
+    .score {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .eyebrow,
+    .label {
+      color: var(--orange);
+      font-size: 0.73rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0.45rem 0 1rem;
+      font-size: clamp(2.35rem, 7vw, 4.8rem);
+      font-weight: 500;
+      letter-spacing: -0.05em;
+      line-height: 0.98;
+    }
+
+    .lede {
+      max-width: 58ch;
+      margin: 1.3rem 0;
+      color: var(--muted);
+      font-size: 1.17rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 1.2rem;
+      color: var(--muted);
+      font-size: 0.77rem;
+    }
+
+    .meta span {
+      padding: 0.25rem 0.55rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1.3rem;
+      font-size: 0.9rem;
+    }
+
+    a {
+      color: var(--blue);
+      text-underline-offset: 0.18em;
+    }
+
+    section {
+      margin: 3.2rem 0;
+      scroll-margin-top: 1.5rem;
+    }
+
+    h2 {
+      margin: 0 0 1rem;
+      font-size: 1.75rem;
+      font-weight: 500;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+
+    h3 {
+      margin: 0 0 0.35rem;
+      font-size: 1.12rem;
+    }
+
+    p { max-width: 68ch; }
+
+    .goal,
+    .rule,
+    .practice,
+    .reading {
+      padding: 1.3rem 1.5rem;
+      border-left: 4px solid var(--orange);
+      background: var(--orange-soft);
+    }
+
+    .goal p,
+    .rule p,
+    .practice p,
+    .reading p { margin: 0.3rem 0; }
+
+    .concepts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.8rem;
+      margin-top: 1.4rem;
+    }
+
+    .concept {
+      min-height: 145px;
+      padding: 1.1rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+    }
+
+    .concept p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .network {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+    }
+
+    .path {
+      display: grid;
+      grid-template-columns: 0.8fr 34px 1fr 34px 1.35fr;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .box {
+      min-height: 116px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0.9rem;
+      border-radius: 10px;
+      background: var(--blue-soft);
+      text-align: center;
+    }
+
+    .box.gateway { background: var(--orange-soft); }
+
+    .box.subnet {
+      border: 2px solid var(--blue);
+      background: white;
+    }
+
+    .box strong { font-size: 1rem; }
+
+    .box small {
+      display: block;
+      margin-top: 0.3rem;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.35;
+    }
+
+    .arrow {
+      color: var(--muted);
+      font-size: 1.35rem;
+      text-align: center;
+    }
+
+    .caption {
+      margin: 0.8rem 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      text-align: center;
+    }
+
+    .route-wrap {
+      overflow-x: auto;
+      margin: 1.25rem 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      background: #f4f3ef;
+      font-size: 0.76rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    code {
+      padding: 0.08rem 0.28rem;
+      border-radius: 4px;
+      color: var(--code);
+      background: #eef0f2;
+      font-size: 0.87em;
+    }
+
+    .rule {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .rule strong { color: #0c537f; }
+
+    .minimums {
+      margin: 0.6rem 0 0;
+      padding-left: 1.3rem;
+    }
+
+    .minimums li { margin: 0.25rem 0; }
+
+    .quiz-intro {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+      margin-bottom: 1rem;
+    }
+
+    .score {
+      color: var(--muted);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    fieldset {
+      margin: 0 0 1rem;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--card);
+    }
+
+    fieldset.answered {
+      border-color: #b8bec4;
+    }
+
+    legend {
+      max-width: 90%;
+      padding: 0 0.3rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .options {
+      display: grid;
+      gap: 0.55rem;
+      margin-top: 0.75rem;
+    }
+
+    .option {
+      width: 100%;
+      padding: 0.75rem 0.85rem;
+      border: 1px solid #bec4c9;
+      border-radius: 8px;
+      color: var(--ink);
+      background: white;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option:hover:not(:disabled),
+    .option:focus-visible {
+      border-color: var(--blue);
+      outline: 3px solid rgb(17 106 163 / 14%);
+    }
+
+    .option:disabled { cursor: default; }
+
+    .option.chosen.correct {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .option.chosen.wrong {
+      border-color: var(--red);
+      color: var(--red);
+      background: var(--red-soft);
+    }
+
+    .feedback {
+      min-height: 1.6rem;
+      margin: 0.7rem 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .feedback.correct { color: var(--green); }
+    .feedback.wrong { color: var(--red); }
+
+    .completion {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem 1.2rem;
+      border-radius: 10px;
+      background: var(--green-soft);
+    }
+
+    .completion.show { display: block; }
+
+    .reset {
+      margin-top: 0.8rem;
+      padding: 0.6rem 0.9rem;
+      border: 1px solid var(--ink);
+      border-radius: 7px;
+      color: white;
+      background: var(--ink);
+      font: inherit;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .practice {
+      border-color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .reading {
+      border-color: var(--line);
+      background: var(--card);
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 680px) {
+      main { padding-top: 2.7rem; }
+      .concepts { grid-template-columns: 1fr; }
+      .path { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); }
+      .quiz-intro { display: block; }
+    }
+
+    @media print {
+      @page { margin: 15mm; }
+      body { background: white; font-size: 11pt; }
+      main { width: 100%; padding: 0; }
+      h1 { font-size: 34pt; }
+      .progress,
+      .reset { display: none !important; }
+      section { margin: 8mm 0; }
+      fieldset,
+      .concept,
+      .network { break-inside: avoid; }
+      a { color: var(--ink); }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress" aria-hidden="true"></div>
+  <main>
+    <header>
+      <span class="eyebrow">Lesson 01 · Amazon VPC</span>
+      <h1>What makes a subnet public?</h1>
+      <p class="lede">
+        Learn one rule that resolves many AWS networking questions:
+        a public subnet has a route to an internet gateway.
+      </p>
+      <div class="meta" aria-label="Lesson details">
+        <span>8 minutes</span>
+        <span>cost: $0</span>
+        <span>3 retrieval questions</span>
+      </div>
+      <nav aria-label="Lesson links">
+        <a href="../reference/core-services-map.html">Core services map</a>
+        <a href="#practice">Start practice</a>
+        <a href="#sources">Primary source</a>
+      </nav>
+    </header>
+
+    <section class="goal" aria-labelledby="goal-title">
+      <span class="label" id="goal-title">Tangible win</span>
+      <p>
+        By the end, you can inspect an IPv4 route table and decide whether its
+        subnet is public.
+      </p>
+    </section>
+
+    <section aria-labelledby="model-title">
+      <h2 id="model-title">Build the mental model</h2>
+      <p>
+        A VPC is your network boundary in one AWS Region. A subnet is an IP
+        address range in one Availability Zone.
+        <a href="https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html">AWS defines both here</a>.
+      </p>
+
+      <div class="concepts">
+        <article class="concept">
+          <h3>VPC</h3>
+          <p>A regional network boundary that you define.</p>
+        </article>
+        <article class="concept">
+          <h3>Subnet</h3>
+          <p>One IP address range inside one Availability Zone.</p>
+        </article>
+        <article class="concept">
+          <h3>Route table</h3>
+          <p>A set of destination-and-target rules for network traffic.</p>
+        </article>
+        <article class="concept">
+          <h3>Internet gateway</h3>
+          <p>A VPC component that provides a path to and from the internet.</p>
+        </article>
+      </div>
+
+      <div class="network" role="img" aria-label="Internet traffic path through an internet gateway to a public subnet">
+        <div class="path">
+          <div class="box">
+            <strong>Internet</strong>
+            <small>Any IPv4 destination outside the VPC</small>
+          </div>
+          <div class="arrow" aria-hidden="true">↔</div>
+          <div class="box gateway">
+            <strong>Internet gateway</strong>
+            <small>Attached to the VPC</small>
+          </div>
+          <div class="arrow" aria-hidden="true">↔</div>
+          <div class="box subnet">
+            <strong>Public subnet</strong>
+            <small><code>0.0.0.0/0 → igw</code></small>
+          </div>
+        </div>
+        <p class="caption">The subnet's associated route table creates this path.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="route-title">
+      <h2 id="route-title">Read one route table</h2>
+      <div class="route-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Destination</th>
+              <th>Target</th>
+              <th>Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>10.0.0.0/16</code></td>
+              <td><code>local</code></td>
+              <td>Keep VPC traffic inside the VPC.</td>
+            </tr>
+            <tr>
+              <td><code>0.0.0.0/0</code></td>
+              <td><code>igw-1234</code></td>
+              <td>Send other IPv4 traffic to the internet gateway.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The second route points to an internet gateway. Therefore, a subnet
+        associated with this table is public.
+        <a href="https://docs.aws.amazon.com/vpc/latest/userguide/subnet-route-tables.html">AWS shows the same route pattern</a>.
+      </p>
+    </section>
+
+    <section class="rule" aria-labelledby="rule-title">
+      <span class="label" id="rule-title">Important distinction</span>
+      <p><strong>A public subnet does not make every resource public.</strong></p>
+      <p>An EC2 instance needs at least these items for direct inbound IPv4 access:</p>
+      <ol class="minimums">
+        <li>A public IPv4 address.</li>
+        <li>A route through the internet gateway.</li>
+        <li>A security group rule that allows the requested traffic.</li>
+      </ol>
+      <p>
+        Other controls can still block traffic. For now, remember:
+        <em>public subnet describes a route, not an open door.</em>
+      </p>
+    </section>
+
+    <section id="practice" aria-labelledby="practice-title">
+      <div class="quiz-intro">
+        <div>
+          <span class="label">Retrieval practice</span>
+          <h2 id="practice-title">Commit before you reveal</h2>
+        </div>
+        <span class="score" id="score">0 of 3 answered</span>
+      </div>
+
+      <fieldset data-feedback-correct="Correct. A VPC defines the regional boundary; each subnet stays in one Availability Zone." data-feedback-wrong="Not quite. A VPC defines the regional boundary; each subnet stays in one Availability Zone.">
+        <legend>1. Which resource defines the isolated regional network?</legend>
+        <div class="options">
+          <button class="option" type="button" data-correct="true">VPC defines the regional network boundary.</button>
+          <button class="option" type="button">Subnet defines the regional network boundary.</button>
+          <button class="option" type="button">Gateway defines the regional network boundary.</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </fieldset>
+
+      <fieldset data-feedback-correct="Correct. A route to an attached internet gateway makes the subnet public." data-feedback-wrong="Not quite. A route to an attached internet gateway makes the subnet public.">
+        <legend>2. What makes an IPv4 subnet public?</legend>
+        <div class="options">
+          <button class="option" type="button" data-correct="true">The route table points to an internet gateway.</button>
+          <button class="option" type="button">The route table points to a NAT gateway.</button>
+          <button class="option" type="button">The route table points to the local network.</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </fieldset>
+
+      <fieldset data-feedback-correct="Correct. For direct inbound IPv4 traffic, the instance still needs a public address." data-feedback-wrong="Not quite. For direct inbound IPv4 traffic, the instance still needs a public address.">
+        <legend>
+          3. A subnet routes to an internet gateway. Its EC2 instance has only a
+          private IPv4 address. Can the internet connect directly?
+        </legend>
+        <div class="options">
+          <button class="option" type="button" data-correct="true">No, the instance still needs a public address.</button>
+          <button class="option" type="button">Yes, the internet gateway supplies a public address.</button>
+          <button class="option" type="button">No, security groups cannot allow internet traffic directly.</button>
+        </div>
+        <p class="feedback" aria-live="polite"></p>
+      </fieldset>
+
+      <div class="completion" id="completion" aria-live="polite"></div>
+      <button class="reset" id="reset" type="button">Reset the questions</button>
+    </section>
+
+    <section class="practice" aria-labelledby="spaced-title">
+      <span class="label" id="spaced-title">Storage strength</span>
+      <p>
+        Tomorrow, close this page and answer from memory: What one route makes a
+        subnet public? What two instance settings does direct inbound IPv4
+        traffic still need?
+      </p>
+    </section>
+
+    <section class="reading" id="sources" aria-labelledby="source-title">
+      <span class="label" id="source-title">Primary source · 5 minutes</span>
+      <p>
+        Read AWS's
+        <a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html">Enable internet access using an internet gateway</a>.
+        Focus on the first three paragraphs. They state the public-subnet rule
+        and the public-address requirement.
+      </p>
+    </section>
+
+    <footer>
+      <p>
+        Next: place an EC2 instance in this network and trace every setting that
+        makes a web request succeed. Ask your teacher about any point that feels
+        unclear before moving on.
+      </p>
+      <p><a href="../reference/core-services-map.html">Return to the core services map</a></p>
+    </footer>
+  </main>
+
+  <script>
+    const questions = [...document.querySelectorAll("fieldset")];
+    const score = document.querySelector("#score");
+    const progress = document.querySelector("#progress");
+    const completion = document.querySelector("#completion");
+    const reset = document.querySelector("#reset");
+
+    function updateSummary() {
+      const answered = questions.filter((question) =>
+        question.classList.contains("answered")
+      );
+      const correct = answered.filter((question) =>
+        question.dataset.result === "correct"
+      );
+
+      score.textContent = `${answered.length} of ${questions.length} answered`;
+      progress.style.width = `${(answered.length / questions.length) * 100}%`;
+
+      if (answered.length === questions.length) {
+        const perfect = correct.length === questions.length;
+        completion.classList.add("show");
+        completion.innerHTML = perfect
+          ? `<strong>${correct.length}/${questions.length}.</strong> You can identify a public subnet. You are ready for EC2.`
+          : `<strong>${correct.length}/${questions.length}.</strong> Review the blue distinction box, then reset and retrieve again.`;
+      }
+    }
+
+    questions.forEach((question) => {
+      const options = [...question.querySelectorAll(".option")];
+      const feedback = question.querySelector(".feedback");
+
+      options.forEach((option) => {
+        option.addEventListener("click", () => {
+          if (question.classList.contains("answered")) return;
+
+          const isCorrect = option.dataset.correct === "true";
+          question.classList.add("answered");
+          question.dataset.result = isCorrect ? "correct" : "wrong";
+          option.classList.add("chosen", isCorrect ? "correct" : "wrong");
+          options.forEach((item) => { item.disabled = true; });
+          feedback.classList.add(isCorrect ? "correct" : "wrong");
+          feedback.textContent = isCorrect
+            ? question.dataset.feedbackCorrect
+            : question.dataset.feedbackWrong;
+          updateSummary();
+        });
+      });
+    });
+
+    reset.addEventListener("click", () => {
+      questions.forEach((question) => {
+        question.classList.remove("answered");
+        delete question.dataset.result;
+        const feedback = question.querySelector(".feedback");
+        feedback.textContent = "";
+        feedback.className = "feedback";
+        question.querySelectorAll(".option").forEach((option) => {
+          option.disabled = false;
+          option.className = "option";
+        });
+      });
+      completion.classList.remove("show");
+      completion.textContent = "";
+      updateSummary();
+      questions[0].scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  </script>
+</body>
+</html>
