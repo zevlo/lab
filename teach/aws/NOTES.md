@@ -21,10 +21,11 @@ Lessons follow the [Google developer documentation style guide](https://develope
 - One continuous reference architecture across lessons (three-tier web app), growing in complexity — this becomes their interview story and portfolio.
 - Quiz design: options within a question must have matching word counts (no formatting tells).
 - Interleave previously-covered services into each new lesson's quiz (spacing + interleaving).
-- Billing alarm was assigned in Lesson 0001 as a prerequisite for all future hands-on.
+- Billing alarm assigned in Lesson 0001 — **done 2026-09-02** (us-east-1, >5 USD). Hands-on unlocked.
+- After each lesson: verify retention at the start of the next session before adding depth (quiz 5/5 = fluency, not storage).
 
 ## Lesson roadmap (working plan)
-1. 0001 — The DevOps map: one request's journey through all nine services (done)
+1. 0001 — The DevOps map: one request's journey through all nine services (done 2026-09-02, quiz 5/5, billing alarm set)
 2. VPC hands-on: 2-AZ VPC, public/private subnets, IGW, NAT (console + CLI)
 3. IAM operationally: roles vs users, policy evaluation, least privilege, instance/task roles
 4. EC2 ops: launch in a private subnet, user data, SSM Session Manager (no SSH), instance profiles
