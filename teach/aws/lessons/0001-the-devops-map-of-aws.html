@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 · The DevOps map of AWS</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    color: #1a1a1a; background: #fdfcf8;
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 4rem;
+    line-height: 1.6; font-size: 1.05rem;
+  }
+  header { border-bottom: 2px solid #1a1a1a; padding-bottom: 1.2rem; margin-bottom: 2rem; }
+  .eyebrow { font-family: ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: #8a6d1d; margin: 0 0 .4rem; }
+  h1 { font-size: 2.1rem; margin: 0; font-weight: 600; letter-spacing: -.015em; line-height: 1.15; }
+  .dek { color: #555; font-style: italic; margin: .6rem 0 0; font-size: 1.08rem; }
+  .meta { font-family: ui-sans-serif, sans-serif; font-size: .78rem; color: #777; margin-top: .8rem; }
+  h2 { font-size: 1.35rem; margin: 2.6rem 0 .8rem; font-weight: 600; }
+  p { margin: .8rem 0; }
+  a { color: #1c5d99; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .why { background: #eef4ee; border-left: 3px solid #4a7c59; padding: .8rem 1.1rem; font-size: .95rem; margin: 1.8rem 0; }
+  .why strong { font-family: ui-sans-serif, sans-serif; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; display: block; color: #4a7c59; margin-bottom: .2rem; }
+  .note { background: #f6f1e3; border-left: 3px solid #b48a2a; padding: .6rem 1rem; font-size: .95rem; margin: 1.2rem 0; }
+  .note strong { font-family: ui-sans-serif, sans-serif; }
+  figure { margin: 1.6rem 0; }
+  figcaption { font-size: .85rem; color: #666; margin-top: .5rem; font-style: italic; }
+  svg { width: 100%; height: auto; background: #fff; border: 1px solid #e7e2d4; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; margin: 1.2rem 0; }
+  th, td { border: 1px solid #ddd6c4; padding: .5rem .7rem; text-align: left; vertical-align: top; }
+  th { font-family: ui-sans-serif, sans-serif; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; background: #f6f1e3; }
+  ol.journey { padding-left: 0; list-style: none; counter-reset: step; }
+  ol.journey > li { counter-increment: step; position: relative; padding: .55rem 0 .55rem 2.6rem; border-bottom: 1px dotted #d8d2c0; }
+  ol.journey > li::before { content: counter(step); position: absolute; left: 0; top: .55rem; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: #1a1a1a; color: #fff; font-family: ui-sans-serif, sans-serif; font-size: .85rem; display: flex; align-items: center; justify-content: center; }
+  ol li, ul li { margin: .35rem 0; }
+  .practice { background: #fff; border: 1px solid #e7e2d4; border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1.4rem 0; }
+  .practice h3 { font-family: ui-sans-serif, sans-serif; font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; margin: 0 0 .6rem; color: #8a6d1d; }
+  .btn { font-family: ui-sans-serif, sans-serif; font-size: .92rem; display: block; width: 100%; text-align: left; background: #f6f3ea; color: #1a1a1a; border: 1px solid #cfc7ad; border-radius: 8px; padding: .6rem .9rem; margin: .45rem 0; cursor: pointer; transition: background .12s; }
+  .btn:hover:not(:disabled) { background: #efe9d8; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn.correct { background: #e3efe3; border-color: #4a7c59; }
+  .btn.wrong { background: #f7e3e0; border-color: #b3402f; }
+  .btn.pickorder { cursor: pointer; }
+  .fb { font-family: ui-sans-serif, sans-serif; font-size: .9rem; margin: .5rem 0 0; padding: .6rem .8rem; border-radius: 8px; display: none; }
+  .fb.show { display: block; }
+  .fb.good { background: #e3efe3; border: 1px solid #7ba382; }
+  .fb.bad { background: #f7e3e0; border: 1px solid #cf8a7d; }
+  .fb b { display: block; margin-bottom: .15rem; }
+  .sequence { font-family: ui-sans-serif, sans-serif; font-size: .95rem; margin: .6rem 0; min-height: 1.4rem; }
+  .sequence .step { display: inline-block; background: #1a1a1a; color: #fff; border-radius: 15px; padding: .2rem .75rem; margin: .2rem .2rem 0 0; }
+  .q { margin-top: 1.8rem; }
+  .q p.qtext { font-weight: 600; margin-bottom: .3rem; }
+  .score { font-family: ui-sans-serif, sans-serif; margin-top: 1.5rem; padding: .8rem 1rem; border-radius: 8px; background: #f6f1e3; display: none; }
+  .ask { background: #eef2f7; border-left: 3px solid #3d5a80; padding: .8rem 1.1rem; font-size: .95rem; margin: 2rem 0; }
+  .ask strong { font-family: ui-sans-serif, sans-serif; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; display: block; color: #3d5a80; margin-bottom: .2rem; }
+  .source { background: #f6f1e3; border: 1px solid #d8cd9d; border-radius: 10px; padding: 1rem 1.3rem; margin: 1.6rem 0; }
+  .source .tag { font-family: ui-sans-serif, sans-serif; font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: #8a6d1d; display: block; margin-bottom: .3rem; }
+  footer { border-top: 2px solid #1a1a1a; margin-top: 3rem; padding-top: 1rem; font-family: ui-sans-serif, sans-serif; font-size: .85rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .88em; background: #f0ece0; padding: .08em .35em; border-radius: 4px; }
+  @media print {
+    body { background: #fff; font-size: 10.5pt; }
+    .practice, .btn, .fb, .score { display: none !important; }
+    a { color: inherit; }
+    svg { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Lesson 0001</p>
+  <h1>The DevOps map of AWS</h1>
+  <p class="dek">How one request travels through the nine core services, and the five questions every production stack answers.</p>
+  <p class="meta">Time to complete: 15 minutes · Last updated: 2026-09-01</p>
+</header>
+
+<div class="why">
+  <strong>Why this lesson</strong>
+  You passed the SAA-C03 exam, so you know these services as exam topics. DevOps interviews and day-to-day operations require a different skill: tracing a live request through a production stack and identifying where it fails. This lesson turns nine separate services into one mental model. In the following lessons, you build this architecture in your own AWS account.
+</div>
+
+<h2>Before you begin</h2>
+
+<p>This lesson assumes the following:</p>
+
+<ul>
+  <li>You're familiar with the names of the nine services at SAA-C03 level: VPC, EC2, S3, IAM, RDS, Route 53, CloudWatch, ECS, and EKS.</li>
+  <li>To complete the billing-alarm task at the end of this lesson, you can sign in to your own AWS account.</li>
+</ul>
+
+<h2>The five questions every stack answers</h2>
+
+<p>Most AWS interviews include a question similar to <em>"Walk me through how a request reaches your application."</em> The question tests whether you can hold an entire system in mind at once. After this lesson, you can answer it in about ninety seconds.</p>
+
+<p>Whatever the product, every production stack answers the same five questions:</p>
+
+<table>
+  <thead>
+    <tr><th>Question</th><th>Services that answer it</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>How do users <strong>reach</strong> the application?</td><td>Route 53 (DNS) and the Application Load Balancer</td></tr>
+    <tr><td>Where does <strong>code run</strong>?</td><td>EC2, ECS, EKS, and Fargate, with container images from ECR</td></tr>
+    <tr><td>How is the <strong>network shaped</strong>?</td><td>VPC: subnets, route tables, internet gateway, NAT gateway, and security groups</td></tr>
+    <tr><td>Where does <strong>data live</strong>?</td><td>RDS for relational data, and S3 for objects and build artifacts</td></tr>
+    <tr><td>Who is <strong>allowed</strong>, and who is <strong>watching</strong>?</td><td>IAM for permissions, and CloudWatch for metrics, logs, and alarms</td></tr>
+  </tbody>
+</table>
+
+<p>Memorize the five questions rather than the service list. The questions give each service a place to live. The <a href="https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html">AWS Well-Architected Framework</a> is built on the same habit: name the concern first, then the mechanism that addresses it.</p>
+
+<h2>How a request flows through the stack</h2>
+
+<figure>
+<svg viewBox="0 0 940 600" role="img" aria-label="Diagram: a user request travels from the user through Route 53, an Application Load Balancer in public subnets, application containers in private subnets, and RDS in data subnets. A NAT gateway handles outbound traffic, S3 and ECR hold artifacts and images outside the VPC, IAM authorizes each call, and CloudWatch records metrics and logs.">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b45309"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a8a8a"/>
+    </marker>
+  </defs>
+
+  <!-- band backgrounds inside VPC -->
+  <rect x="230" y="95" width="610" height="95" fill="#f2f6fa"/>
+  <rect x="230" y="198" width="610" height="105" fill="#fdf6ec"/>
+  <rect x="230" y="311" width="610" height="95" fill="#f4f1e8"/>
+
+  <!-- VPC boundary -->
+  <rect x="230" y="60" width="610" height="346" fill="none" stroke="#4a5568" stroke-width="1.5" stroke-dasharray="7 5" rx="10"/>
+  <text x="248" y="82" font-family="Georgia, serif" font-size="14" font-style="italic" fill="#4a5568">VPC — spans 2 Availability Zones</text>
+  <text x="836" y="82" font-family="ui-sans-serif, sans-serif" font-size="10" fill="#4a5568">region-scoped</text>
+
+  <!-- band labels -->
+  <text x="248" y="112" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#5b7185">PUBLIC SUBNETS — internet-facing</text>
+  <text x="248" y="215" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#9a7b3f">PRIVATE SUBNETS — app tier</text>
+  <text x="248" y="328" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#7d766a">DATA SUBNETS — isolated</text>
+
+  <!-- Users -->
+  <rect x="20" y="255" width="120" height="64" rx="9" fill="#1a1a1a"/>
+  <text x="80" y="282" font-family="Georgia, serif" font-size="15" fill="#fff" text-anchor="middle">Users</text>
+  <text x="80" y="302" font-family="ui-monospace, monospace" font-size="11" fill="#cfcfcf" text-anchor="middle">app.example.com</text>
+
+  <!-- Route 53 -->
+  <rect x="20" y="95" width="150" height="58" rx="9" fill="#eef2f7" stroke="#3d5a80" stroke-width="1.4"/>
+  <text x="95" y="119" font-family="Georgia, serif" font-size="14" text-anchor="middle" fill="#1a1a1a">Route 53</text>
+  <text x="95" y="137" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#5b7185">DNS · hosted zone</text>
+
+  <!-- ALB -->
+  <rect x="300" y="128" width="190" height="56" rx="9" fill="#eef2f7" stroke="#3d5a80" stroke-width="1.4"/>
+  <text x="395" y="150" font-family="Georgia, serif" font-size="14" text-anchor="middle">Application LB</text>
+  <text x="395" y="168" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#5b7185">TLS · health checks · targets</text>
+
+  <!-- App tier: two AZ boxes -->
+  <rect x="300" y="233" width="180" height="58" rx="9" fill="#fdf6ec" stroke="#b48a2a" stroke-width="1.4"/>
+  <text x="390" y="255" font-family="Georgia, serif" font-size="13.5" text-anchor="middle">ECS task / EC2</text>
+  <text x="390" y="273" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#9a7b3f">AZ A</text>
+  <rect x="510" y="233" width="180" height="58" rx="9" fill="#fdf6ec" stroke="#b48a2a" stroke-width="1.4"/>
+  <text x="600" y="255" font-family="Georgia, serif" font-size="13.5" text-anchor="middle">ECS task / EC2</text>
+  <text x="600" y="273" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#9a7b3f">AZ B</text>
+
+  <!-- RDS -->
+  <rect x="300" y="343" width="250" height="54" rx="9" fill="#f4f1e8" stroke="#7d766a" stroke-width="1.4"/>
+  <text x="425" y="365" font-family="Georgia, serif" font-size="14" text-anchor="middle">RDS — PostgreSQL</text>
+  <text x="425" y="383" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#7d766a">primary (AZ A) · standby (AZ B)</text>
+
+  <!-- NAT -->
+  <rect x="640" y="135" width="150" height="48" rx="9" fill="#eef2f7" stroke="#3d5a80" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="715" y="155" font-family="Georgia, serif" font-size="13" text-anchor="middle">NAT gateway</text>
+  <text x="715" y="172" font-family="ui-sans-serif, sans-serif" font-size="10" text-anchor="middle" fill="#5b7185">outbound only</text>
+
+  <!-- S3 / ECR outside -->
+  <rect x="760" y="30" width="165" height="52" rx="9" fill="#fff" stroke="#4a7c59" stroke-width="1.4"/>
+  <text x="842" y="50" font-family="Georgia, serif" font-size="13.5" text-anchor="middle">S3 · ECR</text>
+  <text x="842" y="68" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#4a7c59">artifacts · images</text>
+
+  <!-- IAM + CloudWatch -->
+  <rect x="300" y="452" width="180" height="52" rx="9" fill="#eef2f7" stroke="#3d5a80" stroke-width="1.2"/>
+  <text x="390" y="473" font-family="Georgia, serif" font-size="13.5" text-anchor="middle">IAM</text>
+  <text x="390" y="491" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#5b7185">authorizes each call</text>
+  <rect x="530" y="452" width="200" height="52" rx="9" fill="#eef2f7" stroke="#3d5a80" stroke-width="1.2"/>
+  <text x="630" y="473" font-family="Georgia, serif" font-size="13.5" text-anchor="middle">CloudWatch</text>
+  <text x="630" y="491" font-family="ui-sans-serif, sans-serif" font-size="10.5" text-anchor="middle" fill="#5b7185">records metrics and logs</text>
+
+  <!-- arrows -->
+  <!-- 1 DNS lookup (dashed, users -> r53) -->
+  <line x1="95" y1="255" x2="95" y2="155" stroke="#8a8a8a" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+  <text x="103" y="205" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#555">① resolves name</text>
+
+  <!-- 2 users -> ALB -->
+  <line x1="140" y1="287" x2="295" y2="170" stroke="#b45309" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="196" y="255" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#b45309">② HTTPS to ALB IP</text>
+
+  <!-- 3 ALB -> targets -->
+  <line x1="370" y1="184" x2="380" y2="228" stroke="#b45309" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="425" y1="184" x2="580" y2="228" stroke="#b45309" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="500" y="215" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#b45309">③ healthy target</text>
+
+  <!-- 4 app -> RDS -->
+  <line x1="390" y1="291" x2="410" y2="338" stroke="#b45309" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="262" y="322" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#b45309">④ query</text>
+
+  <!-- app -> NAT (dashed) -->
+  <line x1="690" y1="233" x2="712" y2="187" stroke="#8a8a8a" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+  <text x="700" y="215" font-family="ui-sans-serif, sans-serif" font-size="10.5" fill="#555">patches, downloads</text>
+
+  <!-- app -> S3/ECR (dashed) -->
+  <line x1="775" y1="233" x2="840" y2="87" stroke="#8a8a8a" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+  <text x="848" y="160" font-family="ui-sans-serif, sans-serif" font-size="10.5" fill="#555">pull image /</text>
+  <text x="848" y="174" font-family="ui-sans-serif, sans-serif" font-size="10.5" fill="#555">artifacts</text>
+
+  <!-- IAM / CloudWatch reach up (dashed) -->
+  <line x1="390" y1="452" x2="390" y2="412" stroke="#3d5a80" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrg)"/>
+  <line x1="630" y1="452" x2="630" y2="412" stroke="#3d5a80" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrg)"/>
+  <text x="640" y="440" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#3d5a80">⑤ metrics · logs · alarms</text>
+
+  <!-- legend -->
+  <rect x="20" y="452" width="230" height="104" fill="none" stroke="#ddd6c4" rx="8"/>
+  <line x1="35" y1="472" x2="70" y2="472" stroke="#b45309" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="78" y="476" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#444">the request's path</text>
+  <line x1="35" y1="496" x2="70" y2="496" stroke="#8a8a8a" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+  <text x="78" y="500" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#444">supporting traffic</text>
+  <line x1="35" y1="522" x2="70" y2="522" stroke="#3d5a80" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrg)"/>
+  <text x="78" y="526" font-family="ui-sans-serif, sans-serif" font-size="11" fill="#444">cross-cutting: IAM, CloudWatch</text>
+</svg>
+<figcaption>The reference architecture that you build across the following lessons. Everything inside the dashed border is the VPC. Each tier is duplicated across two Availability Zones, so the failure of one zone doesn't interrupt the application.</figcaption>
+</figure>
+
+<p>The request moves through the stack in five steps:</p>
+
+<ol class="journey">
+  <li><strong>Route 53 resolves the name.</strong> The browser requests the IP address for <code>app.example.com</code>. The record in the hosted zone, preferably an alias record, returns the addresses of the Application Load Balancer. For more information, see the <a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html">Route 53 developer guide</a>.</li>
+  <li><strong>The load balancer terminates TLS and selects a target.</strong> The request arrives at the Application Load Balancer in the public subnets. TLS ends here, using a certificate from ACM. Only targets that pass health checks receive traffic. For more information, see the <a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">Application Load Balancer guide</a>.</li>
+  <li><strong>The application answers from a private subnet.</strong> Your container (ECS, EKS, or Fargate) or instance (EC2) has no public IP address and no inbound route from the internet. Its security group accepts traffic only from the load balancer's security group. Outbound traffic, such as operating system updates, leaves through the NAT gateway in a public subnet. For more information, see the <a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html">NAT gateway documentation</a>.</li>
+  <li><strong>Data lives one tier deeper.</strong> The application connects to RDS in isolated data subnets. The database security group accepts connections only from the application security group, and only on a single port. Build artifacts and static files live in S3, and container images live in ECR. For more information, see the <a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html">RDS documentation</a>.</li>
+  <li><strong>IAM authorizes each call, and CloudWatch records everything.</strong> Each step works only because a role allows it, such as the task role for a container or the instance profile for an EC2 instance. CloudWatch collects metrics and logs at every hop and can trigger an alarm. For more information, see the <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">IAM best practices</a>.</li>
+</ol>
+
+<p>Two patterns recur in this architecture:</p>
+
+<ul>
+  <li><strong>Defense in depth:</strong> the stack has public, private, and data tiers, and each tier accepts traffic only from the tier in front of it.</li>
+  <li><strong>Duplication across Availability Zones:</strong> each tier spans two zones, so the loss of one zone doesn't remove a tier.</li>
+</ul>
+
+<p>These patterns are the reliability and security pillars of the <a href="https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html">AWS Well-Architected Framework</a> in miniature. Full definitions of every term are in the <a href="../reference/glossary.html">workspace glossary</a>.</p>
+
+<div class="practice">
+  <h3>Practice 1: Rebuild the request journey</h3>
+  <p style="font-size:.95rem;margin-top:0;">The following steps are out of order. Click them in the sequence that a request experiences:</p>
+  <div id="orderArea"></div>
+  <div class="sequence" id="seqArea"></div>
+  <p class="fb" id="orderFb"></p>
+  <button class="btn" id="orderReset" style="width:auto;display:inline-block;background:#f0ece0;">Reset</button>
+</div>
+
+<div class="practice">
+  <h3>Practice 2: Check your understanding</h3>
+  <p style="font-size:.95rem;margin-top:0;">Each question allows one attempt. Feedback appears immediately.</p>
+
+  <div class="q" data-q="0">
+    <p class="qtext">A user opens <code>https://app.example.com</code>. Which service returns the IP address for that name?</p>
+    <button class="btn">Route 53</button><button class="btn">CloudFront</button><button class="btn">CloudWatch</button><button class="btn">CloudTrail</button>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-q="1">
+    <p class="qtext">An application in a private subnet must download a package from a public site on the internet. What makes that work?</p>
+    <button class="btn">NAT gateway</button><button class="btn">Internet gateway</button><button class="btn">VPC endpoint</button><button class="btn">Bastion host</button>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-q="2">
+    <p class="qtext">An EC2 application must write to an S3 bucket. Which credential setup is the DevOps default?</p>
+    <button class="btn">IAM role</button><button class="btn">IAM user</button><button class="btn">Access key</button><button class="btn">IAM group</button>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-q="3">
+    <p class="qtext">A load balancer health check fails, but the application runs on the instance. What do you check first?</p>
+    <button class="btn">Security group</button><button class="btn">IAM policy</button><button class="btn">Route table</button><button class="btn">Hosted zone</button>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-q="4">
+    <p class="qtext">In the reference architecture, where does the RDS database live?</p>
+    <button class="btn">Private subnets</button><button class="btn">Public subnets</button><button class="btn">NAT subnets</button><button class="btn">Edge subnets</button>
+    <p class="fb"></p>
+  </div>
+
+  <div class="score" id="score"></div>
+</div>
+
+<h2>Review the map from memory</h2>
+
+<p>Reading the diagram builds short-term familiarity. Recalling it from memory builds long-term retention. Later today, with this lesson closed, do the following:</p>
+
+<ol>
+  <li>On a blank sheet of paper, sketch the diagram from memory: the boxes, the arrows, the VPC boundary, and both Availability Zones.</li>
+  <li>From memory, write the five questions from the first section, and attach each service to its question.</li>
+  <li>Compare your version with the diagram in this lesson. The gaps you find are the material to review.</li>
+</ol>
+
+<p>Before the next lesson, narrate the five-step journey out loud once. The full narration takes about ninety seconds.</p>
+
+<h2>Set up a billing alarm</h2>
+
+<p>Before you create any AWS resources, protect your budget. A billing alarm sends an email when your estimated monthly charges cross a threshold. This task is a prerequisite for all hands-on lessons.</p>
+
+<p>To set up a billing alarm:</p>
+
+<ol>
+  <li>In the AWS Management Console, use the Region selector to choose <strong>N. Virginia (us-east-1)</strong>. Billing metrics are published only in this Region.</li>
+  <li>Open the <strong>CloudWatch</strong> console, and in the navigation pane choose <strong>Alarms</strong> &gt; <strong>Billing</strong> &gt; <strong>Create alarm</strong>.</li>
+  <li>For the metric, choose the <strong>EstimatedCharges</strong> metric for your account, and then choose <strong>Select metric</strong>.</li>
+  <li>For the alarm condition, choose <strong>Greater</strong>, and enter <strong>5</strong>. Keep the default currency of USD.</li>
+  <li>To receive notifications by email, choose <strong>Create new topic</strong>, enter a topic name and your email address, and then choose <strong>Create topic</strong>.</li>
+  <li>Choose <strong>Next</strong>, enter an alarm name such as <code>billing-over-5-usd</code>, and then choose <strong>Next</strong> &gt; <strong>Create alarm</strong>.</li>
+  <li>Open the subscription confirmation email from AWS Notifications, and choose <strong>Confirm subscription</strong>.</li>
+</ol>
+
+<p>When your estimated charges for the month exceed 5 USD, CloudWatch sends an email to the address you entered. For more information, see the <a href="https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html">CloudWatch billing metrics documentation</a>.</p>
+
+<div class="source">
+  <span class="tag">Recommended reading · about 15 minutes</span>
+  Read the introduction and six-pillar overview of the <a href="https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html"><strong>AWS Well-Architected Framework</strong></a>. The framework supplies the professional vocabulary — operational excellence, security, reliability, performance efficiency, cost optimization, and sustainability — that interviewers expect. Skim it. Later lessons revisit each pillar.
+</div>
+
+<div class="ask">
+  <strong>Ask your teacher</strong>
+  If anything in this lesson is unclear, ask the teacher agent. For example, you can ask:
+  <ul style="margin:.4rem 0 0;">
+    <li>"Why not place EC2 instances in public subnets?"</li>
+    <li>"How does a security group reference another security group?"</li>
+    <li>"What does it mean for the load balancer to terminate TLS?"</li>
+  </ul>
+</div>
+
+<h2>Next steps</h2>
+
+<ul>
+  <li>Review the <a href="../reference/glossary.html">workspace glossary</a> for definitions of every term in this lesson.</li>
+  <li>Read the recommended <a href="https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html">Well-Architected Framework</a> introduction.</li>
+  <li>Do the memory-review exercise later today, without the lesson open.</li>
+  <li>In Lesson 0002, build the VPC from the diagram in your own AWS account.</li>
+</ul>
+
+<footer>
+  <span><a href="../reference/glossary.html">Glossary (reference)</a></span>
+  <span style="color:#777;">Next: Lesson 0002 · Build the VPC</span>
+</footer>
+
+<script>
+(function () {
+  // ---------- Practice 1: ordering ----------
+  var steps = [
+    "Route 53 resolves app.example.com to the ALB's IP",
+    "The ALB terminates TLS and picks a healthy target",
+    "App code in a private subnet handles the request",
+    "The app queries RDS in the isolated data subnets",
+    "CloudWatch records metrics for the whole journey"
+  ];
+  var area = document.getElementById('orderArea');
+  var seq = document.getElementById('seqArea');
+  var fb = document.getElementById('orderFb');
+  var next = 0;
+  var done = [false, false, false, false, false];
+  function render() {
+    area.innerHTML = '';
+    var idx = steps.map(function (_, i) { return i; })
+      .filter(function (i) { return !done[i]; });
+    idx.forEach(function (i) {
+      var b = document.createElement('button');
+      b.className = 'btn pickorder';
+      b.textContent = steps[i];
+      b.onclick = function () { pick(i, b); };
+      area.appendChild(b);
+    });
+    if (!area.children.length) area.innerHTML = '<em style="color:#4a7c59;">All steps placed. See the sequence below.</em>';
+  }
+  function pick(i, btn) {
+    fb.className = 'fb show ' + (i === next ? 'good' : 'bad');
+    if (i === next) {
+      done[i] = true;
+      var s = document.createElement('span');
+      s.className = 'step';
+      s.textContent = (next + 1) + ' · ' + steps[i].split(' ').slice(0, 4).join(' ') + '…';
+      seq.appendChild(s);
+      next++;
+      fb.innerHTML = next === steps.length
+        ? '<b>Journey complete.</b> This sequence is the interview answer. Try saying it out loud.'
+        : '<b>Correct.</b> Choose the step that happens next.';
+      render();
+    } else {
+      fb.innerHTML = '<b>Not yet.</b> Something happens before this step. Choose the service whose job comes first.';
+      btn.classList.add('wrong');
+      setTimeout(function () { btn.classList.remove('wrong'); }, 600);
+    }
+  }
+  document.getElementById('orderReset').onclick = function () {
+    done = [false, false, false, false, false]; next = 0;
+    seq.innerHTML = ''; fb.className = 'fb'; render();
+  };
+  render();
+
+  // ---------- Practice 2: quiz ----------
+  var explain = [
+    "<b>Route 53.</b> DNS translates names to IP addresses, and Route 53 is the AWS DNS service. CloudFront is a CDN, CloudWatch is telemetry, and CloudTrail is an audit log; none of them resolve names. For more information, see the <a href='https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html' target='_blank'>Route 53 developer guide</a>.",
+    "<b>NAT gateway.</b> Private subnets have no route to the internet gateway. The NAT gateway, which sits in a public subnet, forwards outbound traffic and blocks unsolicited inbound traffic. A VPC endpoint reaches AWS services such as S3, not arbitrary public sites. For more information, see the <a href='https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html' target='_blank'>NAT gateway documentation</a>.",
+    "<b>IAM role.</b> The instance profile attached to the role provides temporary credentials to the instance. AWS rotates the credentials, and you never store keys on the instance. Long-lived access keys on an instance are a common security finding. For more information, see <a href='https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html' target='_blank'>IAM best practices</a>.",
+    "<b>Security group.</b> A common cause of failing health checks is a security group on the instance that doesn't allow the health-check port from the load balancer. The recommended pattern is a rule that references the load balancer's security group. For more information, see <a href='https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html' target='_blank'>ALB health checks</a>.",
+    "<b>Private subnets.</b> In the reference architecture, the data subnets have no internet route at all. Only the application tier's security group can connect to the database, on a single port. For more information, see <a href='https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.WorkingWithRDSInstanceInaVPC.html' target='_blank'>RDS in a VPC</a>."
+  ];
+  var total = 0, answered = 0;
+  document.querySelectorAll('.q').forEach(function (q) {
+    var qi = parseInt(q.getAttribute('data-q'), 10);
+    var btns = Array.prototype.slice.call(q.querySelectorAll('.btn'));
+    var fbq = q.querySelector('.fb');
+    var correctBtn = btns[0];
+    var shuffled = btns.slice().sort(function () { return Math.random() - 0.5; });
+    shuffled.forEach(function (b) { q.insertBefore(b, fbq); });
+    btns.forEach(function (b) {
+      b.onclick = function () {
+        if (q.dataset.done) return;
+        q.dataset.done = '1'; answered++;
+        var isCorrect = (b === correctBtn);
+        if (isCorrect) { b.classList.add('correct'); total++; }
+        else { b.classList.add('wrong'); correctBtn.classList.add('correct'); }
+        btns.forEach(function (x) { x.disabled = true; });
+        fbq.className = 'fb show ' + (isCorrect ? 'good' : 'bad');
+        fbq.innerHTML = (isCorrect ? '' : '<b>Not quite. The correct answer is highlighted.</b>') + explain[qi];
+        if (answered === 5) {
+          var sc = document.getElementById('score');
+          sc.style.display = 'block';
+          var verdict = total === 5 ? "You're ready for the next lesson."
+            : total >= 3 ? "Review the questions you missed, then continue."
+            : "Read the 'How a request flows' section again, and retake the quiz from memory.";
+          sc.innerHTML = '<strong>' + total + ' / 5.</strong> ' + verdict +
+            ' Full definitions are in the <a href="../reference/glossary.html">glossary</a>.';
+        }
+      };
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AWS DevOps Glossary</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    color: #1a1a1a; background: #fdfcf8;
+    max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 4rem;
+    line-height: 1.55; font-size: 1.02rem;
+  }
+  header { border-bottom: 2px solid #1a1a1a; padding-bottom: 1rem; margin-bottom: 2rem; }
+  .eyebrow { font-family: ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: #8a6d1d; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; margin: 0; font-weight: 600; letter-spacing: -.01em; }
+  .dek { color: #555; font-style: italic; margin: .5rem 0 0; }
+  h2 { font-family: ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif; font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; color: #8a6d1d; margin: 2.2rem 0 .6rem; border-bottom: 1px solid #e4ddc9; padding-bottom: .3rem; }
+  dl { margin: 0; }
+  dt { font-weight: 700; margin-top: 1rem; }
+  dd { margin: 0 0 .2rem 0; }
+  dd.avoid { color: #7a7a7a; font-size: .85rem; font-style: italic; }
+  dd.link { font-family: ui-sans-serif, -apple-system, Helvetica, Arial, sans-serif; font-size: .78rem; }
+  a { color: #1c5d99; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #f6f1e3; border-left: 3px solid #b48a2a; padding: .7rem 1rem; font-size: .92rem; margin: 1.5rem 0; }
+  @media print {
+    body { background: #fff; max-width: none; padding: 1cm; font-size: 10.5pt; }
+    .note { background: none; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Reference · AWS DevOps</p>
+  <h1>Glossary</h1>
+  <p class="dek">The canonical language for this workspace. Terms are admitted when you can use them — this baseline rests on your SAA-C03 pass; operational notes deepen lesson by lesson.</p>
+</header>
+
+<div class="note">When several names exist for one concept, the bolded term is the one this workspace uses. <em>Avoid</em> lists the aliases to retire. Each term links to the AWS docs entry — the ground truth.</div>
+
+<h2>Foundations</h2>
+<dl>
+  <dt id="region">Region</dt>
+  <dd>A geographic cluster of AWS data centres, e.g. <code>eu-west-1</code>. Most resources are scoped to exactly one region.</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html">docs: regions &amp; AZs</a></dd>
+  <dt id="az">Availability Zone (AZ)</dt>
+  <dd>One or more isolated data centres inside a Region with independent power and networking. The unit of high-availability: spread across AZs so one failing doesn't take you down.</dd>
+  <dd class="avoid">Avoid: "data centre" used loosely</dd>
+  <dt id="account">AWS account</dt>
+  <dd>The root container for resources, billing, and identity. Root user credentials should be locked away (MFA, no daily use).</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/accounts/latest/reference/root-user.html">docs: root user</a></dd>
+</dl>
+
+<h2>Network (the VPC)</h2>
+<dl>
+  <dt id="vpc">VPC</dt>
+  <dd>Your private, logically isolated network in one region. Everything you deploy lives inside one.</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html">docs: VPC</a></dd>
+  <dt id="subnet">Subnet</dt>
+  <dd>A slice of the VPC's IP range inside a single AZ. Public subnets route to the internet; private subnets don't.</dd>
+  <dt id="route-table">Route table</dt>
+  <dd>The rules that decide where a subnet's traffic goes. <code>0.0.0.0/0 → igw</code> is the signature of a public subnet.</dd>
+  <dt id="igw">Internet gateway (IGW)</dt>
+  <dd>The VPC-level door to the public internet. Necessary but not sufficient — a subnet also needs a route to it.</dd>
+  <dt id="nat">NAT gateway</dt>
+  <dd>Managed appliance in a public subnet that lets private-subnet resources make <em>outbound</em> connections without being reachable inbound.</dd>
+  <dd class="avoid">Avoid: "NAT instance" (that's the self-managed ancestor)</dd>
+  <dt id="sg">Security group (SG)</dt>
+  <dd>Stateful firewall attached to a thing (ENI, instance, task). Allow rules only, and rules may reference other security groups — the key compositional trick.</dd>
+  <dd class="avoid">Avoid: "firewall policy" (that's the NACL's vibe)</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/vpc/latest/userguide/vpc-security-groups.html">docs: security groups</a></dd>
+  <dt id="nacl">NACL</dt>
+  <dd>Stateless subnet-level firewall with numbered, ordered rules — including denies. The blunt instrument to the SG's scalpel.</dd>
+  <dd class="link"><a href="https://tutorialsdojo.com/security-group-vs-nacl/">Tutorials Dojo: SG vs NACL</a></dd>
+  <dt id="endpoint">VPC endpoint</dt>
+  <dd>A private path from a VPC to an AWS service without crossing the internet. Gateway endpoints: S3, DynamoDB; interface endpoints: most else.</dd>
+  <dt id="alb">Application Load Balancer (ALB)</dt>
+  <dd>Layer-7 load balancer for HTTP/S: routes by path or host to targets (EC2, IP, Lambda), terminates TLS, runs health checks.</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html">docs: ALB</a></dd>
+</dl>
+
+<h2>Compute</h2>
+<dl>
+  <dt id="ec2">EC2</dt>
+  <dd>A resizable virtual machine — the raw unit of compute in AWS.</dd>
+  <dd class="avoid">Avoid: "server" (blurs who operates what)</dd>
+  <dt id="ami">AMI</dt>
+  <dd>The bootable disk image + metadata template an EC2 instance starts from.</dd>
+  <dt id="ecs">ECS</dt>
+  <dd>AWS's first-party container orchestrator: clusters, services, task definitions. Deepest AWS integration, simplest operations.</dd>
+  <dt id="eks">EKS</dt>
+  <dd>Managed Kubernetes control plane — the full k8s API and ecosystem, at the cost of more moving parts.</dd>
+  <dd class="avoid">Avoid: "ECS but better" (different trade-offs, not strictly better)</dd>
+  <dt id="fargate">Fargate</dt>
+  <dd>Serverless container runtime — an ECS/EKS launch type where AWS runs each task; you never touch a node.</dd>
+  <dt id="ecr">ECR</dt>
+  <dd>AWS's private Docker image registry. Images live here; ECS/EKS pull from here.</dd>
+  <dd class="link"><a href="https://tutorialsdojo.com/amazon-elastic-kubernetes-service-eks/">Tutorials Dojo: EKS vs ECS</a></dd>
+</dl>
+
+<h2>Storage &amp; Database</h2>
+<dl>
+  <dt id="s3">S3</dt>
+  <dd>Durable object storage (eleven nines): buckets hold objects addressed by key. Durability across AZs by default.</dd>
+  <dd class="avoid">Avoid: "drive", "folder" — objects have keys, not paths</dd>
+  <dt id="ebs">EBS</dt>
+  <dd>Network-attached block volume for exactly one EC2 at a time. Snapshots of it land in S3.</dd>
+  <dt id="rds">RDS</dt>
+  <dd>Managed relational database (PostgreSQL, MySQL, …). <strong>Multi-AZ</strong> keeps a standby in a second AZ for failover — an availability feature, not a performance one.</dd>
+  <dd class="avoid">Avoid: conflating RDS with Aurora — Aurora is a separate, AWS-built engine</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html">docs: RDS</a></dd>
+</dl>
+
+<h2>DNS &amp; Edge</h2>
+<dl>
+  <dt id="route53">Route 53</dt>
+  <dd>AWS's DNS service plus domain registration and health-checked routing policies (failover, latency, geolocation). Named after port 53, the DNS port.</dd>
+  <dt id="hosted-zone">Hosted zone</dt>
+  <dd>The container of DNS records for one domain — an A/AAAA/CNAME/alias set, often aliasing straight at an ALB.</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html">docs: Route 53</a></dd>
+</dl>
+
+<h2>Identity &amp; Observability</h2>
+<dl>
+  <dt id="iam-user">IAM user</dt>
+  <dd>A long-lived identity with permanent credentials. For humans this is an anti-pattern — SSO/federation is the modern default.</dd>
+  <dt id="iam-role">IAM role</dt>
+  <dd>An identity with <em>temporary</em> credentials that anything — human, EC2 instance, ECS task — can assume. The DevOps default for granting permissions.</dd>
+  <dd class="avoid">Avoid: putting access keys on disk when a role exists</dd>
+  <dt id="iam-policy">IAM policy</dt>
+  <dd>JSON document of Allow/Deny statements over actions, resources, and conditions.</dd>
+  <dt id="least-privilege">Least privilege</dt>
+  <dd>Grant only what a workload needs — the posture you defend in every interview.</dd>
+  <dd class="link"><a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html">docs: IAM best practices</a></dd>
+  <dt id="cloudwatch">CloudWatch</dt>
+  <dd>Metrics, logs, and alarms for nearly everything: namespaces hold metrics, metrics have dimensions, alarms watch thresholds and notify.</dd>
+  <dt id="cloudtrail">CloudTrail</dt>
+  <dd>The audit record of API calls — <em>who did what</em>. Pairs with CloudWatch: actions vs. measurements.</dd>
+  <dd class="avoid">Avoid: mixing up CloudTrail (audit) and CloudWatch (telemetry)</dd>
+  <dd class="link"><a href="https://tutorialsdojo.com/aws-cloudtrail-vs-amazon-cloudwatch/">Tutorials Dojo: CloudTrail vs CloudWatch</a></dd>
+</dl>
+
+<p style="margin-top:3rem; font-family: ui-sans-serif, sans-serif; font-size:.78rem; color:#888;">AWS DevOps teaching workspace · glossary v1 (SAA-C03 baseline, 2026-09-01) · definitions tighten as lessons evidence deeper understanding</p>
+
+</body>
+</html>
