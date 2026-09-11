@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bash Glossary — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:18px/1.6 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2rem;line-height:1.15;margin:0 0 .3rem}
+  .sub{color:var(--soft);margin:0 0 2rem;font-size:.95rem}
+  h2{font-size:1.1rem;margin:2.2rem 0 .8rem;padding-bottom:.25rem;
+     border-bottom:1px solid var(--line)}
+  dl{margin:0}
+  dt{font-weight:700;margin-top:1.05rem}
+  dt .cat{font-weight:400;color:var(--soft);font-size:.8rem;margin-left:.5rem}
+  dd{margin:.15rem 0 0 0;color:#3d3830}
+  code,.mono{font-family:'SF Mono',Menlo,Consolas,'Liberation Mono',monospace;
+       font-size:.82em;background:var(--codebg);padding:.08em .3em;border-radius:3px}
+  .ex{font-family:'SF Mono',Menlo,monospace;font-size:.78rem;color:var(--soft);
+      display:block;margin-top:.15rem}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.85rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    footer{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Reference</div>
+  <h1>Bash Glossary</h1>
+  <p class="sub">The words this course uses. New terms are added every lesson —
+  the lessons always mean exactly what this page says.
+  <a href="../lessons/0001-your-first-script.html">Lesson 0001</a> ·
+  <a href="first-script-cheatsheet.html">First-script cheatsheet</a></p>
+
+  <h2>Foundations</h2>
+  <dl>
+    <dt>shell <span class="cat">noun</span></dt>
+    <dd>The program that reads what you type and runs commands. It is a layer
+    around the operating system — hence the name.</dd>
+
+    <dt>terminal <span class="cat">noun</span></dt>
+    <dd>The window where you talk to the shell. The terminal shows text;
+    the shell thinks.</dd>
+
+    <dt>bash <span class="cat">noun</span></dt>
+    <dd>The most common shell on Linux — <em>B</em>ourne <em>A</em>gain <em>sh</em>ell.
+    It is the default on most Linux servers and the shell this course targets.
+    macOS ships an older bash (3.2) plus zsh as default; for scripts, bash is what
+    you write.</dd>
+
+    <dt>POSIX <span class="cat">standard</span></dt>
+    <dd>A formal standard that shells and tools agree to follow. A "POSIX
+    script" avoids bash-only features so it runs in any POSIX shell. You will
+    meet this word in older scripts and CI systems.</dd>
+  </dl>
+
+  <h2>Scripts</h2>
+  <dl>
+    <dt>script <span class="cat">noun</span></dt>
+    <dd>A text file of shell commands, run from top to bottom. A saved,
+    reusable version of what you type by hand.</dd>
+
+    <dt>shebang <span class="cat">noun</span> · <code>#!</code></dt>
+    <dd>The first line of a script, starting with <code>#!</code>. It names the
+    interpreter that runs the file. Example:
+    <span class="ex">#!/usr/bin/env bash</span></dd>
+
+    <dt>interpreter <span class="cat">noun</span></dt>
+    <dd>The program that reads your script and carries out its commands, one by
+    one. For your scripts, the interpreter is bash.</dd>
+
+    <dt>executable · execute permission <span class="cat">property</span></dt>
+    <dd>A file the system is allowed to <em>run</em> as a program. New files do
+    not have this permission; you grant it with <code>chmod +x</code>.</dd>
+
+    <dt>exit status <span class="cat">noun</span> · <code>$?</code></dt>
+    <dd>The number every command leaves behind when it finishes: <code>0</code>
+    means success, anything else means failure. Scripts and CI systems make
+    decisions from it.</dd>
+  </dl>
+
+  <h2>Running things</h2>
+  <dl>
+    <dt>PATH <span class="cat">noun</span></dt>
+    <dd>The list of folders the shell searches when you type a bare command
+    name like <code>ls</code>. Your own folder is not on it — that is why you
+    must type <code>./script.sh</code>.</dd>
+
+    <dt>chmod <span class="cat">command</span></dt>
+    <dd><em>Change mode</em> — the command that changes file permissions.
+    <code>chmod +x file</code> makes a file executable.</dd>
+
+    <dt>ShellCheck <span class="cat">tool</span></dt>
+    <dd>A checker that finds common bash bugs before they bite. Free at
+    <a href="https://www.shellcheck.net">shellcheck.net</a>. Treat it as your
+    spell-checker for scripts.</dd>
+  </dl>
+
+  <footer>
+    Grows with each lesson · Last updated: lesson 0001 ·
+    Ask your teacher (the agent) about any term that is unclear.
+  </footer>
+</main>
+</body>
+</html>

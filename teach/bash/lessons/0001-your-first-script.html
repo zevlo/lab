@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 · From Commands to a Script — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6; --ok:#2e6b4f; --okbg:#eef4ee; --badbg:#f7ecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:19px/1.65 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.8rem 1.25rem 4.5rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2.1rem;line-height:1.15;margin:0 0 .35rem}
+  .meta{color:var(--soft);font-size:.9rem;margin:0 0 2.2rem}
+  h2{font-size:1.28rem;margin:2.6rem 0 .8rem;padding-bottom:.3rem;
+     border-bottom:1px solid var(--line)}
+  p{margin:.8rem 0}
+  .lead{font-size:1.06rem}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8em;
+       background:var(--codebg);padding:.08em .32em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:1rem 1.2rem;overflow-x:auto;font-size:.83rem;line-height:1.6;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:1rem 0}
+  pre .c{color:#8a8272}
+  pre .b{color:#8a1f1f;font-weight:700}
+  pre .out{color:#5c554a}
+  .callout{border-left:3px solid var(--accent);background:#faf5ec;
+           padding:.9rem 1.15rem;margin:1.4rem 0;border-radius:0 6px 6px 0}
+  .callout p{margin:.35rem 0}
+  ol.steps{padding-left:1.5rem;margin:.9rem 0}
+  ol.steps li{margin:.75rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:1rem 0}
+  th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .cite{color:var(--soft);font-size:.85rem}
+  sup a{font-size:.75rem}
+
+  /* quiz */
+  .q{margin:1.5rem 0;padding:1.1rem 1.2rem;border:1px solid var(--line);
+     border-radius:8px;background:#fffefb}
+  .qt{font-weight:700;margin:0 0 .7rem}
+  .opts{display:flex;flex-direction:column;gap:.45rem}
+  .opts button{font:inherit;font-size:.95rem;text-align:left;padding:.55rem .8rem;
+     border:1px solid var(--line);border-radius:6px;background:var(--paper);
+     cursor:pointer;line-height:1.4}
+  .opts button:hover:not(:disabled){border-color:var(--accent)}
+  .opts button.good{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  .opts button.bad{background:var(--badbg);border-color:var(--accent);color:var(--accent)}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .opts button.bad{opacity:1}
+  .fb{margin:.7rem 0 0;font-size:.9rem;color:var(--soft);display:none}
+  .fb.good{display:block;color:var(--ok)}
+  .fb.bad{display:block;color:var(--accent)}
+  #score{font-weight:700;margin-top:1.2rem;display:none}
+
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.88rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    .opts button{border:none;background:none;padding:.15rem 0}
+    .opts button:before{content:"□ "}
+    footer,#score{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Lesson 0001</div>
+  <h1>From Commands to a Script</h1>
+  <p class="meta">≈ 12 minutes · one win: a script you built, ran, and checked ·
+  <a href="../reference/bash-glossary.html">glossary</a> ·
+  <a href="../reference/first-script-cheatsheet.html">cheatsheet</a></p>
+
+  <h2 style="margin-top:1.4rem">Why this matters</h2>
+  <p class="lead">Your mission is to automate DevOps work. Automation starts at
+  one moment: commands you type by hand become a file you can run, share, and
+  put in a pipeline. That file is a <a href="../reference/bash-glossary.html#script">script</a>.
+  Make one today, and every later lesson improves it.</p>
+
+  <h2>The one idea</h2>
+  <p>A <strong>script is a text file of commands, run from top to bottom.</strong>
+  That is the whole magic. There is no second language hiding inside bash —
+  the commands you already know (<code>date</code>, <code>df</code>,
+  <code>echo</code>) are the same ones inside a script.
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/bash.html#What-is-a-shell_003f" title="GNU Bash Reference Manual">[1]</a></sup></p>
+
+  <h2>Build your first script</h2>
+  <p>We will build a small but genuinely useful tool: a quick server health
+  check. Follow the steps in your terminal. Type them; do not paste the
+  whole block blindly.</p>
+
+  <ol class="steps">
+    <li><strong>Make a practice folder and enter it:</strong>
+<pre>mkdir -p ~/lab
+cd ~/lab</pre></li>
+
+    <li><strong>Create the file</strong> with any editor you like
+    (<code>nano healthcheck.sh</code> works everywhere) and give it exactly
+    these lines:
+<pre><span class="b">#!/usr/bin/env bash</span>
+<span class="c"># healthcheck.sh — quick server vitals</span>
+echo "=== health check ==="
+date
+df -h /
+echo "=== done ==="</pre>
+    <p>Line by line:</p>
+    <table>
+      <tr><th>Line</th><th>Job</th></tr>
+      <tr><td><code>#!/usr/bin/env bash</code></td><td>The
+        <a href="../reference/bash-glossary.html#shebang">shebang</a>. It names
+        the program that runs this file: bash.
+        <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/bash.html#Command-Search-and-Execution" title="GNU Bash Reference Manual — Command Search and Execution">[1]</a></sup></td></tr>
+      <tr><td><code># healthcheck.sh …</code></td><td>A comment, for humans.
+        Bash ignores everything after <code>#</code>.</td></tr>
+      <tr><td><code>echo</code>, <code>date</code>, <code>df</code></td>
+        <td>Commands you already know, one per line, run in order.</td></tr>
+    </table></li>
+
+    <li><strong>Grant execute permission:</strong>
+<pre>chmod +x healthcheck.sh</pre>
+    <p>A new file is just text. This marks it as a
+    <a href="../reference/bash-glossary.html#chmod">runnable program</a>.</p></li>
+
+    <li><strong>Run it:</strong>
+<pre>./healthcheck.sh</pre>
+    <p>Expected output looks like this (your values will differ):</p>
+<pre><span class="out">=== health check ===
+Wed Sep 10 09:14:03 CEST 2026
+Filesystem      Size   Used  Avail Capacity  Mounted on
+/dev/disk3s1s1  460Gi  189Gi  258Gi    43%     /
+=== done ===</pre></li>
+  </ol>
+
+  <div class="callout">
+    <p><strong>Prove it worked.</strong> Run:</p>
+    <p><code>./healthcheck.sh &amp;&amp; echo "PASS"</code></p>
+    <p>You should see <code>PASS</code>. Every command leaves behind an
+    <a href="../reference/bash-glossary.html#exitstatus">exit status</a> —
+    <code>0</code> for success. <code>&amp;&amp;</code> runs the next command
+    only when the first one succeeded. CI pipelines are built on this idea.</p>
+  </div>
+
+  <h2>The two ways to run a script</h2>
+  <table>
+    <tr><th>You type</th><th>What happens</th></tr>
+    <tr><td><code>./healthcheck.sh</code></td><td>The system runs the file as a
+      program. The shebang picks bash. Needs <code>chmod +x</code>.</td></tr>
+    <tr><td><code>bash healthcheck.sh</code></td><td>You start bash yourself and
+      hand it the file. Runs even without <code>chmod +x</code>.</td></tr>
+  </table>
+  <p>Why the <code>./</code>? The shell finds bare names like <code>ls</code>
+  only by searching the folders listed in
+  <a href="../reference/bash-glossary.html#path"><code>PATH</code></a>.
+  Your <code>~/lab</code> folder is not on that list, so <code>./</code>
+  shows the shell exactly where the file is.
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/bash.html#Command-Search-and-Execution" title="GNU Bash Reference Manual — Command Search and Execution">[1]</a></sup></p>
+
+  <table>
+    <tr><th>Error you will see</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td><code>command not found</code></td><td>You typed
+      <code>healthcheck.sh</code> without <code>./</code></td>
+      <td>Type <code>./healthcheck.sh</code></td></tr>
+    <tr><td><code>Permission denied</code></td><td>No execute permission</td>
+      <td><code>chmod +x healthcheck.sh</code></td></tr>
+  </table>
+
+  <h2>Check yourself</h2>
+  <p>Answer from memory — this is practice for recalling it at work, not
+  recognition. Wrong answers are fine; try again.</p>
+
+  <div class="q" data-correct="0">
+    <p class="qt">1 · What does the shebang line do?</p>
+    <div class="opts">
+      <button>It names the program that runs the file</button>
+      <button>It names the user who owns the file</button>
+      <button>It names the folder where the file lives</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">2 · <code>./deploy.sh</code> prints “Permission denied”. What fixes it?</p>
+    <div class="opts">
+      <button>Grant execute permission with the chmod command</button>
+      <button>Rename the file to end with .sh</button>
+      <button>Move the file to a PATH folder</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">3 · Why does the shell find <code>ls</code> without a path, but not <code>healthcheck.sh</code>?</p>
+    <div class="opts">
+      <button>It searches the PATH list for commands</button>
+      <button>It searches the working folder for commands</button>
+      <button>It searches the command history for commands</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">4 · <code>bash healthcheck.sh</code> runs even without execute permission. Why?</p>
+    <div class="opts">
+      <button>You told bash itself to read that file</button>
+      <button>You told the kernel to trust that file</button>
+      <button>You told the editor to save that file</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <p id="score"></p>
+
+  <h2>Practice on your own work</h2>
+  <ol class="steps">
+    <li><strong>Extend it:</strong> add <code>uptime</code> as a new line inside
+    <code>healthcheck.sh</code>, anywhere between the two
+    <code>echo</code> lines. Run it again. Your feedback: the output must
+    contain <code>load average</code> (on Linux: <code>load average</code>
+    appears at the end; on macOS it prints three load numbers).</li>
+    <li><strong>Break it on purpose:</strong> remove the shebang line, run it,
+    then put it back. What still works, and what changed? (Hint: try it both
+    with <code>./</code> and with <code>bash</code>.)</li>
+    <li><strong>Get your script checked:</strong> paste it into
+    <a href="https://www.shellcheck.net">shellcheck.net</a> — or install it
+    with <code>brew install shellcheck</code> and run
+    <code>shellcheck healthcheck.sh</code>. The goal now is simply to have met
+    your checker; it will start mattering from the next lesson on.</li>
+  </ol>
+
+  <h2>Go deeper (optional, 10 minutes)</h2>
+  <p><strong>Primary source:</strong> start
+  <a href="https://mywiki.wooledge.org/BashGuide">Greg's Wiki BashGuide</a> —
+  the most trusted community-written bash tutorial, maintained by the same
+  people behind the famous BashPitfalls list. Read only the intro section for
+  now; we will return to it lesson by lesson. For exact, authoritative detail
+  on anything in this lesson, the
+  <a href="https://www.gnu.org/software/bash/manual/">GNU Bash Reference Manual</a>
+  is the source of truth.
+  <sup class="cite"><a href="https://google.github.io/styleguide/shellguide.html" title="Google Shell Style Guide — for the #!/bin/bash vs env debate">[2]</a><a href="https://mywiki.wooledge.org/BashPitfalls" title="Greg's Wiki — BashPitfalls, e.g. 'foo = bar' spacing">[3]</a></sup></p>
+
+  <h2>Next</h2>
+  <p><strong>Lesson 0002 — variables and quoting:</strong> the single biggest
+  source of bash bugs (ShellCheck's most common warning, SC2086) and the step
+  that turns a script into real automation. Until then, keep the
+  <a href="../reference/first-script-cheatsheet.html">first-script cheatsheet</a>
+  within reach.</p>
+
+  <div class="callout">
+    <p><strong>Stuck on anything?</strong> Ask your teacher — that is me, the
+    agent you are chatting with. Ask about an error message, a quiz answer, or
+    how this maps to a script at your work. No question is too small.</p>
+  </div>
+
+  <footer>
+    Bash for DevOps · Lesson 0001 · Sources:
+    <a href="https://www.gnu.org/software/bash/manual/">[1] GNU Bash Reference Manual</a> ·
+    <a href="https://google.github.io/styleguide/shellguide.html">[2] Google Shell Style Guide</a> ·
+    <a href="https://mywiki.wooledge.org/BashPitfalls">[3] Greg's Wiki: BashPitfalls</a>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var solved=0, firstTry=0, total=document.querySelectorAll('.q').length;
+  document.querySelectorAll('.q').forEach(function(q){
+    var correct=+q.dataset.correct, tried=false, done=false;
+    var fb=q.querySelector('.fb');
+    var explain=[
+      "The kernel reads the shebang, then runs the named interpreter — here bash — with your file. [GNU manual]",
+      "chmod +x grants execute permission. The name and the PATH have nothing to do with permissions.",
+      "The shell resolves bare command names only against the folders in PATH. A path like ./healthcheck.sh is used directly.",
+      "You started the bash program yourself and passed the file as an argument — so the file needs no execute permission."
+    ];
+    q.querySelectorAll('.opts button').forEach(function(btn,i){
+      btn.addEventListener('click',function(){
+        if(done) return;
+        if(i===correct){
+          done=true; solved++; if(!tried) firstTry++;
+          btn.classList.add('good');
+          fb.textContent="Correct. "+explain[i];
+          fb.className="fb good";
+          q.querySelectorAll('.opts button').forEach(function(b){b.disabled=true;});
+          var s=document.getElementById('score');
+          s.style.display='block';
+          s.textContent="Solved "+solved+" of "+total+" · first-try "+firstTry;
+        } else {
+          tried=true;
+          btn.classList.add('bad');
+          btn.disabled=true;
+          fb.textContent="Not quite — try again.";
+          fb.className="fb bad";
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your First Script — Quick Reference</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:18px/1.6 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2rem;line-height:1.15;margin:0 0 .3rem}
+  .sub{color:var(--soft);margin:0 0 1.6rem;font-size:.95rem}
+  h2{font-size:1.1rem;margin:1.9rem 0 .7rem;padding-bottom:.25rem;
+     border-bottom:1px solid var(--line)}
+  ol{margin:.4rem 0;padding-left:1.4rem}
+  ol li{margin:.45rem 0}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.82em;
+       background:var(--codebg);padding:.08em .3em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:.9rem 1.1rem;overflow-x:auto;font-size:.82rem;line-height:1.55;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:.7rem 0}
+  pre .c{color:#8a8272}   /* comment */
+  pre .b{color:#8a1f1f;font-weight:700} /* shebang */
+  table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.7rem 0}
+  th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .warn{border-left:3px solid var(--accent);background:#faf5ec;
+        padding:.7rem 1rem;margin:1rem 0;border-radius:0 6px 6px 0;font-size:.95rem}
+  footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.85rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    footer{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Reference</div>
+  <h1>Your First Script</h1>
+  <p class="sub">The whole loop on one page. Full explanation in
+  <a href="0001-your-first-script.html">Lesson 0001</a> ·
+  Terms in the <a href="bash-glossary.html">glossary</a></p>
+
+  <h2>The four-step loop</h2>
+  <ol>
+    <li><strong>Create</strong> a text file ending in <code>.sh</code>.</li>
+    <li><strong>First line: the shebang.</strong> Then your commands, one per line.</li>
+    <li><strong>Grant execute permission:</strong> <code>chmod +x myscript.sh</code></li>
+    <li><strong>Run it:</strong> <code>./myscript.sh</code></li>
+  </ol>
+
+  <h2>Minimal template</h2>
+  <pre><span class="b">#!/usr/bin/env bash</span>
+<span class="c"># myscript.sh — one line: what this does</span>
+<span class="c"># your commands here, one per line, top to bottom</span></pre>
+
+  <h2>Example: quick health check</h2>
+  <pre><span class="b">#!/usr/bin/env bash</span>
+<span class="c"># healthcheck.sh — quick server vitals</span>
+echo "=== health check ==="
+date
+df -h /
+echo "=== done ==="</pre>
+
+  <h2>Run it two ways</h2>
+  <table>
+    <tr><th>Command</th><th>What happens</th><th>Needs chmod +x?</th></tr>
+    <tr><td><code>./healthcheck.sh</code></td><td>System runs it as a program, using the shebang to pick bash</td><td>Yes</td></tr>
+    <tr><td><code>bash healthcheck.sh</code></td><td>You hand the file to bash directly</td><td>No</td></tr>
+  </table>
+
+  <div class="warn"><strong>Why <code>./</code>?</strong> The shell finds bare
+  command names (like <code>ls</code>) only in the folders listed in
+  <code>PATH</code>. Your script's folder is not in that list, so you must
+  show the way with <code>./</code>.</div>
+
+  <h2>Before you call it done</h2>
+  <ol>
+    <li>Run it — expect exit status <code>0</code>:
+        <code>./healthcheck.sh &amp;&amp; echo PASS</code></li>
+    <li>Check it at <a href="https://www.shellcheck.net">shellcheck.net</a>
+        (or <code>brew install shellcheck</code>, then
+        <code>shellcheck healthcheck.sh</code>) — expect zero warnings.</li>
+  </ol>
+
+  <footer>
+    Bash for DevOps · reference sheet · pairs with
+    <a href="0001-your-first-script.html">Lesson 0001</a>
+  </footer>
+</main>
+</body>
+</html>
