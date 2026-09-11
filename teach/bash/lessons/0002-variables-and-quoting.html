@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 · Variables and Quoting — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6; --ok:#2e6b4f; --okbg:#eef4ee; --badbg:#f7ecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:19px/1.65 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.8rem 1.25rem 4.5rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2.1rem;line-height:1.15;margin:0 0 .35rem}
+  .meta{color:var(--soft);font-size:.9rem;margin:0 0 2.2rem}
+  h2{font-size:1.28rem;margin:2.6rem 0 .8rem;padding-bottom:.3rem;
+     border-bottom:1px solid var(--line)}
+  p{margin:.8rem 0}
+  .lead{font-size:1.06rem}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8em;
+       background:var(--codebg);padding:.08em .32em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:1rem 1.2rem;overflow-x:auto;font-size:.83rem;line-height:1.6;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:1rem 0}
+  pre .c{color:#8a8272}
+  pre .out{color:#5c554a}
+  pre .bad{color:#8a1f1f}
+  pre .good{color:#2e6b4f}
+  .callout{border-left:3px solid var(--accent);background:#faf5ec;
+           padding:.9rem 1.15rem;margin:1.4rem 0;border-radius:0 6px 6px 0}
+  .callout p{margin:.35rem 0}
+  ol.steps{padding-left:1.5rem;margin:.9rem 0}
+  ol.steps li{margin:.75rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:1rem 0}
+  th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .cite{color:var(--soft);font-size:.85rem}
+
+  .q{margin:1.5rem 0;padding:1.1rem 1.2rem;border:1px solid var(--line);
+     border-radius:8px;background:#fffefb}
+  .qt{font-weight:700;margin:0 0 .7rem}
+  .opts{display:flex;flex-direction:column;gap:.45rem}
+  .opts button{font:inherit;font-size:.95rem;text-align:left;padding:.55rem .8rem;
+     border:1px solid var(--line);border-radius:6px;background:var(--paper);
+     cursor:pointer;line-height:1.4}
+  .opts button:hover:not(:disabled){border-color:var(--accent)}
+  .opts button.good{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  .opts button.bad{background:var(--badbg);border-color:var(--accent);color:var(--accent);opacity:1}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .fb{margin:.7rem 0 0;font-size:.9rem;color:var(--soft);display:none}
+  .fb.good{display:block;color:var(--ok)}
+  .fb.bad{display:block;color:var(--accent)}
+  #score{font-weight:700;margin-top:1.2rem;display:none}
+
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.88rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    .opts button{border:none;background:none;padding:.15rem 0}
+    .opts button:before{content:"□ "}
+    footer,#score{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Lesson 0002</div>
+  <h1>Variables and Quoting</h1>
+  <p class="meta">≈ 14 minutes · one win: a reusable script — and you personally
+  witness the bug that breaks most beginner scripts ·
+  <a href="../lessons/0001-your-first-script.html">← lesson 0001</a> ·
+  <a href="../reference/bash-glossary.html">glossary</a></p>
+
+  <h2 style="margin-top:1.4rem">Why this matters</h2>
+  <p class="lead">Last time you turned commands into a script. Today the script
+  stops being hardcoded: one <a href="../reference/bash-glossary.html#variable">variable</a>,
+  and the same file checks any disk on any server. But variables come with a
+  trap — <a href="../reference/bash-glossary.html#quoting">quoting</a> — and it
+  is the single most common bug in bash. You will trigger it, see it fail, and
+  fix it. After today, you will spot it in every script you read.</p>
+
+  <h2>The one idea</h2>
+  <p><strong><code>name=value</code> stores text; <code>$name</code> pastes it
+  back.</strong> Two rules make assignments work:</p>
+  <table>
+    <tr><th>Rule</th><th>Right</th><th>Wrong — what bash does instead</th></tr>
+    <tr><td>No spaces around <code>=</code></td>
+        <td><code>target="/var/log"</code></td>
+        <td><code>target = "/var/log"</code> — bash runs a command named
+        <code>target</code> <sup class="cite"><a href="https://mywiki.wooledge.org/BashPitfalls" title="BashPitfalls #16: foo = bar">[1]</a></sup></td></tr>
+    <tr><td>No <code>$</code> when storing</td>
+        <td><code>target="/var/log"</code></td>
+        <td><code>$target=/var/log</code> — bash reads an old value first
+        <sup class="cite"><a href="https://mywiki.wooledge.org/BashPitfalls" title="BashPitfalls #15: $foo=bar">[1]</a></sup></td></tr>
+  </table>
+  <p>Read the value back with a dollar sign — bash calls this
+  <a href="../reference/bash-glossary.html#expansion">expansion</a>:</p>
+<pre><span class="c"># try it right in your terminal</span>
+target="/var/log"
+echo "checking: $target"</pre>
+
+  <h2>Make your script reusable</h2>
+  <ol class="steps">
+    <li><strong>Create <code>diskcheck.sh</code></strong> in <code>~/lab</code>:
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># diskcheck.sh — check free space on one path</span>
+target="/"
+echo "=== disk check: $target ==="
+df -h "$target"</pre></li>
+    <li><strong>Run it:</strong> <code>chmod +x diskcheck.sh</code> once, then
+    <code>./diskcheck.sh</code>.</li>
+    <li><strong>Reuse it:</strong> change the one line to
+    <code>target="$HOME/lab"</code> and run again. Same script, different job.
+    This is the whole point of a variable: store once, point anywhere.</li>
+  </ol>
+
+  <h2>The trap: watch the spaces disappear</h2>
+  <p><strong>Unquoted expansions get re-split into words; quoted ones stay
+  whole.</strong> Run this in your terminal and look carefully:</p>
+<pre>note="backup   plan   v2"
+echo $note
+<span class="out">backup plan v2          ← extra spaces: gone</span>
+echo "$note"
+<span class="out">backup   plan   v2      ← exactly as stored</span></pre>
+  <p>What happened? Bash pasted the value into the command, then — because
+  there were no quotes — cut it into words at the spaces. That cut is called
+  <a href="../reference/bash-glossary.html#wordsplitting">word splitting</a>.
+  With <code>"$note"</code> the value arrives as one piece, untouched.</p>
+
+  <p>Missing spaces look harmless. Missing files are worse. Run this:</p>
+<pre>touch "my notes.txt"
+file="my notes.txt"
+ls $file
+<span class="bad">ls: my: No such file or directory
+ls: notes.txt: No such file or directory</span>
+ls "$file"
+<span class="good">my notes.txt</span></pre>
+  <p>One pair of quotes is the difference between a bug report and a working
+  script. ShellCheck has a warning code for exactly this — <strong>SC2086</strong>,
+  the most common warning in all of bash
+  <sup class="cite"><a href="https://www.shellcheck.net/wiki/SC2086" title="ShellCheck wiki: SC2086 — double quote to prevent globbing and word splitting">[2]</a></sup>.
+  From today, your habit: <strong>quote every expansion:
+  <code>"$name"</code></strong>
+  <sup class="cite"><a href="https://google.github.io/styleguide/shellguide.html#quoting" title="Google Shell Style Guide — Quoting">[3]</a></sup>.</p>
+
+  <h2>Two kinds of quotes</h2>
+  <table>
+    <tr><th>You write</th><th>Bash prints</th><th>Why</th></tr>
+    <tr><td><code>echo "disk full on $target"</code></td>
+        <td><code>disk full on /</code></td>
+        <td>Double quotes: variables expand</td></tr>
+    <tr><td><code>echo 'disk full on $target'</code></td>
+        <td><code>disk full on $target</code></td>
+        <td>Single quotes: everything is literal
+        <sup class="cite"><a href="https://mywiki.wooledge.org/Quotes" title="Greg's Wiki — Quotes">[4]</a></sup></td></tr>
+  </table>
+  <p>Rule of thumb: <strong>double quotes let variables in; single quotes keep
+  text exactly as typed.</strong> One more form you will meet in real scripts:
+  braces <code>${target}</code> — the explicit way to write an expansion,
+  needed when gluing text onto a name, as in <code>"${target}_report.txt"</code>.
+  Braces are not quotes — you still need the double quotes around them.</p>
+
+  <h2>Check yourself</h2>
+  <p>Answer from memory. The last question is from last lesson — spaced
+  practice makes it stick.</p>
+
+  <div class="q" data-correct="0">
+    <p class="qt">1 · What does <code>"$file"</code> do that <code>$file</code> does not?</p>
+    <div class="opts">
+      <button>Keeps the whole value as one word</button>
+      <button>Keeps the variable safe from the editor</button>
+      <button>Keeps spaces out of the stored value</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="1">
+    <p class="qt">2 · Which line stores the text <code>hello world</code> in <code>greeting</code>?</p>
+    <div class="opts">
+      <button>greeting=hello world</button>
+      <button>greeting="hello world"</button>
+      <button>greeting=(hello world)</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">3 · With <code>price=5</code>, what does <code>echo 'cost: $price'</code> print?</p>
+    <div class="opts">
+      <button>The exact text cost: $price</button>
+      <button>The number 5 in place</button>
+      <button>An error about the quotes</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">4 · A teammate types your script as <code>tool.sh</code> and gets “command not found”. Why?</p>
+    <div class="opts">
+      <button>The shell searches the PATH list only</button>
+      <button>The shell needs the file extension shown</button>
+      <button>The shell lost the current folder link</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <p id="score"></p>
+
+  <h2>Practice on your own work</h2>
+  <ol class="steps">
+    <li><strong>Trigger the bug on purpose.</strong> Edit
+    <code>diskcheck.sh</code>: remove the quotes around
+    <code>"$target"</code> on the <code>df</code> line. Create a path with a
+    space in it — <code>mkdir -p "$HOME/lab/my stuff"</code> — set
+    <code>target="$HOME/lab/my stuff"</code>, and run. Watch it fail. Put the
+    quotes back; watch it pass. You have now personally met SC2086.</li>
+    <li><strong>Run the checker.</strong> Paste the broken version into
+    <a href="https://www.shellcheck.net">shellcheck.net</a> (or
+    <code>shellcheck diskcheck.sh</code>). Find SC2086 in its output and read
+    its explanation. Fix until ShellCheck is silent — make that your
+    definition of “done” from now on.</li>
+    <li><strong>Stretch (optional):</strong> add a second variable to
+    <code>healthcheck.sh</code> from last lesson —
+    <code>label="web server 1"</code> — and print it in the header:
+    <code>echo "=== health check: $label ==="</code>.</li>
+  </ol>
+
+  <h2>Go deeper (optional, 10 minutes)</h2>
+  <p><strong>Primary source:</strong> the
+  <a href="https://mywiki.wooledge.org/BashGuide">Variables chapter of Greg's BashGuide</a>
+  — the guide you already know. When you want the full quoting rules in one
+  page, the same wiki has a dedicated
+  <a href="https://mywiki.wooledge.org/Quotes">Quotes page</a>. Authoritative
+  detail lives in the
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html">GNU manual's parameter expansion section</a>.</p>
+
+  <h2>Next</h2>
+  <p><strong>Lesson 0003 — scripts that take orders:</strong> arguments
+  (<code>$1</code>, <code>"$@"</code>) so you can run
+  <code>./diskcheck.sh /var/log</code> without editing the file — plus exit
+  statuses and your first <code>if</code>. Until then, the
+  <a href="../reference/bash-glossary.html">glossary's quoting section</a> is
+  your quick reference.</p>
+
+  <div class="callout">
+    <p><strong>Stuck on anything?</strong> Ask your teacher — me, the agent
+    you are chatting with. Paste any error message or quiz question and we
+    will work through it together.</p>
+  </div>
+
+  <footer>
+    Bash for DevOps · Lesson 0002 · Sources:
+    <a href="https://mywiki.wooledge.org/BashPitfalls">[1] Greg's Wiki: BashPitfalls</a> ·
+    <a href="https://www.shellcheck.net/wiki/SC2086">[2] ShellCheck wiki: SC2086</a> ·
+    <a href="https://google.github.io/styleguide/shellguide.html#quoting">[3] Google Shell Style Guide: Quoting</a> ·
+    <a href="https://mywiki.wooledge.org/Quotes">[4] Greg's Wiki: Quotes</a>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var solved=0, firstTry=0, total=document.querySelectorAll('.q').length;
+  document.querySelectorAll('.q').forEach(function(q){
+    var correct=+q.dataset.correct, tried=false, done=false;
+    var fb=q.querySelector('.fb');
+    var explain=[
+      "Quoted expansions arrive as one piece. Unquoted ones get cut into words at spaces — that is SC2086, the most common bash warning.",
+      "A value with a space must be quoted at assignment. Unquoted, bash runs a command named 'world' with greeting=hello as a temporary setting.",
+      "Single quotes keep everything literal — no expansion happens. Only double quotes let variables in.",
+      "Lesson 0001 review: bare names are only looked up in the PATH folders. ./tool.sh is a path, so it runs directly."
+    ];
+    q.querySelectorAll('.opts button').forEach(function(btn,i){
+      btn.addEventListener('click',function(){
+        if(done) return;
+        if(i===correct){
+          done=true; solved++; if(!tried) firstTry++;
+          btn.classList.add('good');
+          fb.textContent="Correct. "+explain[i];
+          fb.className="fb good";
+          q.querySelectorAll('.opts button').forEach(function(b){b.disabled=true;});
+          var s=document.getElementById('score');
+          s.style.display='block';
+          s.textContent="Solved "+solved+" of "+total+" · first-try "+firstTry;
+        } else {
+          tried=true;
+          btn.classList.add('bad');
+          btn.disabled=true;
+          fb.textContent="Not quite — try again.";
+          fb.className="fb bad";
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

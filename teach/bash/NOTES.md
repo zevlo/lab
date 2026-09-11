@@ -12,6 +12,7 @@ All teaching materials follow ISO 24495-1 (plain language) principles:
 - DevOps work spans CI/CD, Linux servers, containers/Kubernetes.
 - Goals: automate own work AND read/fix existing scripts.
 - ~30 min/day. macOS terminal; teach bash, flag Linux differences.
+- Confirmed after lesson 0001: Greg's Wiki BashGuide suits them — use as recurring primary source.
 
 ## Working agreements
 - Lessons ≤ ~15 minutes. One tangible win each.

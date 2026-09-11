@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 · Scripts That Take Orders — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6; --ok:#2e6b4f; --okbg:#eef4ee; --badbg:#f7ecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:19px/1.65 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.8rem 1.25rem 4.5rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2.1rem;line-height:1.15;margin:0 0 .35rem}
+  .meta{color:var(--soft);font-size:.9rem;margin:0 0 2.2rem}
+  h2{font-size:1.28rem;margin:2.6rem 0 .8rem;padding-bottom:.3rem;
+     border-bottom:1px solid var(--line)}
+  p{margin:.8rem 0}
+  .lead{font-size:1.06rem}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8em;
+       background:var(--codebg);padding:.08em .32em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:1rem 1.2rem;overflow-x:auto;font-size:.83rem;line-height:1.6;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:1rem 0}
+  pre .c{color:#8a8272}
+  pre .out{color:#5c554a}
+  pre .bad{color:#8a1f1f}
+  pre .good{color:#2e6b4f}
+  .callout{border-left:3px solid var(--accent);background:#faf5ec;
+           padding:.9rem 1.15rem;margin:1.4rem 0;border-radius:0 6px 6px 0}
+  .callout p{margin:.35rem 0}
+  ol.steps{padding-left:1.5rem;margin:.9rem 0}
+  ol.steps li{margin:.75rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:1rem 0}
+  th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .cite{color:var(--soft);font-size:.85rem}
+
+  .q{margin:1.5rem 0;padding:1.1rem 1.2rem;border:1px solid var(--line);
+     border-radius:8px;background:#fffefb}
+  .qt{font-weight:700;margin:0 0 .7rem}
+  .opts{display:flex;flex-direction:column;gap:.45rem}
+  .opts button{font:inherit;font-size:.95rem;text-align:left;padding:.55rem .8rem;
+     border:1px solid var(--line);border-radius:6px;background:var(--paper);
+     cursor:pointer;line-height:1.4}
+  .opts button:hover:not(:disabled){border-color:var(--accent)}
+  .opts button.good{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  .opts button.bad{background:var(--badbg);border-color:var(--accent);color:var(--accent);opacity:1}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .fb{margin:.7rem 0 0;font-size:.9rem;color:var(--soft);display:none}
+  .fb.good{display:block;color:var(--ok)}
+  .fb.bad{display:block;color:var(--accent)}
+  #score{font-weight:700;margin-top:1.2rem;display:none}
+
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.88rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    .opts button{border:none;background:none;padding:.15rem 0}
+    .opts button:before{content:"□ "}
+    footer,#score{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Lesson 0003</div>
+  <h1>Scripts That Take Orders</h1>
+  <p class="meta">≈ 14 minutes · one win: <code>./diskcheck.sh /any/path</code> —
+  no editing, plus a guard that fails loudly and correctly ·
+  <a href="../lessons/0002-variables-and-quoting.html">← lesson 0002</a> ·
+  <a href="../reference/bash-glossary.html">glossary</a></p>
+
+  <h2 style="margin-top:1.4rem">Why this matters</h2>
+  <p class="lead">Your <code>diskcheck.sh</code> works, but changing the target
+  means editing the file. Real tools do not work that way — you never edit
+  <code>ls</code> to list a different folder; you hand it an
+  <a href="../reference/bash-glossary.html#argument">argument</a>. Today your
+  script becomes a tool: it takes orders at run time, and it refuses to run
+  blind when it gets none. That refusal — a usage message and a failing exit
+  status — is the habit that separates trusted DevOps scripts from dangerous
+  ones.</p>
+
+  <h2>The one idea</h2>
+  <p><strong>Words after the script name are handed to the script, numbered
+  from 1.</strong> Bash stores them for you:</p>
+  <table>
+    <tr><th>You run</th><th>Inside the script</th></tr>
+    <tr><td><code>./diskcheck.sh /var /tmp</code></td>
+        <td><code>$1</code> is <code>/var</code> · <code>$2</code> is
+        <code>/tmp</code> · <code>$#</code> is <code>2</code> ·
+        <code>$0</code> is <code>./diskcheck.sh</code></td></tr>
+  </table>
+  <p>Bash calls <code>$1</code>, <code>$2</code>, … <em>positional
+  parameters</em>; <code>$0</code> is the script's own name; <code>$#</code>
+  counts the arguments
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html" title="GNU Bash Reference Manual — Special Parameters">[1]</a></sup>.
+  One familiar rule applies unchanged from last lesson: <strong>quote them —
+  <code>"$1"</code> — because arguments are text, and text can contain
+  spaces.</strong></p>
+
+  <h2>Take an argument</h2>
+  <ol class="steps">
+    <li><strong>Replace the hardcoded line.</strong> In
+    <code>~/lab/diskcheck.sh</code>, change one line — <code>target="/"</code>
+    becomes:
+<pre>target="$1"</pre>
+    Nothing else changes. Your script now reads:
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># diskcheck.sh — check free space on a path you give</span>
+target="$1"
+echo "=== disk check: $target ==="
+df -h "$target"</pre></li>
+    <li><strong>Run it with orders:</strong>
+<pre>./diskcheck.sh /
+./diskcheck.sh "$HOME/lab"</pre>
+    <span class="out">Two different checks, zero edits. The script is now a tool.</span></li>
+    <li><strong>Now break it:</strong> run <code>./diskcheck.sh</code> with no
+    argument:
+<pre><span class="bad">df: : No such file or directory</span></pre>
+    <span class="out">A confusing error with nothing pointing at the real
+    cause. Worse: whoever runs this in a pipeline sees it fail for a mystery
+    reason. A good tool refuses to run blind — and says why.</span></li>
+  </ol>
+
+  <h2>The guard: your first <code>if</code></h2>
+  <p>Add these four lines <strong>above</strong>
+  <code>target="$1"</code> — you already know why above: the script runs top
+  to bottom, and a guard only protects if it runs first:</p>
+<pre><span class="c">if [ $# -eq 0 ]; then</span>
+  echo "usage: $0 /path/to/check" &gt;&amp;2
+  exit 1
+<span class="c">fi</span></pre>
+  <p>Reading it piece by piece:</p>
+  <table>
+    <tr><th>Part</th><th>Job</th></tr>
+    <tr><td><code>if [ $# -eq 0 ]</code></td>
+      <td>A condition: is the argument count zero? <code>[ … ]</code> is a
+      test command; <code>-eq</code> means "equal". Full test syntax is next
+      lesson — this one pattern is enough today.</td></tr>
+    <tr><td><code>echo … &gt;&amp;2</code></td>
+      <td>Send the message to <em>stderr</em>, the error channel, where
+      pipelines and logs expect problems to appear
+      <sup class="cite"><a href="https://google.github.io/styleguide/shellguide.html#stdout-vs-stderr" title="Google Shell Style Guide — STDOUT vs STDERR">[2]</a></sup>.</td></tr>
+    <tr><td><code>exit 1</code></td>
+      <td>Stop immediately, leaving exit status 1 — failure. Anything that
+      called your script (CI, another script, <code>&amp;&amp;</code>) sees
+      the failure and reacts. Success would be <code>exit 0</code>.</td></tr>
+    <tr><td><code>$0</code></td>
+      <td>The script's own name in the message — it stays correct even if the
+      file gets renamed.</td></tr>
+  </table>
+
+  <div class="callout">
+    <p><strong>Prove the guard with your own hands:</strong></p>
+<pre>./diskcheck.sh
+<span class="out">usage: ./diskcheck.sh /path/to/check</span>
+echo $?
+<span class="out">1   ← the failure was reported honestly</span>
+./diskcheck.sh /
+<span class="out">=== disk check: / === …</span>
+echo $?
+<span class="out">0   ← and so was the success</span></pre>
+    <p>That number is how your script will talk to CI pipelines, cron jobs,
+    and other scripts for the rest of your career.</p>
+  </div>
+
+  <h2>Check yourself</h2>
+  <p>Answer from memory — including one review question from lesson 0002.</p>
+
+  <div class="q" data-correct="0">
+    <p class="qt">1 · Running <code>./diskcheck.sh /var/log /tmp</code> — what does <code>$1</code> hold inside the script?</p>
+    <div class="opts">
+      <button>The first path /var/log only</button>
+      <button>Both paths /var/log /tmp together</button>
+      <button>The script name diskcheck.sh itself</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">2 · Same command — what does <code>$#</code> hold?</p>
+    <div class="opts">
+      <button>The count of the arguments: two</button>
+      <button>The count of the script name</button>
+      <button>The number of running background jobs</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">3 · Review, lesson 0002: why write <code>target="$1"</code> with quotes?</p>
+    <div class="opts">
+      <button>Arguments can contain spaces too</button>
+      <button>Quotes make assignments run faster</button>
+      <button>Quotes stop the exit status leaking</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">4 · What does <code>exit 1</code> tell whoever ran the script?</p>
+    <div class="opts">
+      <button>The caller sees the number one</button>
+      <button>The script continues from the top</button>
+      <button>The script waits for new input</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <p id="score"></p>
+
+  <h2>Practice on your own work</h2>
+  <ol class="steps">
+    <li><strong>Guard and verify.</strong> Add the guard to
+    <code>diskcheck.sh</code>, then run the four commands in the callout
+    above. Your feedback: <code>echo $?</code> prints exactly <code>1</code>
+    after the empty run and <code>0</code> after the good run.</li>
+    <li><strong>Use it like a tool.</strong> Check three different paths
+    without opening the file: <code>/</code>, <code>"$HOME/lab"</code>, and
+    any other folder you care about at work.</li>
+    <li><strong>Transfer the pattern.</strong> From scratch, write
+    <code>peek.sh</code> — shows the last 15 lines of any file:
+    the shebang, the same guard, then <code>tail -n 15 "$1"</code>. Test it on
+    <code>./peek.sh /etc/hosts</code>. Same skeleton, new tool — that
+    skeleton is the shape of thousands of real DevOps scripts.</li>
+  </ol>
+
+  <h2>Go deeper (optional, 10 minutes)</h2>
+  <p><strong>Primary source:</strong> the
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html">Special Parameters section of the GNU manual</a>
+  — skim it; you now have solid grip on <code>$1</code>, <code>$#</code>,
+  <code>$0</code>, and <code>$?</code>, and you will recognise the rest as
+  they appear. In Greg's BashGuide, the variables chapter covers arguments
+  too: <a href="https://mywiki.wooledge.org/BashGuide">BashGuide</a>.</p>
+
+  <h2>Next</h2>
+  <p><strong>Lesson 0004 — decisions:</strong> the full test toolbox —
+  <code>[ … ]</code> and <code>[[ … ]]</code>, file checks like
+  <code>-f</code> and <code>-d</code>, string checks like <code>-z</code> —
+  so your scripts can look before they leap, like real ops tooling does.
+  Until then, keep hardcoding nothing.</p>
+
+  <div class="callout">
+    <p><strong>Stuck on anything?</strong> Ask your teacher — me, the agent
+    you are chatting with. Paste any error, output, or quiz answer and we
+    will work through it.</p>
+  </div>
+
+  <footer>
+    Bash for DevOps · Lesson 0003 · Sources:
+    <a href="https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html">[1] GNU Bash Reference Manual: Special Parameters</a> ·
+    <a href="https://google.github.io/styleguide/shellguide.html#stdout-vs-stderr">[2] Google Shell Style Guide: STDOUT vs STDERR</a>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var solved=0, firstTry=0, total=document.querySelectorAll('.q').length;
+  document.querySelectorAll('.q').forEach(function(q){
+    var correct=+q.dataset.correct, tried=false, done=false;
+    var fb=q.querySelector('.fb');
+    var explain=[
+      "Each word after the script name gets its own slot: $1 first, $2 second. Nothing is merged — that merging misconception is exactly what \"$@\" later fixes.",
+      "$# counts the arguments. The script name is $0, and background-job numbers are other special parameters entirely.",
+      "Lesson 0002 review: arguments are text, and text can contain spaces. \"$1\" keeps one argument whole, exactly like \"$file\" did.",
+      "exit 1 leaves failure status with the caller — run echo $? to see it. CI systems, cron, and && chains all react to that number."
+    ];
+    q.querySelectorAll('.opts button').forEach(function(btn,i){
+      btn.addEventListener('click',function(){
+        if(done) return;
+        if(i===correct){
+          done=true; solved++; if(!tried) firstTry++;
+          btn.classList.add('good');
+          fb.textContent="Correct. "+explain[i];
+          fb.className="fb good";
+          q.querySelectorAll('.opts button').forEach(function(b){b.disabled=true;});
+          var s=document.getElementById('score');
+          s.style.display='block';
+          s.textContent="Solved "+solved+" of "+total+" · first-try "+firstTry;
+        } else {
+          tried=true;
+          btn.classList.add('bad');
+          btn.disabled=true;
+          fb.textContent="Not quite — try again.";
+          fb.className="fb bad";
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
