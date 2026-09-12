@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rocky STIG Lab Runbook — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .note{font-size:.88rem;color:#555;}
+  .warn{border-left:3px solid #b00020;background:#fdecef;padding:.5rem .8rem;margin:.8rem 0;font-size:.92rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>Rocky STIG Lab Runbook</h1>
+  <p class="note">Condensed commands for <a href="../lessons/0003-rocky-hardening-lab.html">Lesson 0003</a>. No prose — just the moves. Sources: <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat hardening guide</a>, <a href="https://complianceascode.github.io/">ComplianceAsCode</a>, <a href="https://rockylinux.org/download/">rockylinux.org</a>.</p>
+
+  <h2>Setup</h2>
+<pre>sudo dnf install -y openscap-scanner scap-security-guide
+ls /usr/share/xml/scap/ssg/content/
+oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | grep -i stig</pre>
+
+  <h2>Scan (baseline or after)</h2>
+<pre>sudo oscap xccdf eval \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results /tmp/results-<i>before|after</i>.xml \
+  --report /tmp/report-<i>before|after</i>.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4
+
+<b># fetch the report from the Mac</b>
+scp <i>user</i>@<i>vm-ip</i>:/tmp/report-<i>before</i>.html . && open report-<i>before</i>.html</pre>
+
+  <h2>Fixes applied in the lab</h2>
+<pre><b># banner (AC-8 via CCI-000048)</b>
+sudo tee /etc/issue <<'EOF'
+Authorized use only. All activity may be monitored and recorded.
+EOF
+printf 'Banner /etc/issue\n' | sudo tee /etc/ssh/sshd_config.d/99-stig-banner.conf
+
+<b># root login</b>
+printf 'PermitRootLogin no\n' | sudo tee /etc/ssh/sshd_config.d/99-stig-rootlogin.conf
+
+<b># validate BEFORE reload — always</b>
+sudo sshd -t && sudo systemctl reload sshd
+
+<b># patching (SI-2)</b>
+sudo dnf update -y && sudo reboot</pre>
+  <div class="warn"><b>Safety, in order:</b> 1) prove a second login works before touching sshd. 2) <code>sshd -t</code> before every reload. 3) snapshot before <code>--remediate</code>.</div>
+
+  <h2>Automatic remediation (stretch)</h2>
+<pre><b># Proxmox snapshot FIRST, then:</b>
+sudo oscap xccdf eval --remediate \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results /tmp/results-rem.xml \
+  --report /tmp/report-rem.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4</pre>
+
+  <h2>Numbers to record</h2>
+  <pre>Baseline: failed __ / __ total · High __
+After:    failed __ / __ total · High __
+Remediate: kept / rolled back</pre>
+
+  <p class="note"><a href="../lessons/0003-rocky-hardening-lab.html">← Lesson 0003</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a> · <a href="rmf-cheatsheet.html">RMF cheat sheet</a></p>
+</main>
+</body>
+</html>

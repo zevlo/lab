@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0003 — Lab: Harden Rocky Linux Against the STIG</title>
+<style>
+  :root{
+    --paper:#fffdf7; --ink:#1c1b17; --rule:#d8d2c2; --accent:#7a2e2e;
+    --soft:#f4efe3; --good:#0a7d33; --bad:#b00020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1.05rem/1.65 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.4rem 4rem;}
+  .kicker{font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .4rem;}
+  h1{font-size:1.9rem;line-height:1.25;margin:0 0 .6rem;font-weight:normal;}
+  h2{font-size:1.25rem;margin:2.6rem 0 .6rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.3rem;}
+  h3{font-size:1.02rem;margin:1.6rem 0 .3rem;}
+  p{margin:.6rem 0;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  .mission{border-left:3px solid var(--accent);background:var(--soft);padding:.9rem 1.1rem;margin:1.6rem 0;font-size:.95rem;}
+  .mission p{margin:.3rem 0;}
+  .bridge{font-size:.92rem;background:var(--soft);padding:.55rem .8rem;margin-top:.5rem;}
+  .bridge b{color:var(--accent);}
+  .warn{border-left:3px solid var(--bad);background:#fdecef;padding:.55rem .8rem;margin:.8rem 0;font-size:.93rem;}
+  .warn b{color:var(--bad);}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .lab{list-style:none;padding:0;margin:1rem 0;}
+  .lab li{border:1px solid var(--rule);margin:.6rem 0;padding:.7rem .9rem;}
+  .lab label{display:flex;gap:.7rem;align-items:baseline;cursor:pointer;}
+  .lab input{transform:translateY(.15rem);}
+  .lab input:checked + span{color:#6b6353;}
+  .quiz fieldset{border:1px solid var(--rule);padding:.8rem 1rem;margin:1.2rem 0;}
+  .quiz legend{font-weight:normal;font-style:italic;padding:0 .4rem;}
+  .opts{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.5rem;}
+  .opts button{font:inherit;font-size:.95rem;padding:.35rem .9rem;background:#fff;border:1px solid var(--rule);cursor:pointer;}
+  .opts button:hover{border-color:var(--accent);}
+  .opts button.ok{background:var(--good);color:#fff;border-color:var(--good);}
+  .opts button.no{background:var(--bad);color:#fff;border-color:var(--bad);}
+  .fb{font-size:.9rem;margin-top:.5rem;min-height:1.2em;color:#555;}
+  .src{font-size:.95rem;border:1px solid var(--rule);padding:.8rem 1rem;margin:1.6rem 0;}
+  .ask{font-size:.95rem;font-style:italic;border-left:3px solid var(--rule);padding:.5rem 1rem;margin:1.6rem 0;color:#444;}
+  nav.next{margin-top:2.6rem;border-top:1px solid var(--rule);padding-top:1rem;font-size:.95rem;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);}
+  .oneliner::before{content:'“';color:var(--accent);font-size:1.2rem;}
+  .oneliner::after{content:'”';color:var(--accent);font-size:1.2rem;}
+  .report{border:1px dashed var(--rule);padding:.8rem 1rem;margin:1.2rem 0;font-size:.95rem;}
+  @media print{
+    body{background:#fff;font-size:10.5pt;} main{max-width:none;padding:0;}
+    .opts button{display:none;} .quiz fieldset{border:none;padding:0;}
+    pre{background:#efefe9;color:#111;}
+    .lab li{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Lesson 0003</p>
+  <h1>Lab: Harden Rocky Linux Against the STIG</h1>
+
+  <div class="mission">
+    <p><b>Why this lesson.</b> The postings require “Linux (RHEL, RockyOS) administration and hardening.” In an interview, “I have run oscap against the DISA STIG profile and remediated findings” must be a sentence you have earned. Today you earn it.</p>
+    <p><b>One win.</b> You build one Rocky 9 VM on Proxmox, run a baseline STIG scan, fix three findings, re-scan, and watch the failure count drop. Measurable. Real.</p>
+    <p><b>Timebox.</b> About 90 minutes, install included. The <a href="../reference/rocky-stig-lab-runbook.html">runbook</a> holds the condensed commands.</p>
+  </div>
+
+  <h2>Warm-up — retrieve first</h2>
+  <p>Three questions from Lessons 0001-0002, from memory. Retrieval before a lab primes the vocabulary you will use inside it.</p>
+  <div class="quiz" id="quiz">
+    <fieldset>
+      <legend>Which command lists the profiles inside an SCAP data stream?</legend>
+      <div class="opts"><button>oscap info</button><button>oscap eval</button><button>oscap scan</button><button>oscap list</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>A rule that fails its check produces what?</legend>
+      <div class="opts"><button>Finding</button><button>Control</button><button>Baseline</button><button>Exception</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Which severity blocks operation until it is fixed?</legend>
+      <div class="opts"><button>High</button><button>Medium</button><button>Low</button><button>Critical</button></div>
+      <p class="fb"></p>
+    </fieldset>
+  </div>
+  <p><span class="bridge"><b>Trap in question three.</b> “Critical” is not a STIG severity. STIG uses High, Medium, Low. A confident wrong answer here is exactly what an interviewer probes.</span></p>
+
+  <h2>The lab</h2>
+  <p>Work through the steps in order. Tick each box as you finish; your progress is saved in this browser.</p>
+
+  <ul class="lab" id="lab">
+    <li><label><input type="checkbox" data-k="s1"><span><b>1 — Create the VM.</b> On Proxmox, create a VM and install <a href="https://rockylinux.org/download/">Rocky 9</a> (x86_64, minimal install is enough). Create one admin user with sudo. You know Proxmox; the only requirement is a fresh Rocky 9 system you can reach over SSH.</span></label></li>
+
+    <li><label><input type="checkbox" data-k="s2"><span><b>2 — Install the scanner and the content.</b> Rocky ships the SCAP content from <a href="https://complianceascode.github.io/">ComplianceAsCode</a>.</span></label>
+<pre><b># on the VM</b>
+sudo dnf install -y openscap-scanner scap-security-guide</pre></li>
+
+    <li><label><input type="checkbox" data-k="s3"><span><b>3 — Find the data stream.</b> Do not trust any document for the filename. Look.</span></label>
+<pre>ls /usr/share/xml/scap/ssg/content/</pre></li>
+
+    <li><label><input type="checkbox" data-k="s4"><span><b>4 — Find the STIG profile.</b> Confirm the exact profile ID inside the data stream.</span></label>
+<pre>oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | grep -i stig</pre></li>
+
+    <li><label><input type="checkbox" data-k="s5"><span><b>5 — Baseline scan.</b> The profile comes from step 4. The last lines print your pass and fail counts.</span></label>
+<pre>sudo oscap xccdf eval \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results /tmp/results-before.xml \
+  --report /tmp/report-before.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4</pre></li>
+
+    <li><label><input type="checkbox" data-k="s6"><span><b>6 — Read the report.</b> Copy it to your Mac and open it.</span></label>
+<pre><b># on the Mac</b>
+scp <i>user</i>@<i>vm-ip</i>:/tmp/report-before.html . && open report-before.html</pre>
+<p>Record two numbers: total failed rules, and High findings. Write them down. You will compare after fixing.</p></li>
+
+    <li><label><input type="checkbox" data-k="s7"><span><b>7 — Fix the banner.</b> The exact rule from Lesson 0002's anatomy, made real. This satisfies control AC-8 through CCI-000048.</span></label>
+<pre>sudo tee /etc/issue <<'EOF'
+Authorized use only. All activity may be monitored and recorded.
+EOF
+printf 'Banner /etc/issue\n' | sudo tee /etc/ssh/sshd_config.d/99-stig-banner.conf
+sudo sshd -t && sudo systemctl reload sshd</pre>
+<p><span class="bridge"><b>Pattern to keep.</b> <code>sshd -t</code> validates before the reload applies. Broken SSH on a remote box is a resume-generating event. Validate, then apply — same instinct as <code>terraform plan</code> before <code>apply</code>.</span></p></li>
+
+    <li><label><input type="checkbox" data-k="s8"><span><b>8 — Forbid root login.</b></span></label>
+<pre>printf 'PermitRootLogin no\n' | sudo tee /etc/ssh/sshd_config.d/99-stig-rootlogin.conf
+sudo sshd -t && sudo systemctl reload sshd</pre>
+<div class="warn"><b>Before you reload.</b> Open a second terminal and prove your admin user can log in and sudo. Only then reload. Never cut the branch you sit on.</div></li>
+
+    <li><label><input type="checkbox" data-k="s9"><span><b>9 — Patch.</b> Most High findings on a fresh install are known vulnerabilities. One command retires them (control SI-2).</span></label>
+<pre>sudo dnf update -y && sudo reboot</pre></li>
+
+    <li><label><input type="checkbox" data-k="s10"><span><b>10 — Re-scan.</b> Same command, new files.</span></label>
+<pre>sudo oscap xccdf eval \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results /tmp/results-after.xml \
+  --report /tmp/report-after.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4</pre>
+<p>Compare with your baseline numbers. Fewer findings — that delta is your work, measured.</p></li>
+
+    <li><label><input type="checkbox" data-k="s11"><span><b>11 — Stretch: automatic remediation, safely.</b> Take a Proxmox snapshot of the VM first. Then run the eval again with <code>--remediate</code> added. Watch what it changes. If the VM still boots and the count dropped further, keep it; otherwise roll back to the snapshot. Automatic fixes are powerful and blunt. Professionals snapshot before they swing.</span></label></li>
+  </ul>
+
+  <h2>Report your numbers</h2>
+  <div class="report">
+    <p>Bring these to your teacher at the next session:</p>
+    <p>Baseline: failed ___ of ___ · High ___ · After: failed ___ of ___ · High ___ · Remediate kept? yes / no / rolled back</p>
+  </div>
+
+  <h2>Say it in an interview</h2>
+  <div class="oneliner">I hardened Rocky 9 against the DISA STIG with oscap: baseline scan, targeted fixes — banner, root login, patching — then re-scan to prove the delta.</div>
+  <div class="oneliner">Automatic remediation I treat like any deploy: snapshot first, measure blast radius, roll back if it breaks.</div>
+
+  <div class="src">
+    <b>Primary source.</b> The <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat 9 security hardening guide</a>, chapter on compliance and vulnerability scanning. It documents the same oscap workflow on RHEL, and Rocky follows RHEL. Skim <a href="https://docs.rockylinux.org/">docs.rockylinux.org</a> for Rocky-specific notes.
+  </div>
+
+  <p class="ask">Your teacher is this agent. When you finish — or when a finding confuses you, or oscap errors out — bring it here. Real labs generate real questions; that is the point.</p>
+
+  <nav class="next">
+    Previous: <a href="0002-stigs.html">Lesson 0002 — STIGs</a> ·
+    Next: Lesson 0004 — SDLC promotion in classified environments ·
+    Reference: <a href="../reference/rocky-stig-lab-runbook.html">Lab runbook</a> ·
+    <a href="../reference/stig-cheatsheet.html">STIG cheat sheet</a> ·
+    <a href="../GLOSSARY.md">Glossary</a>
+  </nav>
+</main>
+
+<script>
+(function(){
+  var answers=['oscap info','Finding','High'];
+  var explain=['oscap info inspects the data stream and lists profiles.','A failed check is a finding. It needs a fix, or an exception in the POA&M.','High blocks operation. “Critical” is not a STIG severity — it was the trap.'];
+  document.querySelectorAll('#quiz fieldset').forEach(function(fs,i){
+    fs.querySelectorAll('.opts button').forEach(function(b){
+      b.onclick=function(){
+        var ok=b.textContent===answers[i];
+        b.classList.add(ok?'ok':'no');
+        if(!ok){fs.querySelectorAll('.opts button').forEach(function(o){if(o.textContent===answers[i]){o.classList.add('ok');}});}
+        fs.querySelector('.fb').innerHTML=(ok?'Correct. ':'Not quite. ')+explain[i];
+        fs.querySelectorAll('.opts button').forEach(function(o){o.disabled=true;o.style.cursor='default';});
+      };
+    });
+  });
+  document.querySelectorAll('#lab input[type=checkbox]').forEach(function(c){
+    c.checked=localStorage.getItem('l3-'+c.dataset.k)==='1';
+    c.onchange=function(){localStorage.setItem('l3-'+c.dataset.k,c.checked?'1':'0');};
+  });
+})();
+</script>
+</body>
+</html>

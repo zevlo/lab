@@ -18,6 +18,8 @@
   Vendor documentation for security profiles and OpenSCAP (`oscap`) scanning on RHEL. Use for: Rocky/RHEL hardening labs. Verified live. Applies to Rocky (RHEL-compatible).
 - [Project: ComplianceAsCode / SCAP Security Guide](https://complianceascode.github.io/)
   The upstream source of the SCAP content RHEL and Rocky ship, including DISA STIG profiles. Use for: profile IDs, remediations, `scap-security-guide` details. Verified live.
+- [Distro: Rocky Linux — download](https://rockylinux.org/download/) and [docs.rockylinux.org](https://docs.rockylinux.org/)
+  Rocky 9 ISOs and distribution documentation. Use for: lab installs, Rocky-specific notes. Verified live (rockylinux.org, docs.rockylinux.org, dl.rockylinux.org).
 
 ## Wisdom (Communities)
 

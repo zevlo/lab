@@ -20,9 +20,9 @@
 - Kubernetes homelab
 
 ## Curriculum map (interview-priority order)
-1. RMF seven steps — lesson 0001
-2. STIGs — lesson 0002
-3. Linux admin + hardening lab: Rocky on Proxmox, OpenSCAP scan, Ansible remediation
+1. RMF seven steps — lesson 0001 ✓
+2. STIGs — lesson 0002 ✓
+3. Linux admin + hardening lab: Rocky on Proxmox, OpenSCAP scan, fixes — lesson 0003 delivered, awaiting lab results
 4. SDLC promotion in classified environments (dev → test → prod, cross-domain)
 5. Vault secrets management
 6. GitLab CI in a team + DevSecOps scanning (SAST, SCA, secrets scanning)
@@ -44,3 +44,4 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 - 2026-09-11: Workspace created. Mission locked. Lessons 0001 (RMF) and 0002 (STIGs) delivered.
 - 2026-09-11: User completed lesson 0001 (self-reported, quiz scores pending). Next: lesson 0002, then the Rocky hardening lab.
 - 2026-09-11: Evidence arrived — lesson 0001 quiz 4/4; lesson 0002 complete, practices passed. GLOSSARY.md seeded (adhere to it in all lessons). RMF/STIG now working vocabulary; fluency only — schedule spaced review. Next: lesson 0003, Rocky hardening lab on Proxmox.
+- 2026-09-11: Lesson 0003 (Rocky hardening lab) delivered with runbook. Awaiting lab numbers: baseline/after failures, High counts, remediate verdict. Lesson 0004 (SDLC promotion) next session.
