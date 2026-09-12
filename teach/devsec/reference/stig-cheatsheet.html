@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>STIG Cheat Sheet — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.6rem 0;}
+  th,td{border:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .note{font-size:.88rem;color:#555;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);font-size:.95rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} table,pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>STIG Cheat Sheet</h1>
+  <p class="note">Companion to <a href="../lessons/0002-stigs.html">Lesson 0002</a>. Sources: <a href="https://cyber.mil/stigs/">DISA STIGs (cyber.mil)</a>, <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat security hardening guide</a>, <a href="https://complianceascode.github.io/">ComplianceAsCode</a>.</p>
+
+  <h2>What is what</h2>
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td><b>STIG</b></td><td>Security Technical Implementation Guide. DISA's checklist of security requirements for one technology.</td></tr>
+    <tr><td><b>SRG</b></td><td>Security Requirements Guide. The parent document; a STIG instantiates it per product.</td></tr>
+    <tr><td><b>Rule</b></td><td>One requirement. Fields: statement, discussion, check, fix, CCI, severity.</td></tr>
+    <tr><td><b>CCI</b></td><td>Control Correlation Identifier. Maps one rule to one SP 800-53 control.</td></tr>
+    <tr><td><b>SCAP</b></td><td>Security Content Automation Protocol. The standard that makes STIG content machine-readable.</td></tr>
+    <tr><td><b>Finding</b></td><td>A rule that failed its check. Needs a fix, or an exception with a POA&amp;M entry.</td></tr>
+  </table>
+
+  <h2>Severity</h2>
+  <table>
+    <tr><th>Current</th><th>Legacy</th><th>Means</th><th>Response</th></tr>
+    <tr><td><b>High</b></td><td>CAT I</td><td>Catastrophic</td><td>Fix immediately, or do not operate</td></tr>
+    <tr><td><b>Medium</b></td><td>CAT II</td><td>Serious</td><td>Fix on schedule; most rules live here</td></tr>
+    <tr><td><b>Low</b></td><td>CAT III</td><td>Minor</td><td>Fix when convenient, or document</td></tr>
+  </table>
+
+  <h2>Workflow</h2>
+  <table>
+    <tr><th>#</th><th>Move</th><th>How</th></tr>
+    <tr><td>1</td><td>Obtain</td><td>Download package from cyber.mil/stigs (XML + checklist)</td></tr>
+    <tr><td>2</td><td>Read</td><td>DISA STIG Viewer; stigviewer.com is a browser convenience, never a citation</td></tr>
+    <tr><td>3</td><td>Check</td><td><code>oscap</code> scan, or manual check</td></tr>
+    <tr><td>4</td><td>Fix</td><td>Manual, script, or Ansible; re-scan to verify</td></tr>
+    <tr><td>5</td><td>Document</td><td>Results recorded; exceptions become POA&amp;M entries</td></tr>
+  </table>
+
+  <h2>OpenSCAP on Rocky / RHEL</h2>
+<pre><b># install</b>
+dnf install -y openscap-scanner scap-security-guide
+
+<b># list profiles</b>
+oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml
+
+<b># scan (DISA STIG profile)</b>
+oscap xccdf eval \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results results.xml --report report.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml
+
+<b># scan and auto-remediate (test first!)</b>
+oscap xccdf eval --remediate \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results results.xml --report report.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml</pre>
+  <p class="note">Content paths: <code>/usr/share/xml/scap/ssg/content/</code>. On RHEL the file is <code>ssg-rhel9-ds.xml</code>. ComplianceAsCode also publishes Ansible playbooks per profile.</p>
+
+  <h2>STIG ↔ RMF touchpoints</h2>
+  <table>
+    <tr><th>RMF step</th><th>STIG connection</th></tr>
+    <tr><td>Select</td><td>Controls chosen in SP 800-53; STIG is the implementation guide for them</td></tr>
+    <tr><td>Implement</td><td>Apply STIG fixes — most of the engineering work</td></tr>
+    <tr><td>Assess</td><td>oscap scan results are assessment evidence for the SAR</td></tr>
+    <tr><td>Authorize</td><td>Open findings land in the POA&amp;M; AO accepts the residual risk</td></tr>
+    <tr><td>Monitor</td><td>Scheduled re-scans detect drift and new findings</td></tr>
+  </table>
+
+  <h2>Typical rule → control mappings</h2>
+  <table>
+    <tr><th>STIG rule theme</th><th>800-53 control</th></tr>
+    <tr><td>Logon banner</td><td>AC-8 — System Use Notification</td></tr>
+    <tr><td>Audit logging enabled and protected</td><td>AU family (AU-2, AU-9)</td></tr>
+    <tr><td>Prompt patching</td><td>SI-2 — Flaw Remediation</td></tr>
+    <tr><td>Account lockout on failures</td><td>AC-7 — Unsuccessful Logon Attempts</td></tr>
+    <tr><td>Removing unused accounts</td><td>AC-2 — Account Management</td></tr>
+  </table>
+  <p class="note">Mappings vary per STIG release. Verify the CCI in the rule itself before citing.</p>
+
+  <h2>Interview one-liners</h2>
+  <div class="oneliner">A STIG is the concrete settings layer of the RMF: the control says what must be true in 800-53, and the STIG rule says which setting makes it true.</div>
+  <div class="oneliner">I would run oscap as a pipeline gate: fail the build on High findings, and route the rest to the POA&amp;M with owners and dates.</div>
+
+  <p class="note"><a href="../lessons/0002-stigs.html">← Lesson 0002</a> · <a href="rmf-cheatsheet.html">RMF cheat sheet</a> · <a href="../RESOURCES.md">Resources</a></p>
+</main>
+</body>
+</html>

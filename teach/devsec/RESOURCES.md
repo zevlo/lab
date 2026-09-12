@@ -1,0 +1,34 @@
+# DevSec Engineering (Classified) Resources
+
+## Knowledge
+
+- [Standard: NIST SP 800-37 Rev. 2 — Risk Management Framework for Information Systems and Organizations](https://csrc.nist.gov/pubs/sp/800/37/r2/final)
+  The RMF source document. Defines the seven steps, roles, and tasks. Use for: every RMF claim. Verified live.
+- [Standard: NIST SP 800-53 Rev. 5 — Security and Privacy Controls (+ SP 800-53A assessment procedures, + SP 800-53B baselines)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)
+  800-53 is the control catalog. 800-53A defines how each control is assessed. 800-53B defines low/moderate/high control baselines. Use for: RMF steps Select and Assess. Verified live. Current release 5.2.0 (Aug 2025).
+- [Standard: FIPS 199 — Standards for Security Categorization of Federal Information and Information Systems](https://csrc.nist.gov/pubs/fips/199/final)
+  Defines confidentiality, integrity, availability impact levels. Use for: RMF step Categorize. Verified live.
+- [Guide: NIST SP 800-137 — Information Security Continuous Monitoring (ISCM)](https://csrc.nist.gov/pubs/sp/800/137/final)
+  Defines the continuous monitoring strategy and program. Use for: RMF step Monitor. Verified live.
+- [Portal: DISA STIGs — cyber.mil/stigs](https://cyber.mil/stigs/)
+  The official STIG library: STIGs, SRGs, STIG Viewer, compilations. Use for: hardening requirements per technology. Verified live (redirects from public.cyber.mil).
+- [Portal: DoD Cyber Exchange, RMF — cyber.mil/rmf](https://cyber.mil/rmf/)
+  DoD's RMF knowledge service: policy access (DoDI 8510.01), guides, eMASS references, training. Use for: the DoD-specific overlay on NIST RMF. Verified live.
+- [Guide: Red Hat Enterprise Linux 9 — Security Hardening](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index)
+  Vendor documentation for security profiles and OpenSCAP (`oscap`) scanning on RHEL. Use for: Rocky/RHEL hardening labs. Verified live. Applies to Rocky (RHEL-compatible).
+- [Project: ComplianceAsCode / SCAP Security Guide](https://complianceascode.github.io/)
+  The upstream source of the SCAP content RHEL and Rocky ship, including DISA STIG profiles. Use for: profile IDs, remediations, `scap-security-guide` details. Verified live.
+
+## Wisdom (Communities)
+
+- [r/DevOps](https://www.reddit.com/r/DevOps/)
+  Practitioner discussion of CI/CD, hardening, pipelines. Use for: tooling trade-offs, war stories.
+- [r/LockheedMartin](https://www.reddit.com/r/lockheedmartin/)
+  Current and former employees on the hiring process, clearances, and role reality. Use for: interview-process wisdom.
+
+## Gaps (verify before use)
+- DoDI 8510.01 direct PDF (esd.whs.mil) — 403 to bots. Reach in browser via cyber.mil/rmf.
+- open-scap.com — unreachable from this network. ComplianceAsCode covers the same ground.
+- stigviewer.com — community mirror of STIGs, 403 to bots, works in browsers. Convenience only, never a citation.
+- HashiCorp Vault tutorials, Ansible docs, GitLab CI docs, VMWare docs, PowerShell docs — verify before lessons 4-8.
+- CIS Benchmarks — verify when comparing against STIGs in the hardening lab.

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0002 — STIGs: How Controls Become Settings</title>
+<style>
+  :root{
+    --paper:#fffdf7; --ink:#1c1b17; --rule:#d8d2c2; --accent:#7a2e2e;
+    --soft:#f4efe3; --good:#0a7d33; --bad:#b00020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1.05rem/1.65 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.4rem 4rem;}
+  .kicker{font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .4rem;}
+  h1{font-size:1.9rem;line-height:1.25;margin:0 0 .6rem;font-weight:normal;}
+  h2{font-size:1.25rem;margin:2.6rem 0 .6rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.3rem;}
+  h3{font-size:1.02rem;margin:1.6rem 0 .3rem;}
+  p{margin:.6rem 0;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  dfn{font-style:italic;}
+  .mission{border-left:3px solid var(--accent);background:var(--soft);padding:.9rem 1.1rem;margin:1.6rem 0;font-size:.95rem;}
+  .mission p{margin:.3rem 0;}
+  .hook{font-size:.92rem;background:var(--soft);padding:.55rem .8rem;margin-top:.5rem;}
+  .hook b{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;margin:1rem 0;}
+  th,td{border:1px solid var(--rule);padding:.4rem .55rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .rule-card{border:1px solid var(--rule);margin:1.2rem 0;font-size:.92rem;}
+  .rule-card .hdr{background:var(--soft);padding:.45rem .8rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+  .rule-card .hdr b{font-family:ui-monospace,Menlo,monospace;font-size:.85em;}
+  .rule-card dl{margin:0;padding:.6rem .8rem;display:grid;grid-template-columns:6.5rem 1fr;gap:.35rem .8rem;}
+  .rule-card dt{color:#6b6353;}
+  .rule-card dd{margin:0;}
+  .sev-h{color:var(--bad);font-weight:bold;}
+  .quiz fieldset{border:1px solid var(--rule);padding:.8rem 1rem;margin:1.2rem 0;}
+  .quiz legend{font-weight:normal;font-style:italic;padding:0 .4rem;}
+  .opts{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.5rem;}
+  .opts button{font:inherit;font-size:.95rem;padding:.35rem .9rem;background:#fff;border:1px solid var(--rule);cursor:pointer;}
+  .opts button:hover{border-color:var(--accent);}
+  .opts button.ok{background:var(--good);color:#fff;border-color:var(--good);}
+  .opts button.no{background:var(--bad);color:#fff;border-color:var(--bad);}
+  .fb{font-size:.9rem;margin-top:.5rem;min-height:1.2em;color:#555;}
+  .order-pool,.order-seq{display:flex;flex-wrap:wrap;gap:.55rem;min-height:2.6rem;margin:.6rem 0;}
+  .order-pool button,.order-seq .chip{font:inherit;font-size:.92rem;padding:.35rem .8rem;background:#fff;border:1px solid var(--rule);cursor:pointer;}
+  .order-seq{border:1px dashed var(--rule);padding:.5rem;background:#fff;}
+  .chip.ok{border-color:var(--good);background:#e6f4ea;}
+  .chip.no{border-color:var(--bad);background:#fdecef;}
+  .actions{display:flex;gap:.6rem;margin:.4rem 0;}
+  .actions button{font:inherit;font-size:.9rem;padding:.35rem 1rem;background:var(--ink);color:var(--paper);border:none;cursor:pointer;}
+  .src{font-size:.95rem;border:1px solid var(--rule);padding:.8rem 1rem;margin:1.6rem 0;}
+  .ask{font-size:.95rem;font-style:italic;border-left:3px solid var(--rule);padding:.5rem 1rem;margin:1.6rem 0;color:#444;}
+  nav.next{margin-top:2.6rem;border-top:1px solid var(--rule);padding-top:1rem;font-size:.95rem;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);}
+  .oneliner::before{content:'“';color:var(--accent);font-size:1.2rem;}
+  .oneliner::after{content:'”';color:var(--accent);font-size:1.2rem;}
+  @media print{
+    body{background:#fff;font-size:10.5pt;}
+    main{max-width:none;padding:0;}
+    .actions,.opts button{display:none;}
+    .quiz fieldset{border:none;padding:0;}
+    pre{background:#efefe9;color:#111;}
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Lesson 0002</p>
+  <h1>STIGs: How Controls Become Settings</h1>
+
+  <div class="mission">
+    <p><b>Why this lesson.</b> Your postings require “Linux (RHEL, RockyOS) administration and hardening” and “RMF within classified environments.” The STIG is where those two bullets meet. Every classified RHEL, Windows, and Kubernetes deployment you support will be measured against a STIG.</p>
+    <p><b>One win.</b> By the end you can name what a STIG is, read a STIG requirement, place STIGs inside the RMF, and say how a scan runs.</p>
+  </div>
+
+  <h2>What a STIG is</h2>
+  <p>A <dfn>STIG — Security Technical Implementation Guide</dfn> is a published checklist of security requirements for one technology. DISA — the Defense Information Systems Agency — writes and publishes STIGs at <a href="https://cyber.mil/stigs/">cyber.mil/stigs</a>. There is a STIG for RHEL 9, a STIG for Windows Server 2022, a STIG for Kubernetes, a STIG for network gear.</p>
+  <p>Each line of a STIG is a <dfn>rule</dfn>. A rule states one requirement. A rule carries a severity, a check, and a fix. A parent document — the <dfn>SRG, Security Requirements Guide</dfn> — holds requirements that apply broadly. A STIG instantiates the SRG for one product.</p>
+
+  <h2>Where the STIG sits in the RMF</h2>
+  <p>You learned the seven steps in <a href="0001-rmf-seven-steps.html">Lesson 0001</a>. The STIG lives in step 4, Implement. A control in SP 800-53 says <i>what</i> must be true. A STIG rule says <i>which setting</i> makes it true. Scan results then feed step 5, Assess. Findings you cannot fix become POA&amp;M entries in step 6. Re-scans feed step 7, Monitor.</p>
+  <p><span class="hook"><b>Bridge to what you know.</b> You already run checks in GitHub Actions. A SCAP scan is the same pattern: a test that fails the build on a security finding. Same feedback loop, different domain.</span></p>
+
+  <h2>Anatomy of a rule</h2>
+  <p>Every STIG rule carries the same fields. Below is one rule, with the shape you will see in every STIG. Values are illustrative. The banner rule is a classic first example.</p>
+  <div class="rule-card">
+    <div class="hdr"><b>SV-000000r000000_rule</b><span><b>RHEL-09-000000</b> · Severity: <span class="sev-h">Medium</span></span></div>
+    <dl>
+      <dt>Statement</dt><dd>The operating system must display the approved use notification before granting logon access.</dd>
+      <dt>Discussion</dt><dd>Without a use notification, users may not know the system is restricted — and consent is unprovable.</dd>
+      <dt>Check</dt><dd><code>sudo grep -i banner /etc/ssh/sshd_config</code> — if the banner path is unset or the file is empty, this is a finding.</dd>
+      <dt>Fix</dt><dd>Configure <code>sshd</code> to present the approved banner text before authentication.</dd>
+      <dt>CCI</dt><dd><code>CCI-000048</code> — maps to control AC-8, System Use Notification, in SP 800-53.</dd>
+    </dl>
+  </div>
+  <p>The <dfn>CCI — Control Correlation Identifier</dfn> is the bridge. One CCI maps one STIG rule to one 800-53 control. When an assessor asks “which control does this satisfy,” the CCI is your answer.</p>
+
+  <h2>Severity</h2>
+  <table>
+    <tr><th>Severity</th><th>Legacy name</th><th>Means</th></tr>
+    <tr><td class="sev-h">High</td><td>CAT I</td><td>Catastrophic. Fix immediately, or do not operate.</td></tr>
+    <tr><td>Medium</td><td>CAT II</td><td>Serious. Fix on a schedule. Most rules live here.</td></tr>
+    <tr><td>Low</td><td>CAT III</td><td>Minor. Fix when convenient, or document an exception.</td></tr>
+  </table>
+  <p>You will hear both scales in interviews. Know both. Speak in High/Medium/Low; translate CAT I/II/III when asked.</p>
+
+  <h2>How a STIG is applied</h2>
+  <p>The workflow has five moves:</p>
+  <table>
+    <tr><th>#</th><th>Move</th><th>How</th></tr>
+    <tr><td>1</td><td>Obtain</td><td>Download the STIG package from <a href="https://cyber.mil/stigs/">cyber.mil/stigs</a>. The package holds XML (machine-readable) and a checklist (readable).</td></tr>
+    <tr><td>2</td><td>Read</td><td>Open the checklist in DISA's STIG Viewer tool, published on the same site. The community mirror stigviewer.com works in a browser — convenience only, never a citation.</td></tr>
+    <tr><td>3</td><td>Check</td><td>Scan with OpenSCAP, or check by hand where automation is absent.</td></tr>
+    <tr><td>4</td><td>Fix</td><td>Apply the fix procedure — manually, scripted, or through Ansible. Re-scan to verify.</td></tr>
+    <tr><td>5</td><td>Document</td><td>Record results. Rules that cannot apply or cannot be fixed become exceptions and POA&amp;M entries.</td></tr>
+  </table>
+
+  <h2>The scanner: OpenSCAP on Rocky</h2>
+  <p>Rocky Linux ships the SCAP Security Guide — the machine-readable STIG content maintained by the <a href="https://complianceascode.github.io/">ComplianceAsCode project</a>. The <code>oscap</code> tool evaluates it. The <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat security hardening guide</a> documents the same commands for RHEL.</p>
+<pre><b># install scanner and content</b>
+dnf install -y openscap-scanner scap-security-guide
+
+<b># list available profiles in the content</b>
+oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml
+
+<b># scan against the DISA STIG profile</b>
+oscap xccdf eval \
+  --profile xccdf_org.ssgproject.content_profile_stig \
+  --results results.xml --report report.html \
+  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml</pre>
+  <p>Open <code>report.html</code>. Every rule shows pass or fail. The same content can generate Ansible remediations — that is <a href="0001-rmf-seven-steps.html">your Terraform instinct</a> speaking: infrastructure declared, not clicked.</p>
+
+  <h2>Practice 1 — Read a rule</h2>
+  <div class="quiz" id="quiz">
+    <fieldset>
+      <legend>Which field links a STIG rule to an 800-53 control?</legend>
+      <div class="opts"><button>Rule identifier</button><button>Severity category</button><button>CCI reference</button><button>Fix procedure</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Who publishes the STIGs?</legend>
+      <div class="opts"><button>DISA</button><button>NIST</button><button>NSA</button><button>CISA</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>A SCAP scan result feeds which RMF step most directly?</legend>
+      <div class="opts"><button>Prepare</button><button>Categorize</button><button>Assess</button><button>Authorize</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>The highest STIG severity carries which legacy label?</legend>
+      <div class="opts"><button>Category one</button><button>Category two</button><button>Category three</button><button>Category zero</button></div>
+      <p class="fb"></p>
+    </fieldset>
+  </div>
+
+  <h2>Practice 2 — Triage by severity</h2>
+  <p>Order these three findings from highest severity to lowest. Reason from impact: what could an attacker do with each?</p>
+  <div class="order-pool" id="pool"></div>
+  <div class="order-seq" id="seq"></div>
+  <div class="actions">
+    <button id="check">Check</button>
+    <button id="reset">Reset</button>
+  </div>
+  <p class="fb" id="ofb"></p>
+
+  <h2>Say it in an interview</h2>
+  <div class="oneliner">A STIG is the concrete settings layer of the RMF: the control says what must be true in 800-53, and the STIG rule says which setting makes it true.</div>
+  <div class="oneliner">I would run oscap as a pipeline gate: fail the build on High findings, and route the rest to the POA&amp;M with owners and dates.</div>
+
+  <div class="src">
+    <b>Primary source.</b> Browse <a href="https://cyber.mil/stigs/">cyber.mil/stigs</a>. Download the RHEL 9 STIG, Volume 1. Open it in STIG Viewer. Read ten rules and note the repeated shape: statement, check, fix, CCI. Then skim the <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat security hardening guide</a> chapter on compliance scanning.
+  </div>
+
+  <p class="ask">Your teacher is this agent. Ask follow-up questions — “what if a rule cannot apply?”, “how do STIGs relate to CIS Benchmarks?”, “what is SCAP exactly?” Asking is part of the lesson.</p>
+
+  <nav class="next">
+    Previous: <a href="0001-rmf-seven-steps.html">Lesson 0001 — RMF: Seven Steps</a> ·
+    Next (when ready): Lesson 0003 — harden a Rocky VM on your Proxmox, hands on ·
+    Reference: <a href="../reference/stig-cheatsheet.html">STIG cheat sheet</a> ·
+    <a href="../reference/rmf-cheatsheet.html">RMF cheat sheet</a>
+  </nav>
+</main>
+
+<script>
+(function(){
+  // Severity ordering exercise
+  var order=["Passwords stored unhashed","Login banner missing","Wallpaper not organizational default"];
+  var pool=document.getElementById('pool'),seq=document.getElementById('seq'),
+      ofb=document.getElementById('ofb'),picked=[];
+  order.map(function(s,i){return[s,i];}).sort(function(){return Math.random()-0.5;})
+    .forEach(function(pair){
+      var b=document.createElement('button');
+      b.textContent=pair[0];
+      b.onclick=function(){
+        if(picked.length<order.length){picked.push(pair);b.disabled=true;b.style.opacity=.35;
+        var c=document.createElement('span');c.className='chip';c.textContent=pair[0];c.dataset.i=pair[1];
+        c.onclick=function(){this.remove();picked=picked.filter(function(p){return p[0]!==pair[0];});b.disabled=false;b.style.opacity=1;};
+        seq.appendChild(c);}
+      };
+      pool.appendChild(b);
+    });
+  document.getElementById('check').onclick=function(){
+    if(picked.length<order.length){ofb.textContent='Order all three findings first.';return;}
+    var chips=seq.querySelectorAll('.chip'),right=0;
+    chips.forEach(function(c){
+      var ok=+c.dataset.i===order.indexOf(c.textContent);
+      c.className='chip '+(ok?'ok':'no');if(ok)right++;
+    });
+    ofb.textContent=right===3?'Correct: unhashed passwords are High, a missing banner Medium, wallpaper Low. Impact drives severity.'
+      :right+' of 3 positions right. Think impact: what could an attacker do with each? Reset and retry.';
+  };
+  document.getElementById('reset').onclick=function(){
+    picked.length=0;seq.innerHTML='';ofb.textContent='';
+    pool.querySelectorAll('button').forEach(function(b){b.disabled=false;b.style.opacity=1;});
+  };
+
+  // Quiz
+  var answers=['CCI reference','DISA','Assess','Category one'];
+  var explain=['The CCI is the bridge from rule to control.','DISA writes and publishes STIGs at cyber.mil/stigs.',
+    'Scan results are assessment evidence.','High severity is legacy CAT I.'];
+  document.querySelectorAll('#quiz fieldset').forEach(function(fs,i){
+    fs.querySelectorAll('.opts button').forEach(function(b){
+      b.onclick=function(){
+        var ok=b.textContent===answers[i];
+        b.classList.add(ok?'ok':'no');
+        if(!ok){fs.querySelectorAll('.opts button').forEach(function(o){if(o.textContent===answers[i]){o.classList.add('ok');}});}
+        fs.querySelector('.fb').innerHTML=(ok?'Correct. ':'Not quite. ')+explain[i];
+        fs.querySelectorAll('.opts button').forEach(function(o){o.disabled=true;o.style.cursor='default';});
+      };
+    });
+  });
+})();
+</script>
+</body>
+</html>

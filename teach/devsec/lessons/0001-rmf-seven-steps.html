@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — The Risk Management Framework: Seven Steps</title>
+<style>
+  :root{
+    --paper:#fffdf7; --ink:#1c1b17; --rule:#d8d2c2; --accent:#7a2e2e;
+    --soft:#f4efe3; --good:#0a7d33; --bad:#b00020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1.05rem/1.65 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.4rem 4rem;}
+  .kicker{font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .4rem;}
+  h1{font-size:1.9rem;line-height:1.25;margin:0 0 .6rem;font-weight:normal;}
+  h2{font-size:1.25rem;margin:2.6rem 0 .6rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.3rem;}
+  h3{font-size:1.02rem;margin:1.6rem 0 .3rem;}
+  p{margin:.6rem 0;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  dfn{font-style:italic;}
+  .mission{border-left:3px solid var(--accent);background:var(--soft);padding:.9rem 1.1rem;margin:1.6rem 0;font-size:.95rem;}
+  .mission p{margin:.3rem 0;}
+  .step{display:grid;grid-template-columns:3.2rem 1fr;gap:1rem;margin:1.6rem 0;}
+  .step .n{font-size:2rem;line-height:1;color:var(--accent);text-align:right;font-family:Georgia,serif;}
+  .step h3{margin-top:0;}
+  .hook{font-size:.92rem;background:var(--soft);padding:.55rem .8rem;margin-top:.5rem;}
+  .hook b{color:var(--accent);}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;margin:1rem 0;}
+  th,td{border:1px solid var(--rule);padding:.4rem .55rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  code{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;background:var(--soft);padding:.08em .35em;}
+  .quiz fieldset{border:1px solid var(--rule);padding:.8rem 1rem;margin:1.2rem 0;}
+  .quiz legend{font-weight:normal;font-style:italic;padding:0 .4rem;}
+  .opts{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.5rem;}
+  .opts button{font:inherit;font-size:.95rem;padding:.35rem .9rem;background:#fff;border:1px solid var(--rule);cursor:pointer;}
+  .opts button:hover{border-color:var(--accent);}
+  .opts button.ok{background:var(--good);color:#fff;border-color:var(--good);}
+  .opts button.no{background:var(--bad);color:#fff;border-color:var(--bad);}
+  .fb{font-size:.9rem;margin-top:.5rem;min-height:1.2em;color:#555;}
+  .order-pool,.order-seq{display:flex;flex-wrap:wrap;gap:.55rem;min-height:2.6rem;margin:.6rem 0;}
+  .order-pool button,.order-seq .chip{font:inherit;font-size:.92rem;padding:.35rem .8rem;background:#fff;border:1px solid var(--rule);cursor:pointer;}
+  .order-seq{border:1px dashed var(--rule);padding:.5rem;background:#fff;}
+  .chip.ok{border-color:var(--good);background:#e6f4ea;}
+  .chip.no{border-color:var(--bad);background:#fdecef;}
+  .actions{display:flex;gap:.6rem;margin:.4rem 0;}
+  .actions button{font:inherit;font-size:.9rem;padding:.35rem 1rem;background:var(--ink);color:var(--paper);border:none;cursor:pointer;}
+  .src{font-size:.95rem;border:1px solid var(--rule);padding:.8rem 1rem;margin:1.6rem 0;}
+  .ask{font-size:.95rem;font-style:italic;border-left:3px solid var(--rule);padding:.5rem 1rem;margin:1.6rem 0;color:#444;}
+  nav.next{margin-top:2.6rem;border-top:1px solid var(--rule);padding-top:1rem;font-size:.95rem;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);}
+  .oneliner::before{content:'“';color:var(--accent);font-size:1.2rem;}
+  .oneliner::after{content:'”';color:var(--accent);font-size:1.2rem;}
+  @media print{
+    body{background:#fff;font-size:10.5pt;}
+    main{max-width:none;padding:0;}
+    .actions,.opts button{display:none;}
+    .quiz fieldset{border:none;padding:0;}
+    .step{break-inside:avoid;}
+    a{color:#000;border:none;}
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Lesson 0001</p>
+  <h1>The Risk Management Framework: Seven Steps</h1>
+
+  <div class="mission">
+    <p><b>Why this lesson.</b> Your target postings require “DoD requirements and processes including Risk Management Framework requirements within classified environments.” Every classified system at Lockheed Martin lives inside this framework. The interview will ask you to walk through it.</p>
+    <p><b>One win.</b> By the end you can name all seven steps in order, name the four key documents, and say where a DevSecOps engineer plugs in — without notes.</p>
+  </div>
+
+  <h2>The idea in one breath</h2>
+  <p>A <dfn>system</dfn> is any organized information technology that processes information for a mission. A network, a server, and a pipeline can each be a system. The <dfn>Risk Management Framework (RMF)</dfn> is a process that manages <dfn>security risk</dfn> — the chance that a threat harms the system and the mission. The RMF runs across the whole life cycle of a system. It is a cycle, not a checklist. A system enters it. A system stays in it.</p>
+  <p>The RMF has seven steps. NIST defines the RMF in <a href="https://csrc.nist.gov/pubs/sp/800/37/r2/final">SP 800-37 Rev. 2</a>. The Department of Defense adopts it in DoDI 8510.01, which you can reach through the <a href="https://cyber.mil/rmf/">DoD Cyber Exchange RMF portal</a>.</p>
+
+  <h2>The seven steps</h2>
+
+  <div class="step">
+    <div class="n">1</div>
+    <div>
+      <h3>Prepare</h3>
+      <p>The organization gets ready before any system work starts. It identifies common controls it will provide once, for many systems. It sets rules for tailoring controls later. Preparation makes every later step cheaper.</p>
+      <p><span class="hook"><b>Your seat:</b> Learn the system boundary, the data types, and the approved tool list. Feed compliance targets into the team backlog now, not after the audit.</span></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">2</div>
+    <div>
+      <h3>Categorize</h3>
+      <p>The team rates the system by impact. Impact means: what happens to the mission if the system fails? <a href="https://csrc.nist.gov/pubs/fips/199/final">FIPS 199</a> defines the yardstick. Each property — confidentiality, integrity, availability — gets a rating: low, moderate, or high. The highest rating wins and becomes the category of the system.</p>
+      <p>A weapons-delivery system is high. A public website is low. Most DoD systems land at moderate or high.</p>
+      <p><span class="hook"><b>Your seat:</b> The category sets the rigor of everything downstream. More rigor means more controls, more evidence, slower changes. Know the category before you design.</span></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">3</div>
+    <div>
+      <h3>Select</h3>
+      <p>The team picks the controls. A <dfn>security control</dfn> is one safeguard or countermeasure — for example “enforce account lockout.” A <dfn>control baseline</dfn> is the starting list of controls for a category. <a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final">SP 800-53B</a> publishes the baselines: low, moderate, high. The team tailors the baseline. It removes controls that do not apply. It adds controls for new threats. The chosen controls are written into the <dfn>System Security Plan (SysSP)</dfn>.</p>
+      <p><span class="hook"><b>Your seat:</b> Map controls to pipeline capability early. Know which control families will hit you: access control (AC), audit (AU), configuration management (CM), system integrity (SI).</span></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">4</div>
+    <div>
+      <h3>Implement</h3>
+      <p>The team deploys the selected controls and documents them in the SysSP. In the Department of Defense, DISA publishes <dfn>STIGs — Security Technical Implementation Guides</dfn>. A STIG is the concrete how-to for a technology: the exact settings that satisfy the controls. <a href="0002-stigs.html">Lesson 0002 covers STIGs.</a></p>
+      <p><span class="hook"><b>Your seat:</b> This step is most of your engineering work. STIG hardening, secrets in Vault, image scanning — you build the controls.</span></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">5</div>
+    <div>
+      <h3>Assess</h3>
+      <p>An <dfn>independent assessor</dfn> — a person outside the build team — tests whether the controls work. The assessor follows the procedures in <a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final">SP 800-53A</a>. The assessor writes a <dfn>Security Assessment Plan (SAP)</dfn> first: what will be tested, and how. The assessor writes a <dfn>Security Assessment Report (SAR)</dfn> after: what passed, what failed.</p>
+      <p><span class="hook"><b>Your seat:</b> Automate the evidence. SCAP scans, audit logs, pipeline artifacts. An assessor with clean evidence finishes faster and finds fewer surprises.</span></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">6</div>
+    <div>
+      <h3>Authorize</h3>
+      <p>The <dfn>authorizing official (AO)</dfn> — a senior official, not the build team — reads the SAR. The AO also reads the <dfn>Plan of Action and Milestones (POA&amp;M)</dfn>: the list of gaps, each with an owner and a date. The AO decides: is the remaining risk acceptable? If yes, the AO issues an <dfn>authorization to operate (ATO)</dfn>. If no, the AO denies it.</p>
+      <p>An ATO is not a safety certificate. An ATO is a decision to accept residual risk.</p>
+      <p><span class="hook"><b>Your seat:</b> The ATO gates go-live. Your scan results and honest POA&amp;M entries are what the AO reads.</span></p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">7</div>
+    <div>
+      <h3>Monitor</h3>
+      <p>The system operates. The team keeps watching. <a href="https://csrc.nist.gov/pubs/sp/800/137/final">SP 800-137</a> defines information security continuous monitoring. The team scans for drift, assesses changes, tracks new vulnerabilities, and burns down the POA&amp;M. Monitoring feeds <dfn>ongoing authorization</dfn>: the AO re-accepts the risk on evidence, not on a three-year redo.</p>
+      <p><span class="hook"><b>Your seat:</b> Drift detection, scheduled STIG re-scans, patch pipelines. This is DevSecOps earning the “Sec” — continuous compliance instead of annual paperwork.</span></p>
+    </div>
+  </div>
+
+  <h2>The four documents</h2>
+  <table>
+    <tr><th>Document</th><th>Answers</th><th>Written by</th></tr>
+    <tr><td><b>SysSP</b> — System Security Plan</td><td>Which controls are chosen, and how each is implemented</td><td>The build team, maintained over time</td></tr>
+    <tr><td><b>SAP</b> — Security Assessment Plan</td><td>How the assessment will be run</td><td>The assessor, before the assessment</td></tr>
+    <tr><td><b>SAR</b> — Security Assessment Report</td><td>What the assessment found</td><td>The assessor, after the assessment</td></tr>
+    <tr><td><b>POA&amp;M</b> — Plan of Action and Milestones</td><td>Which gaps remain, who fixes each, by when</td><td>The build team, reviewed by the AO</td></tr>
+  </table>
+  <p>Full tables — inputs, outputs, roles, the DoD overlay — live in the <a href="../reference/rmf-cheatsheet.html">RMF cheat sheet</a>. Print it. Study it before the interview.</p>
+
+  <h2>The DoD overlay</h2>
+  <p>NIST writes the RMF. The Department of Defense adds its own layer:</p>
+  <table>
+    <tr><th>Item</th><th>What it is</th></tr>
+    <tr><td>DoDI 8510.01</td><td>The DoD instruction that adopts the NIST RMF for DoD systems (<a href="https://cyber.mil/rmf/">access via DoD Cyber Exchange</a>)</td></tr>
+    <tr><td>eMASS</td><td>DoD's system of record. Authorization packages live and move inside it</td></tr>
+    <tr><td>CNSSI 1253</td><td>Enhancements to categorization and baselines for national security systems</td></tr>
+    <tr><td>STIGs</td><td>DISA's implementation guides. The concrete settings that satisfy controls (<a href="https://cyber.mil/stigs/">cyber.mil/stigs</a>)</td></tr>
+    <tr><td>Reciprocity</td><td>One authorization accepted across organizations, to avoid duplicating assessments</td></tr>
+  </table>
+
+  <h2>Practice 1 — Order the steps</h2>
+  <p>Click the seven steps in order, then check. This is retrieval practice. Do it from memory.</p>
+  <div class="order-pool" id="pool"></div>
+  <div class="order-seq" id="seq"></div>
+  <div class="actions">
+    <button id="check">Check</button>
+    <button id="reset">Reset</button>
+  </div>
+  <p class="fb" id="ofb"></p>
+
+  <h2>Practice 2 — Quiz</h2>
+  <div class="quiz" id="quiz">
+    <fieldset>
+      <legend>Which step follows Categorize?</legend>
+      <div class="opts"><button>Prepare</button><button>Assess</button><button>Select</button><button>Monitor</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Who issues the authorization to operate?</legend>
+      <div class="opts"><button>Independent assessor</button><button>System owner</button><button>Authorizing official</button><button>Operations lead</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Which document records how each control is implemented?</legend>
+      <div class="opts"><button>System Security Plan</button><button>Security Assessment Plan</button><button>Risk Assessment Report</button><button>Continuous Monitoring Plan</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>What does FIPS 199 define?</legend>
+      <div class="opts"><button>Impact levels</button><button>Control baselines</button><button>Assessment procedures</button><button>Monitoring strategies</button></div>
+      <p class="fb"></p>
+    </fieldset>
+  </div>
+
+  <h2>Say it in an interview</h2>
+  <div class="oneliner">RMF is a life-cycle process: prepare, categorize by impact, select a control baseline, implement, assess independently, authorize by risk decision, then monitor continuously.</div>
+  <div class="oneliner">An ATO is not a safety certificate. It is a senior official's decision to accept residual risk.</div>
+  <div class="oneliner">In DoD, DISA STIGs make the 800-53 controls concrete, eMASS holds the authorization package, and my job as a DevSecOps engineer is to automate the evidence.</div>
+
+  <div class="src">
+    <b>Primary source.</b> Read <a href="https://csrc.nist.gov/pubs/sp/800/37/r2/final">NIST SP 800-37 Rev. 2</a>, Section 2: “The Risk Management Framework.” Read the step summaries and study Figure 1. Then browse the <a href="https://cyber.mil/rmf/">DoD Cyber Exchange RMF portal</a> for ten minutes to see how DoD dresses the same process.
+  </div>
+
+  <p class="ask">Your teacher is this agent. Ask follow-up questions — “why is the assessor independent?”, “what is a common control?”, anything unclear. Asking is part of the lesson.</p>
+
+  <nav class="next">
+    Next: <a href="0002-stigs.html">Lesson 0002 — STIGs: how controls become settings</a> ·
+    Reference: <a href="../reference/rmf-cheatsheet.html">RMF cheat sheet</a> ·
+    <a href="../RESOURCES.md">All resources</a>
+  </nav>
+</main>
+
+<script>
+(function(){
+  var steps=["Prepare","Categorize","Select","Implement","Assess","Authorize","Monitor"];
+
+  // Ordering exercise
+  var pool=document.getElementById('pool'),seq=document.getElementById('seq'),
+      ofb=document.getElementById('ofb'),picked=[];
+  steps.map(function(s,i){return[s,i];}).sort(function(){return Math.random()-0.5;})
+    .forEach(function(pair){
+      var b=document.createElement('button');
+      b.textContent=pair[0];
+      b.onclick=function(){
+        if(picked.length<steps.length){picked.push(pair);b.disabled=true;b.style.opacity=.35;
+        var c=document.createElement('span');c.className='chip';c.textContent=pair[0];c.dataset.i=pair[1];
+        c.onclick=function(){this.remove();picked=picked.filter(function(p){return p[0]!==pair[0];});b.disabled=false;b.style.opacity=1;};
+        seq.appendChild(c);}
+      };
+      pool.appendChild(b);
+    });
+  document.getElementById('check').onclick=function(){
+    if(picked.length<steps.length){ofb.textContent='Pick all seven steps first.';return;}
+    var chips=seq.querySelectorAll('.chip'),right=0;
+    chips.forEach(function(c){
+      var ok=+c.dataset.i===steps.indexOf(c.textContent);
+      c.className='chip '+(ok?'ok':'no');if(ok)right++;
+    });
+    ofb.textContent=right===7?'All seven in order. You own this now.'
+      :right+' of 7 correct positions. Reset and try again — from memory.';
+  };
+  document.getElementById('reset').onclick=function(){
+    picked.length=0;seq.innerHTML='';ofb.textContent='';
+    pool.querySelectorAll('button').forEach(function(b){b.disabled=false;b.style.opacity=1;});
+  };
+
+  // Quiz
+  var answers=['Select','Authorizing official','System Security Plan','Impact levels'];
+  var explain=['Categorize rates impact. Select picks the controls.','The AO accepts the risk. Independence is the point.',
+    'The SysSP is the control inventory and the how.','FIPS 199 rates impact on confidentiality, integrity, availability.'];
+  document.querySelectorAll('#quiz fieldset').forEach(function(fs,i){
+    fs.querySelectorAll('.opts button').forEach(function(b){
+      b.onclick=function(){
+        var ok=b.textContent===answers[i];
+        b.classList.add(ok?'ok':'no');
+        if(!ok){fs.querySelectorAll('.opts button').forEach(function(o){if(o.textContent===answers[i]){o.classList.add('ok');}});}
+        fs.querySelector('.fb').innerHTML=(ok?'Correct. ':'Not quite. ')+explain[i];
+        fs.querySelectorAll('.opts button').forEach(function(o){o.disabled=true;o.style.cursor='default';});
+      };
+    });
+  });
+})();
+</script>
+</body>
+</html>

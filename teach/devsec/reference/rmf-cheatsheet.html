@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RMF Cheat Sheet — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.6rem 0;}
+  th,td{border:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  .note{font-size:.88rem;color:#555;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);font-size:.95rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} table{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>RMF Cheat Sheet</h1>
+  <p class="note">Companion to <a href="../lessons/0001-rmf-seven-steps.html">Lesson 0001</a>. Sources: <a href="https://csrc.nist.gov/pubs/sp/800/37/r2/final">NIST SP 800-37r2</a>, <a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final">SP 800-53/53A/53B</a>, <a href="https://csrc.nist.gov/pubs/fips/199/final">FIPS 199</a>, <a href="https://csrc.nist.gov/pubs/sp/800/137/final">SP 800-137</a>, <a href="https://cyber.mil/rmf/">DoD Cyber Exchange</a>.</p>
+
+  <h2>The seven steps</h2>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Answers</th><th>Key input</th><th>Key output</th></tr>
+    <tr><td>1</td><td><b>Prepare</b></td><td>Are we ready?</td><td>Org policy, common controls</td><td>Readiness, tailoring rules</td></tr>
+    <tr><td>2</td><td><b>Categorize</b></td><td>How bad if it fails?</td><td>FIPS 199</td><td>Impact levels on C-I-A → category</td></tr>
+    <tr><td>3</td><td><b>Select</b></td><td>Which controls?</td><td>SP 800-53B baseline</td><td>Tailored control set, in the SysSP</td></tr>
+    <tr><td>4</td><td><b>Implement</b></td><td>Are controls in place?</td><td>Control set, STIGs</td><td>Hardened system, updated SysSP</td></tr>
+    <tr><td>5</td><td><b>Assess</b></td><td>Do the controls work?</td><td>SP 800-53A procedures</td><td>SAP (before), SAR (after)</td></tr>
+    <tr><td>6</td><td><b>Authorize</b></td><td>Is the risk acceptable?</td><td>SAR, POA&amp;M</td><td>ATO — or denial</td></tr>
+    <tr><td>7</td><td><b>Monitor</b></td><td>Is it still true?</td><td>ISCM strategy (SP 800-137)</td><td>Monitoring results, POA&amp;M updates, ongoing authorization</td></tr>
+  </table>
+
+  <h2>The documents</h2>
+  <table>
+    <tr><th>Document</th><th>Answers</th><th>Written by</th><th>When</th></tr>
+    <tr><td><b>SysSP</b> — System Security Plan</td><td>Which controls, and how each is implemented</td><td>Build team</td><td>Step 3, maintained forever</td></tr>
+    <tr><td><b>SAP</b> — Security Assessment Plan</td><td>How the assessment will run</td><td>Independent assessor</td><td>Before step 5</td></tr>
+    <tr><td><b>SAR</b> — Security Assessment Report</td><td>What the assessment found</td><td>Independent assessor</td><td>After step 5</td></tr>
+    <tr><td><b>POA&amp;M</b> — Plan of Action and Milestones</td><td>Open gaps, owners, due dates</td><td>Build team, accepted by AO</td><td>Feeds step 6, burned down in step 7</td></tr>
+    <tr><td><b>RAR</b> — Risk Assessment Report</td><td>Threats, vulnerabilities, likelihood</td><td>Security team</td><td>Early, informs Select</td></tr>
+  </table>
+
+  <h2>Who is who</h2>
+  <table>
+    <tr><th>Role</th><th>Does</th></tr>
+    <tr><td><b>Authorizing Official (AO)</b></td><td>Accepts residual risk. Issues or denies the ATO. Never the build team.</td></tr>
+    <tr><td><b>System Owner</b></td><td>Accountable for the system across its life cycle.</td></tr>
+    <tr><td><b>Independent Assessor</b></td><td>Tests controls per SP 800-53A. Writes SAP and SAR.</td></tr>
+    <tr><td><b>ISSO / ISSM</b></td><td>DoD security roles: Information System Security Officer / Manager. Day-to-day security of the system.</td></tr>
+    <tr><td><b>CCB — Change Control Board</b></td><td>Reviews changes for security impact before deployment.</td></tr>
+    <tr><td><b>Risk Executive</b></td><td>Owns risk decisions across the organization, above any single AO.</td></tr>
+  </table>
+
+  <h2>The DoD overlay</h2>
+  <table>
+    <tr><th>Item</th><th>What it is</th></tr>
+    <tr><td>DoDI 8510.01</td><td>Adopts the NIST RMF for DoD IT. <a href="https://cyber.mil/rmf/">DoD Cyber Exchange</a> distributes it.</td></tr>
+    <tr><td>eMASS</td><td>DoD's workflow system of record for authorization packages.</td></tr>
+    <tr><td>CNSSI 1253</td><td>Categorization and baseline enhancements for national security systems.</td></tr>
+    <tr><td>STIGs</td><td>DISA's per-technology implementation guides. Concrete settings that satisfy controls. <a href="https://cyber.mil/stigs/">cyber.mil/stigs</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a></td></tr>
+    <tr><td>Reciprocity</td><td>One authorization accepted across organizations. Reduces duplicate assessment.</td></tr>
+  </table>
+
+  <h2>Where the DevSecOps engineer plugs in</h2>
+  <table>
+    <tr><th>Step</th><th>Engineering hook</th></tr>
+    <tr><td>Prepare</td><td>Know boundary, data types, approved tools. Put compliance targets in the backlog.</td></tr>
+    <tr><td>Categorize</td><td>Know the category — it sets the rigor of everything downstream.</td></tr>
+    <tr><td>Select</td><td>Map control families (AC, AU, CM, SI) to pipeline capabilities early.</td></tr>
+    <tr><td>Implement</td><td>Most of the work: STIG hardening, secrets in Vault, image scanning.</td></tr>
+    <tr><td>Assess</td><td>Automate evidence: SCAP scans, audit logs, pipeline artifacts.</td></tr>
+    <tr><td>Authorize</td><td>Honest POA&amp;M entries and clean evidence packages feed the AO decision.</td></tr>
+    <tr><td>Monitor</td><td>Drift detection, scheduled re-scans, patch pipelines → continuous compliance.</td></tr>
+  </table>
+
+  <h2>Interview one-liners</h2>
+  <div class="oneliner">RMF is a life-cycle process: prepare, categorize by impact, select a control baseline, implement, assess independently, authorize by risk decision, monitor continuously.</div>
+  <div class="oneliner">An ATO is not a safety certificate. It is a senior official's decision to accept residual risk.</div>
+  <div class="oneliner">In DoD, DISA STIGs make the 800-53 controls concrete, eMASS holds the authorization package, and my job as a DevSecOps engineer is to automate the evidence.</div>
+
+  <p class="note"><a href="../lessons/0001-rmf-seven-steps.html">← Lesson 0001</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a> · <a href="../RESOURCES.md">Resources</a></p>
+</main>
+</body>
+</html>
