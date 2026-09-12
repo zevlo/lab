@@ -42,3 +42,4 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 
 ## Session log
 - 2026-09-11: Workspace created. Mission locked. Lessons 0001 (RMF) and 0002 (STIGs) delivered.
+- 2026-09-11: User completed lesson 0001 (self-reported, quiz scores pending). Next: lesson 0002, then the Rocky hardening lab.
