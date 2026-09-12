@@ -1,5 +1,7 @@
 # Lesson 0001 (RMF seven steps) complete — self-reported
 
+Status: superseded by LR-0003 (quiz 4/4 reported 2026-09-11).
+
 User completed Lesson 0001 on 2026-09-11 (self-reported). The step-ordering drill and quiz were attempted; scores were not reported.
 
 **Evidence**: completion only. Retention not yet demonstrated.
