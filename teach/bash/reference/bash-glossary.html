@@ -48,7 +48,9 @@
   <a href="../lessons/0001-your-first-script.html">Lesson 0001</a> ·
   <a href="../lessons/0002-variables-and-quoting.html">Lesson 0002</a> ·
   <a href="../lessons/0003-scripts-that-take-orders.html">Lesson 0003</a> ·
-  <a href="first-script-cheatsheet.html">First-script cheatsheet</a></p>
+  <a href="../lessons/0004-look-before-you-leap.html">Lesson 0004</a> ·
+  <a href="first-script-cheatsheet.html">First-script cheatsheet</a> ·
+  <a href="test-operators.html">Test operators</a></p>
 
   <h2>Foundations</h2>
   <dl>
@@ -163,6 +165,53 @@
     error messages belong on stderr.</dd>
   </dl>
 
+  <h2>Decisions and tests</h2>
+  <dl>
+    <dt id="if">if · then · elif · else · fi <span class="cat">keywords</span></dt>
+    <dd>The decision shape. <code>if</code> runs one command and reads its
+    <a href="#exitstatus">exit status</a>: success runs the <code>then</code>
+    block; failure runs <code>elif</code> tests or the <code>else</code> block;
+    <code>fi</code> ends it.</dd>
+
+    <dt id="test">test command · <code>[ … ]</code> <span class="cat">command</span></dt>
+    <dd>A real command whose job is checking one thing — file exists, string
+    empty, number big enough — and reporting by exit status. Needs spaces
+    around the brackets, and a closing <code>]</code>.</dd>
+
+    <dt id="doublebracket"><code>[[ … ]]</code> <span class="cat">bash keyword</span></dt>
+    <dd>Bash's upgraded test. Variables inside cannot be
+    <a href="#wordsplitting">word-split</a>, and <code>&amp;&amp;</code>,
+    <code>||</code>, pattern matching work. Prefer it in bash scripts; keep
+    <code>[ … ]</code> for POSIX scripts.
+    <span class="ex">[[ -d /var/log ]] &amp;&amp; echo yes</span></dd>
+
+    <dt id="filetests">file tests <span class="cat">operators</span> · <code>-e -f -d -r -w</code></dt>
+    <dd>True-or-false questions about a path: <code>-e</code> exists,
+    <code>-f</code> regular file, <code>-d</code> directory,
+    <code>-r</code>/<code>-w</code> readable/writable. Full list in the
+    <a href="test-operators.html">test-operators sheet</a>.</dd>
+
+    <dt id="stringtests">string tests <span class="cat">operators</span> · <code>-z -n = !=</code></dt>
+    <dd>Questions about text: <code>-z</code> is empty, <code>-n</code> is not
+    empty, <code>=</code>/<code>!=</code> compare two strings.</dd>
+
+    <dt id="numbertests">number tests <span class="cat">operators</span> · <code>-eq -ne -lt -le -gt -ge</code></dt>
+    <dd>Compare whole numbers: equal, not equal, less than, less-or-equal,
+    greater than, greater-or-equal.
+    <span class="ex">[[ "$count" -lt 10 ]]</span></dd>
+
+    <dt id="negation">negation <span class="cat">operator</span> · <code>!</code></dt>
+    <dd>Flips a test's answer. <code>[[ ! -e "$x" ]]</code> is true when the
+    path is <em>missing</em> — the shape of every "look before you leap"
+    guard.</dd>
+
+    <dt id="guard">guard <span class="cat">pattern</span></dt>
+    <dd>A check at the top of a script that refuses to continue when
+    something is wrong: message to <a href="#stderr">stderr</a>, then
+    <a href="#exit">exit 1</a>, before the body runs. The habit that makes a
+    script safe to run unattended.</dd>
+  </dl>
+
   <h2>Running things</h2>
   <dl>
     <dt id="path">PATH <span class="cat">noun</span></dt>
@@ -181,7 +230,7 @@
   </dl>
 
   <footer>
-    Grows with each lesson · Last updated: lesson 0003 ·
+    Grows with each lesson · Last updated: lesson 0004 ·
     Ask your teacher (the agent) about any term that is unclear.
   </footer>
 </main>

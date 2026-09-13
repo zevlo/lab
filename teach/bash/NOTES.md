@@ -19,3 +19,9 @@ All teaching materials follow ISO 24495-1 (plain language) principles:
 - Quiz answers: equal word counts across options. No format clues.
 - Grow `reference/bash-glossary.html` each lesson; reuse its terms verbatim.
 - Space and interleave: revisit earlier material in later quizzes.
+
+## Curriculum (rolling plan)
+- 0004 decisions/tests — `[[ ]]`, file/string tests, guards vs if/else. Built 2026-09-13; added `reference/test-operators.html` + glossary "Decisions and tests" section (incl. `guard`, missing since 0003).
+- 0005 loops — `for`, processing many args/files; finally `"$@"` (glossary has promised it since 0003). Reuse guard pattern inside loops.
+- 0006 command substitution `$(...)` + checking command exit status (`if cmd; then`), pipelines.
+- Then: functions, `set -euo pipefail`, or a ShellCheck-driven debugging lesson — pick by what the user's own scripts need.

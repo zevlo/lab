@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 · Look Before You Leap — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6; --ok:#2e6b4f; --okbg:#eef4ee; --badbg:#f7ecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:19px/1.65 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.8rem 1.25rem 4.5rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2.1rem;line-height:1.15;margin:0 0 .35rem}
+  .meta{color:var(--soft);font-size:.9rem;margin:0 0 2.2rem}
+  h2{font-size:1.28rem;margin:2.6rem 0 .8rem;padding-bottom:.3rem;
+     border-bottom:1px solid var(--line)}
+  p{margin:.8rem 0}
+  .lead{font-size:1.06rem}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8em;
+       background:var(--codebg);padding:.08em .32em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:1rem 1.2rem;overflow-x:auto;font-size:.83rem;line-height:1.6;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:1rem 0}
+  pre .c{color:#8a8272}
+  pre .out{color:#5c554a}
+  pre .bad{color:#8a1f1f}
+  pre .good{color:#2e6b4f}
+  .callout{border-left:3px solid var(--accent);background:#faf5ec;
+           padding:.9rem 1.15rem;margin:1.4rem 0;border-radius:0 6px 6px 0}
+  .callout p{margin:.35rem 0}
+  ol.steps{padding-left:1.5rem;margin:.9rem 0}
+  ol.steps li{margin:.75rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:1rem 0}
+  th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .cite{color:var(--soft);font-size:.85rem}
+
+  .q{margin:1.5rem 0;padding:1.1rem 1.2rem;border:1px solid var(--line);
+     border-radius:8px;background:#fffefb}
+  .qt{font-weight:700;margin:0 0 .7rem}
+  .opts{display:flex;flex-direction:column;gap:.45rem}
+  .opts button{font:inherit;font-size:.95rem;text-align:left;padding:.55rem .8rem;
+     border:1px solid var(--line);border-radius:6px;background:var(--paper);
+     cursor:pointer;line-height:1.4}
+  .opts button:hover:not(:disabled){border-color:var(--accent)}
+  .opts button.good{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  .opts button.bad{background:var(--badbg);border-color:var(--accent);color:var(--accent);opacity:1}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .fb{margin:.7rem 0 0;font-size:.9rem;color:var(--soft);display:none}
+  .fb.good{display:block;color:var(--ok)}
+  .fb.bad{display:block;color:var(--accent)}
+  #score{font-weight:700;margin-top:1.2rem;display:none}
+
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.88rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    .opts button{border:none;background:none;padding:.15rem 0}
+    .opts button:before{content:"□ "}
+    footer,#score{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Lesson 0004</div>
+  <h1>Look Before You Leap</h1>
+  <p class="meta">≈ 14 minutes · one win: a missing path gets a clear error and
+  exit status 1 <em>before anything runs</em> ·
+  <a href="0003-scripts-that-take-orders.html">← lesson 0003</a> ·
+  <a href="../reference/bash-glossary.html">glossary</a> ·
+  <a href="../reference/test-operators.html">test operators</a></p>
+
+  <h2 style="margin-top:1.4rem">Why this matters</h2>
+  <p class="lead">Last lesson your script learned to count its
+  <a href="../reference/bash-glossary.html#argument">arguments</a>. But a count
+  is not the whole job. Run <code>./diskcheck.sh /nope</code> — it passes the
+  count check, then <code>df</code> discovers the problem and prints a
+  confusing error. Real ops tools flip this around: they check the world
+  <em>themselves</em>, before anything runs. Deploy scripts verify the artifact
+  exists. Cleanup scripts verify the path before <code>rm</code> touches it.
+  Today your script learns to look before it leaps.</p>
+
+  <h2>The one idea</h2>
+  <p><strong><code>if</code> runs one command and reads its
+  <a href="../reference/bash-glossary.html#exitstatus">exit status</a>.</strong>
+  Success — status <code>0</code> — runs the <code>then</code> block. Failure
+  runs the <code>else</code> block, or skips ahead
+  <sup class="cite"><a href="https://mywiki.wooledge.org/BashGuide/TestsAndConditionals" title="Greg's BashGuide — Tests and Conditionals">[1]</a></sup>.
+  And bash ships a command whose whole job is checking things: the
+  <a href="../reference/bash-glossary.html#test">test command</a>. You already
+  used it once — <code>[ $# -eq 0 ]</code> from your guard.</p>
+
+  <p>The full shape, with every optional part:</p>
+<pre><span class="c">if</span> [[ -d /var/log ]]; <span class="c">then</span>
+  echo "log directory is in place"
+<span class="c">elif</span> [[ -d /var/log.0 ]]; <span class="c">then</span>
+  echo "only rotated logs found"
+<span class="c">else</span>
+  echo "no log directory" &gt;&amp;2
+<span class="c">fi</span></pre>
+  <table>
+    <tr><th>Part</th><th>Job</th></tr>
+    <tr><td><code>if … ; then</code></td>
+      <td>Run the test. Status <code>0</code>? Run this block.</td></tr>
+    <tr><td><code>elif … ; then</code></td>
+      <td>Optional. Another test, tried only when the first failed.</td></tr>
+    <tr><td><code>else</code></td>
+      <td>Optional. Runs when every test failed.</td></tr>
+    <tr><td><code>fi</code></td>
+      <td>Ends the decision. <code>if</code> spelled backwards.</td></tr>
+  </table>
+
+  <h2>The test toolbox</h2>
+  <p>Between <code>[[ … ]]</code> you ask one true-or-false question. The
+  ones you will use most:</p>
+  <table>
+    <tr><th>Test</th><th>True when…</th></tr>
+    <tr><td><code>[[ -e "$path" ]]</code></td><td>the path exists — file, directory, anything</td></tr>
+    <tr><td><code>[[ -f "$path" ]]</code></td><td>it is a regular file</td></tr>
+    <tr><td><code>[[ -d "$path" ]]</code></td><td>it is a directory</td></tr>
+    <tr><td><code>[[ -r "$path" ]]</code></td><td>you can read it</td></tr>
+    <tr><td><code>[[ -z "$text" ]]</code></td><td>the string is empty (zero length)</td></tr>
+    <tr><td><code>[[ -n "$text" ]]</code></td><td>the string is not empty</td></tr>
+    <tr><td><code>[[ "$a" = "$b" ]]</code></td><td>the strings are identical</td></tr>
+    <tr><td><code>[[ "$n" -lt 10 ]]</code></td><td>the number is less than 10</td></tr>
+  </table>
+  <p>Put <code>!</code> in front to flip any answer:
+  <code>[[ ! -e "$target" ]]</code> is true when the path is <em>missing</em>.
+  The complete operator list lives in the
+  <a href="../reference/test-operators.html">test-operators reference</a>,
+  straight from the
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html">bash manual</a>
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html" title="GNU Bash Reference Manual — Bash Conditional Expressions">[2]</a></sup>.</p>
+
+  <div class="callout">
+    <p><strong>Which brackets?</strong> In bash scripts, prefer
+    <code>[[ … ]]</code>. Inside the double brackets, variables cannot be
+    <a href="../reference/bash-glossary.html#wordsplitting">word-split</a> —
+    the bug class from lesson 0002 cannot reach your test. Keep
+    <code>[ … ]</code> for scripts that must run in other POSIX shells. Both
+    appear in old scripts, so read both; write
+    <code>[[ … ]]</code> <sup class="cite"><a href="https://google.github.io/styleguide/shellguide.html#test-test-and" title="Google Shell Style Guide — Test, [ and [[">[3]</a></sup>.</p>
+  </div>
+
+  <h2>Make the script look first</h2>
+  <ol class="steps">
+    <li><strong>Add a second guard to <code>diskcheck.sh</code></strong> —
+    below the argument guard, above the body. It uses the flip: not exists →
+    complain and stop:
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># diskcheck.sh — check free space on a path you give</span>
+<span class="c">if [ $# -eq 0 ]; then</span>
+  echo "usage: $0 /path/to/check" &gt;&amp;2
+  exit 1
+<span class="c">fi</span>
+target="$1"
+<span class="c">if [[ ! -e "$target" ]]; then</span>
+  echo "error: no such path: $target" &gt;&amp;2
+  exit 1
+<span class="c">fi</span>
+echo "=== disk check: $target ==="
+df -h "$target"</pre></li>
+    <li><strong>Prove both branches.</strong> Run a real path and a fake one:
+<pre>./diskcheck.sh /
+<span class="out">=== disk check: / === …</span>
+./diskcheck.sh /nope
+<span class="out">error: no such path: /nope</span>
+echo $?
+<span class="out">1</span></pre>
+    <span class="out">Compare that with the old behaviour: <code class="bad">df: : No such file or directory</code>.
+    Same failure, but now the message names the cause, and the
+    <a href="../reference/bash-glossary.html#exitstatus">exit status</a> still
+    tells CI honestly: 1.</span></li>
+    <li><strong>Feel the tests — predict first.</strong> Before running, say
+    out loud which of these four lines will print. Then run them:
+<pre>[[ -d /etc ]] &amp;&amp; echo "one: directory"
+[[ -f /etc ]] &amp;&amp; echo "two: regular file"
+[[ -z "" ]] &amp;&amp; echo "three: empty"
+[[ ! -d /etc ]] &amp;&amp; echo "four: missing"</pre>
+    <span class="out">Each silent line is a test that answered false. Wrong
+    predictions are the useful ones — say why it fooled you.</span></li>
+  </ol>
+
+  <h2>Check yourself</h2>
+  <p>Answer from memory — including one review question from lesson 0003.</p>
+
+  <div class="q" data-correct="0">
+    <p class="qt">1 · What does <code>[[ -d /var/log ]]</code> check?</p>
+    <div class="opts">
+      <button>That /var/log is a directory</button>
+      <button>That /var/log is a file</button>
+      <button>That /var/log contains readable files</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">2 · When is <code>[[ -z "$target" ]]</code> true?</p>
+    <div class="opts">
+      <button>The stored value is completely empty</button>
+      <button>The stored value contains some text</button>
+      <button>The stored value holds only spaces</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">3 · Review, lesson 0003: why write <code>echo "error: …" &gt;&amp;2</code>?</p>
+    <div class="opts">
+      <button>Errors belong on the error channel</button>
+      <button>Echo writes nothing without the number</button>
+      <button>Two channels make the script faster</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">4 · Why do bash scripts prefer <code>[[ … ]]</code> over <code>[ … ]</code>?</p>
+    <div class="opts">
+      <button>It avoids word splitting surprises inside</button>
+      <button>It makes the script run faster</button>
+      <button>It makes the script POSIX compliant</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <p id="score"></p>
+
+  <h2>Practice on your own work</h2>
+  <ol class="steps">
+    <li><strong>Guard <code>peek.sh</code> too.</strong> Last lesson's
+    <code>peek.sh</code> tails a file — so it should demand a file. Add:
+    <code>[[ ! -f "$1" ]]</code> → usage message to stderr, <code>exit 1</code>.
+    Prove it with <code>./peek.sh /etc/hosts</code> and
+    <code>./peek.sh /nope</code>.</li>
+    <li><strong>Check a path you really use.</strong> Write
+    <code>canwrite.sh</code>: take one argument, then use
+    <code>[[ -d … ]]</code> and <code>[[ -w … ]]</code> to report whether that
+    directory exists <em>and</em> is writable — two guards, or one
+    <code>if/else</code>. Try it on a work directory you actually depend on.</li>
+    <li><strong>Run ShellCheck on both.</strong> Paste the two scripts into
+    <a href="https://www.shellcheck.net">shellcheck.net</a> — expect zero
+    warnings. This is the habit from your mission: scripts pass ShellCheck
+    clean before you trust them.</li>
+  </ol>
+
+  <h2>Go deeper (optional, 10 minutes)</h2>
+  <p><strong>Primary source:</strong>
+  <a href="https://mywiki.wooledge.org/BashGuide/TestsAndConditionals">Greg's BashGuide — Tests and Conditionals</a>
+  — the same guide you liked in lesson 0001, now covering everything from
+  today plus one teaser: <code>[[ $file == *.log ]]</code> — tests can match
+  patterns too. For the raw operator list, the manual's
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html">Bash Conditional Expressions</a>
+  page is the authoritative table.</p>
+
+  <h2>Next</h2>
+  <p><strong>Lesson 0005 — repetition:</strong> loops. One run, many
+  arguments and many files — and you finally meet
+  <code><a href="../reference/bash-glossary.html#dollarat">"$@"</a></code>,
+  which the glossary has been promising since lesson 0003. Your guards will
+  get reused inside the loop, word for word.</p>
+
+  <div class="callout">
+    <p><strong>Stuck on anything?</strong> Ask your teacher — me, the agent
+    you are chatting with. Paste any error, output, or quiz answer and we
+    will work through it.</p>
+  </div>
+
+  <footer>
+    Bash for DevOps · Lesson 0004 · Sources:
+    <a href="https://mywiki.wooledge.org/BashGuide/TestsAndConditionals">[1] Greg's BashGuide: Tests and Conditionals</a> ·
+    <a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html">[2] GNU Bash Reference Manual: Bash Conditional Expressions</a> ·
+    <a href="https://google.github.io/styleguide/shellguide.html#test-test-and">[3] Google Shell Style Guide: Test, [ and [[</a>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var solved=0, firstTry=0, total=document.querySelectorAll('.q').length;
+  document.querySelectorAll('.q').forEach(function(q){
+    var correct=+q.dataset.correct, tried=false, done=false;
+    var fb=q.querySelector('.fb');
+    var explain=[
+      "-d asks one question: is this path a directory? For a regular file the test is -f, and -e only asks whether it exists at all.",
+      "-z means zero length: true only for the empty string. -n is its mirror image — true when the string is not empty.",
+      "Lesson 0003 review: stderr is the error channel, written >&2. CI logs and pipelines separate it from normal output, so errors belong there.",
+      "[[ ]] is bash's hardened test — nothing inside can be word-split, so the lesson-0002 bug class cannot reach it. It is bash-only, so it is the opposite of POSIX-portable."
+    ];
+    q.querySelectorAll('.opts button').forEach(function(btn,i){
+      btn.addEventListener('click',function(){
+        if(done) return;
+        if(i===correct){
+          done=true; solved++; if(!tried) firstTry++;
+          btn.classList.add('good');
+          fb.textContent="Correct. "+explain[i];
+          fb.className="fb good";
+          q.querySelectorAll('.opts button').forEach(function(b){b.disabled=true;});
+          var s=document.getElementById('score');
+          s.style.display='block';
+          s.textContent="Solved "+solved+" of "+total+" · first-try "+firstTry;
+        } else {
+          tried=true;
+          btn.classList.add('bad');
+          btn.disabled=true;
+          fb.textContent="Not quite — try again.";
+          fb.className="fb bad";
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test Operators — Quick Reference</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:18px/1.6 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2rem;line-height:1.15;margin:0 0 .3rem}
+  .sub{color:var(--soft);margin:0 0 1.6rem;font-size:.95rem}
+  h2{font-size:1.1rem;margin:1.9rem 0 .7rem;padding-bottom:.25rem;
+     border-bottom:1px solid var(--line)}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.82em;
+       background:var(--codebg);padding:.08em .3em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:.9rem 1.1rem;overflow-x:auto;font-size:.82rem;line-height:1.55;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:.7rem 0}
+  pre .c{color:#8a8272}
+  table{border-collapse:collapse;width:100%;font-size:.92rem;margin:.7rem 0}
+  th,td{text-align:left;padding:.45rem .6rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+  td:first-child{white-space:nowrap}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .warn{border-left:3px solid var(--accent);background:#faf5ec;
+        padding:.7rem 1rem;margin:1rem 0;border-radius:0 6px 6px 0;font-size:.95rem}
+  footer{margin-top:2.5rem;padding-top:1rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.85rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    footer{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Reference</div>
+  <h1>Test Operators</h1>
+  <p class="sub">Every question <code>[[ … ]]</code> can ask, on one page.
+  Pairs with <a href="../lessons/0004-look-before-you-leap.html">Lesson 0004</a> ·
+  Terms in the <a href="bash-glossary.html">glossary</a> ·
+  Authoritative source: <a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html">GNU manual, Bash Conditional Expressions</a></p>
+
+  <h2>The if shape</h2>
+  <pre><span class="c">if</span> [[ condition ]]; <span class="c">then</span>
+  <span class="c"># success branch (exit status 0)</span>
+<span class="c">elif</span> [[ condition ]]; <span class="c">then</span>
+  <span class="c"># optional: tried when the first test failed</span>
+<span class="c">else</span>
+  <span class="c"># optional: runs when every test failed</span>
+<span class="c">fi</span></pre>
+
+  <h2>File tests</h2>
+  <table>
+    <tr><th>Test</th><th>True when…</th></tr>
+    <tr><td><code>-e path</code></td><td>the path exists (file, directory, link, anything)</td></tr>
+    <tr><td><code>-f path</code></td><td>it is a regular file</td></tr>
+    <tr><td><code>-d path</code></td><td>it is a directory</td></tr>
+    <tr><td><code>-h path</code></td><td>it is a symbolic link</td></tr>
+    <tr><td><code>-r path</code></td><td>you can read it</td></tr>
+    <tr><td><code>-w path</code></td><td>you can write it</td></tr>
+    <tr><td><code>-x path</code></td><td>you can execute it</td></tr>
+    <tr><td><code>-s path</code></td><td>it exists and is not empty (size &gt; 0)</td></tr>
+    <tr><td><code>f1 -nt f2</code></td><td>file 1 is newer than file 2</td></tr>
+    <tr><td><code>f1 -ot f2</code></td><td>file 1 is older than file 2</td></tr>
+  </table>
+
+  <h2>String tests</h2>
+  <table>
+    <tr><th>Test</th><th>True when…</th></tr>
+    <tr><td><code>-z str</code></td><td>the string is empty (zero length)</td></tr>
+    <tr><td><code>-n str</code></td><td>the string is not empty</td></tr>
+    <tr><td><code>a = b</code></td><td>the strings are identical</td></tr>
+    <tr><td><code>a != b</code></td><td>the strings differ</td></tr>
+    <tr><td><code>a == pat</code></td><td>a matches glob pattern pat (<code>[[ ]] only</code>)</td></tr>
+    <tr><td><code>a =~ re</code></td><td>a matches regex re (<code>[[ ]] only</code>)</td></tr>
+  </table>
+
+  <h2>Number tests</h2>
+  <table>
+    <tr><th>Test</th><th>True when…</th></tr>
+    <tr><td><code>n1 -eq n2</code></td><td>equal</td></tr>
+    <tr><td><code>n1 -ne n2</code></td><td>not equal</td></tr>
+    <tr><td><code>n1 -lt n2</code></td><td>less than</td></tr>
+    <tr><td><code>n1 -le n2</code></td><td>less than or equal</td></tr>
+    <tr><td><code>n1 -gt n2</code></td><td>greater than</td></tr>
+    <tr><td><code>n1 -ge n2</code></td><td>greater than or equal</td></tr>
+  </table>
+
+  <h2>Combine and flip</h2>
+  <table>
+    <tr><th>Form</th><th>Meaning</th></tr>
+    <tr><td><code>! cond</code></td><td>NOT — flips the answer</td></tr>
+    <tr><td><code>cond1 &amp;&amp; cond2</code></td><td>AND — both must hold (<code>[[ ]] only</code>)</td></tr>
+    <tr><td><code>cond1 || cond2</code></td><td>OR — either may hold (<code>[[ ]] only</code>)</td></tr>
+  </table>
+
+  <div class="warn"><strong><code>[[ ]]</code> vs <code>[ ]</code>.</strong>
+  In bash scripts, write <code>[[ … ]]</code>: no word splitting inside, and
+  <code>&amp;&amp;</code>/<code>||</code>/pattern matching work. Keep
+  <code>[ … ]</code> only for scripts that must run in other POSIX shells —
+  you will still read <code>[ … ]</code> in older scripts.</div>
+
+  <h2>The two guards, ready to copy</h2>
+  <pre><span class="c"># did the user give the argument?</span>
+if [[ $# -eq 0 ]]; then
+  echo "usage: $0 /path" &gt;&amp;2
+  exit 1
+fi
+
+# does the thing exist before we act on it?
+if [[ ! -e "$1" ]]; then
+  echo "error: no such path: $1" &gt;&amp;2
+  exit 1
+fi</pre>
+
+  <footer>
+    Bash for DevOps · reference sheet · pairs with
+    <a href="../lessons/0004-look-before-you-leap.html">Lesson 0004</a> ·
+    Full behaviour: <a href="https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html">GNU Bash Reference Manual</a>
+  </footer>
+</main>
+</body>
+</html>
