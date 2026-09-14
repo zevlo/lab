@@ -121,18 +121,18 @@
   </table>
 
   <h2>The scanner: OpenSCAP on Rocky</h2>
-  <p>Rocky Linux ships the SCAP Security Guide — the machine-readable STIG content maintained by the <a href="https://complianceascode.github.io/">ComplianceAsCode project</a>. The <code>oscap</code> tool evaluates it. The <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat security hardening guide</a> documents the same commands for RHEL.</p>
+  <p>Rocky Linux ships the SCAP Security Guide — the machine-readable STIG content maintained by the <a href="https://complianceascode.github.io/">ComplianceAsCode project</a>. The <code>oscap</code> tool evaluates it. One naming wrinkle: Rocky calls its data stream <code>ssg-rl9-ds.xml</code> — <i>rl</i> for Rocky Linux — while RHEL ships <code>ssg-rhel9-ds.xml</code>. When in doubt, <code>ls</code> the directory; an oscap run against a guessed filename fails with <code>Unable to open file</code>. The <a href="https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/9/html/security_hardening/index">Red Hat security hardening guide</a> documents the same commands for RHEL.</p>
 <pre><b># install scanner and content</b>
 dnf install -y openscap-scanner scap-security-guide
 
 <b># list available profiles in the content</b>
-oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml
+oscap info /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml
 
 <b># scan against the DISA STIG profile</b>
 oscap xccdf eval \
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results results.xml --report report.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml</pre>
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml</pre>
   <p>Open <code>report.html</code>. Every rule shows pass or fail. The same content can generate Ansible remediations — that is <a href="0001-rmf-seven-steps.html">your Terraform instinct</a> speaking: infrastructure declared, not clicked.</p>
 
   <h2>Practice 1 — Read a rule</h2>

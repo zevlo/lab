@@ -100,17 +100,18 @@
 sudo dnf install -y openscap-scanner scap-security-guide</pre></li>
 
     <li><label><input type="checkbox" data-k="s3"><span><b>3 — Find the data stream.</b> Do not trust any document for the filename. Look.</span></label>
-<pre>ls /usr/share/xml/scap/ssg/content/</pre></li>
+<pre>ls /usr/share/xml/scap/ssg/content/</pre>
+<p><span class="bridge"><b>Trap, learned in the field.</b> Rocky's data stream is <code>ssg-rl9-ds.xml</code> — <i>rl</i> for Rocky Linux — not <code>ssg-rocky9-ds.xml</code>. Guess the wrong name and oscap answers <code>Unable to open file</code>. Read the directory before you type the path.</span></p></li>
 
     <li><label><input type="checkbox" data-k="s4"><span><b>4 — Find the STIG profile.</b> Confirm the exact profile ID inside the data stream.</span></label>
-<pre>oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | grep -i stig</pre></li>
+<pre>oscap info /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml | grep -i stig</pre></li>
 
     <li><label><input type="checkbox" data-k="s5"><span><b>5 — Baseline scan.</b> The profile comes from step 4. The last lines print your pass and fail counts.</span></label>
 <pre>sudo oscap xccdf eval \
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results /tmp/results-before.xml \
   --report /tmp/report-before.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4</pre></li>
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml | tail -4</pre></li>
 
     <li><label><input type="checkbox" data-k="s6"><span><b>6 — Read the report.</b> Copy it to your Mac and open it.</span></label>
 <pre><b># on the Mac</b>
@@ -138,7 +139,7 @@ sudo sshd -t && sudo systemctl reload sshd</pre>
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results /tmp/results-after.xml \
   --report /tmp/report-after.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4</pre>
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml | tail -4</pre>
 <p>Compare with your baseline numbers. Fewer findings — that delta is your work, measured.</p></li>
 
     <li><label><input type="checkbox" data-k="s11"><span><b>11 — Stretch: automatic remediation, safely.</b> Take a Proxmox snapshot of the VM first. Then run the eval again with <code>--remediate</code> added. Watch what it changes. If the VM still boots and the count dropped further, keep it; otherwise roll back to the snapshot. Automatic fixes are powerful and blunt. Professionals snapshot before they swing.</span></label></li>
@@ -148,6 +149,7 @@ sudo sshd -t && sudo systemctl reload sshd</pre>
   <div class="report">
     <p>Bring these to your teacher at the next session:</p>
     <p>Baseline: failed ___ of ___ · High ___ · After: failed ___ of ___ · High ___ · Remediate kept? yes / no / rolled back</p>
+    <p><b>Field report — first full run, Sep 2026.</b> Baseline: failed 257 of 434 · High 11. After manual fixes (banner): failed 256 · High 11. After <code>--remediate</code> + reboot: failed 20 · High 4 — kept. 236 findings closed by one command, zero rollbacks. The survivors are the lesson: grub2 password pair (needs interactive input), FIPS (needs a conscious decision), vendor-support on Rocky (permanent, documented exception), five partition rules (build-time fixes, not in-place).</p>
   </div>
 
   <h2>Say it in an interview</h2>

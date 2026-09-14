@@ -66,20 +66,20 @@
 dnf install -y openscap-scanner scap-security-guide
 
 <b># list profiles</b>
-oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml
+oscap info /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml
 
 <b># scan (DISA STIG profile)</b>
 oscap xccdf eval \
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results results.xml --report report.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml
 
 <b># scan and auto-remediate (test first!)</b>
 oscap xccdf eval --remediate \
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results results.xml --report report.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml</pre>
-  <p class="note">Content paths: <code>/usr/share/xml/scap/ssg/content/</code>. On RHEL the file is <code>ssg-rhel9-ds.xml</code>. ComplianceAsCode also publishes Ansible playbooks per profile.</p>
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml</pre>
+  <p class="note">Content paths: <code>/usr/share/xml/scap/ssg/content/</code>. On RHEL the file is <code>ssg-rhel9-ds.xml</code>; on Rocky it is <code>ssg-rl9-ds.xml</code> (rl = Rocky Linux — there is no <code>ssg-rocky9-ds.xml</code>). ComplianceAsCode also publishes Ansible playbooks per profile.</p>
 
   <h2>STIG ↔ RMF touchpoints</h2>
   <table>

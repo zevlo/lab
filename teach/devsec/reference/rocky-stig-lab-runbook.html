@@ -32,14 +32,15 @@
   <h2>Setup</h2>
 <pre>sudo dnf install -y openscap-scanner scap-security-guide
 ls /usr/share/xml/scap/ssg/content/
-oscap info /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | grep -i stig</pre>
+<b># data stream is ssg-rl9-ds.xml (rl = Rocky Linux) — there is no ssg-rocky9-ds.xml</b>
+oscap info /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml | grep -i stig</pre>
 
   <h2>Scan (baseline or after)</h2>
 <pre>sudo oscap xccdf eval \
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results /tmp/results-<i>before|after</i>.xml \
   --report /tmp/report-<i>before|after</i>.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml | tail -4
 
 <b># fetch the report from the Mac</b>
 scp <i>user</i>@<i>vm-ip</i>:/tmp/report-<i>before</i>.html . && open report-<i>before</i>.html</pre>
@@ -67,7 +68,7 @@ sudo oscap xccdf eval --remediate \
   --profile xccdf_org.ssgproject.content_profile_stig \
   --results /tmp/results-rem.xml \
   --report /tmp/report-rem.html \
-  /usr/share/xml/scap/ssg/content/ssg-rocky9-ds.xml | tail -4</pre>
+  /usr/share/xml/scap/ssg/content/ssg-rl9-ds.xml | tail -4</pre>
 
   <h2>Numbers to record</h2>
   <pre>Baseline: failed __ / __ total · High __
