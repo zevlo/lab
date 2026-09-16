@@ -22,6 +22,6 @@ All teaching materials follow ISO 24495-1 (plain language) principles:
 
 ## Curriculum (rolling plan)
 - 0004 decisions/tests — `[[ ]]`, file/string tests, guards vs if/else. Built 2026-09-13; added `reference/test-operators.html` + glossary "Decisions and tests" section (incl. `guard`, missing since 0003).
-- 0005 loops — `for`, processing many args/files; finally `"$@"` (glossary has promised it since 0003). Reuse guard pattern inside loops.
+- 0005 loops — Built 2026-09-16; `for`/`do`/`done`, `"$@"` finally delivered, globs vs `$(ls)`, `continue`/`break`. Glossary gained "Loops" section (loop, for, continue, break, glob, while/until teaser); `dollarat` entry promoted from teaser to full definition. Quiz Q3 interleaves lesson-0002 word splitting. Planted seed for later: loop-with-skips still exits 0 — future `set -e` / failure-tracking motivation.
 - 0006 command substitution `$(...)` + checking command exit status (`if cmd; then`), pipelines.
 - Then: functions, `set -euo pipefail`, or a ShellCheck-driven debugging lesson — pick by what the user's own scripts need.

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0005 · One Run, Many Targets — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6; --ok:#2e6b4f; --okbg:#eef4ee; --badbg:#f7ecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:19px/1.65 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.8rem 1.25rem 4.5rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2.1rem;line-height:1.15;margin:0 0 .35rem}
+  .meta{color:var(--soft);font-size:.9rem;margin:0 0 2.2rem}
+  h2{font-size:1.28rem;margin:2.6rem 0 .8rem;padding-bottom:.3rem;
+     border-bottom:1px solid var(--line)}
+  p{margin:.8rem 0}
+  .lead{font-size:1.06rem}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8em;
+       background:var(--codebg);padding:.08em .32em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:1rem 1.2rem;overflow-x:auto;font-size:.83rem;line-height:1.6;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:1rem 0}
+  pre .c{color:#8a8272}
+  pre .out{color:#5c554a}
+  pre .bad{color:#8a1f1f}
+  pre .good{color:#2e6b4f}
+  .callout{border-left:3px solid var(--accent);background:#faf5ec;
+           padding:.9rem 1.15rem;margin:1.4rem 0;border-radius:0 6px 6px 0}
+  .callout p{margin:.35rem 0}
+  ol.steps{padding-left:1.5rem;margin:.9rem 0}
+  ol.steps li{margin:.75rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:1rem 0}
+  th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .cite{color:var(--soft);font-size:.85rem}
+
+  .q{margin:1.5rem 0;padding:1.1rem 1.2rem;border:1px solid var(--line);
+     border-radius:8px;background:#fffefb}
+  .qt{font-weight:700;margin:0 0 .7rem}
+  .opts{display:flex;flex-direction:column;gap:.45rem}
+  .opts button{font:inherit;font-size:.95rem;text-align:left;padding:.55rem .8rem;
+     border:1px solid var(--line);border-radius:6px;background:var(--paper);
+     cursor:pointer;line-height:1.4}
+  .opts button:hover:not(:disabled){border-color:var(--accent)}
+  .opts button.good{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  .opts button.bad{background:var(--badbg);border-color:var(--accent);color:var(--accent);opacity:1}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .fb{margin:.7rem 0 0;font-size:.9rem;color:var(--soft);display:none}
+  .fb.good{display:block;color:var(--ok)}
+  .fb.bad{display:block;color:var(--accent)}
+  #score{font-weight:700;margin-top:1.2rem;display:none}
+
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.88rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    .opts button{border:none;background:none;padding:.15rem 0}
+    .opts button:before{content:"□ "}
+    footer,#score{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Lesson 0005</div>
+  <h1>One Run, Many Targets</h1>
+  <p class="meta">≈ 15 minutes · one win: one run of <code>diskcheck.sh</code>
+  checks every path you give it — and survives the bad ones ·
+  <a href="0004-look-before-you-leap.html">← lesson 0004</a> ·
+  <a href="../reference/bash-glossary.html">glossary</a></p>
+
+  <h2 style="margin-top:1.4rem">Why this matters</h2>
+  <p class="lead">Your <code>diskcheck.sh</code> checks one path per run. Real
+  days are not like that: five mounts to check, three services to restart, ten
+  log directories to clean. Copy-pasting the body five times is how scripts
+  rot — fix one copy, forget the other four. Today the script learns to
+  <a href="../reference/bash-glossary.html#loop">loop</a>: write the body once,
+  point it at a list. And you finally meet
+  <code><a href="../reference/bash-glossary.html#dollarat">"$@"</a></code>,
+  promised since lesson 0003.</p>
+
+  <h2>The one idea</h2>
+  <p><strong><code>for</code> runs the body once per word in a list.</strong>
+  Bash splits the words after <code>in</code>, sets the loop variable to one
+  word at a time, and runs everything between <code>do</code> and
+  <code>done</code> for it
+  <sup class="cite"><a href="https://mywiki.wooledge.org/BashGuide/TestsAndConditionals#Conditional_Loops_.28while.2C_until_and_for.29" title="Greg's BashGuide — Conditional Loops">[1]</a></sup>.
+  <code>do</code> and <code>done</code> play the roles <code>then</code> and
+  <code>fi</code> played in your <code>if</code>:</p>
+<pre><span class="c">for</span> svc <span class="c">in</span> nginx docker ssh; <span class="c">do</span>
+  echo "checking $svc"
+<span class="c">done</span></pre>
+  <table>
+    <tr><th>Part</th><th>Job</th></tr>
+    <tr><td><code>for name in words; do</code></td>
+      <td>Split <code>words</code> into a list. Start with the first word in
+      <code>name</code>.</td></tr>
+    <tr><td><em>the body</em></td>
+      <td>Any commands. They run once per word.</td></tr>
+    <tr><td><code>done</code></td>
+      <td>Ends the body. Move to the next word — or continue past the loop
+      when the list runs out.</td></tr>
+  </table>
+  <p>Quoting rules do not change: <code>"$svc"</code> in the body stays one
+  word. The lesson-0002 rules travel with you.</p>
+
+  <h2>Where the words come from</h2>
+  <p>Three sources cover almost every real loop you will write:</p>
+  <table>
+    <tr><th>List</th><th>What bash loops over</th></tr>
+    <tr><td><code>for svc in nginx docker ssh</code></td>
+      <td>Literals you type. Fine for a fixed, short list.</td></tr>
+    <tr><td><code>for target in "$@"</code></td>
+      <td>Every
+      <a href="../reference/bash-glossary.html#argument">argument</a> the user
+      gave — each one whole, spaces safe. The quotes are the whole trick:
+      they stop
+      <a href="../reference/bash-glossary.html#wordsplitting">word splitting</a>.</td></tr>
+    <tr><td><code>for file in *.log</code></td>
+      <td>Every filename matching the
+      <a href="../reference/bash-glossary.html#glob">glob</a> — each one whole.
+      Bash expands the pattern <em>before</em> the loop starts, so filenames
+      with spaces survive.</td></tr>
+  </table>
+  <p class="cite">A bare <code>for target</code> with no <code>in</code> list
+  means the same as <code>in "$@"</code> — the bash manual says so in those
+  words <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Looping-Constructs.html" title="GNU Bash Reference Manual — Looping Constructs">[2]</a></sup>.
+  Write the explicit form anyway; it reads better.</p>
+
+  <h2>Upgrade diskcheck.sh</h2>
+  <ol class="steps">
+    <li><strong>Replace the single-target body with a loop.</strong> The
+    argument guard stays. The existence guard from lesson 0004 moves
+    <em>inside</em> the loop — but its <code>exit 1</code> becomes
+    <code>continue</code>: one bad path should warn and be skipped, not kill
+    the whole run:
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># diskcheck.sh — check free space on every path you give</span>
+<span class="c">if [ $# -eq 0 ]; then</span>
+  echo "usage: $0 /path/to/check [more paths ...]" &gt;&amp;2
+  exit 1
+<span class="c">fi</span>
+<span class="c">for target in "$@"; do</span>
+  <span class="c">if [[ ! -e "$target" ]]; then</span>
+    echo "error: no such path: $target" &gt;&amp;2
+    <span class="good">continue</span>
+  <span class="c">fi</span>
+  echo "=== disk check: $target ==="
+  df -h "$target"
+<span class="c">done</span></pre>
+    <span class="out"><code>continue</code> drops the current item and jumps
+    to the next one — the per-item version of a
+    <a href="../reference/bash-glossary.html#guard">guard</a>'s
+    <code>exit 1</code>. Its sibling <code>break</code> leaves the loop
+    entirely but keeps the script running.</span></li>
+    <li><strong>Predict, then run.</strong> Before each command, say what you
+    will see and in what order:
+<pre>./diskcheck.sh / /tmp /nope
+<span class="out">=== disk check: / === …
+=== disk check: /tmp === …
+error: no such path: /nope</span>
+./diskcheck.sh /nope /tmp
+<span class="out">error: no such path: /nope
+=== disk check: /tmp === …</span></pre>
+    <span class="out">The loop keeps going after an error — that is
+    <code>continue</code> doing its job.</span></li>
+    <li><strong>Break it on purpose.</strong> Remove the quotes around
+    <code>$@</code> in the <code>for</code> line, then:
+<pre>mkdir "/tmp/odd dir"
+./diskcheck.sh "/tmp/odd dir"
+<span class="bad">error: no such path: /tmp/odd
+error: no such path: dir</span></pre>
+    <span class="out">Unquoted <code>$@</code> got word-split: one argument
+    became two. Put the quotes back. Your mission demands scripts that
+    survive spaces — this is exactly what that means.</span></li>
+  </ol>
+  <div class="callout">
+    <p><strong>Honesty note.</strong> The upgraded script still exits
+    <code>0</code> even when a path was skipped — the last
+    <code>df</code> decided the
+    <a href="../reference/bash-glossary.html#exitstatus">exit status</a>.
+    For now, the error message tells the human. Making CI fail properly is a
+    later lesson.</p>
+  </div>
+
+  <h2>Files: loop over globs, never over ls</h2>
+  <p>You will meet this loop in old scripts. It is a famous bug:</p>
+<pre><span class="bad">for file in $(ls *.log)</span>   <span class="c"># wrong</span>
+<span class="good">for file in *.log</span>          <span class="c"># right</span></pre>
+  <p><code>$(ls *.log)</code> pastes <code>ls</code>'s output into the list as
+  one text blob, and bash word-splits it. A file called
+  <code>server one.log</code> arrives as two broken words. The glob form never
+  splits: bash itself matched the real filenames, and hands them to the loop
+  one whole word each
+  <sup class="cite"><a href="https://mywiki.wooledge.org/BashPitfalls" title="Greg's Wiki — BashPitfalls, pitfall #1">[3]</a></sup>.
+  ShellCheck flags the <code>ls</code> version as SC2045 — one more reason to
+  keep it in your workflow.</p>
+  <p>One edge to know: when nothing matches, bash hands the loop the literal
+  text <code>*.log</code>. If that matters, reuse your guard habit:</p>
+<pre><span class="c">for file in *.log; do</span>
+  [[ -e "$file" ]] || continue   <span class="c"># no matches — skip</span>
+  <span class="c">:</span>                            <span class="c"># your commands here</span>
+<span class="c">done</span></pre>
+
+  <h2>Check yourself</h2>
+  <p>Answer from memory — including one review question from lesson 0002.</p>
+
+  <div class="q" data-correct="1">
+    <p class="qt">1 · <code>for svc in nginx docker ssh; do … done</code> — how often does the body run?</p>
+    <div class="opts">
+      <button>Once, with words joined together</button>
+      <button>Three times, once each word</button>
+      <button>It runs once per character</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">2 · <code>./diskcheck.sh / /tmp "My Files"</code> with <code>for target in "$@"</code>?</p>
+    <div class="opts">
+      <button>Three times, spaces stay inside</button>
+      <button>Four times, words split apart</button>
+      <button>Once, quotes glue all arguments</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="2">
+    <p class="qt">3 · Review, lesson 0002: why is <code>for f in $(ls *.log)</code> dangerous?</p>
+    <div class="opts">
+      <button>The ls command is slow</button>
+      <button>Its output hides some files</button>
+      <button>Filenames with spaces get split</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="1">
+    <p class="qt">4 · One path fails its guard inside the loop. What does <code>continue</code> do?</p>
+    <div class="opts">
+      <button>Ends the whole script immediately</button>
+      <button>Skips to the next item</button>
+      <button>Leaves the loop, script continues</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <p id="score"></p>
+
+  <h2>Practice on your own work</h2>
+  <ol class="steps">
+    <li><strong>Upgrade <code>peek.sh</code> the same way.</strong> Loop over
+    <code>"$@"</code>, keep the <code>-f</code> guard per file, and
+    <code>continue</code> past missing ones. Prove it:
+    <code>./peek.sh /etc/hosts /nope</code> — the good file is tailed, the
+    missing one warned about. (<code>tail</code> even labels each file
+    itself.)</li>
+    <li><strong>Feel the glob safety.</strong> Then:
+<pre>mkdir -p ~/loopdemo &amp;&amp; cd ~/loopdemo
+touch "app one.log" "app two.log" readme.txt
+for f in *.log; do ls -l "$f"; done
+for f in *.log; do ls -l $f; done</pre>
+    The first loop lists two files. Say why the second one errors before you
+    run it. Then delete the directory and go wash your hands of unquoted
+    variables.</li>
+    <li><strong>Run ShellCheck</strong> on <code>diskcheck.sh</code> and
+    <code>peek.sh</code>. Expect zero warnings — and notice it would have
+    caught the <code>$(ls …)</code> habit as SC2045.</li>
+  </ol>
+
+  <h2>Go deeper (optional, 10 minutes)</h2>
+  <p><strong>Primary source:</strong>
+  <a href="https://mywiki.wooledge.org/BashGuide/TestsAndConditionals#Conditional_Loops_.28while.2C_until_and_for.29">Greg's BashGuide — Conditional Loops</a>
+  — the same guide you have trusted since lesson 0001, now on loops. Read the
+  mp3-file story: the guide turns today's <code>ls</code> pitfall into a
+  three-act play. It also previews <code>while</code> loops and
+  <code>{10..1}</code> brace expansion. For the authoritative shapes, the
+  manual's
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Looping-Constructs.html">Looping Constructs</a>
+  page has them all.</p>
+
+  <h2>Next</h2>
+  <p><strong>Lesson 0006 — commands that talk back:</strong> command
+  substitution <code>$(...)</code> — capture a command's output into a
+  variable — and <code>if grep -q …; then</code>: let any command, not just
+  tests, drive your decisions. Your loops just <em>ran</em> commands; next you
+  will <em>listen</em> to them.</p>
+
+  <div class="callout">
+    <p><strong>Stuck on anything?</strong> Ask your teacher — me, the agent
+    you are chatting with. Paste any error, output, or quiz answer and we
+    will work through it.</p>
+  </div>
+
+  <footer>
+    Bash for DevOps · Lesson 0005 · Sources:
+    <a href="https://mywiki.wooledge.org/BashGuide/TestsAndConditionals#Conditional_Loops_.28while.2C_until_and_for.29">[1] Greg's BashGuide: Conditional Loops</a> ·
+    <a href="https://www.gnu.org/software/bash/manual/html_node/Looping-Constructs.html">[2] GNU Bash Reference Manual: Looping Constructs</a> ·
+    <a href="https://mywiki.wooledge.org/BashPitfalls">[3] Greg's Wiki: BashPitfalls (pitfall #1)</a>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var solved=0, firstTry=0, total=document.querySelectorAll('.q').length;
+  var explains=[
+    "for runs the body once per word: nginx, then docker, then ssh — three runs, three passes through do…done.",
+    "\"$@\" keeps every argument whole: /, /tmp, and My Files are three items. The space inside My Files survives — that is the quotes working.",
+    "Lesson 0002 review: unquoted command output gets word-split, so server one.log arrives as two broken words. Loop over the glob *.log instead — bash hands the loop real, whole filenames.",
+    "continue drops only the current item and moves to the next pass. exit 1 would end the whole script; break would leave the loop but keep the script running."
+  ];
+  document.querySelectorAll('.q').forEach(function(q,qi){
+    var correct=+q.dataset.correct, tried=false, done=false;
+    var fb=q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach(function(btn,i){
+      btn.addEventListener('click',function(){
+        if(done) return;
+        if(i===correct){
+          done=true; solved++; if(!tried) firstTry++;
+          btn.classList.add('good');
+          fb.textContent="Correct. "+explains[qi];
+          fb.className="fb good";
+          q.querySelectorAll('.opts button').forEach(function(b){b.disabled=true;});
+          var s=document.getElementById('score');
+          s.style.display='block';
+          s.textContent="Solved "+solved+" of "+total+" · first-try "+firstTry;
+        } else {
+          tried=true;
+          btn.classList.add('bad');
+          btn.disabled=true;
+          fb.textContent="Not quite — try again.";
+          fb.className="fb bad";
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -49,6 +49,7 @@
   <a href="../lessons/0002-variables-and-quoting.html">Lesson 0002</a> ·
   <a href="../lessons/0003-scripts-that-take-orders.html">Lesson 0003</a> ·
   <a href="../lessons/0004-look-before-you-leap.html">Lesson 0004</a> ·
+  <a href="../lessons/0005-one-run-many-targets.html">Lesson 0005</a> ·
   <a href="first-script-cheatsheet.html">First-script cheatsheet</a> ·
   <a href="test-operators.html">Test operators</a></p>
 
@@ -149,8 +150,11 @@
     matches whatever the file is called.</dd>
 
     <dt id="dollarat">"$@" <span class="cat">special parameter</span></dt>
-    <dd>All the arguments, each kept whole as its own word. Proper use arrives
-    with loops (lesson 0005) — for now, know the name.</dd>
+    <dd>All the arguments, each kept whole as its own word. In a loop,
+    <code>for arg in "$@"</code> runs the body once per argument. The quotes
+    are the whole trick — they stop
+    <a href="#wordsplitting">word splitting</a>.
+    <span class="ex">./chk.sh a "b c"  →  two items: a, b c</span></dd>
 
     <dt id="exit">exit <span class="cat">command</span></dt>
     <dd>Ends the script immediately, leaving an
@@ -212,6 +216,38 @@
     script safe to run unattended.</dd>
   </dl>
 
+  <h2>Loops</h2>
+  <dl>
+    <dt id="loop">loop <span class="cat">noun</span></dt>
+    <dd>A structure that repeats commands, so one body of code can work on
+    many things.</dd>
+
+    <dt id="for">for · in · do · done <span class="cat">keywords</span></dt>
+    <dd>The list loop. Bash splits the words after <code>in</code> and runs
+    the body between <code>do</code> and <code>done</code> once per word,
+    with the loop variable set to that word.
+    <span class="ex">for target in "$@"; do df -h "$target"; done</span></dd>
+
+    <dt id="continue">continue <span class="cat">builtin</span></dt>
+    <dd>Inside a loop: drop the current item and jump to the next one. The
+    per-item version of a <a href="#guard">guard</a>'s <code>exit 1</code>.</dd>
+
+    <dt id="break">break <span class="cat">builtin</span></dt>
+    <dd>Inside a loop: leave the loop now. The script continues after
+    <code>done</code>.</dd>
+
+    <dt id="glob">glob · filename pattern <span class="cat">noun</span> · <code>*.log</code></dt>
+    <dd>A pattern that bash replaces with the matching filenames — each one
+    whole, spaces safe. Write it unquoted so it can expand:
+    <code>for file in *.log</code>. Never loop over
+    <code>$(ls …)</code> output instead.</dd>
+
+    <dt id="whileuntil">while · until <span class="cat">keywords</span></dt>
+    <dd>The checking loop. Repeats the body for as long as a command succeeds
+    (<code>while</code>) or fails (<code>until</code>) — used when the list is
+    not known in advance.</dd>
+  </dl>
+
   <h2>Running things</h2>
   <dl>
     <dt id="path">PATH <span class="cat">noun</span></dt>
@@ -230,7 +266,7 @@
   </dl>
 
   <footer>
-    Grows with each lesson · Last updated: lesson 0004 ·
+    Grows with each lesson · Last updated: lesson 0005 ·
     Ask your teacher (the agent) about any term that is unclear.
   </footer>
 </main>
