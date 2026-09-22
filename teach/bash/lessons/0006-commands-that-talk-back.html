@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0006 · Commands That Talk Back — Bash for DevOps</title>
+<style>
+  :root{
+    --paper:#fffdf8; --ink:#221f1a; --soft:#6f675a; --accent:#8a1f1f;
+    --line:#e6dfd2; --codebg:#f4f0e6; --ok:#2e6b4f; --okbg:#eef4ee; --badbg:#f7ecea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:19px/1.65 Charter,Georgia,'Times New Roman',serif}
+  main{max-width:44rem;margin:0 auto;padding:2.8rem 1.25rem 4.5rem}
+  .kicker{letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;
+          font-weight:700;color:var(--soft);margin-bottom:.4rem}
+  h1{font-size:2.1rem;line-height:1.15;margin:0 0 .35rem}
+  .meta{color:var(--soft);font-size:.9rem;margin:0 0 2.2rem}
+  h2{font-size:1.28rem;margin:2.6rem 0 .8rem;padding-bottom:.3rem;
+     border-bottom:1px solid var(--line)}
+  p{margin:.8rem 0}
+  .lead{font-size:1.06rem}
+  code{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:.8em;
+       background:var(--codebg);padding:.08em .32em;border-radius:3px}
+  pre{background:var(--codebg);border:1px solid var(--line);border-radius:6px;
+      padding:1rem 1.2rem;overflow-x:auto;font-size:.83rem;line-height:1.6;
+      font-family:'SF Mono',Menlo,Consolas,monospace;margin:1rem 0}
+  pre .c{color:#8a8272}
+  pre .out{color:#5c554a}
+  pre .bad{color:#8a1f1f}
+  pre .good{color:#2e6b4f}
+  .callout{border-left:3px solid var(--accent);background:#faf5ec;
+           padding:.9rem 1.15rem;margin:1.4rem 0;border-radius:0 6px 6px 0}
+  .callout p{margin:.35rem 0}
+  ol.steps{padding-left:1.5rem;margin:.9rem 0}
+  ol.steps li{margin:.75rem 0}
+  table{border-collapse:collapse;width:100%;font-size:.93rem;margin:1rem 0}
+  th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--soft);font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .cite{color:var(--soft);font-size:.85rem}
+
+  .q{margin:1.5rem 0;padding:1.1rem 1.2rem;border:1px solid var(--line);
+     border-radius:8px;background:#fffefb}
+  .qt{font-weight:700;margin:0 0 .7rem}
+  .opts{display:flex;flex-direction:column;gap:.45rem}
+  .opts button{font:inherit;font-size:.95rem;text-align:left;padding:.55rem .8rem;
+     border:1px solid var(--line);border-radius:6px;background:var(--paper);
+     cursor:pointer;line-height:1.4}
+  .opts button:hover:not(:disabled){border-color:var(--accent)}
+  .opts button.good{background:var(--okbg);border-color:var(--ok);color:var(--ok);font-weight:700}
+  .opts button.bad{background:var(--badbg);border-color:var(--accent);color:var(--accent);opacity:1}
+  .opts button:disabled{cursor:default;opacity:.85}
+  .fb{margin:.7rem 0 0;font-size:.9rem;color:var(--soft);display:none}
+  .fb.good{display:block;color:var(--ok)}
+  .fb.bad{display:block;color:var(--accent)}
+  #score{font-weight:700;margin-top:1.2rem;display:none}
+
+  footer{margin-top:3rem;padding-top:1.2rem;border-top:1px solid var(--line);
+         color:var(--soft);font-size:.88rem}
+  @media print{
+    body{background:#fff;font-size:11pt}
+    main{max-width:none;padding:0}
+    a{color:#000}
+    .opts button{border:none;background:none;padding:.15rem 0}
+    .opts button:before{content:"□ "}
+    footer,#score{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Bash for DevOps · Lesson 0006</div>
+  <h1>Commands That Talk Back</h1>
+  <p class="meta">≈ 15 minutes · one win: <code>snapshot.sh</code> writes a
+  dated tarball of any directory — and refuses to lie when
+  <code>tar</code> fails ·
+  <a href="0005-one-run-many-targets.html">← lesson 0005</a> ·
+  <a href="../reference/bash-glossary.html">glossary</a></p>
+
+  <h2 style="margin-top:1.4rem">Why this matters</h2>
+  <p class="lead">Your scripts can guard, decide, and loop. But they still
+  only talk to eyes: output scrolls past, and decisions come only from
+  <code>[[ ]]</code> questions about files and strings. Real automation asks
+  commands two questions instead. <em>What did you say?</em> — put a
+  command's output into a variable. <em>Did it work?</em> — let any command,
+  not just tests, drive an <code>if</code>. Today you learn both, and your
+  loops from lesson 0005 start to earn their keep.</p>
+
+  <h2>Capture: what did it say?</h2>
+  <p><strong><a href="../reference/bash-glossary.html#commandsubstitution">Command
+  substitution</a> runs a command and pastes its output where the command
+  sat.</strong> Bash runs the command inside <code>$( … )</code>, captures
+  its standard output, and replaces the whole <code>$( … )</code> with that
+  text. Any trailing newline is trimmed
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html" title="GNU Bash Reference Manual — Command Substitution">[1]</a></sup>:
+<pre>today="$(date +%F)"
+echo "backup for $today"
+<span class="out">backup for 2026-09-21</span></pre>
+  <p>Four rules carry you a long way:</p>
+  <table>
+    <tr><th>Rule</th><th>Why</th></tr>
+    <tr><td>Quote it: <code>"$(cmd)"</code></td>
+      <td>Same rule as variables. Unquoted output gets
+      <a href="../reference/bash-glossary.html#wordsplitting">word-split</a>;
+      quoted output stays one value
+      <sup class="cite"><a href="https://mywiki.wooledge.org/CommandSubstitution" title="Greg's Wiki — CommandSubstitution">[2]</a></sup>.</td></tr>
+    <tr><td>Only stdout is captured</td>
+      <td>Errors still go to
+      <a href="../reference/bash-glossary.html#stderr">stderr</a> and reach
+      your screen. Capture never swallows error messages.</td></tr>
+    <tr><td>Backticks are read-only</td>
+      <td><code>`cmd`</code> is the old form. Recognise it in old scripts;
+      never write it — nesting it is a mess
+      <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html" title="GNU Bash Reference Manual — Command Substitution">[1]</a></sup>.</td></tr>
+    <tr><td>It runs in a
+      <a href="../reference/bash-glossary.html#subshell">subshell</a></td>
+      <td>A copy of the shell. Changes inside — like <code>cd</code> — do
+      not survive outside. You will meet this again later.</td></tr>
+  </table>
+  <p class="cite">One mercy: in a plain assignment,
+  <code>name=$(cmd)</code> without quotes is safe — assignments never
+  word-split. Quote anyway. One habit, no exceptions, no sleeping.</p>
+
+  <h2>Ask: did it work?</h2>
+  <p><strong><code>if</code> has never needed <code>[[ ]]</code>.</strong>
+  <code>[[ ]]</code> is itself just a command that reports by
+  <a href="../reference/bash-glossary.html#exitstatus">exit status</a>.
+  The
+  <a href="../reference/bash-glossary.html#condition">condition</a> — the
+  command between <code>if</code> and <code>; then</code> — can be
+  <em>any</em> command: bash runs it and reads its exit status. Zero runs
+  the <code>then</code> block; anything else runs <code>else</code>
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html" title="GNU Bash Reference Manual — Conditional Constructs">[3]</a></sup>.
+  Your guards from lesson 0004 were this all along.</p>
+  <p>The star example is <code>grep -q</code>. The <code>-q</code> flag
+  means <em>quiet</em>: print nothing, answer only by exit status —
+  0&nbsp;found, 1&nbsp;not found. A yes/no command, made for
+  <code>if</code>:</p>
+<pre><span class="c">if</span> grep -q root /etc/passwd; <span class="c">then</span>
+  echo "root account present"
+<span class="c">else</span>
+  echo "no root account?!"
+<span class="c">fi</span></pre>
+  <p>Noisy command, same trick: send stdout to <code>/dev/null</code> —
+  the shredder — and keep the status. You already know
+  <code>&gt;&amp;2</code> from lesson 0003; <code>&gt;/dev/null</code> is
+  its quiet cousin:</p>
+<pre><span class="c">if</span> curl -sf -o /dev/null https://example.com; <span class="c">then</span>
+  echo "site answers"
+<span class="c">else</span>
+  echo "site down or unreachable"
+<span class="c">fi</span></pre>
+  <p class="cite"><code>-s</code> silences curl's progress meter;
+  <code>-f</code> makes HTTP errors (like 404) count as failure.</p>
+  <p>Two questions, two tools. Do not mix them up:</p>
+  <table>
+    <tr><th>Question</th><th>Tool</th><th>Shape</th></tr>
+    <tr><td>What did it print?</td><td>capture</td>
+      <td><code>out="$(cmd)"</code></td></tr>
+    <tr><td>Did it work?</td><td>status</td>
+      <td><code>if cmd; then … fi</code></td></tr>
+  </table>
+
+  <h2>Build snapshot.sh</h2>
+  <ol class="steps">
+    <li><strong>Write it.</strong> Every guard is a guard you already own,
+    word for word. Only the last five lines are new:
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># snapshot.sh — save a dated tarball of one directory</span>
+<span class="c">if [ $# -ne 1 ]; then</span>
+  echo "usage: $0 /path/to/snapshot" &gt;&amp;2
+  exit 1
+<span class="c">fi</span>
+<span class="c">target="$1"</span>
+<span class="c">if [[ ! -d "$target" ]]; then</span>
+  echo "error: not a directory: $target" &gt;&amp;2
+  exit 1
+<span class="c">fi</span>
+<span class="c">name="snapshot-$(date +%F).tar.gz"</span>
+<span class="c">if tar -czf "$name" "$target"; then</span>
+  echo "wrote $name"
+<span class="c">else</span>
+  echo "error: tar failed" &gt;&amp;2
+  exit 1
+<span class="c">fi</span></pre>
+    <span class="out">Line by line: <code>$(date +%F)</code> builds today's
+    date into the filename. <code>tar</code> itself is the condition — if
+    the archive writes, we say so; if not, stderr gets the truth and the
+    script exits 1.</span></li>
+    <li><strong>Predict, then run.</strong> Say each output aloud first:
+<pre>chmod +x snapshot.sh
+./snapshot.sh
+<span class="out">usage: ./snapshot.sh /path/to/snapshot</span>
+./snapshot.sh /tmp
+<span class="out">wrote snapshot-2026-09-21.tar.gz</span>
+./snapshot.sh /nope
+<span class="out">error: not a directory: /nope</span></pre>
+    <span class="out">Same-day reruns overwrite yesterday-less archive:
+    <code>%F</code> is date-only. When you need one per run, switch to
+    <code>$(date +%F-%H%M)</code>.</span></li>
+    <li><strong>Break it on purpose.</strong> Change the name line to
+    <code>name="snapshot-$(date).tar.gz"</code> — full <code>date</code>
+    output contains spaces. Keep the quotes: the script still works,
+    spaces and all. Now strip the quotes from <code>"$name"</code> in the
+    <code>tar</code> line and run again:
+<pre>./snapshot.sh /tmp
+<span class="bad">tar: snapshot-Mon: Cannot open: No such file or directory
+error: tar failed</span></pre>
+    <span class="out">Unquoted, one filename became six words, and
+    <code>tar</code> choked on the first. Notice what saved you: the
+    <code>if</code> caught the failure and the script told the truth.
+    Restore the quotes and the <code>%F</code> form.</span></li>
+  </ol>
+
+  <h2>Pitfalls: two wrong wrappers</h2>
+  <p>You will see both in the wild. Neither asks the question you
+  meant:</p>
+<pre><span class="bad">if $(grep -q root /etc/passwd); then</span>   <span class="c"># wrong</span>
+<span class="bad">if [ -n "$(grep root /etc/passwd)" ]; then</span> <span class="c"># wrong</span>
+<span class="good">if grep -q root /etc/passwd; then</span>          <span class="c"># right</span></pre>
+  <p>The first runs the substitution, pastes grep's empty output between
+  <code>if</code> and <code>; then</code>, and asks bash to run that empty
+  text as the condition command. The second asks "did it print anything?"
+  — a command can print plenty and still have failed. If you only need
+  yes/no, run the command bare as the condition
+  <sup class="cite"><a href="https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html" title="GNU Bash Reference Manual — Conditional Constructs">[3]</a></sup>.
+  Capture is for when you need the text.</p>
+
+  <div class="callout">
+    <p><strong>Honesty note.</strong> A command that <em>fails</em> inside
+    <code>$( … )</code> does not fail your script —
+    <code>name="$(date +%F)"</code> goes wrong silently, and the script
+    marches on. That is now two open gaps, with lesson 0005's loop that
+    skips bad paths but still exits 0. A later lesson teaches scripts to
+    fail loudly on their own.</p>
+  </div>
+
+  <h2>Check yourself</h2>
+  <p>Answer from memory — including one review question from earlier
+  lessons.</p>
+
+  <div class="q" data-correct="0">
+    <p class="qt">1 · <code>today="$(date +%F)"</code> runs. What does the variable <code>today</code> hold?</p>
+    <div class="opts">
+      <button>Whatever date printed, minus trailing newlines</button>
+      <button>The exit status that date returned</button>
+      <button>The literal text of the command</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="1">
+    <p class="qt">2 · <code>if grep -q root /etc/passwd; then echo yes; fi</code> — what does <code>if</code> read to decide?</p>
+    <div class="opts">
+      <button>The lines grep matched inside passwd</button>
+      <button>The exit status grep exits with</button>
+      <button>Whether the pattern is properly quoted</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="0">
+    <p class="qt">3 · Review: a command finishes with exit status <code>0</code>. What does that mean?</p>
+    <div class="opts">
+      <button>It succeeded; zero always means success</button>
+      <button>It failed; zero always means failure</button>
+      <button>It printed nothing; zero counts output</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <div class="q" data-correct="1">
+    <p class="qt">4 · <code>if $(grep -q root /etc/passwd); then …</code> — what does bash actually do?</p>
+    <div class="opts">
+      <button>Nothing; the form above is fully correct</button>
+      <button>Bash tries to run the captured output</button>
+      <button>grep refuses to run inside round parentheses</button>
+    </div>
+    <p class="fb"></p>
+  </div>
+
+  <p id="score"></p>
+
+  <h2>Practice on your own work</h2>
+  <ol class="steps">
+    <li><strong>Upgrade <code>healthcheck.sh</code>.</strong> It still just
+    prints commands. Capture first, then report:
+    <code>now="$(date '+%F %T')"</code>,
+    <code>host="$(hostname)"</code>, and print one summary line. Then add
+    one real decision:
+<pre><span class="c">if</span> pgrep -x sshd &gt;/dev/null; <span class="c">then</span>
+  echo "sshd: running"
+<span class="c">else</span>
+  echo "sshd: not found"
+<span class="c">fi</span></pre>
+    Predict the output before each run. Then try a process name that is
+    not running, and watch the <code>else</code> branch earn its
+    keep.</li>
+    <li><strong>Feel the splitting, lesson 0005 style.</strong> On the
+    command line:
+<pre>for part in $(date); do echo "[$part]"; done
+for part in "$(date)"; do echo "[$part]"; done</pre>
+    Say both counts out loud before running: five bracketed words, then
+    one. That is capture plus quoting in a single breath.</li>
+    <li><strong>Run ShellCheck</strong> on <code>snapshot.sh</code> and the
+    upgraded <code>healthcheck.sh</code>. Expect zero warnings.</li>
+  </ol>
+
+  <h2>Go deeper (optional, 10 minutes)</h2>
+  <p><strong>Primary source:</strong>
+  <a href="https://mywiki.wooledge.org/CommandSubstitution">Greg's Wiki —
+  Command Substitution</a>
+  — the same wiki you have trusted since lesson 0001. Read down to the
+  subshell examples: they show <code>cd</code> dying inside
+  <code>$( )</code> and the parent shell not caring. For the authoritative
+  wording, the manual's
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html">Command Substitution</a>
+  and
+  <a href="https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html">Conditional Constructs</a>
+  pages cover today in full.</p>
+
+  <h2>Next</h2>
+  <p><strong>Lesson 0007 — fail loudly:</strong> your scripts now detect
+  failures one at a time, by hand. Two honesty notes are still open: a
+  loop that skips bad paths exits 0, and a failing command inside
+  <code>$( … )</code> dies silently. <code>set -e</code> and its friends
+  make bash do the watching for you.</p>
+
+  <div class="callout">
+    <p><strong>Stuck on anything?</strong> Ask your teacher — me, the agent
+    you are chatting with. Paste any error, output, or quiz answer and we
+    will work through it.</p>
+  </div>
+
+  <footer>
+    Bash for DevOps · Lesson 0006 · Sources:
+    <a href="https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html">[1] GNU Bash Reference Manual: Command Substitution</a> ·
+    <a href="https://mywiki.wooledge.org/CommandSubstitution">[2] Greg's Wiki: CommandSubstitution</a> ·
+    <a href="https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html">[3] GNU Bash Reference Manual: Conditional Constructs</a>
+  </footer>
+</main>
+
+<script>
+(function(){
+  var solved=0, firstTry=0, total=document.querySelectorAll('.q').length;
+  var explains=[
+    "Command substitution captures standard output as text, with trailing newlines trimmed. The exit status is a separate channel — it stays in $?.",
+    "if always reads the exit status of the condition command. With -q, grep prints nothing and answers purely by exit status: 0 found, 1 not found.",
+    "Review: 0 means success; any other number means failure. Every command follows it, and CI reads the same number.",
+    "$( ) pastes grep's empty output between if and ; then, and bash tries to run that text as the condition. Write if grep -q …; then — the command itself is the condition."
+  ];
+  document.querySelectorAll('.q').forEach(function(q,qi){
+    var correct=+q.dataset.correct, tried=false, done=false;
+    var fb=q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach(function(btn,i){
+      btn.addEventListener('click',function(){
+        if(done) return;
+        if(i===correct){
+          done=true; solved++; if(!tried) firstTry++;
+          btn.classList.add('good');
+          fb.textContent="Correct. "+explains[qi];
+          fb.className="fb good";
+          q.querySelectorAll('.opts button').forEach(function(b){b.disabled=true;});
+          var s=document.getElementById('score');
+          s.style.display='block';
+          s.textContent="Solved "+solved+" of "+total+" · first-try "+firstTry;
+        } else {
+          tried=true;
+          btn.classList.add('bad');
+          btn.disabled=true;
+          fb.textContent="Not quite — try again.";
+          fb.className="fb bad";
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

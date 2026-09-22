@@ -50,6 +50,7 @@
   <a href="../lessons/0003-scripts-that-take-orders.html">Lesson 0003</a> ·
   <a href="../lessons/0004-look-before-you-leap.html">Lesson 0004</a> ·
   <a href="../lessons/0005-one-run-many-targets.html">Lesson 0005</a> ·
+  <a href="../lessons/0006-commands-that-talk-back.html">Lesson 0006</a> ·
   <a href="first-script-cheatsheet.html">First-script cheatsheet</a> ·
   <a href="test-operators.html">Test operators</a></p>
 
@@ -248,6 +249,29 @@
     not known in advance.</dd>
   </dl>
 
+  <h2>Commands that talk back</h2>
+  <dl>
+    <dt id="commandsubstitution">command substitution <span class="cat">syntax</span> · <code>$( … )</code></dt>
+    <dd>Run the command inside the parentheses, capture its standard output
+    as text, and paste that text where the <code>$( … )</code> sat. Trailing
+    newlines are trimmed. Quote it like a
+    <a href="#quoting">variable</a>: <code>"$(cmd)"</code>. Backticks
+    <code>`cmd`</code> are the old form — read them, never write them.
+    <span class="ex">today="$(date +%F)"</span></dd>
+
+    <dt id="condition">condition <span class="cat">noun</span></dt>
+    <dd>In an <a href="#if">if</a> statement: the command between
+    <code>if</code> and <code>; then</code>. Bash reads its
+    <a href="#exitstatus">exit status</a> to pick a branch. Any command can be
+    a condition — not only tests.
+    <span class="ex">if grep -q root /etc/passwd; then …</span></dd>
+
+    <dt id="subshell">subshell <span class="cat">noun</span></dt>
+    <dd>A copy of the shell that bash starts to run a
+    <a href="#commandsubstitution">command substitution</a>. What happens
+    inside — like a <code>cd</code> — does not survive outside it.</dd>
+  </dl>
+
   <h2>Running things</h2>
   <dl>
     <dt id="path">PATH <span class="cat">noun</span></dt>
@@ -266,7 +290,7 @@
   </dl>
 
   <footer>
-    Grows with each lesson · Last updated: lesson 0005 ·
+    Grows with each lesson · Last updated: lesson 0006 ·
     Ask your teacher (the agent) about any term that is unclear.
   </footer>
 </main>
