@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDLC Promotion Cheat Sheet — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.6rem 0;}
+  th,td{border:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .note{font-size:.88rem;color:#555;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);font-size:.95rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} table,pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>SDLC Promotion Cheat Sheet</h1>
+  <p class="note">Companion to <a href="../lessons/0004-sdlc-promotion.html">Lesson 0004</a>. Sources: <a href="https://csrc.nist.gov/pubs/sp/800/218/final">NIST SP 800-218 (SSDF)</a>, <a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final">NIST SP 800-53 Rev. 5</a> (browse in the <a href="https://csrc.nist.gov/projects/cprt/catalog">CPRT catalog</a>), <a href="https://csrc.nist.gov/pubs/sp/800/37/r2/final">NIST SP 800-37 Rev. 2</a>.</p>
+
+  <h2>What is what</h2>
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td><b>SDLC</b></td><td>Software development life cycle. The path from a code change to running software.</td></tr>
+    <tr><td><b>Environment</b></td><td>One copy of the system reserved for one purpose: dev, test, prod. Each sits at a classification level.</td></tr>
+    <tr><td><b>Artifact</b></td><td>The immutable output of one build. A container image digest or a signed package.</td></tr>
+    <tr><td><b>Promotion</b></td><td>Moving an artifact to the next environment. Build once, promote everywhere. Never rebuild per environment.</td></tr>
+    <tr><td><b>Gate</b></td><td>A check that must pass before promotion: tests, SAST, oscap STIG scan, human approval.</td></tr>
+    <tr><td><b>CCB</b></td><td>Change control board. The group that approves changes to the baseline (control CM-3).</td></tr>
+    <tr><td><b>Separation of duties</b></td><td>The developer builds. Operations deploys. Nobody both writes and ships.</td></tr>
+    <tr><td><b>Classification boundary</b></td><td>The line between networks at different classification levels. Low side = unclassified. High side = classified.</td></tr>
+    <tr><td><b>CDS</b></td><td>Cross-domain solution. The accredited mechanism that moves data across the boundary. Guard = two-way, inspected. Data diode = one-way.</td></tr>
+    <tr><td><b>Two-person rule</b></td><td>Two cleared people witness any manual media transfer across the boundary.</td></tr>
+    <tr><td><b>Checksum / signature</b></td><td>Proof the bits survived the crossing unchanged (control SI-7). Verified on both sides.</td></tr>
+    <tr><td><b>cATO</b></td><td>Continuous ATO. Authorization attached to a monitored pipeline instead of one release package.</td></tr>
+    <tr><td><b>Software factory</b></td><td>The DoD term for the containerized pipeline plus artifact repository where this all runs.</td></tr>
+  </table>
+
+  <h2>The promotion flow</h2>
+  <table>
+    <tr><th>Side</th><th>#</th><th>Step</th><th>What happens</th></tr>
+    <tr><td rowspan="5">Low (unclassified)</td><td>1</td><td>Build</td><td>One artifact built in dev; digest recorded</td></tr>
+    <tr><td>2</td><td>Gate</td><td>Tests, SAST, oscap STIG scan; a failure blocks promotion</td></tr>
+    <tr><td>3</td><td>Sign</td><td>Artifact signed; checksum recorded</td></tr>
+    <tr><td>4</td><td>Test</td><td>Same artifact promoted to the test environment</td></tr>
+    <tr><td>5</td><td>Approve</td><td>CCB approves the release</td></tr>
+    <tr><td>Boundary</td><td>6</td><td>Transfer</td><td>Through the CDS (guard or data diode), or two-person media</td></tr>
+    <tr><td rowspan="2">High (classified)</td><td>7</td><td>Verify, deploy</td><td>Checksum re-verified; operations deploys — not the developer</td></tr>
+    <tr><td>8</td><td>Monitor</td><td>Continuous monitoring feeds the cATO</td></tr>
+  </table>
+  <p class="note">Artifacts flow up (dev on the low side → prod on the high side). Vulnerability data often flows down (advisories, feeds). Promotion within one side needs no CDS.</p>
+
+  <h2>Controls behind the flow</h2>
+  <table>
+    <tr><th>Control (SP 800-53)</th><th>What it demands of you</th></tr>
+    <tr><td><b>CM-2</b> Baseline</td><td>The documented configuration every artifact starts from</td></tr>
+    <tr><td><b>CM-3</b> Configuration Change Control</td><td>Changes are reviewed and approved — this is the CCB</td></tr>
+    <tr><td><b>CM-4</b> Impact Analyses</td><td>Security impact is analyzed before a change is made</td></tr>
+    <tr><td><b>CM-5</b> Access Restrictions for Change</td><td>Only approved roles can promote</td></tr>
+    <tr><td><b>CM-6</b> Configuration Settings</td><td>STIG settings are this layer</td></tr>
+    <tr><td><b>CM-8</b> System Component Inventory</td><td>Know what is deployed, where</td></tr>
+    <tr><td><b>SI-7</b> Software, Firmware, and Information Integrity</td><td>Checksums and signatures across the boundary</td></tr>
+  </table>
+  <p class="note">Control text: browse <a href="https://csrc.nist.gov/projects/cprt/catalog">CPRT</a> for SP 800-53 Rev. 5. SSDF practice groups (PS, PO, PW, RV) in <a href="https://csrc.nist.gov/pubs/sp/800/218/final">SP 800-218</a> map onto the same ground.</p>
+
+  <h2>Interview traps</h2>
+  <table>
+    <tr><th>If you hear</th><th>The truth</th></tr>
+    <tr><td>“We rebuild in prod”</td><td>Build once, promote the same bits. Rebuilds destroy the tested-bits guarantee.</td></tr>
+    <tr><td>“A critical STIG finding”</td><td>STIG severities are High, Medium, Low. “Critical” is not one.</td></tr>
+    <tr><td>“A VPN across the boundary”</td><td>Only the CDS or accredited media crosses a classification boundary.</td></tr>
+    <tr><td>“The AO approved the deploy”</td><td>The AO accepts residual risk. Operations deploys.</td></tr>
+    <tr><td>“cATO means no authorization”</td><td>Authorization is continuous, attached to a monitored pipeline.</td></tr>
+  </table>
+
+  <h2>Interview one-liners</h2>
+  <div class="oneliner">We build once, gate hard — scan, test, review — then promote the same signed artifact through the accredited CDS to the high side.</div>
+  <div class="oneliner">What was tested is what flies: checksums verified on both sides of the boundary.</div>
+  <div class="oneliner">Separation of duties: I build it, operations ships it, the AO owns the risk.</div>
+  <div class="oneliner">A cATO works when the pipeline itself is hardened and continuously monitored — the RMF Monitor step turned into infrastructure.</div>
+
+  <p class="note"><a href="../lessons/0004-sdlc-promotion.html">← Lesson 0004</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a> · <a href="rmf-cheatsheet.html">RMF cheat sheet</a> · <a href="../GLOSSARY.md">Glossary</a></p>
+</main>
+</body>
+</html>

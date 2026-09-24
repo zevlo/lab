@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0004 — SDLC Promotion Across Classified Boundaries</title>
+<style>
+  :root{
+    --paper:#fffdf7; --ink:#1c1b17; --rule:#d8d2c2; --accent:#7a2e2e;
+    --soft:#f4efe3; --good:#0a7d33; --bad:#b00020;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1.05rem/1.65 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:44rem;margin:0 auto;padding:3rem 1.4rem 4rem;}
+  .kicker{font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .4rem;}
+  h1{font-size:1.9rem;line-height:1.25;margin:0 0 .6rem;font-weight:normal;}
+  h2{font-size:1.25rem;margin:2.6rem 0 .6rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.3rem;}
+  h3{font-size:1.02rem;margin:1.6rem 0 .3rem;}
+  p{margin:.6rem 0;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  .mission{border-left:3px solid var(--accent);background:var(--soft);padding:.9rem 1.1rem;margin:1.6rem 0;font-size:.95rem;}
+  .mission p{margin:.3rem 0;}
+  .bridge{font-size:.92rem;background:var(--soft);padding:.55rem .8rem;margin-top:.5rem;}
+  .bridge b{color:var(--accent);}
+  .warn{border-left:3px solid var(--bad);background:#fdecef;padding:.55rem .8rem;margin:.8rem 0;font-size:.93rem;}
+  .warn b{color:var(--bad);}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .flow{margin:1.2rem 0;font-size:.92rem;}
+  .flow .row{display:flex;flex-wrap:wrap;gap:.4rem;align-items:stretch;}
+  .flow .side{flex:1 1 12rem;border:1px solid var(--rule);padding:.6rem .7rem;background:var(--soft);}
+  .flow .side h3{margin:0 0 .3rem;font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;}
+  .flow .cds{flex:0 0 7.5rem;border:1px dashed var(--accent);padding:.6rem .7rem;text-align:center;background:#fff;}
+  .flow .cds b{color:var(--accent);}
+  .flow ol{margin:.3rem 0 0 1.1rem;padding:0;}
+  .flow li{margin:.15rem 0;}
+  .quiz fieldset{border:1px solid var(--rule);padding:.8rem 1rem;margin:1.2rem 0;}
+  .quiz legend{font-weight:normal;font-style:italic;padding:0 .4rem;}
+  .opts{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:.5rem;}
+  .opts button{font:inherit;font-size:.95rem;padding:.35rem .9rem;background:#fff;border:1px solid var(--rule);cursor:pointer;}
+  .opts button:hover{border-color:var(--accent);}
+  .opts button.ok{background:var(--good);color:#fff;border-color:var(--good);}
+  .opts button.no{background:var(--bad);color:#fff;border-color:var(--bad);}
+  .fb{font-size:.9rem;margin-top:.5rem;min-height:1.2em;color:#555;}
+  .drill{border:1px solid var(--rule);padding:.9rem 1rem;margin:1.2rem 0;}
+  .drill h3{margin:.1rem 0 .4rem;}
+  .seqlog{margin:.8rem 0 0;padding:0;list-style:none;font-size:.92rem;}
+  .seqlog li{margin:.3rem 0;padding:.35rem .5rem;border-left:3px solid var(--good);background:var(--soft);}
+  .seqlog li b{color:var(--accent);}
+  .drillfb{font-size:.9rem;margin-top:.6rem;min-height:1.4em;color:#555;}
+  .drill a.reset{font-size:.85rem;cursor:pointer;border-bottom:1px solid #c9a0a0;}
+  .src{font-size:.95rem;border:1px solid var(--rule);padding:.8rem 1rem;margin:1.6rem 0;}
+  .ask{font-size:.95rem;font-style:italic;border-left:3px solid var(--rule);padding:.5rem 1rem;margin:1.6rem 0;color:#444;}
+  nav.next{margin-top:2.6rem;border-top:1px solid var(--rule);padding-top:1rem;font-size:.95rem;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);}
+  .oneliner::before{content:'“';color:var(--accent);font-size:1.2rem;}
+  .oneliner::after{content:'”';color:var(--accent);font-size:1.2rem;}
+  @media print{
+    body{background:#fff;font-size:10.5pt;} main{max-width:none;padding:0;}
+    .opts button{display:none;} .quiz fieldset{border:none;padding:0;}
+    .drill .opts button{display:none;}
+    pre{background:#efefe9;color:#111;}
+    .flow .side,.flow .cds{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Lesson 0004</p>
+  <h1>SDLC Promotion Across Classified Boundaries</h1>
+
+  <div class="mission">
+    <p><b>Why this lesson.</b> The postings require “SDLC promotion across classified boundaries.” In an interview, you must narrate the path from one commit on an unclassified network to one deployment on a classified network. Nothing else on your resume is specific to classified work. This is.</p>
+    <p><b>One win.</b> You can draw that path on a whiteboard, name every arrow, and name the control behind every gate.</p>
+    <p><b>Timebox.</b> About 25 minutes. The <a href="../reference/sdlc-promotion-cheatsheet.html">cheat sheet</a> holds the compressed version for review.</p>
+  </div>
+
+  <h2>Warm-up — mixed retrieval</h2>
+  <p>Five questions from Lessons 0001 through 0003, from memory. Mixing old material is deliberate: it moves RMF, STIGs, and your lab from fluency toward retention.</p>
+  <div class="quiz" id="warmup">
+    <fieldset>
+      <legend>Which artifact lists open gaps, each with an owner and a date?</legend>
+      <div class="opts"><button>POA&amp;M</button><button>SysSP</button><button>SAR</button><button>SAP</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Who issues the ATO?</legend>
+      <div class="opts"><button>Authorizing Official</button><button>System Owner</button><button>Mission Owner</button><button>DevOps Lead</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>A CCI maps one STIG rule to one what?</legend>
+      <div class="opts"><button>Control</button><button>Finding</button><button>Severity</button><button>Baseline</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Your lab's grub2 findings survived <code>--remediate</code>. Why?</legend>
+      <div class="opts"><button>Interactive input</button><button>Reboot timing</button><button>Network access</button><button>Kernel version</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>The vendor-support rule on Rocky became what?</legend>
+      <div class="opts"><button>Documented exception</button><button>Immediate fix</button><button>Severity downgrade</button><button>Profile change</button></div>
+      <p class="fb"></p>
+    </fieldset>
+  </div>
+
+  <h2>The path software walks</h2>
+  <p>Four terms carry this whole lesson. Definitions first.</p>
+  <p>An <b>environment</b> is one copy of the system reserved for one purpose. The standard three: <b>dev</b>, <b>test</b>, <b>prod</b>. In classified work, each environment sits at a classification level. Dev and test usually sit on unclassified networks — the <b>low side</b>. Prod often sits on classified networks — the <b>high side</b>.</p>
+  <p>An <b>artifact</b> is the immutable output of one build. A container image digest or a signed package. Immutable means the bits never change after the build finishes. A new build makes a new artifact, never a modified old one.</p>
+  <p><b>Promotion</b> is moving an artifact from one environment to the next. The rule is absolute: <b>build once, promote everywhere</b>. You never rebuild per environment. The artifact that passed the gates in test is bit-for-bit the artifact that runs in prod. What was tested is what flies.</p>
+  <p><span class="bridge"><b>Bridge from your floor.</b> You already live this pattern. A GitHub Actions environment with protection rules is a gate. An image digest pinned in a manifest is an immutable artifact. Multi-environment deploys are promotions. Today you only add the words and the boundary.</span></p>
+
+  <h2>Gates and approvals</h2>
+  <p>A <b>gate</b> is a check that must pass before promotion. Typical gates: the test suite, SAST scanning, secrets scanning, an <code>oscap</code> STIG scan — your Lesson 0003 one-liner, now placed in the pipeline — and human approval.</p>
+  <p>The human gate has a name. The <b>change control board</b> (CCB) is the group that approves changes to the baseline. This is control <b>CM-3, Configuration Change Control</b>, in <a href="https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final">SP 800-53</a>. Before approval, the security impact of the change is analyzed — control <b>CM-4</b>.</p>
+  <p><b>Separation of duties</b>: the developer who builds may not be the operator who deploys to prod. Nobody both writes and ships. This is why the CCB exists, and control <b>CM-5</b> (access restrictions for change) is how it is enforced.</p>
+  <p><span class="bridge"><b>Bridge.</b> A GitHub Actions environment requiring reviewer approval is the same shape: a protected environment, a named approver, an audited yes. CCB is that, with a charter.</span></p>
+
+  <h2>The classification boundary</h2>
+  <p>The <b>classification boundary</b> is the line between networks at different classification levels. There is no direct network path across it. No VPN. No shared Git remote. No container registry that both sides pull from.</p>
+  <p>Data crosses only through an accredited mechanism. A <b>cross-domain solution</b> (CDS) is the accredited mechanism that moves data across the boundary. Two kinds matter in interviews: a <b>guard</b> — two-way transfer, every byte inspected against policy — and a <b>data diode</b> — one-way transfer, no return path. The office that accredits CDS for DoD is the Unified Cross Domain Management Office (UCDMO; its site is unreachable from this network — browse it another time).</p>
+  <p>The fallback is manual media, under the <b>two-person rule</b>: two cleared people witness every transfer.</p>
+  <p>Direction matters. Artifacts flow <i>up</i>: built on the low side, promoted to the high side. Vulnerability data often flows <i>down</i>: advisories and scanner feeds shipped from high-side sources to low-side developers. Promotion within one side — dev to test, both unclassified — needs no CDS at all.</p>
+  <div class="flow">
+    <div class="row">
+      <div class="side">
+        <h3>Low side — unclassified</h3>
+        <ol>
+          <li>Build the artifact (dev)</li>
+          <li>Run the gates</li>
+          <li>Sign, record checksum</li>
+          <li>Promote to test</li>
+          <li>CCB approves</li>
+        </ol>
+      </div>
+      <div class="cds"><b>CDS</b><br>guard or<br>data diode<br>— or two-person media —</div>
+      <div class="side">
+        <h3>High side — classified</h3>
+        <ol start="6">
+          <li>Verify checksum</li>
+          <li>Operations deploys to prod</li>
+          <li>Continuous monitoring</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <h2>Integrity across the boundary</h2>
+  <p>Every crossing needs proof the bits survived it. A <b>checksum</b> proves the content. A <b>signature</b> proves the source. Both are recorded on the low side and re-verified on the high side before deploy. Control <b>SI-7</b>, Software, Firmware, and Information Integrity, demands exactly this. <a href="https://csrc.nist.gov/pubs/sp/800/218/final">NIST SP 800-218</a> (the Secure Software Development Framework) makes verification a standing practice, not an event.</p>
+  <p><span class="bridge"><b>Bridge.</b> Same instinct as pinning an image digest in Kubernetes manifests instead of a mutable tag. The digest is the checksum. You have been verifying integrity all along.</span></p>
+
+  <h2>From ATO to cATO</h2>
+  <p>Lesson 0001 gave you the point-in-time ATO: a package — SysSP, SAP, SAR, POA&amp;M — reviewed once, signed by the AO. That rhythm cannot ship weekly releases. <a href="https://csrc.nist.gov/pubs/sp/800/37/r2/final">SP 800-37</a> already contains the answer: the Monitor step, run as a continuous program (<a href="https://csrc.nist.gov/pubs/sp/800/137/final">SP 800-137</a>).</p>
+  <p>A <b>cATO</b> — continuous ATO — attaches the authorization to the pipeline instead of one release package. The deal: the pipeline itself is hardened, every change passes the gates automatically, and continuous monitoring reports to the AO. The RMF Monitor step becomes infrastructure. DoD's cATO guidance lives on the DoD CIO site (bot-blocked; reach it in a browser). The DoD name for this whole apparatus — containerized pipeline plus artifact repository — is the <b>software factory</b>.</p>
+
+  <div class="warn"><b>Interview traps, collected.</b> “Critical” is not a STIG severity — High, Medium, Low. You never rebuild per environment. Nothing crosses a classification boundary except through the CDS or accredited media. The AO accepts risk; the AO never deploys.</div>
+
+  <h2>Drill — order the pipeline</h2>
+  <div class="drill" id="seq">
+    <h3>Click the eight steps in promotion order, from commit to monitoring.</h3>
+    <div class="opts">
+      <button data-n="3">Sign and checksum</button>
+      <button data-n="1">Build the artifact</button>
+      <button data-n="7">Deploy to production</button>
+      <button data-n="5">CCB approves release</button>
+      <button data-n="8">Continuous monitoring</button>
+      <button data-n="2">Run the gates</button>
+      <button data-n="6">Transfer through the CDS</button>
+      <button data-n="4">Promote to test</button>
+    </div>
+    <p class="drillfb"></p>
+    <ol class="seqlog"></ol>
+    <p style="font-size:.85rem;margin-top:.6rem;"><a class="reset">Start over</a></p>
+  </div>
+
+  <h2>Drill — interview scenarios</h2>
+  <div class="quiz" id="scen">
+    <fieldset>
+      <legend>A CVSS 9.8 CVE lands in a library inside your deployed prod image. What crosses the classification boundary, and in which direction?</legend>
+      <div class="opts"><button>Patched artifact moves up</button><button>Source repository moves up</button><button>Vulnerability data moves up</button><button>Nothing ever crosses boundaries</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Why promote the same artifact instead of rebuilding inside each environment?</legend>
+      <div class="opts"><button>Tested bits are fielded bits</button><button>High side forbids all compilers</button><button>Rebuilds would cost extra money</button><button>Developers prefer promoting their containers</button></div>
+      <p class="fb"></p>
+    </fieldset>
+    <fieldset>
+      <legend>Who deploys the approved artifact to production?</legend>
+      <div class="opts"><button>Operations, not the developer</button><button>Whoever built the artifact</button><button>The authorizing official personally</button><button>Whoever is on call</button></div>
+      <p class="fb"></p>
+    </fieldset>
+  </div>
+
+  <h2>Say it in an interview</h2>
+  <div class="oneliner">We build once, gate hard — scan, test, review — then promote the same signed artifact through the accredited CDS to the high side.</div>
+  <div class="oneliner">What was tested is what flies: checksums verified on both sides of the boundary.</div>
+  <div class="oneliner">Separation of duties: I build it, operations ships it, the AO owns the risk.</div>
+  <div class="oneliner">A cATO works when the pipeline itself is hardened and continuously monitored — the RMF Monitor step turned into infrastructure.</div>
+
+  <div class="src">
+    <b>Primary source.</b> <a href="https://csrc.nist.gov/pubs/sp/800/218/final">NIST SP 800-218, Secure Software Development Framework v1.1</a>. Read the framework overview and the PS practice group (prepare the organization) — about eight pages. It is the shared vocabulary of secure SDLC, and every practice maps onto a gate you met today. Browse control text for CM-3, CM-5, and SI-7 in the <a href="https://csrc.nist.gov/projects/cprt/catalog">CPRT catalog</a>.
+  </div>
+
+  <p class="ask">Your teacher is this agent. When a term feels loose, or you want the Vault connection teased out, or you find a job-bullet phrasing you cannot parse — bring it here. Asking is the fastest gate you will ever pass.</p>
+
+  <nav class="next">
+    Previous: <a href="0003-rocky-hardening-lab.html">Lesson 0003 — Rocky hardening lab</a> ·
+    Next: Lesson 0005 — Vault secrets management ·
+    Reference: <a href="../reference/sdlc-promotion-cheatsheet.html">SDLC promotion cheat sheet</a> ·
+    <a href="../reference/stig-cheatsheet.html">STIG cheat sheet</a> ·
+    <a href="../GLOSSARY.md">Glossary</a>
+  </nav>
+</main>
+
+<script>
+(function(){
+  var warmAnswers=['POA&M','Authorizing Official','Control','Interactive input','Documented exception'];
+  var warmExplain=[
+    'The POA&M lists open gaps, each with an owner and a date.',
+    'The AO issues the ATO — and never sits on the build team.',
+    'A CCI maps one rule to one 800-53 control.',
+    'The grub2 password fix needs interactive input, so automatic remediation skips it.',
+    'Rocky can never satisfy a vendor-support rule written for RHEL. Permanent, documented — a POA&M entry.'
+  ];
+  function bindQuiz(id,answers,explain){
+    document.querySelectorAll('#'+id+' fieldset').forEach(function(fs,i){
+      fs.querySelectorAll('.opts button').forEach(function(b){
+        b.onclick=function(){
+          var ok=b.textContent===answers[i];
+          b.classList.add(ok?'ok':'no');
+          if(!ok){fs.querySelectorAll('.opts button').forEach(function(o){if(o.textContent===answers[i]){o.classList.add('ok');}});}
+          fs.querySelector('.fb').innerHTML=(ok?'Correct. ':'Not quite. ')+explain[i];
+          fs.querySelectorAll('.opts button').forEach(function(o){o.disabled=true;o.style.cursor='default';});
+        };
+      });
+    });
+  }
+  bindQuiz('warmup',warmAnswers,warmExplain);
+
+  var scenAnswers=['Patched artifact moves up','Tested bits are fielded bits','Operations, not the developer'];
+  var scenExplain=[
+    'Fix on the low side, rebuild, verify, promote the same signed bits up through the CDS. Advisories usually flow down; deliverables flow up.',
+    'Integrity, not tooling. The artifact that passed the gates is bit-for-bit what runs — provable by checksum and signature (SI-7).',
+    'Separation of duties. The AO accepts residual risk and issues the ATO; the AO never deploys.'
+  ];
+  bindQuiz('scen',scenAnswers,scenExplain);
+
+  var notes={
+    1:'<b>Build the artifact.</b> One container image, one digest, in dev on the low side.',
+    2:'<b>Run the gates.</b> Tests, SAST, oscap STIG scan. A failure blocks promotion.',
+    3:'<b>Sign and checksum.</b> Record the digest and signature — SI-7 starts here.',
+    4:'<b>Promote to test.</b> Same bits, next environment. Still the low side; no CDS needed.',
+    5:'<b>CCB approves release.</b> Change control, per CM-3.',
+    6:'<b>Transfer through the CDS.</b> Guard or data diode. The only crossing.',
+    7:'<b>Deploy to production.</b> Verify the checksum on the high side; operations deploys — not the developer.',
+    8:'<b>Continuous monitoring.</b> Drift, CVEs, re-scans — the feed that sustains a cATO.'
+  };
+  var seq=document.getElementById('seq');
+  var log=seq.querySelector('.seqlog');
+  var fb=seq.querySelector('.drillfb');
+  var next=1;
+  function reset(){
+    next=1;log.innerHTML='';fb.textContent='';
+    seq.querySelectorAll('.opts button').forEach(function(b){
+      b.classList.remove('ok','no');b.disabled=false;b.style.cursor='pointer';
+    });
+  }
+  seq.querySelectorAll('.opts button').forEach(function(b){
+    b.onclick=function(){
+      var n=+b.dataset.n;
+      if(n===next){
+        b.classList.add('ok');b.disabled=true;b.style.cursor='default';
+        var li=document.createElement('li');li.innerHTML=notes[n];log.appendChild(li);
+        if(next===8){fb.innerHTML='<b style="color:var(--good)">Complete.</b> This is the whiteboard diagram. Low side, boundary, high side — name the arrows and you have the answer.';}
+        else{fb.textContent='Step '+n+' placed. '+(next===5?'The next step is the crossing itself.':'Continue.');}
+        next++;
+      }else if(!b.disabled){
+        b.classList.add('no');
+        var t=b;setTimeout(function(){t.classList.remove('no');},600);
+        fb.textContent='Out of order — ask which side of the boundary this step happens on.';
+      }
+    };
+  });
+  seq.querySelector('.reset').onclick=reset;
+})();
+</script>
+</body>
+</html>

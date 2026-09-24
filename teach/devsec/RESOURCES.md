@@ -20,6 +20,10 @@
   The upstream source of the SCAP content RHEL and Rocky ship, including DISA STIG profiles. Use for: profile IDs, remediations, `scap-security-guide` details. Verified live.
 - [Distro: Rocky Linux — download](https://rockylinux.org/download/) and [docs.rockylinux.org](https://docs.rockylinux.org/)
   Rocky 9 ISOs and distribution documentation. Use for: lab installs, Rocky-specific notes. Verified live (rockylinux.org, docs.rockylinux.org, dl.rockylinux.org).
+- [Standard: NIST SP 800-218 — Secure Software Development Framework (SSDF) v1.1](https://csrc.nist.gov/pubs/sp/800/218/final)
+  Core secure-development practices in four groups (PS, PO, PW, RV), attachable to any SDLC. Use for: SDLC promotion, pipeline gates, artifact integrity. Verified live.
+- [Tool: NIST CPRT — Cybersecurity and Privacy Reference Tool](https://csrc.nist.gov/projects/cprt/catalog)
+  Interactive browser for SP 800-53 Rev. 5 control text, with exportable data. Use for: quoting control statements (CM family, SI-7) without the PDF. Verified live (catalog is a JavaScript app; fetch the abstract via the project page).
 
 ## Wisdom (Communities)
 
@@ -32,5 +36,8 @@
 - DoDI 8510.01 direct PDF (esd.whs.mil) — 403 to bots. Reach in browser via cyber.mil/rmf.
 - open-scap.com — unreachable from this network. ComplianceAsCode covers the same ground.
 - stigviewer.com — community mirror of STIGs, 403 to bots, works in browsers. Convenience only, never a citation.
-- HashiCorp Vault tutorials, Ansible docs, GitLab CI docs, VMWare docs, PowerShell docs — verify before lessons 4-8.
+- DoD CIO (dodcio.defense.gov) — 403 to bots. Hosts the cATO guidance. User reaches it in a browser.
+- UCDMO (ucdmo.gov) — unreachable from this network. Cross-domain baseline content; teach CDS concepts via 800-37/800-218 instead.
+- dod-devsecops.github.io (DoD Enterprise DevSecOps Fundamentals) — 404 as of 2026-09-23. Do not cite.
+- HashiCorp Vault tutorials, Ansible docs, GitLab CI docs, VMWare docs, PowerShell docs — verify before lessons 5-8.
 - CIS Benchmarks — verify when comparing against STIGs in the hardening lab.
