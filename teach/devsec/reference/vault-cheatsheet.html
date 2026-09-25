@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vault Cheat Sheet — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.6rem 0;}
+  th,td{border:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .note{font-size:.88rem;color:#555;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);font-size:.95rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} table,pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>Vault Cheat Sheet</h1>
+  <p class="note">Companion to <a href="../lessons/0005-vault-secrets.html">Lesson 0005</a>. Sources: <a href="https://developer.hashicorp.com/vault/docs/what-is-vault">What is Vault?</a>, <a href="https://developer.hashicorp.com/vault/docs/concepts/seal">Seal/Unseal</a>, <a href="https://developer.hashicorp.com/vault/docs/concepts/lease">Lease, Renew, and Revoke</a>, <a href="https://developer.hashicorp.com/vault/docs/concepts/policies">Policies</a>, <a href="https://developer.hashicorp.com/vault/docs/deploy/kubernetes">Run Vault on Kubernetes</a>. Control text: <a href="https://csrc.nist.gov/projects/cprt/catalog">SP 800-53 via CPRT</a>.</p>
+
+  <h2>What is what</h2>
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td><b>Secret</b></td><td>Sensitive information an attacker needs and an application uses: password, API key, encryption key, certificate.</td></tr>
+    <tr><td><b>Vault</b></td><td>HashiCorp's server for secrets: stores them, generates credentials on demand, performs encryption, audits every request.</td></tr>
+    <tr><td><b>Auth method</b></td><td>Verifies identity by delegating to a directory or platform: Kubernetes, LDAP, AppRole. Vault keeps no copy.</td></tr>
+    <tr><td><b>Token</b></td><td>What authentication returns. Carries policies. Has a lifetime.</td></tr>
+    <tr><td><b>Policy</b></td><td>HCL granting capabilities on paths. Deny by default. Explicit deny beats any wider grant.</td></tr>
+    <tr><td><b>Secrets engine</b></td><td>A module mounted at a path. KV stores static secrets; database issues dynamic ones; transit encrypts as a service.</td></tr>
+    <tr><td><b>Static secret</b></td><td>Human-written, versioned, no expiry. The KV engine issues no leases.</td></tr>
+    <tr><td><b>Dynamic secret</b></td><td>Generated per request, per caller. Always carries a lease.</td></tr>
+    <tr><td><b>Lease / TTL</b></td><td>Metadata with a time to live. Vault promises validity for the TTL, then auto-revokes.</td></tr>
+    <tr><td><b>Sealed / unsealed</b></td><td>Sealed: storage reachable, nothing decryptable. Unseal opens the barrier.</td></tr>
+    <tr><td><b>Root key</b></td><td>Protects the encryption key that protects the data. Itself protected by the unseal key.</td></tr>
+    <tr><td><b>Shamir shares</b></td><td>Splits of the unseal key. A threshold (e.g. 3 of 5) reconstructs it. Presented in any order.</td></tr>
+    <tr><td><b>Audit device</b></td><td>Writes the log of every request, granted or denied. Enabled before other setup.</td></tr>
+  </table>
+
+  <h2>One request</h2>
+  <table>
+    <tr><th>#</th><th>Step</th><th>What happens</th></tr>
+    <tr><td>1</td><td>Authenticate</td><td>Client proves identity to an auth method</td></tr>
+    <tr><td>2</td><td>Token</td><td>Vault issues a token carrying policies</td></tr>
+    <tr><td>3</td><td>Request</td><td>Client reads or writes a path</td></tr>
+    <tr><td>4</td><td>Audit</td><td>Every request logged, granted or denied</td></tr>
+  </table>
+
+  <h2>Policy, minimum working example</h2>
+  <pre>
+path "secret/data/payments/*" {
+  capabilities = [<b>"read"</b>]
+}
+path "secret/data/payments/admin" {
+  capabilities = [<b>"deny"</b>]
+}</pre>
+  <p class="note">Capabilities: create, read, update, delete, list, sudo, deny. Deny always wins. Policies attach at token creation; contents apply in real time.</p>
+
+  <h2>Lease lifecycle</h2>
+  <table>
+    <tr><th>Event</th><th>Result</th></tr>
+    <tr><td>Read dynamic secret</td><td>Lease issued with TTL; <code>lease_id</code> returned</td></tr>
+    <tr><td>Renew</td><td>TTL extended from the current time; backend may cap it</td></tr>
+    <tr><td>Expire</td><td>Vault revokes automatically</td></tr>
+    <tr><td>Revoke one</td><td>Invalid immediately (database account disabled at once)</td></tr>
+    <tr><td>Revoke prefix</td><td><code>vault lease revoke -prefix database/</code> — the breach answer</td></tr>
+  </table>
+
+  <h2>Seal / unseal</h2>
+  <table>
+    <tr><th>Fact</th><th>Detail</th></tr>
+    <tr><td>Key chain</td><td>encryption key → protected by root key → protected by unseal key</td></tr>
+    <tr><td>Init</td><td><code>vault operator init</code> mints shares plus one root token, once</td></tr>
+    <tr><td>Unseal</td><td>Threshold of shares, any order, any machines</td></tr>
+    <tr><td>Reseal triggers</td><td>Restart, manual seal, unrecoverable storage error</td></tr>
+    <tr><td>Auto-unseal</td><td>Delegates to HSM or cloud KMS; recovery keys replace shares</td></tr>
+    <tr><td>Classified angle</td><td>Shares split across cleared roles = two-person rule. No one unseals alone.</td></tr>
+  </table>
+
+  <h2>Vault on Kubernetes</h2>
+  <table>
+    <tr><th>Integration</th><th>Mechanism</th></tr>
+    <tr><td>Agent Injector</td><td>Webhook injects an agent; authenticates with the service account; writes secrets to a mounted file</td></tr>
+    <tr><td>Secrets Store CSI</td><td>CSI driver mounts secrets as a volume at pod start</td></tr>
+    <tr><td>Vault Secrets Operator</td><td>Controller syncs Vault secrets into native Kubernetes Secrets</td></tr>
+  </table>
+  <p class="note">Kubernetes Secret: base64 in etcd — encoding, not encryption. No lease, no per-path policy, no read audit. Vault adds all three.</p>
+
+  <h2>Vault at the boundary</h2>
+  <table>
+    <tr><th>Question</th><th>Answer</th></tr>
+    <tr><td>Does a Vault cluster span the boundary?</td><td>No. Each side runs its own.</td></tr>
+    <tr><td>Do secrets cross the CDS?</td><td>No. Artifacts cross. Secrets are fetched on their own side, by workload identity.</td></tr>
+    <tr><td>What does the low-side Vault hold?</td><td>Dev and test secrets. High-side Vault holds prod.</td></tr>
+  </table>
+
+  <h2>Controls behind the practice</h2>
+  <table>
+    <tr><th>Control (SP 800-53)</th><th>What it demands of you</th></tr>
+    <tr><td><b>AC-6</b> Least Privilege</td><td>Deny-by-default policies, per-path capabilities</td></tr>
+    <tr><td><b>IA-5</b> Authenticator Management</td><td>Dynamic credentials, TTLs, automated revocation</td></tr>
+    <tr><td><b>AU-2</b> Audit Records</td><td>Audit device logging every request, granted or denied</td></tr>
+  </table>
+
+  <h2>Interview traps</h2>
+  <table>
+    <tr><th>If you hear</th><th>The truth</th></tr>
+    <tr><td>“Vault is a password box”</td><td>It also issues short-lived credentials, encrypts as a service, and audits everything.</td></tr>
+    <tr><td>“We use the root token daily”</td><td>Root is revoked after setup. Policies do the work.</td></tr>
+    <tr><td>“KV secrets expire”</td><td>Only dynamic secrets carry leases. KV has none.</td></tr>
+    <tr><td>“Kubernetes Secrets are fine”</td><td>Base64 is encoding. No TTL, no policy, no audit.</td></tr>
+    <tr><td>“One admin holds the unseal key”</td><td>Shamir splits it. Threshold of holders. Two-person rule.</td></tr>
+  </table>
+
+  <h2>Interview one-liners</h2>
+  <div class="oneliner">Workloads authenticate by identity — service account, LDAP, AppRole — and get a token scoped by a deny-by-default policy. No shared passwords.</div>
+  <div class="oneliner">Dynamic secrets carry leases: generated on demand, valid for the TTL, revoked the moment we say so. A leak expires instead of haunting us.</div>
+  <div class="oneliner">Vault starts sealed; a threshold of Shamir shares unseals it. On the high side, no single cleared person can unseal it alone.</div>
+  <div class="oneliner">Each side of the boundary runs its own Vault. Artifacts cross the CDS; secrets never do.</div>
+
+  <p class="note"><a href="../lessons/0005-vault-secrets.html">← Lesson 0005</a> · <a href="sdlc-promotion-cheatsheet.html">SDLC promotion cheat sheet</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a> · <a href="rmf-cheatsheet.html">RMF cheat sheet</a> · <a href="../GLOSSARY.md">Glossary</a></p>
+</main>
+</body>
+</html>

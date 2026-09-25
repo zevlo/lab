@@ -24,6 +24,12 @@
   Core secure-development practices in four groups (PS, PO, PW, RV), attachable to any SDLC. Use for: SDLC promotion, pipeline gates, artifact integrity. Verified live.
 - [Tool: NIST CPRT — Cybersecurity and Privacy Reference Tool](https://csrc.nist.gov/projects/cprt/catalog)
   Interactive browser for SP 800-53 Rev. 5 control text, with exportable data. Use for: quoting control statements (CM family, SI-7) without the PDF. Verified live (catalog is a JavaScript app; fetch the abstract via the project page).
+- [Docs: HashiCorp Vault — What is Vault?](https://developer.hashicorp.com/vault/docs/what-is-vault)
+  The one-page definition: secrets, centralized well-audited access, plugin design (auth, secrets, database). Use for: every Vault-what-it-is claim. Verified live.
+- [Docs: HashiCorp Vault — Key concepts](https://developer.hashicorp.com/vault/docs/concepts) (index)
+  Concept pages that matter: [Seal/Unseal](https://developer.hashicorp.com/vault/docs/concepts/seal) (sealed state, root key, Shamir shares, threshold, auto-unseal), [Lease, Renew, Revoke](https://developer.hashicorp.com/vault/docs/concepts/lease) (TTL, auto-revoke, prefix revocation, KV issues no leases), [Policies](https://developer.hashicorp.com/vault/docs/concepts/policies) (path-based, deny by default, HCL capabilities, built-in default/root), [Authentication](https://developer.hashicorp.com/vault/docs/concepts/auth). Use for: lessons on Vault. All verified live 2026-09-24.
+- [Docs: HashiCorp Vault — Run on Kubernetes](https://developer.hashicorp.com/vault/docs/deploy/kubernetes)
+  Helm deployment modes (dev/standalone/HA/external) and the three consumption integrations (Agent Injector, Secrets Store CSI, Vault Secrets Operator) with a [comparison page](https://developer.hashicorp.com/vault/docs/deploy/kubernetes/comparisons). Use for: K8s bridging. Verified live.
 
 ## Wisdom (Communities)
 
@@ -39,5 +45,5 @@
 - DoD CIO (dodcio.defense.gov) — 403 to bots. Hosts the cATO guidance. User reaches it in a browser.
 - UCDMO (ucdmo.gov) — unreachable from this network. Cross-domain baseline content; teach CDS concepts via 800-37/800-218 instead.
 - dod-devsecops.github.io (DoD Enterprise DevSecOps Fundamentals) — 404 as of 2026-09-23. Do not cite.
-- HashiCorp Vault tutorials, Ansible docs, GitLab CI docs, VMWare docs, PowerShell docs — verify before lessons 5-8.
+- Ansible docs, GitLab CI docs, VMWare docs, PowerShell docs — verify before lessons 6-8.
 - CIS Benchmarks — verify when comparing against STIGs in the hardening lab.

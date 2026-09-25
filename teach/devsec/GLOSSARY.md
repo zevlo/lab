@@ -81,3 +81,33 @@ _Avoid_: scan format
 **oscap**:
 The tool that evaluates SCAP content against a live host.
 _Avoid_: OpenSCAP scanner (oscap is the command; OpenSCAP is the project)
+
+## SDLC promotion
+
+**Environment**:
+One copy of the system reserved for one purpose: dev, test, prod. Each sits at a classification level. Low side = unclassified networks. High side = classified networks.
+_Avoid_: stage, tier
+
+**Artifact**:
+The immutable output of one build. A container image digest or a signed package.
+_Avoid_: build, image (an image is one kind of artifact)
+
+**Promotion**:
+Moving an artifact from one environment to the next. Build once, promote everywhere. Never rebuild per environment.
+_Avoid_: deployment, release (deploy is what happens to the artifact in the target environment)
+
+**Gate**:
+A check that must pass before promotion. Tests, SAST, an oscap STIG scan, or human approval.
+_Avoid_: check (a gate is a blocking check), stage
+
+**CCB (change control board)**:
+The group that approves changes to the baseline. Control CM-3.
+_Avoid_: approval board
+
+**CDS (cross-domain solution)**:
+The accredited mechanism that moves data across a classification boundary. Guard = two-way, every byte inspected. Data diode = one-way, no return path.
+_Avoid_: VPN, bridge
+
+**cATO (continuous ATO)**:
+An ATO attached to a monitored pipeline instead of one release package.
+_Avoid_: auto-ATO (nothing is automatic; the AO still accepts risk)
