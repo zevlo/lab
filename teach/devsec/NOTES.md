@@ -12,6 +12,7 @@
 - Every claim carries a citation link. Every lesson names one primary source to read.
 - Bridge new material to the existing floor: Ansible↔Terraform, GitLab CI↔GitHub Actions, vSphere↔Proxmox, Vault↔K8s secrets.
 - Every lesson ends with a reminder to ask the agent follow-up questions.
+- Plain declarative prose. No LLM clichés: no negative parallelism ("X, not Y"), no antithesis flourishes, few em-dashes. Positive statements over contrast constructions. (2026-09-27)
 
 ## Lab inventory
 - Mac + OrbStack (containers, local k8s)
@@ -24,7 +25,7 @@
 2. STIGs — lesson 0002 ✓
 3. Linux admin + hardening lab: Rocky on Proxmox, OpenSCAP scan, fixes — lesson 0003 ✓ (field report: 257→20 failed, High 11→4, remediate kept; see learning record 0004)
 4. SDLC promotion in classified environments (dev → test → prod, cross-domain) — lesson 0004 ✓ (quiz all correct; see learning record 0005)
-5. Vault secrets management — lesson 0005 delivered (fluency-first; boundary tie-in; Vault cheat sheet reference)
+5. Vault secrets management — lesson 0005 ✓ (quiz all correct; see learning record 0006)
 6. GitLab CI in a team + DevSecOps scanning (SAST, SCA, secrets scanning)
 7. Windows administration + PowerShell
 8. VMWare/vSphere concepts (bridged from Proxmox)
@@ -34,7 +35,7 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 ## Glossary policy
 - Promote terms from cheat sheets into the glossary only after the user demonstrates understanding (post-quiz evidence).
 - SDLC promotion section added 2026-09-24 after lesson 0004 quiz evidence (environment, artifact, promotion, gate, CCB, CDS, cATO).
-- Vault terms (secret, auth method, token, policy, lease, sealed/unsealed) deferred until lesson 0005 quiz evidence returns.
+- Vault terms (secret, Vault, auth method, token, policy, static secret, dynamic secret, lease, sealed/unsealed, root key, Shamir shares, audit device) promoted 2026-09-27 after lesson 0005 quiz evidence (all correct).
 
 ## Resource notes
 - public.cyber.mil 302-redirects to www.cyber.mil. Cite cyber.mil.
@@ -49,3 +50,4 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 - 2026-09-11: Lesson 0003 (Rocky hardening lab) delivered with runbook. Awaiting lab numbers: baseline/after failures, High counts, remediate verdict. Lesson 0004 (SDLC promotion) next session.
 - 2026-09-23: Lab results arrived — 257→20 failed, High 11→4, remediate kept; learning record 0004 written, lesson 0003 closed. Lesson 0004 (SDLC promotion, fluency-only) delivered with sdlc-promotion-cheatsheet reference. Warm-up includes first interleaved RMF/STIG/lab retrieval. Glossary additions (promotion, artifact, gate, CDS, cATO) deferred until quiz evidence returns, per policy. Next: lesson 0005 (Vault).
 - 2026-09-24: Lesson 0004 evidence arrived — all quiz questions correct. Learning record 0005 written; SDLC terms promoted into GLOSSARY.md. Lesson 0005 (Vault) delivered with vault-cheatsheet reference; HashiCorp docs verified live (what-is-vault, seal, lease, policies, deploy/kubernetes) and logged in RESOURCES.md. Warm-up runs the second interleaved cycle (RMF, STIG, lab, promotion). Vault glossary terms deferred per policy. Next: lesson 0006 (GitLab CI in a team + DevSecOps scanning).
+- 2026-09-27: Lesson 0005 evidence arrived — all quiz items correct (warm-up, sequencing drill, scenarios). Learning record 0006 written; Vault terms promoted into GLOSSARY.md. Lesson 0005 and vault-cheatsheet revised to ISO 24495-1 controlled language: TTL as the single lifetime term, revoke/create replace kill/mint, base64 stated positively, clichés removed. New teaching preference logged: no negative parallelism. Next: lesson 0006 (GitLab CI in a team + DevSecOps scanning).

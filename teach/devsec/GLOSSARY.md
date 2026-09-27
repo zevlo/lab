@@ -111,3 +111,53 @@ _Avoid_: VPN, bridge
 **cATO (continuous ATO)**:
 An ATO attached to a monitored pipeline instead of one release package.
 _Avoid_: auto-ATO (nothing is automatic; the AO still accepts risk)
+
+## Vault
+
+**Secret**:
+Sensitive information an attacker needs and an application uses: password, API key, encryption key, certificate.
+_Avoid_: password, key (each names one kind of secret)
+
+**Vault**:
+HashiCorp's server for secrets. It stores secrets, generates credentials on demand, performs encryption, and audits every request.
+_Avoid_: password box, keystore
+
+**Auth method**:
+Verifies a client's identity by delegating to a directory or platform: Kubernetes, LDAP, AppRole. Vault keeps no copy.
+_Avoid_: login provider, IdP
+
+**Token**:
+What authentication returns. Carries the client's policies. Has a TTL.
+_Avoid_: session, key
+
+**Policy**:
+A grant of capabilities on paths. Deny by default; an explicit deny overrides any wider grant. Control AC-6.
+_Avoid_: permission, role
+
+**Static secret**:
+A secret a human writes and later replaces. Stored by the KV engine, with version history. No lease, no expiry.
+_Avoid_: password entry
+
+**Dynamic secret**:
+A secret Vault generates on request, for one caller, for a limited time. Always carries a lease.
+_Avoid_: temporary password
+
+**Lease**:
+Metadata attached to a dynamic secret, with a time to live (TTL). Vault guarantees the credential for the TTL, then revokes it automatically.
+_Avoid_: timer, expiry (expiry is the result; the lease is the mechanism)
+
+**Sealed / unsealed**:
+Sealed: the server can reach its storage but cannot decrypt anything in it. A threshold of Shamir shares unseals it.
+_Avoid_: locked, encrypted state
+
+**Root key**:
+The key that protects the encryption key protecting the data. Itself protected by the unseal key.
+_Avoid_: master key
+
+**Shamir shares**:
+Splits of the unseal key, created once by `vault operator init`. A threshold, for example 3 of 5, unseals. Shares are presented in any order.
+_Avoid_: key shards, pieces
+
+**Audit device**:
+Writes the log of every request, granted or denied. Enabled before other setup. Control AU-2.
+_Avoid_: log, monitor
