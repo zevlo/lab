@@ -30,6 +30,18 @@
   Concept pages that matter: [Seal/Unseal](https://developer.hashicorp.com/vault/docs/concepts/seal) (sealed state, root key, Shamir shares, threshold, auto-unseal), [Lease, Renew, Revoke](https://developer.hashicorp.com/vault/docs/concepts/lease) (TTL, auto-revoke, prefix revocation, KV issues no leases), [Policies](https://developer.hashicorp.com/vault/docs/concepts/policies) (path-based, deny by default, HCL capabilities, built-in default/root), [Authentication](https://developer.hashicorp.com/vault/docs/concepts/auth). Use for: lessons on Vault. All verified live 2026-09-24.
 - [Docs: HashiCorp Vault — Run on Kubernetes](https://developer.hashicorp.com/vault/docs/deploy/kubernetes)
   Helm deployment modes (dev/standalone/HA/external) and the three consumption integrations (Agent Injector, Secrets Store CSI, Vault Secrets Operator) with a [comparison page](https://developer.hashicorp.com/vault/docs/deploy/kubernetes/comparisons). Use for: K8s bridging. Verified live.
+- [Docs: GitLab — Application security testing](https://docs.gitlab.com/ee/user/application_security/)
+  The overview: scans run in pipelines on commit or MR, findings surface in the MR before merge; vulnerability cycle detect/triage/analyze/remediate. Use for: every scanning-workflow claim. Verified live 2026-09-27.
+- [Docs: GitLab — SAST](https://docs.gitlab.com/ee/user/application_security/sast/)
+  Source-code scanning via `include: template: Jobs/SAST.gitlab-ci.yml`, jobs in the test stage, findings in MR reports, six severity levels, FIPS-enabled analyzer images. Use for: SAST claims, scanner templates. Verified live 2026-09-27.
+- [Docs: GitLab — Dependency scanning](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/)
+  SCA against the GitLab advisory database, transitive packages included; continuous dependency scanning re-scans when advisories update, no pipeline run. Use for: SCA claims, new-CVE-on-old-build scenario. Verified live 2026-09-27.
+- [Docs: GitLab — Secret detection](https://docs.gitlab.com/ee/user/application_security/secret_detection/)
+  Push protection blocks pushes containing credentials; pipeline detection scans history; guidance to store secrets outside the repository. Use for: secrets-scanning claims, Vault tie-in. Verified live 2026-09-27.
+- [Docs: GitLab — CI/CD quick start](https://docs.gitlab.com/ee/ci/quick_start/)
+  Defines .gitlab-ci.yml, pipeline, stage (sequential; parallel jobs), runner, rules. Use for: the GitHub Actions mapping table. Verified live 2026-09-27.
+- [Docs: GitLab — Merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
+  Required approvals block merging; failed pipeline blocks merging; prevent-author-approval setting; CODEOWNERS as reviewer source. Use for: team-mechanics claims, CM-5 tie-in. Verified live 2026-09-27.
 
 ## Wisdom (Communities)
 
@@ -45,5 +57,6 @@
 - DoD CIO (dodcio.defense.gov) — 403 to bots. Hosts the cATO guidance. User reaches it in a browser.
 - UCDMO (ucdmo.gov) — unreachable from this network. Cross-domain baseline content; teach CDS concepts via 800-37/800-218 instead.
 - dod-devsecops.github.io (DoD Enterprise DevSecOps Fundamentals) — 404 as of 2026-09-23. Do not cite.
-- Ansible docs, GitLab CI docs, VMWare docs, PowerShell docs — verify before lessons 6-8.
+- GitLab protected branches page — 403 to bots. Team-mechanics claims taught via the verified approvals page instead.
+- Ansible docs, VMWare docs, PowerShell docs — verify before lessons 7-8.
 - CIS Benchmarks — verify when comparing against STIGs in the hardening lab.
