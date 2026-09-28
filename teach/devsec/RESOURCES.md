@@ -42,6 +42,14 @@
   Defines .gitlab-ci.yml, pipeline, stage (sequential; parallel jobs), runner, rules. Use for: the GitHub Actions mapping table. Verified live 2026-09-27.
 - [Docs: GitLab — Merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
   Required approvals block merging; failed pipeline blocks merging; prevent-author-approval setting; CODEOWNERS as reviewer source. Use for: team-mechanics claims, CM-5 tie-in. Verified live 2026-09-27.
+- [Docs: Microsoft Learn — What is PowerShell?](https://learn.microsoft.com/powershell/scripting/overview)
+  The definition (shell + scripting language + configuration management framework) and the object pipeline ("no need to parse text output"). DSC enforces settings and reports drift. Use for: every PowerShell-what-it-is claim. Verified live 2026-09-28.
+- [Docs: Microsoft Learn — about_Execution_Policies](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies)
+  "The execution policy isn't a security boundary, it's defense in depth"; prevents unintentional violations; GPO "Turn on Script Execution" sets it enterprise-wide. Use for: execution-policy claims and traps. Verified live 2026-09-28.
+- [Docs: Microsoft Learn — about_Logging_Windows](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_logging_windows)
+  Module logging and script block logging; Event ID 4104 in the Operational channel; enable via GPO "Turn on PowerShell Script Block Logging"; Protected Event Logging (CMS encryption). Use for: PowerShell audit-trail claims. Verified live 2026-09-28.
+- [Docs: Microsoft Learn — AD DS overview](https://learn.microsoft.com/windows-server/identity/ad-ds/ad-ds-getting-started)
+  The directory storing user and computer accounts; one logon network-wide; policy-based administration. Use for: domain, domain-join, GPO-delivery framing. Verified live 2026-09-28 (canonical URL redirects here).
 
 ## Wisdom (Communities)
 
@@ -58,5 +66,5 @@
 - UCDMO (ucdmo.gov) — unreachable from this network. Cross-domain baseline content; teach CDS concepts via 800-37/800-218 instead.
 - dod-devsecops.github.io (DoD Enterprise DevSecOps Fundamentals) — 404 as of 2026-09-23. Do not cite.
 - GitLab protected branches page — 403 to bots. Team-mechanics claims taught via the verified approvals page instead.
-- Ansible docs, VMWare docs, PowerShell docs — verify before lessons 7-8.
+- Ansible docs, VMWare docs — verify before lesson 8.
 - CIS Benchmarks — verify when comparing against STIGs in the hardening lab.

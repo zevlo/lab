@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows and PowerShell Cheat Sheet — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.6rem 0;}
+  th,td{border:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .note{font-size:.88rem;color:#555;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);font-size:.95rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} table,pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>Windows and PowerShell Cheat Sheet</h1>
+  <p class="note">Companion to <a href="../lessons/0007-windows-powershell.html">Lesson 0007</a>. Sources: <a href="https://learn.microsoft.com/powershell/scripting/overview">What is PowerShell?</a>, <a href="https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_execution_policies">about_Execution_Policies</a>, <a href="https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_logging_windows">about_Logging_Windows</a>, <a href="https://learn.microsoft.com/windows-server/identity/ad-ds/ad-ds-getting-started">AD DS overview</a>, <a href="https://cyber.mil/stigs/">DISA STIG library</a>. Control text: <a href="https://csrc.nist.gov/projects/cprt/catalog">SP 800-53 via CPRT</a>.</p>
+
+  <h2>What is what</h2>
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td><b>PowerShell</b></td><td>A command-line shell, a scripting language, and a configuration management framework. Cross-platform.</td></tr>
+    <tr><td><b>Cmdlet</b></td><td>One PowerShell command, named Verb-Noun. Get-Service, Set-ItemProperty.</td></tr>
+    <tr><td><b>Pipeline</b></td><td>Chains commands and carries .NET objects. Text parsing has no job.</td></tr>
+    <tr><td><b>Elevation</b></td><td>Running a shell as Administrator. The sudo shape.</td></tr>
+    <tr><td><b>AD DS</b></td><td>Active Directory Domain Services. The directory storing user and computer accounts; one logon works network-wide.</td></tr>
+    <tr><td><b>Domain join</b></td><td>Registers a computer account in the domain. Identity flows from AD DS after that.</td></tr>
+    <tr><td><b>GPO</b></td><td>Group Policy Object. A declared set of Windows settings, stored in the domain, pushed to member computers.</td></tr>
+    <tr><td><b>gpupdate</b></td><td>Forces a policy refresh on demand.</td></tr>
+    <tr><td><b>DSC</b></td><td>Desired State Configuration. Configuration as code: enforces settings, reports drift.</td></tr>
+    <tr><td><b>Event Log</b></td><td>Windows logging sink. Read with Get-WinEvent.</td></tr>
+    <tr><td><b>Module logging</b></td><td>Records pipeline execution for named modules.</td></tr>
+    <tr><td><b>Script block logging</b></td><td>Records script block content as processed. Event ID 4104, Operational channel. Enabled by GPO.</td></tr>
+    <tr><td><b>Protected Event Logging</b></td><td>Encrypts sensitive log content with a public key; decrypted at the central collector.</td></tr>
+    <tr><td><b>Execution policy</b></td><td>Gates which scripts run. Defense in depth: prevents accidents, and a user can bypass it. Settable by GPO.</td></tr>
+    <tr><td><b>Allowlisting</b></td><td>Application control (CM-7). Decides what code runs at all. Strongest, heaviest to operate.</td></tr>
+    <tr><td><b>SCC</b></td><td>DISA's SCAP Compliance Checker. Evaluates Windows STIG content; the oscap role on Windows.</td></tr>
+  </table>
+
+  <h2>Bash map</h2>
+  <table>
+    <tr><th>Bash</th><th>PowerShell</th></tr>
+    <tr><td><code>man</code></td><td><code>Get-Help</code></td></tr>
+    <tr><td><code>ls</code></td><td><code>Get-ChildItem</code></td></tr>
+    <tr><td><code>systemctl status</code></td><td><code>Get-Service</code></td></tr>
+    <tr><td><code>journalctl</code></td><td><code>Get-WinEvent</code></td></tr>
+    <tr><td><code>grep</code> / <code>awk</code></td><td><code>Where-Object</code> / <code>Select-Object</code></td></tr>
+    <tr><td><code>~/.bashrc</code></td><td><code>$PROFILE</code></td></tr>
+    <tr><td><code>sudo</code></td><td>Run as Administrator</td></tr>
+    <tr><td><code>dnf install</code></td><td><code>winget</code> / <code>Install-Module</code></td></tr>
+  </table>
+
+  <h2>Working commands</h2>
+  <pre>
+Get-Service | <b>Where-Object</b> Status -eq 'Running' | <b>Select-Object</b> Name
+Get-WinEvent -LogName 'Windows PowerShell' -MaxEvents 10
+Get-ExecutionPolicy -List
+Get-Help Get-Service -Examples</pre>
+
+  <h2>The hardening loop</h2>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Why there</th></tr>
+    <tr><td>1</td><td>Join the domain</td><td>Computer account in AD DS; identity flows from the domain</td></tr>
+    <tr><td>2</td><td>Place in the hardened OU</td><td>GPOs link to containers; membership decides policy</td></tr>
+    <tr><td>3</td><td>Link the STIG GPOs</td><td>The baseline: password rules, Defender, logging, allowlisting</td></tr>
+    <tr><td>4</td><td>Force policy refresh</td><td>gpupdate applies now</td></tr>
+    <tr><td>5</td><td>Confirm 4104 logging</td><td>Prove the settings landed</td></tr>
+    <tr><td>6</td><td>Run the SCAP scan</td><td>SCC evaluates the Windows STIG content</td></tr>
+    <tr><td>7</td><td>Triage findings</td><td>Fix, or POA&M entry</td></tr>
+    <tr><td>8</td><td>File the evidence</td><td>Results feed the SAR package in eMASS</td></tr>
+  </table>
+
+  <h2>Controls behind the practice</h2>
+  <table>
+    <tr><th>Control (SP 800-53)</th><th>What it demands of you</th></tr>
+    <tr><td><b>CM-6</b> Configuration Settings</td><td>STIG baseline delivered by GPO, verified by scan</td></tr>
+    <tr><td><b>CM-7</b> Least Functionality</td><td>Allowlisting; only approved code runs</td></tr>
+    <tr><td><b>AU-2</b> Audit Records</td><td>Module logging, script block logging, protected event logging</td></tr>
+  </table>
+
+  <h2>Interview traps</h2>
+  <table>
+    <tr><th>If you hear</th><th>The truth</th></tr>
+    <tr><td>“Execution policy stops malware”</td><td>It is defense in depth; a user bypasses it easily. It prevents accidents.</td></tr>
+    <tr><td>“PowerShell pipes text”</td><td>The pipeline carries .NET objects. No parsing needed.</td></tr>
+    <tr><td>“4104 is a logon event”</td><td>4104 is script block logging. 4624 is a logon.</td></tr>
+    <tr><td>“We harden Windows by hand”</td><td>GPO carries the baseline domain-wide. Hand edits drift.</td></tr>
+    <tr><td>“PowerShell 7 replaces 5.1”</td><td>7 installs beside the built-in 5.1. Know which one runs your script.</td></tr>
+  </table>
+
+  <h2>Interview one-liners</h2>
+  <div class="oneliner">PowerShell is a shell, a scripting language, and a configuration framework, and its pipeline carries objects end to end.</div>
+  <div class="oneliner">AD DS holds the identities; GPO carries the settings; one logon works network-wide.</div>
+  <div class="oneliner">Script block logging writes Event 4104. The audit trail sees the script content, interactive or automated.</div>
+  <div class="oneliner">Execution policy prevents accidents. Allowlisting and logging carry the real defense.</div>
+
+  <p class="note"><a href="../lessons/0007-windows-powershell.html">← Lesson 0007</a> · <a href="gitlab-ci-cheatsheet.html">GitLab CI cheat sheet</a> · <a href="vault-cheatsheet.html">Vault cheat sheet</a> · <a href="sdlc-promotion-cheatsheet.html">SDLC promotion cheat sheet</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a> · <a href="rmf-cheatsheet.html">RMF cheat sheet</a> · <a href="../GLOSSARY.md">Glossary</a></p>
+</main>
+</body>
+</html>
