@@ -26,7 +26,7 @@
 3. Linux admin + hardening lab: Rocky on Proxmox, OpenSCAP scan, fixes — lesson 0003 ✓ (field report: 257→20 failed, High 11→4, remediate kept; see learning record 0004)
 4. SDLC promotion in classified environments (dev → test → prod, cross-domain) — lesson 0004 ✓ (quiz all correct; see learning record 0005)
 5. Vault secrets management — lesson 0005 ✓ (quiz all correct; see learning record 0006)
-6. GitLab CI in a team + DevSecOps scanning (SAST, SCA, secrets scanning) — lesson 0006 delivered (GHA bridge; MR gates; gitlab-ci-cheatsheet reference)
+6. GitLab CI in a team + DevSecOps scanning (SAST, SCA, secrets scanning) — lesson 0006 ✓ (quiz all correct; see learning record 0007)
 7. Windows administration + PowerShell
 8. VMWare/vSphere concepts (bridged from Proxmox)
 
@@ -36,7 +36,7 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 - Promote terms from cheat sheets into the glossary only after the user demonstrates understanding (post-quiz evidence).
 - SDLC promotion section added 2026-09-24 after lesson 0004 quiz evidence (environment, artifact, promotion, gate, CCB, CDS, cATO).
 - Vault terms (secret, Vault, auth method, token, policy, static secret, dynamic secret, lease, sealed/unsealed, root key, Shamir shares, audit device) promoted 2026-09-27 after lesson 0005 quiz evidence (all correct).
-- GitLab terms (merge request, pipeline, stage, job, runner, rules, include, CI/CD variable, approval rule, SAST, dependency scanning, secret detection, push protection, DAST, container scanning, CVSS) deferred until lesson 0006 quiz evidence returns.
+- GitLab terms (merge request, pipeline, stage, job, runner, rules, include, CI/CD variable, approval rule, SAST, dependency scanning, secret detection, push protection, DAST, container scanning, CVSS) promoted 2026-09-28 after lesson 0006 quiz evidence (all correct).
 
 ## Resource notes
 - public.cyber.mil 302-redirects to www.cyber.mil. Cite cyber.mil.
@@ -53,3 +53,4 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 - 2026-09-24: Lesson 0004 evidence arrived — all quiz questions correct. Learning record 0005 written; SDLC terms promoted into GLOSSARY.md. Lesson 0005 (Vault) delivered with vault-cheatsheet reference; HashiCorp docs verified live (what-is-vault, seal, lease, policies, deploy/kubernetes) and logged in RESOURCES.md. Warm-up runs the second interleaved cycle (RMF, STIG, lab, promotion). Vault glossary terms deferred per policy. Next: lesson 0006 (GitLab CI in a team + DevSecOps scanning).
 - 2026-09-27: Lesson 0005 evidence arrived — all quiz items correct (warm-up, sequencing drill, scenarios). Learning record 0006 written; Vault terms promoted into GLOSSARY.md. Lesson 0005 and vault-cheatsheet revised to ISO 24495-1 controlled language: TTL as the single lifetime term, revoke/create replace kill/mint, base64 stated positively, clichés removed. New teaching preference logged: no negative parallelism. Next: lesson 0006 (GitLab CI in a team + DevSecOps scanning).
 - 2026-09-27: Lesson 0006 (GitLab CI in a team + DevSecOps scanning) delivered with gitlab-ci-cheatsheet reference; written to the new plain-language standard. GitLab docs verified live (application security, SAST, dependency scanning, secret detection, CI quick start, MR approvals) and logged in RESOURCES.md; protected branches page is bot-blocked, logged as a gap. Warm-up runs the third interleaved cycle (RMF, STIGs, lab, promotion, Vault). GitLab terms deferred per policy. Next: lesson 0007 (Windows administration + PowerShell).
+- 2026-09-28: Lesson 0006 evidence arrived — all quiz items correct (warm-up, sequencing drill, scenarios). Learning record 0007 written; GitLab terms promoted into GLOSSARY.md. Third interleaved cycle held across all five prior lessons. Next: lesson 0007 (Windows administration + PowerShell); verify Microsoft Learn / PowerShell docs before delivery per RESOURCES.md.

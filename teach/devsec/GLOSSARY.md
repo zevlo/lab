@@ -161,3 +161,69 @@ _Avoid_: key shards, pieces
 **Audit device**:
 Writes the log of every request, granted or denied. Enabled before other setup. Control AU-2.
 _Avoid_: log, monitor
+
+## GitLab CI
+
+**Merge request (MR)**:
+One proposed change: a branch, a review, a pipeline, and approvals, in one place.
+_Avoid_: pull request (GitHub's name for the same shape)
+
+**Pipeline**:
+One triggered run of the CI configuration, on push or MR.
+_Avoid_: workflow run (GitHub Actions' name), build
+
+**Stage**:
+A group of jobs. Stages run in order; jobs in one stage run in parallel.
+_Avoid_: phase
+
+**Job**:
+One script unit. Belongs to a stage.
+_Avoid_: step (a step lives inside a GitHub Actions job)
+
+**Runner**:
+The agent that executes jobs.
+_Avoid_: executor, agent
+
+**rules**:
+The keyword deciding when a job runs.
+_Avoid_: on (GitHub Actions' keyword)
+
+**include**:
+Pulls shared configuration, including GitLab scanner templates.
+_Avoid_: import
+
+**CI/CD variable**:
+A value injected into jobs. Masked, protected.
+_Avoid_: environment variable, secret (a Vault secret is a stored credential; a variable is pipeline plumbing)
+
+**Approval rule**:
+Required reviewers, by count, role, or CODEOWNERS. Without them, merging is impossible.
+_Avoid_: review setting
+
+**SAST (static application security testing)**:
+Scans your source code for insecure patterns.
+_Avoid_: linting (linting checks style; SAST checks security)
+
+**Dependency scanning**:
+The SCA class. Scans the dependency list for known CVEs, transitive packages included.
+_Avoid_: SAST, supply chain scanning
+
+**Secret detection**:
+Scans repository content and history for committed credentials.
+_Avoid_: push protection (protection blocks; detection reports)
+
+**Secret push protection**:
+Blocks a push that contains a credential.
+_Avoid_: secret detection
+
+**DAST (dynamic application security testing)**:
+Probes the running application from outside.
+_Avoid_: pen test
+
+**Container scanning**:
+Scans a built image for vulnerable packages.
+_Avoid_: registry check
+
+**CVSS (Common Vulnerability Scoring System)**:
+The industry severity score. Scanner severities: Critical, High, Medium, Low, Info, Unknown. STIG severity stops at High.
+_Avoid_: STIG severity (a different scale)
