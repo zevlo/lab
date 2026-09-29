@@ -50,6 +50,10 @@
   Module logging and script block logging; Event ID 4104 in the Operational channel; enable via GPO "Turn on PowerShell Script Block Logging"; Protected Event Logging (CMS encryption). Use for: PowerShell audit-trail claims. Verified live 2026-09-28.
 - [Docs: Microsoft Learn — AD DS overview](https://learn.microsoft.com/windows-server/identity/ad-ds/ad-ds-getting-started)
   The directory storing user and computer accounts; one logon network-wide; policy-based administration. Use for: domain, domain-join, GPO-delivery framing. Verified live 2026-09-28 (canonical URL redirects here).
+- [Reference: Wikipedia — VMware vSphere](https://en.wikipedia.org/wiki/VMware_vSphere)
+  Convenience source: vSphere as VMware's virtualization platform; ESXi as the hypervisor component; vCenter as centralized management. Use for: lesson 0008 definitions until Broadcom docs are reachable. Verified live 2026-09-29.
+- [Reference: Wikipedia — vCenter](https://en.wikipedia.org/wiki/VCenter)
+  Convenience source: VCSA definition (manages VMs, multiple ESXi hosts, dependent components from one location); vMotion memory-transfer mechanics (USENIX-cited); Storage vMotion mirroring. Use for: lesson 0008 vMotion claims. Verified live 2026-09-29.
 
 ## Wisdom (Communities)
 
@@ -66,5 +70,7 @@
 - UCDMO (ucdmo.gov) — unreachable from this network. Cross-domain baseline content; teach CDS concepts via 800-37/800-218 instead.
 - dod-devsecops.github.io (DoD Enterprise DevSecOps Fundamentals) — 404 as of 2026-09-23. Do not cite.
 - GitLab protected branches page — 403 to bots. Team-mechanics claims taught via the verified approvals page instead.
-- Ansible docs, VMWare docs — verify before lesson 8.
+- Broadcom / VMware docs (techdocs.broadcom.com, broadcom.com, vmware.com) — product pages JS-walled or 404 to bots; user reaches them in a browser. Verify DRS/HA/lockdown behavioral details there before citing.
+- cyber.mil/stigs — transient transport error on 2026-09-29 re-check; verified live 2026-09-11 and stable since. Retry before next citation.
+- Ansible docs — verify if a lesson is ever requested.
 - CIS Benchmarks — verify when comparing against STIGs in the hardening lab.

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VMware vSphere Cheat Sheet — DevSec Engineering</title>
+<style>
+  :root{--paper:#fffdf7;--ink:#1c1b17;--rule:#d8d2c2;--accent:#7a2e2e;--soft:#f4efe3;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font:1rem/1.55 Georgia,'Iowan Old Style','Times New Roman',serif;}
+  main{max-width:52rem;margin:0 auto;padding:2.5rem 1.4rem 3rem;}
+  .kicker{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin:0 0 .3rem;}
+  h1{font-size:1.7rem;margin:0 0 1rem;font-weight:normal;}
+  h2{font-size:1.1rem;margin:1.8rem 0 .5rem;font-weight:normal;border-bottom:1px solid var(--rule);padding-bottom:.25rem;}
+  table{border-collapse:collapse;width:100%;font-size:.86rem;margin:.6rem 0;}
+  th,td{border:1px solid var(--rule);padding:.35rem .5rem;text-align:left;vertical-align:top;}
+  th{background:var(--soft);font-weight:normal;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid #c9a0a0;}
+  code,pre{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.88em;}
+  code{background:var(--soft);padding:.08em .35em;}
+  pre{background:#26241f;color:#f1ecdd;padding:.9rem 1rem;overflow-x:auto;line-height:1.5;}
+  pre b{color:#e8b04b;font-weight:normal;}
+  .note{font-size:.88rem;color:#555;}
+  .oneliner{margin:.5rem 0;padding:.5rem .9rem;background:var(--soft);font-size:.95rem;}
+  @media print{body{background:#fff;font-size:9.5pt;} main{max-width:none;padding:0;} h2{break-after:avoid;} table,pre{break-inside:avoid;}}
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DevSec Engineering · Reference</p>
+  <h1>VMware vSphere Cheat Sheet</h1>
+  <p class="note">Companion to <a href="../lessons/0008-vmware-vsphere.html">Lesson 0008</a>. Definition sources: <a href="https://en.wikipedia.org/wiki/VMware_vSphere">Wikipedia: VMware vSphere</a>, <a href="https://en.wikipedia.org/wiki/VCenter">Wikipedia: vCenter</a> (convenience; Broadcom docs are bot-walled, browse <a href="https://techdocs.broadcom.com/">techdocs.broadcom.com</a> for the authoritative text). STIG layers: <a href="https://cyber.mil/stigs/">cyber.mil/stigs</a>.</p>
+
+  <h2>What is what</h2>
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td><b>vSphere</b></td><td>VMware's virtualization platform. The suite name.</td></tr>
+    <tr><td><b>ESXi</b></td><td>The bare-metal hypervisor, one per physical host.</td></tr>
+    <tr><td><b>vCenter (VCSA)</b></td><td>The centralized management utility: VMs, multiple ESXi hosts, all dependent components, one location.</td></tr>
+    <tr><td><b>Cluster</b></td><td>A group of ESXi hosts sharing features: HA, DRS, shared storage.</td></tr>
+    <tr><td><b>vMotion</b></td><td>Moves a running VM between hosts. Memory streams, changed blocks re-send, a final brief freeze switches over. Needs vCenter.</td></tr>
+    <tr><td><b>Storage vMotion</b></td><td>Moves virtual disks between datastores, live, mirroring in sync until cutover.</td></tr>
+    <tr><td><b>HA</b></td><td>High Availability. Restarts VMs on surviving hosts after a host fails. Reaction.</td></tr>
+    <tr><td><b>DRS</b></td><td>Distributed Resource Scheduler. Rebalances load by scheduling vMotion. Prevention. No built-in Proxmox twin.</td></tr>
+    <tr><td><b>Datastore</b></td><td>The storage layer hosts share: VMFS on a SAN or NFS from a filer.</td></tr>
+    <tr><td><b>Template</b></td><td>A VM frozen into a golden image. Clones start from it.</td></tr>
+    <tr><td><b>Lockdown mode</b></td><td>Closes direct host management. vCenter becomes the single door.</td></tr>
+    <tr><td><b>OVF / OVA</b></td><td>The packaging format for exporting a VM and its configuration.</td></tr>
+  </table>
+
+  <h2>Proxmox map</h2>
+  <table>
+    <tr><th>Proxmox VE</th><th>vSphere</th></tr>
+    <tr><td>PVE node</td><td>ESXi host</td></tr>
+    <tr><td>Node web UI, clustered</td><td>vCenter</td></tr>
+    <tr><td>Cluster via corosync</td><td>Cluster</td></tr>
+    <tr><td>Live migration</td><td>vMotion</td></tr>
+    <tr><td>Disk move</td><td>Storage vMotion</td></tr>
+    <tr><td>ZFS / LVM storage</td><td>Datastore</td></tr>
+    <tr><td>Clone / template</td><td>Template</td></tr>
+    <tr><td>Linux bridge</td><td>Standard / distributed switch</td></tr>
+  </table>
+
+  <h2>The stand-up order</h2>
+  <table>
+    <tr><th>#</th><th>Step</th><th>Why there</th></tr>
+    <tr><td>1</td><td>Install ESXi on the hosts</td><td>The hypervisor layer comes first</td></tr>
+    <tr><td>2</td><td>Deploy the vCenter appliance</td><td>Management plane before inventory</td></tr>
+    <tr><td>3</td><td>Create the cluster</td><td>The container features attach to</td></tr>
+    <tr><td>4</td><td>Add the hosts to vCenter</td><td>One pane, every host</td></tr>
+    <tr><td>5</td><td>Attach the shared datastore</td><td>Shared storage makes vMotion fast</td></tr>
+    <tr><td>6</td><td>Enable HA and DRS</td><td>Reaction and prevention</td></tr>
+    <tr><td>7</td><td>Enable lockdown mode</td><td>One door: host management via vCenter only</td></tr>
+    <tr><td>8</td><td>Scan against the vSphere STIG</td><td>Host, vCenter, VM layers; evidence filed</td></tr>
+  </table>
+
+  <h2>STIG layers</h2>
+  <table>
+    <tr><th>Layer</th><th>STIG covers</th><th>Lesson tie</th></tr>
+    <tr><td>ESXi host</td><td>Hypervisor settings, services, network</td><td>0002/0003: rules, findings, POA&amp;M</td></tr>
+    <tr><td>vCenter</td><td>Roles, management network, lockdown mode</td><td>0007: central policy delivery</td></tr>
+    <tr><td>Virtual machines</td><td>Guest settings, tools, per-VM controls</td><td>0007: GPO carries the baseline inside</td></tr>
+  </table>
+
+  <h2>Templates as artifacts</h2>
+  <table>
+    <tr><th>Rule</th><th>Practice</th></tr>
+    <tr><td>Build once</td><td>Harden the golden image against the VM STIG, once</td></tr>
+    <tr><td>Promote everywhere</td><td>Clone into each environment; a rebuild per environment breaks the proof</td></tr>
+    <tr><td>Verify</td><td>OVF/OVA export with checksum, verified before first boot (SI-7)</td></tr>
+  </table>
+
+  <h2>Interview traps</h2>
+  <table>
+    <tr><th>If you hear</th><th>The truth</th></tr>
+    <tr><td>“vSphere and ESXi are the same thing”</td><td>vSphere is the suite; ESXi is the hypervisor; vCenter is the management plane.</td></tr>
+    <tr><td>“HA and DRS do the same job”</td><td>HA reacts to failure. DRS rebalances before it.</td></tr>
+    <tr><td>“vMotion moves storage”</td><td>vMotion moves a running VM between hosts. Storage vMotion moves disks.</td></tr>
+    <tr><td>“We hand-build each prod VM”</td><td>Clones come from one hardened template. Build once.</td></tr>
+    <tr><td>“Proxmox has no equivalent”</td><td>Live migration maps to vMotion. DRS is the honest exception.</td></tr>
+  </table>
+
+  <h2>Interview one-liners</h2>
+  <div class="oneliner">vSphere is the suite: ESXi is the hypervisor on each host, vCenter is the management plane above them.</div>
+  <div class="oneliner">vMotion moves a running VM between hosts; Storage vMotion moves its disks between datastores. Both need vCenter.</div>
+  <div class="oneliner">HA restarts VMs after a host fails. DRS rebalances load before anything starves. Reaction and prevention.</div>
+  <div class="oneliner">A template is an artifact: hardened once, cloned everywhere, checksum verified at promotion. Build once, applied to VMs.</div>
+
+  <p class="note"><a href="../lessons/0008-vmware-vsphere.html">← Lesson 0008</a> · <a href="windows-powershell-cheatsheet.html">Windows and PowerShell cheat sheet</a> · <a href="gitlab-ci-cheatsheet.html">GitLab CI cheat sheet</a> · <a href="vault-cheatsheet.html">Vault cheat sheet</a> · <a href="sdlc-promotion-cheatsheet.html">SDLC promotion cheat sheet</a> · <a href="stig-cheatsheet.html">STIG cheat sheet</a> · <a href="rmf-cheatsheet.html">RMF cheat sheet</a> · <a href="../GLOSSARY.md">Glossary</a></p>
+</main>
+</body>
+</html>
