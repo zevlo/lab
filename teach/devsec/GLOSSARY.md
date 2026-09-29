@@ -227,3 +227,53 @@ _Avoid_: registry check
 **CVSS (Common Vulnerability Scoring System)**:
 The industry severity score. Scanner severities: Critical, High, Medium, Low, Info, Unknown. STIG severity stops at High.
 _Avoid_: STIG severity (a different scale)
+
+## Windows and PowerShell
+
+**Cmdlet**:
+One PowerShell command, named Verb-Noun. The verb says the action; the noun says the target.
+_Avoid_: command, alias
+
+**Pipeline**:
+Chains PowerShell commands and carries .NET objects end to end.
+_Avoid_: text stream (Bash pipes text; this pipeline carries objects)
+
+**Elevation**:
+Running a shell or process as Administrator.
+_Avoid_: sudo (sudo is the Linux word)
+
+**AD DS (Active Directory Domain Services)**:
+The directory for a Windows network. Stores user and computer accounts; one logon works network-wide.
+_Avoid_: the domain (the domain is the network AD DS serves), LDAP (a protocol it speaks)
+
+**Domain join**:
+Registers a computer account in AD DS. Identity flows from the domain after that.
+_Avoid_: enrollment
+
+**GPO (Group Policy Object)**:
+A declared set of Windows settings, stored in the domain, pushed to member computers.
+_Avoid_: policy (a Vault policy grants paths; a GPO carries settings)
+
+**DSC (Desired State Configuration)**:
+Configuration as code in PowerShell. Enforces settings and reports drift.
+_Avoid_: Terraform (same shape, different domain)
+
+**Script block logging**:
+Records script block content as PowerShell processes it. Event ID 4104, Operational channel.
+_Avoid_: module logging
+
+**Module logging**:
+Records pipeline execution events for named modules.
+_Avoid_: script block logging
+
+**Protected Event Logging**:
+Encrypts sensitive log content with a public key; decrypted only at the central collector.
+_Avoid_: log encryption (the generic act; this is the feature)
+
+**Execution policy**:
+Gates which scripts run. Defense in depth: prevents accidents, and a user can bypass it.
+_Avoid_: security boundary (Microsoft's own wording rules this out)
+
+**Allowlisting**:
+Application control, CM-7. Decides what code runs at all.
+_Avoid_: blocklist, antivirus
