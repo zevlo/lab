@@ -28,7 +28,7 @@
 5. Vault secrets management — lesson 0005 ✓ (quiz all correct; see learning record 0006)
 6. GitLab CI in a team + DevSecOps scanning (SAST, SCA, secrets scanning) — lesson 0006 ✓ (quiz all correct; see learning record 0007)
 7. Windows administration + PowerShell — lesson 0007 ✓ (quiz all correct; see learning record 0008)
-8. VMWare/vSphere concepts (bridged from Proxmox) — lesson 0008 delivered (Proxmox bridge; STIG layers; templates-as-artifacts; vmware-vsphere-cheatsheet reference)
+8. VMWare/vSphere concepts (bridged from Proxmox) — lesson 0008 ✓ (quiz all correct; see learning record 0009). CURRICULUM COMPLETE.
 
 After interviews: begin spaced, interleaved review quizzes across all lessons.
 
@@ -38,7 +38,7 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 - Vault terms (secret, Vault, auth method, token, policy, static secret, dynamic secret, lease, sealed/unsealed, root key, Shamir shares, audit device) promoted 2026-09-27 after lesson 0005 quiz evidence (all correct).
 - GitLab terms (merge request, pipeline, stage, job, runner, rules, include, CI/CD variable, approval rule, SAST, dependency scanning, secret detection, push protection, DAST, container scanning, CVSS) promoted 2026-09-28 after lesson 0006 quiz evidence (all correct).
 - Windows terms (cmdlet, pipeline, elevation, AD DS, domain join, GPO, DSC, script block logging, protected event logging, execution policy, allowlisting) promoted 2026-09-29 after lesson 0007 quiz evidence (all correct).
-- VMware terms (vSphere, ESXi, vCenter, cluster, vMotion, Storage vMotion, HA, DRS, datastore, template, lockdown mode, OVF/OVA) deferred until lesson 0008 quiz evidence returns.
+- VMware terms (vSphere, ESXi, vCenter, cluster, vMotion, Storage vMotion, HA, DRS, datastore, template, lockdown mode, OVF/OVA) promoted 2026-09-30 after lesson 0008 quiz evidence (all correct).
 
 ## Resource notes
 - public.cyber.mil 302-redirects to www.cyber.mil. Cite cyber.mil.
@@ -59,3 +59,4 @@ After interviews: begin spaced, interleaved review quizzes across all lessons.
 - 2026-09-28: Lesson 0007 (Windows administration + PowerShell) delivered with windows-powershell-cheatsheet reference. Microsoft Learn verified live (PowerShell overview, about_Execution_Policies, about_Logging_Windows, AD DS overview) and logged in RESOURCES.md. Warm-up runs the fourth interleaved cycle. Windows terms deferred per policy. Next: lesson 0008 (VMware vSphere concepts, bridged from Proxmox); verify VMWare docs first per RESOURCES.md.
 - 2026-09-29: Lesson 0007 evidence arrived — all quiz items correct. Learning record 0008 written; Windows terms promoted into GLOSSARY.md. Fourth interleaved cycle held. One item remains: lesson 0008 (VMware vSphere concepts, bridged from Proxmox); verify Broadcom/VMware docs first per RESOURCES.md.
 - 2026-09-29: Lesson 0008 (VMware vSphere concepts) delivered with vmware-vsphere-cheatsheet reference; final curriculum item. Broadcom product/docs pages are bot-walled; Wikipedia vSphere and vCenter pages verified live and logged as convenience sources, DRS/HA/lockdown details flagged for browser verification in RESOURCES gaps. Warm-up runs the fifth interleaved cycle. VMware terms deferred per policy. After quiz evidence: curriculum closed; switch to spaced review across all lessons per MISSION timeline.
+- 2026-09-30: Lesson 0008 evidence arrived — all quiz items correct. Learning record 0009 written; VMware terms promoted into GLOSSARY.md. Fifth interleaved cycle held. CURRICULUM CLOSED: all eight items demonstrated at fluency level. Next phase per MISSION: spaced, interleaved review quizzes across all lessons; no new lessons scheduled. Before interviews: browser-verify DRS/HA/lockdown details on techdocs.broadcom.com (RESOURCES gap).

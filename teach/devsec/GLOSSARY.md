@@ -277,3 +277,53 @@ _Avoid_: security boundary (Microsoft's own wording rules this out)
 **Allowlisting**:
 Application control, CM-7. Decides what code runs at all.
 _Avoid_: blocklist, antivirus
+
+## VMware vSphere
+
+**vSphere**:
+VMware's virtualization platform. The suite name.
+_Avoid_: ESXi (the hypervisor is one part), VMware (the company)
+
+**ESXi**:
+The bare-metal hypervisor, installed one per physical host.
+_Avoid_: vSphere, the host (the host is the server ESXi runs on)
+
+**vCenter (VCSA)**:
+The centralized management utility. Manages VMs, multiple ESXi hosts, and dependent components from one location.
+_Avoid_: vSphere, the cluster (vCenter manages clusters; it is one)
+
+**Cluster**:
+A group of ESXi hosts sharing features: HA, DRS, shared storage.
+_Avoid_: datacenter (a vCenter container above clusters)
+
+**vMotion**:
+Moves a running VM between hosts. Memory streams, changed blocks re-send, a final brief freeze switches over. Requires vCenter.
+_Avoid_: live migration (the Proxmox name; vMotion is the vSphere word)
+
+**Storage vMotion**:
+Moves virtual disks between datastores, live, mirroring in sync until cutover.
+_Avoid_: vMotion (that moves the running VM)
+
+**HA (High Availability)**:
+Restarts VMs on surviving hosts after a host fails. Reaction.
+_Avoid_: DRS (balancing, prevention)
+
+**DRS (Distributed Resource Scheduler)**:
+Rebalances load by scheduling vMotion moves. Prevention. No built-in Proxmox twin.
+_Avoid_: HA (reaction), load balancer (a network device)
+
+**Datastore**:
+The storage layer hosts share: VMFS on a SAN or NFS from a filer.
+_Avoid_: SAN (the fabric a datastore may sit on), storage pool (Proxmox name)
+
+**Template**:
+A VM frozen into a golden image. Clones start from it.
+_Avoid_: snapshot (point-in-time, revertable), clone (what a template produces)
+
+**Lockdown mode**:
+Closes direct host management. vCenter becomes the single door.
+_Avoid_: maintenance mode (drains a host for patching)
+
+**OVF/OVA**:
+The packaging format for exporting a VM and its configuration. An OVA is one file.
+_Avoid_: ISO (an installer image), backup
