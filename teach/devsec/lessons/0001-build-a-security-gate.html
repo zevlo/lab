@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lesson 0001 — Build a security gate for your pipeline</title>
+<style>
+  :root { --ink:#1a1a1a; --faint:#666; --accent:#0b6e69; --rule:#ddd; --bg:#fffff8; --good:#2e7d32; --bad:#c62828; --warn:#b26a00; --try:#6a4c93; }
+  * { box-sizing: border-box; }
+  body { font-family: Georgia, 'Times New Roman', serif; background: var(--bg); color: var(--ink); max-width: 46rem; margin: 0 auto; padding: 3rem 1.5rem 5rem; line-height: 1.6; font-size: 1.05rem; }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  .kicker { color: var(--accent); font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; margin: 0 0 .4rem; }
+  h1 { font-size: 2rem; font-weight: 400; margin: 0 0 .4rem; line-height: 1.2; }
+  .subtitle { color: var(--faint); margin: 0; }
+  h2 { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin: 2.75rem 0 1rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem; }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: .12em; } a:hover { color: #075450; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  pre.out { background: #f4f4ee; color: #1a1a1a; border: 1px solid var(--rule); }
+  .meta { color: var(--faint); font-size: .95rem; }
+  nav.toc { background: #fff; border: 1px solid var(--rule); border-radius: 6px; padding: .75rem 1.25rem; margin: 1.5rem 0; font-size: .95rem; }
+  nav.toc ol { margin: .4rem 0 0; padding-left: 1.4rem; }
+  .note { background: #eef6f5; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .warn { background: #fdf6ec; border-left: 3px solid var(--warn); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  .try { background: #f7f3fb; border-left: 3px solid var(--try); padding: .75rem 1rem; margin: 1.25rem 0; font-size: .97rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .85rem; color: var(--faint); font-weight: 700; }
+  .step { margin: 1.75rem 0; padding-left: 2.4rem; position: relative; }
+  .step .n { position: absolute; left: 0; top: .15rem; width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--accent); color: #fff; font-family: 'SF Mono', Menlo, monospace; font-size: .85rem; display: flex; align-items: center; justify-content: center; }
+  .step.broken .n { background: var(--bad); }
+  .expect { font-size: .92rem; color: var(--faint); margin-bottom: .25rem; }
+  details { margin: .75rem 0 1.5rem; }
+  details summary { cursor: pointer; color: var(--accent); font-weight: 700; }
+  details > div { margin-top: .6rem; padding: .75rem 1rem; background: #fff; border: 1px solid var(--rule); border-radius: 6px; }
+  .prompt { font-weight: 700; margin: 1.5rem 0 .25rem; }
+  .q { margin: 2rem 0; padding: 1.25rem 1.5rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .q p.stem { font-weight: 700; margin: 0 0 .75rem; }
+  .q button.opt { display: block; width: 100%; text-align: left; font-family: inherit; font-size: .98rem; background: #fafaf5; border: 1px solid var(--rule); border-radius: 4px; padding: .55rem .8rem; margin: .4rem 0; cursor: pointer; color: var(--ink); }
+  .q button.opt:hover:not(:disabled) { border-color: var(--accent); background: #eef6f5; }
+  .q button.opt:disabled { cursor: default; opacity: .85; }
+  .q button.opt.correct { border-color: var(--good); background: #e8f5e9; }
+  .q button.opt.wrong { border-color: var(--bad); background: #ffebee; }
+  .q .feedback { margin: .6rem 0 0; font-size: .92rem; display: none; }
+  .q .feedback.shown { display: block; } .q .feedback.good { color: var(--good); } .q .feedback.bad { color: var(--bad); }
+  #score { display: none; margin: 2rem 0; padding: 1rem 1.5rem; border-radius: 6px; background: #eef6f5; border-left: 3px solid var(--accent); font-weight: 700; }
+  footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .92rem; }
+  @media print { body { max-width: 100%; padding: 0; } .q button.opt { background: #fff; } details > div { display: block; } }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="kicker">Lesson 0001 · Secure pipelines · Secrets and dependencies</p>
+  <h1>Build a security gate for your pipeline</h1>
+  <p class="subtitle">A security gate is a pipeline step that fails the build when it finds a risky problem. Start with leaked secrets and vulnerable dependencies.</p>
+</header>
+
+<p>A common opening question in DevSecOps interviews is: <em>"How would you secure a CI/CD pipeline?"</em> A strong answer names each check, where it runs, and what makes it fail. In this lesson you build a small gate on your Mac with two scanners. You break it on purpose, and then you fix it. Lesson 0002 runs the same gate in GitLab CI.</p>
+
+<p class="meta">About 90 minutes: 20 to read, 45 for the lab, and 25 to practice answers and take the quiz. This lesson builds on the Git data model (<a href="../../missing-semester/lessons/0040-ms-version-control-git.html">Missing Semester 0040</a>) and return codes (<a href="../../missing-semester/lessons/0023-ms-return-codes.html">Missing Semester 0023</a>).</p>
+
+<nav class="toc">
+  <strong>In this lesson</strong>
+  <ol>
+    <li><a href="#where">Where security checks run</a></li>
+    <li><a href="#contract">How a gate passes or fails</a></li>
+    <li><a href="#history">A deleted secret is still in Git</a></li>
+    <li><a href="#lab">Lab: build the gate</a></li>
+    <li><a href="#out-loud">Explain it out loud</a></li>
+    <li><a href="#story">Add a story</a></li>
+    <li><a href="#quiz">Quiz</a></li>
+  </ol>
+</nav>
+
+<h2 id="where">1. Where security checks run</h2>
+<p>A pipeline moves a change from commit to production in stages. Each stage can run a check. A check that can stop the pipeline is a <a href="../reference/glossary.html#security-gate">security gate</a>.</p>
+<p>Run each check where the person who can fix the problem will see it. The earlier you find a problem, the cheaper it is to fix. This idea is called <a href="../reference/glossary.html#shift-left">shift left</a>.</p>
+
+<table>
+  <thead><tr><th>Stage</th><th>Checks that run here</th><th>Example tools</th></tr></thead>
+  <tbody>
+    <tr><td>Commit</td><td>Secret scanning, as a pre-commit hook</td><td>Gitleaks</td></tr>
+    <tr><td>Merge request</td><td>Secret scanning, SCA, SAST, IaC scanning</td><td>Gitleaks, Trivy, Semgrep</td></tr>
+    <tr><td>Build</td><td>Container scanning, SBOM, signing</td><td>Trivy, cosign</td></tr>
+    <tr><td>Deploy</td><td>Admission policy, GitOps sync</td><td>Kyverno, Argo CD</td></tr>
+    <tr><td>Run</td><td>Rescans for new CVEs, DAST</td><td>Trivy, ZAP</td></tr>
+  </tbody>
+</table>
+
+<p>Two of these terms matter most today:</p>
+<ul>
+  <li><a href="../reference/glossary.html#sca"><strong>SCA</strong></a> (software composition analysis) checks the third-party packages you depend on for known vulnerabilities. It checks code you did not write.</li>
+  <li><a href="../reference/glossary.html#sast"><strong>SAST</strong></a> (static application security testing) checks your own source code for insecure patterns. It checks code you did write.</li>
+</ul>
+
+<p><strong>Which check comes first?</strong> OWASP recommends this order: secret scanning, then SCA, then branch protection with SAST. It says to start with these three because they remove the most risk for the least effort (<a href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">OWASP DevSecOps Guideline</a>). This lesson builds the first two. The <a href="../reference/pipeline-security-map.html">pipeline security map</a> shows the full order.</p>
+
+<h2 id="contract">2. How a gate passes or fails</h2>
+<p>A gate uses the rule you already know from <code>$?</code>: <strong>exit code 0 means pass, and any other number means fail.</strong> When a step exits with a nonzero code, the CI job fails and the pipeline stops.</p>
+<ul>
+  <li><strong>Gitleaks</strong> exits 1 when it finds a leak, and 0 when it finds none (<a href="https://github.com/gitleaks/gitleaks">Gitleaks README</a>).</li>
+  <li><strong>Trivy</strong> exits 0 by default, <em>even when it finds problems</em>. Add <code>--exit-code 1</code> to make it fail (<a href="https://trivy.dev/docs/latest/configuration/others/">Trivy docs</a>). A scanner that cannot fail is a report, not a gate.</li>
+</ul>
+<p>Next, choose what should fail. A <a href="../reference/glossary.html#severity-threshold">severity threshold</a> sets the lowest level that blocks. For example, <code>--severity HIGH,CRITICAL</code> fails only on HIGH or CRITICAL findings. The severity label comes from the vulnerability's advisory, or from its <a href="../reference/glossary.html#cvss">CVSS</a> score. Lower findings still need a fix, but they do not block a merge.</p>
+<p>Two more rules keep a gate useful (<a href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">OWASP</a>):</p>
+<ul>
+  <li>Fail on <strong>new</strong> findings. Put old findings in a <a href="../reference/glossary.html#baseline">baseline</a>, and fix them on a schedule.</li>
+  <li>Keep a documented <a href="../reference/glossary.html#exception">exception</a> process. Without one, teams switch the gate off.</li>
+</ul>
+<div class="note">
+  SCA can check only the versions it can read. Pin exact versions, such as <code>PyYAML==6.0.3</code>, or commit a lock file. Trivy skips a package when it cannot tell the exact version, as with <code>requests&gt;=2.0</code> (<a href="https://trivy.dev/docs/latest/scanner/vulnerability/">Trivy docs</a>).
+</div>
+
+<h2 id="history">3. A deleted secret is still in Git</h2>
+<p>Git stores each commit as a snapshot that points to its parent. If you delete a secret in a new commit, the old commit still contains it. Anyone with a copy of the repository can read it.</p>
+<p>So deleting the secret is not the fix. The fix is <a href="../reference/glossary.html#rotation">rotation</a>: revoke the secret and issue a new one. GitLab's guidance is to "always revoke and replace exposed secrets as soon as possible" (<a href="https://docs.gitlab.com/user/application_security/secret_detection/">GitLab docs</a>). Respond in this order:</p>
+<ol>
+  <li>Revoke the secret, and issue a new one.</li>
+  <li>Check the service's logs for any use of the old secret.</li>
+  <li>Clean up: record an exception, or rewrite history if your team requires it.</li>
+</ol>
+<p>Gitleaks can scan in two ways (<a href="https://github.com/gitleaks/gitleaks">Gitleaks README</a>):</p>
+<ul>
+  <li><code>gitleaks git</code> scans every commit in the repository's history.</li>
+  <li><code>gitleaks dir</code> scans only the files on disk right now.</li>
+</ul>
+
+<div class="warn">
+  <strong>Use Trivy v0.74.0 or later.</strong> In March 2026, attackers published a malicious Trivy binary (v0.69.4) and malicious Docker Hub images (v0.69.5 and v0.69.6). The malware ran a normal scan, so jobs looked successful, while it stole credentials from CI/CD systems and developer machines (<a href="https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23">Trivy advisory</a>, <a href="https://www.microsoft.com/en-us/security/blog/2026/03/24/detecting-investigating-defending-against-trivy-supply-chain-compromise/">Microsoft</a>). Never install those versions. A scanner is part of your supply chain, too. Lesson 0007 shows how to check a tool's signature before you run it.
+</div>
+
+<h2 id="lab">4. Lab: build the gate</h2>
+<p>You build the gate in a new Git repository at <code>~/devsec-lab/gate-demo</code>, outside your teaching folder. Lesson 0002 pushes it to GitLab. Steps with a red number break something on purpose. The token in this lab is fake. Never put a real secret in a lab.</p>
+
+<div class="step"><span class="n">0</span>
+  <p><strong>Install the two scanners and check their versions.</strong></p>
+  <pre><code>brew install gitleaks trivy
+gitleaks version
+trivy --version</code></pre>
+  <p class="expect">Expect <code>8.30.1</code> and <code>Version: 0.74.0</code>, or later versions. If Trivy shows 0.69.4, 0.69.5, or 0.69.6, stop and run <code>brew uninstall trivy</code>.</p>
+</div>
+
+<div class="step"><span class="n">1</span>
+  <p><strong>Create a small project with pinned dependencies.</strong> The versions are old on purpose.</p>
+  <pre><code>mkdir -p ~/devsec-lab/gate-demo
+cd ~/devsec-lab/gate-demo
+git init -b main
+
+cat &gt; app.py &lt;&lt;'EOF'
+import requests
+import yaml
+
+
+def load_settings(path):
+    with open(path) as f:
+        return yaml.safe_load(f)
+
+
+def check_status(url):
+    return requests.get(url, timeout=5).status_code
+EOF
+
+cat &gt; requirements.txt &lt;&lt;'EOF'
+PyYAML==5.3.1
+requests==2.25.1
+EOF
+
+git add app.py requirements.txt
+git commit -m "Add demo app"</code></pre>
+  <p class="expect">Git prints <code>[main (root-commit) …] Add demo app</code> and <code>2 files changed</code>.</p>
+</div>
+
+<div class="step broken"><span class="n">2</span>
+  <p><strong>Commit a fake token, then scan the history.</strong> The <code>printf</code> command builds a fake GitLab token from two parts. That way, this web page does not contain a whole token that other scanners would flag.</p>
+  <pre><code>printf 'GITLAB_TOKEN = "%s%s"\n' 'glpat-' 'Xk3v9Qm2Lp7Rt5Wz8Yb1' &gt; config.py
+git add config.py
+git commit -m "Add config"
+
+gitleaks git -v --redact .
+echo "exit: $?"</code></pre>
+  <p><code>git</code> scans every commit. <code>-v</code> prints each finding. <code>--redact</code> hides the secret in the output. That matters in CI logs, which many people can read.</p>
+  <p class="expect">After the Gitleaks logo, expect this. Your commit IDs and times will differ.</p>
+  <pre class="out"><code>Finding:     GITLAB_TOKEN = "REDACTED
+Secret:      REDACTED
+RuleID:      gitlab-pat
+Entropy:     4.546594
+File:        config.py
+Line:        1
+Commit:      8ceca5477a1a113035efb2007dbb8b4abd98bd82
+Author:      …
+Email:       …
+Date:        …
+Fingerprint: 8ceca5477a1a113035efb2007dbb8b4abd98bd82:config.py:gitlab-pat:1
+
+5:40PM INF 2 commits scanned.
+5:40PM INF scanned ~266 bytes (266 bytes) in 77.1ms
+5:40PM WRN leaks found: 1
+exit: 1</code></pre>
+</div>
+
+<div class="step broken"><span class="n">3</span>
+  <p><strong>Delete the token in a new commit, then scan twice.</strong></p>
+  <pre><code>cat &gt; config.py &lt;&lt;'EOF'
+import os
+
+GITLAB_TOKEN = os.environ["GITLAB_TOKEN"]
+EOF
+git commit -am "Read the token from the environment"
+
+gitleaks dir -v --redact .
+echo "exit: $?"
+
+gitleaks git -v --redact .
+echo "exit: $?"</code></pre>
+  <p class="expect">The <code>dir</code> scan passes:</p>
+  <pre class="out"><code>5:40PM INF scanned ~275 bytes (275 bytes) in 698µs
+5:40PM INF no leaks found
+exit: 0</code></pre>
+  <p class="expect">The <code>git</code> scan prints the same finding as step 2, from the same older commit, and fails:</p>
+  <pre class="out"><code>5:40PM INF 3 commits scanned.
+5:40PM WRN leaks found: 1
+exit: 1</code></pre>
+  <div class="try"><strong>Your turn.</strong> Before you read on, say out loud why the two scans disagree. Then prove it: <code>git show HEAD~1:config.py</code> prints the token from the older commit.</div>
+</div>
+
+<div class="step"><span class="n">4</span>
+  <p><strong>Respond: rotate the token, then record an exception.</strong> With a real token, you would now revoke it in GitLab, create a new one, and check for use. Pretend you have done that. Then record an exception, so that the gate passes for this one finding only.</p>
+  <pre><code>echo "# Revoked and rotated on $(date +%F)" &gt; .gitleaksignore
+gitleaks git -v --redact . 2&gt;/dev/null | awk '/Fingerprint:/ {print $2}' &gt;&gt; .gitleaksignore
+cat .gitleaksignore
+
+gitleaks git -v --redact .
+echo "exit: $?"
+
+git add .gitleaksignore
+git commit -m "Record exception for the rotated token"</code></pre>
+  <p>The first line writes a comment that says why the exception exists. In the second line, <code>2&gt;/dev/null</code> hides the log lines, and <code>awk</code> keeps only the fingerprint.</p>
+  <p class="expect">The file holds the comment and one fingerprint. The scan then passes:</p>
+  <pre class="out"><code># Revoked and rotated on 2026-09-30
+8ceca5477a1a113035efb2007dbb8b4abd98bd82:config.py:gitlab-pat:1
+…
+5:40PM INF no leaks found
+exit: 0</code></pre>
+  <p>A fingerprint names one commit, one file, one rule, and one line. You test in step 9 whether it hides anything else.</p>
+</div>
+
+<div class="step broken"><span class="n">5</span>
+  <p><strong>Scan the dependencies.</strong> The first run downloads Trivy's vulnerability database, which is about 120 MB. It can take a few minutes.</p>
+  <pre><code>trivy fs --scanners vuln .
+echo "exit: $?"</code></pre>
+  <p><code>fs</code> scans a folder. <code>--scanners vuln</code> looks only for known vulnerabilities, because Gitleaks already covers secrets.</p>
+  <p class="expect">Expect this, trimmed. Counts can change as new CVEs are published.</p>
+  <pre class="out"><code>requirements.txt (pip)
+======================
+Total: 5 (UNKNOWN: 0, LOW: 0, MEDIUM: 4, HIGH: 0, CRITICAL: 1)
+
+│ Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │
+│ PyYAML   │ CVE-2020-14343 │ CRITICAL │ fixed  │ 5.3.1             │ 5.4           │
+│ requests │ CVE-2023-32681 │ MEDIUM   │        │ 2.25.1            │ 2.31.0        │
+│          │ CVE-2024-35195 │          │        │                   │ 2.32.0        │
+│          │ CVE-2024-47081 │          │        │                   │ 2.32.4        │
+│          │ CVE-2026-25645 │          │        │                   │ 2.33.0        │
+exit: 0</code></pre>
+  <p>Trivy found five problems and still exited 0. This command can report, but it cannot block anything. Now make it a gate:</p>
+  <pre><code>trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .
+echo "exit: $?"</code></pre>
+  <pre class="out"><code>Total: 1 (HIGH: 0, CRITICAL: 1)
+
+│ PyYAML  │ CVE-2020-14343 │ CRITICAL │ fixed  │ 5.3.1             │ 5.4           │
+exit: 1</code></pre>
+  <p>The threshold kept the four MEDIUM findings out of the gate. They still need a fix, but they do not block the merge. You may also see a <code>WARN</code> line about Python license detection. It does not change the vulnerability results.</p>
+</div>
+
+<div class="step"><span class="n">6</span>
+  <p><strong>Fix it: upgrade the pins.</strong></p>
+  <pre><code>cat &gt; requirements.txt &lt;&lt;'EOF'
+PyYAML==6.0.3
+requests==2.34.2
+EOF
+
+trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 .
+echo "exit: $?"
+
+git commit -am "Upgrade vulnerable dependencies"</code></pre>
+  <p class="expect">The report summary shows 0 vulnerabilities for <code>requirements.txt</code>, and the exit code is 0:</p>
+  <pre class="out"><code>│ requirements.txt │ pip  │        0        │
+…
+exit: 0</code></pre>
+  <p>These were the newest releases on 2026-09-30. If a new CVE appears later, Trivy's "Fixed Version" column shows the version to move to.</p>
+</div>
+
+<div class="step"><span class="n">7</span>
+  <p><strong>Build the gate script.</strong> Lesson 0002 runs this same script in GitLab CI.</p>
+  <pre><code>mkdir -p scripts
+cat &gt; scripts/gate.sh &lt;&lt;'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "== Secrets (Gitleaks) =="
+gitleaks git --redact --no-banner .
+
+echo "== Dependencies (Trivy) =="
+trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --quiet .
+
+echo "Gate passed."
+EOF
+chmod +x scripts/gate.sh
+
+./scripts/gate.sh
+echo "exit: $?"
+
+git add scripts/gate.sh
+git commit -m "Add security gate script"</code></pre>
+  <p><code>set -e</code> stops the script at the first command that fails, and the script exits with that command's code. So one failing scanner fails the whole gate. <code>--no-banner</code> hides the Gitleaks logo, and <code>--quiet</code> hides Trivy's progress lines.</p>
+  <pre class="out"><code>== Secrets (Gitleaks) ==
+5:44PM INF 5 commits scanned.
+5:44PM INF scanned ~450 bytes (450 bytes) in 78.7ms
+5:44PM INF no leaks found
+== Dependencies (Trivy) ==
+…
+│ requirements.txt │ pip  │        0        │
+…
+Gate passed.
+exit: 0</code></pre>
+</div>
+
+<div class="step broken"><span class="n">8</span>
+  <p><strong>Prove that the gate can fail.</strong> Put the vulnerable PyYAML version back, run the gate, and then restore the file.</p>
+  <pre><code>printf 'PyYAML==5.3.1\nrequests==2.34.2\n' &gt; requirements.txt
+./scripts/gate.sh
+echo "exit: $?"
+
+git restore requirements.txt
+./scripts/gate.sh
+echo "exit: $?"</code></pre>
+  <p class="expect">The first run passes the secrets check, lists <code>CVE-2020-14343</code>, never prints <code>Gate passed.</code>, and ends with <code>exit: 1</code>. After <code>git restore</code>, the gate prints <code>Gate passed.</code> and <code>exit: 0</code>.</p>
+  <p>A gate that you have never seen fail is not yet a gate.</p>
+</div>
+
+<div class="step broken"><span class="n">9</span>
+  <p><strong>Does the exception hide a new leak?</strong> Commit a second fake token on a separate branch. Predict each result before you run it.</p>
+  <pre><code>git switch -c try-leak
+printf 'DEPLOY_TOKEN = "%s%s"\n' 'glpat-' 'Hq7Tz2Nw5Kc8Vb3Mx6Pd' &gt; deploy.py
+git add deploy.py
+git commit -m "Add deploy helper"
+./scripts/gate.sh
+echo "exit: $?"</code></pre>
+  <p>Now go back to <code>main</code>, which has no <code>deploy.py</code>. Predict again, then run the gate:</p>
+  <pre><code>git switch main
+./scripts/gate.sh
+echo "exit: $?"
+
+git branch -D try-leak
+./scripts/gate.sh
+echo "exit: $?"</code></pre>
+  <details>
+    <summary>Show the results</summary>
+    <div>
+      <p><strong>On <code>try-leak</code>:</strong> the gate fails with <code>WRN leaks found: 1</code> and <code>exit: 1</code>. The fingerprint covers only the old token, so the new one is caught.</p>
+      <p><strong>Back on <code>main</code>:</strong> the gate still fails. <code>gitleaks git</code> scans every branch in the repository, not only the one you are on.</p>
+      <p><strong>After deleting the branch:</strong> <code>Gate passed.</code> and <code>exit: 0</code>. In CI, a job usually scans only the new commits in a merge request. Lesson 0002 sets that up.</p>
+    </div>
+  </details>
+</div>
+
+<p>Keep this repository. Lesson 0002 pushes it to GitLab and runs <code>scripts/gate.sh</code> in a pipeline.</p>
+
+<h2 id="out-loud">5. Explain it out loud</h2>
+<p>An interview tests whether you can explain the work, not only do it. Answer each question out loud, in under two minutes. Then open the model answer and compare. The <a href="../reference/interview-kit.html#answer-bank">interview kit</a> keeps short versions for review.</p>
+
+<p class="prompt">"How would you add security to a CI/CD pipeline?"</p>
+<details>
+  <summary>Show a model answer</summary>
+  <div>
+    <p>"I add controls in the order that removes the most risk for the least effort. First, secret scanning, as a pre-commit hook and again in CI, because hooks can be skipped. Second, SCA on every merge request, to catch known CVEs in our dependencies. Third, branch protection with SAST, so nothing merges without a review and a passing pipeline. Later I add IaC and container scanning, SBOMs and signing, and admission policy at deploy time.</p>
+    <p>Each control is a gate: it exits nonzero on findings above a threshold, and a merge needs a passing pipeline. I fail on new HIGH or CRITICAL findings that have a fix, baseline the old ones with due dates, and keep a documented exception process. I also protect the pipeline itself: short-lived credentials, pinned images, least-privilege jobs, and tools that I verify before I run them. The 2026 Trivy compromise showed why that last part matters."</p>
+  </div>
+</details>
+
+<p class="prompt">"A developer pushed an API key and deleted it in the next commit. What do you do?"</p>
+<details>
+  <summary>Show a model answer</summary>
+  <div>
+    <p>"I treat the key as exposed, because the old commit still holds it, and anyone who cloned the repository has a copy. First, I revoke the key and issue a new one. That is the real fix. Then I check the provider's logs for any use of the old key between the push and the revocation, and I escalate if I find any.</p>
+    <p>Next, I scan the whole history, for example with <code>gitleaks git</code>, in case there are other leaks. Rewriting history disrupts everyone and does not reach existing clones, so after rotation I usually record a documented exception for that one finding. Finally, I close the gap: a pre-commit hook, a CI gate, and the value moved into a CI variable or a secrets manager."</p>
+  </div>
+</details>
+
+<p class="prompt">"Your scanner reports 200 findings. What should fail the build?"</p>
+<details>
+  <summary>Show a model answer</summary>
+  <div>
+    <p>"Not the count. A gate that fails on everything gets switched off. I fail the merge request on new findings that are HIGH or CRITICAL and have a fix available, because the developer can act on those now. The existing findings go into a baseline, with due dates by severity: for example, 7 days for critical and 30 for high.</p>
+    <p>I rank that backlog with context, not only the CVSS score: is it being exploited, how likely is an attack, and is the vulnerable code reachable and exposed? If we cannot fix something yet, it gets a documented exception with a reason, an owner, and an expiry date. Then I track the trend: new risk blocked, backlog size, and time to fix."</p>
+  </div>
+</details>
+
+<h2 id="story">6. Add a story</h2>
+<p>Most behavioral questions follow the STAR pattern: Situation, Task, Action, Result. Draft one story for this prompt:</p>
+<div class="try"><strong>"Tell me about a time you automated a manual check, or caught a problem before it reached production."</strong></div>
+<ol>
+  <li>Open <code>~/devsec-lab/star-stories.md</code>, or create it. Keep it out of any Git repository, because it describes real work.</li>
+  <li>Copy the template from the <a href="../reference/interview-kit.html#story-bank">interview kit</a>.</li>
+  <li>Use a real example from your work, such as an Ansible, Terraform, Argo CD, or Trivy task.</li>
+  <li>Spend 60% of the story on what <em>you</em> did. End with a result, and give a number if you can.</li>
+</ol>
+
+<h2 id="quiz">7. Quiz</h2>
+<p>Choose one answer for each question. The answers appear in a new order each time you load the page.</p>
+
+<div class="q" data-correct="2" data-why="OWASP's order starts with secret scanning, then SCA, then branch protection with SAST.">
+  <p class="stem">1. You can add only two security checks to a new pipeline this month. Which two does OWASP say to add first?</p>
+  <button class="opt">Container scanning, then SBOMs</button>
+  <button class="opt">DAST, then image signing</button>
+  <button class="opt">Secret scanning, then SCA</button>
+  <button class="opt">IaC scanning, then DAST</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="0" data-why="Git keeps every commit as a snapshot. The new commit changed the file, but the older commit still holds the token.">
+  <p class="stem">2. You committed a token, then deleted it in the next commit. Why does <code>gitleaks git</code> still report it?</p>
+  <button class="opt">The older commit still stores the file with the token.</button>
+  <button class="opt">Gitleaks caches old results until you clear its cache folder.</button>
+  <button class="opt">The deletion is not pushed, so Gitleaks cannot see it.</button>
+  <button class="opt">Gitleaks reads the working tree and ignores your latest commit.</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="3" data-why="Trivy exits 0 by default, even when it finds problems. A gate needs --exit-code 1.">
+  <p class="stem">3. A CI job runs <code>trivy fs --scanners vuln .</code> and prints two CRITICAL findings. The job still passes. Why?</p>
+  <button class="opt">The CI runner hides findings that come from dependencies.</button>
+  <button class="opt">CRITICAL findings only fail a job after manual review.</button>
+  <button class="opt">Trivy fails a job only when it scans images.</button>
+  <button class="opt">Trivy exits 0 unless you set the exit-code flag.</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="1" data-why="SCA checks code you did not write: the packages you depend on. SAST checks code you did write.">
+  <p class="stem">4. What does SCA check that SAST does not?</p>
+  <button class="opt">Security flaws in the application code your developers wrote.</button>
+  <button class="opt">Known vulnerabilities in the third-party packages you depend on.</button>
+  <button class="opt">Insecure settings in your Terraform files and Kubernetes manifests.</button>
+  <button class="opt">Attacks sent against the running application from the outside.</button>
+  <p class="feedback"></p>
+</div>
+
+<div class="q" data-correct="2" data-why="Block new, high-risk findings that developers can fix now. Baseline the old ones and fix them on a schedule.">
+  <p class="stem">5. The first scan of an old service finds 200 issues. Almost all of them existed before this change. What should fail the merge request?</p>
+  <button class="opt">Every finding at any severity, including all the old ones.</button>
+  <button class="opt">Only findings that a security reviewer has checked by hand.</button>
+  <button class="opt">New HIGH or CRITICAL findings that already have a fix.</button>
+  <button class="opt">Nothing, because a failing gate slows the whole team down.</button>
+  <p class="feedback"></p>
+</div>
+
+<div id="score"></div>
+
+<h2 id="source">Read next</h2>
+<p><a href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">OWASP DevSecOps Guideline: Overview</a>. Read two sections, about 10 minutes in all: "A recommended introduction order" and "Security gates without breaking flow". This lesson's order of checks and its gate rules come from them.</p>
+
+<footer>
+  <p><strong>If something is unclear, ask your agent.</strong> Useful follow-ups: <em>"Why did the gate still fail after I switched back to main?"</em> · <em>"How do I scan only the commits in a merge request?"</em> · <em>"When should a team rewrite history to remove a secret?"</em> Report your quiz score when you finish.</p>
+  <p><strong>Before lesson 0002:</strong> create a free account at <a href="https://gitlab.com/users/sign_up">GitLab.com</a>. GitLab may ask you to confirm your email address and to verify your identity.</p>
+  <p>Reference: <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/pipeline-security-map.html">Pipeline security map</a> · <a href="../reference/interview-kit.html">Interview kit</a></p>
+</footer>
+
+<script>
+(function () {
+  function shuffleQuestion(q) {
+    var fb = q.querySelector('.feedback');
+    var opts = Array.prototype.slice.call(q.querySelectorAll('button.opt'));
+    var right = parseInt(q.dataset.correct, 10);
+    var correctBtn = opts[right];
+    for (var i = opts.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = opts[i]; opts[i] = opts[j]; opts[j] = t;
+    }
+    opts.forEach(function (btn) { q.insertBefore(btn, fb); });
+    q.dataset.correct = String(opts.indexOf(correctBtn));
+  }
+  var qs = document.querySelectorAll('.q');
+  qs.forEach(shuffleQuestion);
+  var answered = 0, correct = 0;
+  qs.forEach(function (q) {
+    var right = parseInt(q.dataset.correct, 10);
+    var opts = q.querySelectorAll('button.opt');
+    var fb = q.querySelector('.feedback');
+    var why = q.dataset.why ? ' ' + q.dataset.why : '';
+    opts.forEach(function (btn, i) {
+      btn.addEventListener('click', function () {
+        opts.forEach(function (b) { b.disabled = true; });
+        opts[right].classList.add('correct');
+        answered++;
+        if (i === right) { correct++; fb.textContent = 'Correct.' + why; fb.className = 'feedback shown good'; }
+        else { btn.classList.add('wrong'); fb.textContent = 'The highlighted answer is correct.' + why; fb.className = 'feedback shown bad'; }
+        if (answered === qs.length) {
+          var s = document.getElementById('score'); s.style.display = 'block';
+          var msg = 'Score: ' + correct + ' / ' + qs.length + '.';
+          if (correct === qs.length) { msg += ' All five correct. Tell your agent, and the next lesson will go further.'; }
+          else if (correct >= 4) { msg += ' Close. Tell your agent which number you missed.'; }
+          else { msg += ' Tell your agent which numbers you missed. The next lesson will target them.'; }
+          s.textContent = msg;
+        }
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

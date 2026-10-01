@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interview Kit — Reference</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #666;
+    --accent: #0b6e69;
+    --rule: #ddd;
+    --bg: #fffff8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.55;
+    font-size: 1.04rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  h3 { font-size: 1.02rem; margin: 1.6rem 0 .4rem; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  pre { background: #21252b; color: #e6e6e6; padding: 1rem 1.25rem; border-radius: 6px; overflow-x: auto; line-height: 1.45; font-size: .85rem; }
+  pre code { background: none; padding: 0; color: inherit; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #eef6f5; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .96rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .93rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: .8rem; color: var(--faint); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  td.share { font-weight: 700; white-space: nowrap; }
+  .qa { margin: 1.25rem 0 1.75rem; padding: 1rem 1.25rem; border: 1px solid var(--rule); border-radius: 6px; background: #fff; }
+  .qa p.q { font-weight: 700; margin: 0 0 .5rem; }
+  .qa ol { margin: .25rem 0 .5rem; padding-left: 1.4rem; }
+  .qa li { margin: .25rem 0; }
+  .qa p.line { margin: .5rem 0 0; font-style: italic; }
+  .src { font-size: .85rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; }
+  @media print {
+    body { max-width: 100%; padding: 0; font-size: 10pt; }
+    a { color: var(--ink); }
+    pre { background: #fff; color: #000; border: 1px solid #999; }
+    .note { border: 1px solid #999; }
+    .qa { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Interview Kit</h1>
+  <p class="subtitle">Reference — how to structure a behavioral answer, a story bank mapped to the job's skill areas, and model technical answers. Each lesson adds to it.</p>
+</header>
+
+<div class="note">
+  <strong>Key message.</strong> The employer's interview guide (linked in the workspace <code>RESOURCES.md</code>) says most hiring managers use the STAR method. Expect a panel. Much of the technical depth will come out through questions about your past work. So prepare stories first, and practice saying the technical answers out loud.
+</div>
+
+<h2 id="star">STAR: how to structure a story</h2>
+<p>A behavioral question asks for a real example: "Tell me about a time when…". Answer in four parts. Spend most of the time on what <em>you</em> did. <a class="src" href="https://capd.mit.edu/resources/the-star-method-for-behavioral-interviews/">[MIT CAPD]</a></p>
+<table>
+  <thead><tr><th>Part</th><th>Share</th><th>What to say</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Situation</strong></td><td class="share">20%</td><td>The context, in two or three sentences. The panel does not need every detail.</td></tr>
+    <tr><td><strong>Task</strong></td><td class="share">10%</td><td>What you were responsible for, or the goal.</td></tr>
+    <tr><td><strong>Action</strong></td><td class="share">60%</td><td>The steps <em>you</em> took. Name the tools, the choices, and why you made them.</td></tr>
+    <tr><td><strong>Result</strong></td><td class="share">10%</td><td>What changed, with a number if you have one. Add what you learned.</td></tr>
+  </tbody>
+</table>
+<ul>
+  <li>Say "I", not "we". In a team story, describe your own part.</li>
+  <li>Give specific examples, not general claims.</li>
+  <li>Tell the truth. Invented details do not survive follow-up questions.</li>
+  <li>Prepare 3–5 stories as bullet outlines, not scripts. A memorized script is hard to adapt and can sound unnatural.</li>
+  <li>One story can answer several questions. Practice adapting it on the spot.</li>
+</ul>
+
+<h2 id="story-bank">Your story bank</h2>
+<p>Write your drafts in <code>~/devsec-lab/star-stories.md</code>. Keep that file out of any Git repository, because it describes real work. Copy this template once for each story:</p>
+<pre><code>## Story: &lt;short title&gt;
+Skill areas: &lt;one or two from the table below&gt;
+
+S (20%): Where and when? What was at stake?
+T (10%): What were you responsible for?
+A (60%): What did you do, step by step? Which tools? Which choices, and why?
+R (10%): What changed? Use a number: time saved, failures avoided, findings fixed.
+Learned: &lt;one line&gt;</code></pre>
+
+<p>Aim for at least one story in each skill area of the job description. Each lesson ends with a prompt that adds to one of these rows.</p>
+<table>
+  <thead><tr><th>Skill area</th><th>A question you might hear</th><th>Lessons that add material</th></tr></thead>
+  <tbody>
+    <tr><td>1. Maintain development infrastructure</td><td>Tell me about a time a tool or server your team depended on failed. What did you do?</td><td>0002, 0003</td></tr>
+    <tr><td>2. Technical expertise</td><td>Tell me about a script or automation you wrote. What did it replace?</td><td><a href="../lessons/0001-build-a-security-gate.html">0001</a>, 0003</td></tr>
+    <tr><td>3. Security knowledge</td><td>Tell me about a time you found a security problem before it reached users.</td><td><a href="../lessons/0001-build-a-security-gate.html">0001</a>, 0004</td></tr>
+    <tr><td>4. Automation mindset</td><td>Tell me about a time you added a check so that a mistake could not happen again.</td><td><a href="../lessons/0001-build-a-security-gate.html">0001</a>, 0002</td></tr>
+    <tr><td>5. Risk management</td><td>Tell me about a time you had more problems than time. How did you choose what to fix first?</td><td>0004</td></tr>
+    <tr><td>6. Compliance and governance</td><td>Tell me about a time you had to follow a strict standard or process. How did you keep the work moving?</td><td>0005</td></tr>
+    <tr><td>Any area</td><td>Tell me about a time you failed. What project are you most proud of?</td><td>0010</td></tr>
+  </tbody>
+</table>
+
+<h2 id="answer-bank">Technical answer bank</h2>
+<p>Each entry is a skeleton, not a script. Say it out loud in your own words, in about one to two minutes. The last line is a one-sentence version for when time is short.</p>
+
+<h3 id="lesson-0001">From lesson 0001: security gates</h3>
+
+<div class="qa" id="q-secure-pipeline">
+  <p class="q">"How would you add security to a CI/CD pipeline?"</p>
+  <ol>
+    <li>Add controls in order of risk reduction: secret scanning, then dependency scanning (SCA), then branch protection with SAST. This is the OWASP order.</li>
+    <li>Run each control where someone can act on it: pre-commit and merge request checks first, image scanning and signing at build, admission policy at deploy, and rescans in production.</li>
+    <li>Make each control a gate: it exits nonzero on findings above a threshold, and a passing pipeline is required to merge.</li>
+    <li>Gate on risk, not counts: fail on new HIGH or CRITICAL findings that have a fix. Baseline the rest, and allow documented exceptions.</li>
+    <li>Protect the pipeline itself: short-lived credentials, pinned images, least privilege, and verified tools.</li>
+  </ol>
+  <p class="line">One line: "I add controls in order of risk reduction, make each one a gate that fails on new high-risk findings, and harden the pipeline itself."</p>
+</div>
+
+<div class="qa" id="q-leaked-key">
+  <p class="q">"A developer pushed an API key, then deleted it in the next commit. What do you do?"</p>
+  <ol>
+    <li>Treat the key as exposed. Revoke it and issue a new one first. Deleting it from the code does not help: the old commit still holds it, and copies of the repository may exist.</li>
+    <li>Check the provider's logs for any use of the old key between the push and the revocation.</li>
+    <li>Scan the full history, for example with <code>gitleaks git</code>, to find any other leaks.</li>
+    <li>Decide about history. Rewriting it disrupts everyone and does not reach existing clones. After rotation, a recorded exception is often enough.</li>
+    <li>Prevent a repeat: a pre-commit hook plus a CI gate, and move the value into CI variables or a secrets manager.</li>
+  </ol>
+  <p class="line">One line: "Rotate first, check for use, scan the history, then close the gap that let it in."</p>
+</div>
+
+<div class="qa" id="q-what-blocks">
+  <p class="q">"The scanner reports 200 findings. What should fail the build?"</p>
+  <ol>
+    <li>Not the count. Fail on new findings that are HIGH or CRITICAL and have a fix available.</li>
+    <li>Baseline the existing findings, and give them due dates by severity.</li>
+    <li>Rank with context: is it being exploited, is it likely to be, and is the code reachable and exposed? Lesson 0004 covers this.</li>
+    <li>Allow documented exceptions with a reason and an owner, so no one turns the gate off.</li>
+    <li>Report the trend: new findings blocked, backlog size, and time to fix.</li>
+  </ol>
+  <p class="line">One line: "Block new, high-risk, fixable findings; baseline and schedule the rest."</p>
+</div>
+
+<footer>
+  <p>Lesson: <a href="../lessons/0001-build-a-security-gate.html">0001 Build a security gate for your pipeline</a> · Reference: <a href="glossary.html">Glossary</a> · <a href="pipeline-security-map.html">Pipeline security map</a></p>
+</footer>
+
+</body>
+</html>

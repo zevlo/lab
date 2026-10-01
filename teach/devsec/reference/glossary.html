@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevSecOps Glossary — Reference</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --faint: #666;
+    --accent: #0b6e69;
+    --rule: #ddd;
+    --bg: #fffff8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    line-height: 1.55;
+    font-size: 1.05rem;
+  }
+  header { border-bottom: 3px double var(--rule); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; font-weight: 400; margin: 0 0 .3rem; }
+  .subtitle { color: var(--faint); font-style: italic; margin: 0; }
+  h2 {
+    font-size: 1.05rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--accent); margin: 2.5rem 0 .75rem; border-bottom: 1px solid var(--rule); padding-bottom: .25rem;
+  }
+  dl { margin: 0; }
+  dt { font-weight: 700; margin-top: 1.1rem; }
+  dd { margin: .15rem 0 0 0; padding-left: 1.25rem; border-left: 2px solid var(--rule); }
+  dd .avoid { display: block; margin-top: .25rem; font-size: .93rem; color: var(--faint); }
+  dd .src { font-size: .85rem; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: .88em; background: #f0f0ea; padding: .1em .3em; border-radius: 3px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { background: #eef6f5; border-left: 3px solid var(--accent); padding: .75rem 1rem; margin: 1.5rem 0; font-size: .95rem; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--faint); font-size: .9rem; }
+  @media print {
+    body { max-width: 100%; padding: 0; font-size: 10.5pt; }
+    a { color: var(--ink); }
+    .note { border: 1px solid #999; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>DevSecOps Glossary</h1>
+  <p class="subtitle">Reference — the working vocabulary for this workspace. Each lesson adds the terms it introduces.</p>
+</header>
+
+<div class="note">
+  Each entry gives the term to use, a short definition, and the words to avoid. Terms are grouped by where you meet them: the pipeline, the scanners, and the vulnerabilities that scanners report.
+</div>
+
+<h2>The pipeline</h2>
+<dl>
+  <dt id="security-gate">Security gate</dt>
+  <dd>A pipeline step that runs a security check and fails the pipeline when the check finds risk above an agreed limit. It signals through its exit code: 0 passes, and any other number fails.
+    <span class="avoid"><em>Avoid:</em> "security check" when you mean a blocking step. A check can report problems without blocking anything.</span>
+    <a class="src" href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">[OWASP]</a> · <a class="src" href="../lessons/0001-build-a-security-gate.html">[lesson 0001]</a></dd>
+
+  <dt id="shift-left">Shift left</dt>
+  <dd>Moving security feedback as close as possible to the moment code is written, when problems are cheapest to fix. Mature teams also keep checking later, through build, deploy, and runtime. OWASP calls this "shift everywhere".
+    <span class="avoid"><em>Avoid:</em> reading it as "check only early". Later checks still matter.</span>
+    <a class="src" href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">[OWASP]</a></dd>
+
+  <dt id="baseline">Baseline</dt>
+  <dd>The set of findings that existed before a gate was turned on. The gate fails only on new findings, so each team answers for the risk it adds. Old findings are still tracked and fixed over time.
+    <span class="avoid"><em>Avoid:</em> "allowlist". An allowlist accepts a finding for good. A baseline is debt that you pay down.</span>
+    <a class="src" href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">[OWASP]</a></dd>
+
+  <dt id="exception">Exception</dt>
+  <dd>A recorded decision to let one specific finding pass a gate, with the reason written down. Gitleaks stores exceptions as fingerprints in <code>.gitleaksignore</code>. Trivy stores vulnerability IDs in <code>.trivyignore</code>.
+    <span class="avoid"><em>Avoid:</em> "false positive" as a synonym. An exception can cover a real finding whose risk is gone, such as a secret that was already rotated.</span>
+    <a class="src" href="https://github.com/gitleaks/gitleaks">[Gitleaks]</a> · <a class="src" href="https://trivy.dev/docs/latest/configuration/filtering/">[Trivy]</a></dd>
+</dl>
+
+<h2>Scanning</h2>
+<dl>
+  <dt id="secret-scanning">Secret scanning</dt>
+  <dd>Searching code and its Git history for credentials, such as tokens, passwords, and private keys. Scan every commit, not only the current files, because Git keeps every old version.
+    <span class="avoid"><em>Avoid:</em> "credential scanning". GitLab calls this feature <em>secret detection</em>.</span>
+    <a class="src" href="https://github.com/gitleaks/gitleaks">[Gitleaks]</a> · <a class="src" href="https://docs.gitlab.com/user/application_security/secret_detection/">[GitLab]</a></dd>
+
+  <dt id="rotation">Secret rotation</dt>
+  <dd>Replacing a credential with a new one and revoking the old one, so the leaked value stops working. After a leak, rotation is the fix. Deleting the secret from the code is not, because the old value still works and stays in Git history.
+    <span class="avoid"><em>Avoid:</em> "removing the secret" as the response to a leak.</span>
+    <a class="src" href="https://docs.gitlab.com/user/application_security/secret_detection/">[GitLab]</a></dd>
+
+  <dt id="sca">SCA (software composition analysis)</dt>
+  <dd>Scanning the third-party packages that a project depends on. The scanner matches each package version against databases of known vulnerabilities and licenses. SCA checks code you did not write.
+    <span class="avoid"><em>Avoid:</em> "dependency scanning" outside GitLab. That is the name of GitLab's paid SCA feature.</span>
+    <a class="src" href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">[OWASP]</a></dd>
+
+  <dt id="sast">SAST (static application security testing)</dt>
+  <dd>Analyzing your own source code, without running it, for insecure patterns. An example is an SQL query built by joining strings. SAST checks code you did write.
+    <span class="avoid"><em>Avoid:</em> "linting" as a synonym. A linter looks for style problems and bugs. SAST looks for security flaws.</span>
+    <a class="src" href="https://github.com/OWASP/DevSecOpsGuideline/blob/master/current-version/0-Intro/0-2-Overview.md">[OWASP]</a> · <a class="src" href="https://docs.gitlab.com/user/application_security/sast/">[GitLab]</a></dd>
+
+  <dt id="sbom">SBOM (software bill of materials)</dt>
+  <dd>A machine-readable list of the components in a piece of software, with their versions and producers. Common formats are CycloneDX and SPDX. When a new CVE appears, an SBOM answers "which of our releases contain it?"
+    <span class="avoid"><em>Avoid:</em> "dependency list". An SBOM also covers indirect components and records who made each one.</span>
+    <a class="src" href="https://www.cisa.gov/resources-tools/resources/2026-minimum-elements-software-bill-materials-sbom">[CISA 2026]</a></dd>
+</dl>
+
+<h2>Vulnerabilities</h2>
+<dl>
+  <dt id="cve">CVE (Common Vulnerabilities and Exposures)</dt>
+  <dd>A unique ID and record for one publicly disclosed vulnerability, such as <code>CVE-2020-14343</code>. Scanners report findings by CVE ID, so people and tools know they mean the same issue.
+    <span class="avoid"><em>Avoid:</em> "CVE score". The CVE Program does not assign severity. CVSS does.</span>
+    <a class="src" href="https://www.cve.org/About/Overview">[CVE Program]</a></dd>
+
+  <dt id="cvss">CVSS (Common Vulnerability Scoring System)</dt>
+  <dd>A score from 0.0 to 10.0 for how severe a vulnerability is. The ratings are Low (0.1–3.9), Medium (4.0–6.9), High (7.0–8.9), and Critical (9.0–10.0). Version 4.0 is current. Trivy takes its severity label from the advisory source first, and falls back to the CVSS score.
+    <span class="avoid"><em>Avoid:</em> "risk score". CVSS measures severity, not the risk to your system. Lesson 0004 adds exploit likelihood and exposure.</span>
+    <a class="src" href="https://www.first.org/cvss/v4-0/">[FIRST]</a> · <a class="src" href="https://trivy.dev/docs/latest/scanner/vulnerability/">[Trivy]</a></dd>
+
+  <dt id="severity-threshold">Severity threshold</dt>
+  <dd>The lowest severity that fails a gate. For example, <code>--severity HIGH,CRITICAL --exit-code 1</code> makes Trivy fail only on HIGH or CRITICAL findings. Lower findings are still tracked, but they do not block a merge.
+    <span class="avoid"><em>Avoid:</em> "risk threshold". Severity is one input to risk, not the whole of it.</span>
+    <a class="src" href="https://trivy.dev/docs/latest/configuration/filtering/">[Trivy]</a></dd>
+</dl>
+
+<footer>
+  <p>Lesson: <a href="../lessons/0001-build-a-security-gate.html">0001 Build a security gate for your pipeline</a> · Reference: <a href="pipeline-security-map.html">Pipeline security map</a> · <a href="interview-kit.html">Interview kit</a></p>
+</footer>
+
+</body>
+</html>
