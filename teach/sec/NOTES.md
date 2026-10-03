@@ -13,6 +13,7 @@ All lessons and reference documents use ISO 24495-1:2023 plain language. Applied
 ## User profile (from intake, Oct 2 2026)
 - Background: DevOps. Comfortable with cloud, containers, IaC, CI/CD, networking basics, automation/scripting.
 - Assumed gaps (verify as we go): formal security vocabulary, governance/compliance concepts, cryptography internals, attack taxonomy names.
+  Update after Lesson 0004: cryptography fundamentals (hashing, symmetric/asymmetric, signatures) did NOT test as a gap — DevOps tooling already covers it. Untested: PKI/certificate detail, crypto attacks, governance. Governance (Domain 5) is now the strongest remaining gap hypothesis. See LR 0005: quiz difficulty rising from Lesson 0005 — multi-hop questions, at least a third.
 - Mission: DoD 8140 requirement. Exam ~Nov 12–13, 2026.
 - Time: ~40 hrs/week total study. ≥10 hrs/week in this workspace (lessons + review). The rest: Gibson book reading, Messer videos, Gibson practice-exam questions.
 

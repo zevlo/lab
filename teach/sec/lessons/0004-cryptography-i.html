@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0004 — Cryptography I</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+ol.steps li { margin: .5rem 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q.warmup { border-left: 4px solid #8a6d2f; background: #fbf8f0; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 1 · Objective 1.4 · Lesson 4 of ~30 · ~35 minutes</p>
+<h1>Cryptography I: Hashing, Symmetric, Asymmetric, Signatures</h1>
+<p class="meta">One win today: <b>given any crypto scenario, name the tool being used — and say who holds which key.</b> This is the lesson your DevOps instincts help least with. Slower pace, more worked steps. A dropped point here is normal.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Cryptography is objective 1.4 — and it threads through every other domain: certificates in operations, encryption in architecture, cryptographic attacks in threats. A security control assessor in a DoD 8140 role judges whether crypto is deployed correctly more often than any other single control. This lesson is the vocabulary for those judgments.</p>
+</div>
+
+<h2>Warm-up — recall from memory</h2>
+<p class="meta">Three from earlier lessons: one from CIA/AAA, two from zero trust and deception.</p>
+
+<div class="quiz-q warmup" data-a="2">
+<p class="num">WARM-UP 1</p>
+<h3>A prankster defaces the company homepage. Which CIA goal is harmed?</h3>
+<button class="opt">Availability</button><button class="opt">Confidentiality</button><button class="opt">Integrity</button><button class="opt">Non-repudiation</button>
+<div class="fb"><b>Integrity.</b> The site was reachable and not secret — but its content was altered. (Lesson 0002.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="1">
+<p class="num">WARM-UP 2</p>
+<h3>Under zero trust, which component <em>enforces</em> the decision by opening and closing the session?</h3>
+<button class="opt">Policy engine</button><button class="opt">Policy administrator</button><button class="opt">Adaptive identity</button><button class="opt">Data plane</button>
+<div class="fb"><b>Policy administrator.</b> The engine decides; the administrator enforces. (Lesson 0003's classic distinction.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="2">
+<p class="num">WARM-UP 3</p>
+<h3>A lab network made entirely of decoy systems lures attackers in. What is it called?</h3>
+<button class="opt">Honeypot</button><button class="opt">Honeyfile</button><button class="opt">Honeynet</button><button class="opt">Sinkhole</button>
+<div class="fb"><b>Honeynet.</b> One decoy system is a honeypot; a decoy network is a honeynet. (Lesson 0003.)</div>
+</div>
+
+<h2>Part 1 — Hashing: the integrity tool</h2>
+<p>A <b>hash</b> is a one-way fingerprint. Any input — a sentence, a file, a disk image — goes into a hash function, and a fixed-length fingerprint comes out. Change one character of the input and the fingerprint changes completely. And there is no way to run it backward: a fingerprint cannot be turned back into the file.</p>
+<table>
+<tr><th>Property</th><th>Plain meaning</th></tr>
+<tr><td class="rowhead">One-way</td><td>You cannot reverse a hash back into the input.</td></tr>
+<tr><td class="rowhead">Fixed length</td><td>A one-line note and a 4 GB image produce the same-size fingerprint.</td></tr>
+<tr><td class="rowhead">Collision-resistant</td><td>Two different inputs should never share a fingerprint.</td></tr>
+<tr><td class="rowhead">Deterministic</td><td>The same input always produces the same fingerprint.</td></tr>
+</table>
+<p><b>Salt</b> is a random value mixed into a password before hashing, so two users with the same password get different stored hashes — and attackers cannot use precomputed tables of common hashes. Your systems already do this: bcrypt and argon2 store passwords as salted hashes.</p>
+<p class="meta">Hashing answers one question: <em>has this changed?</em> It is the integrity tool (Lesson 0002). It hides nothing and decrypts to nothing.</p>
+
+<h2>Part 2 — Symmetric encryption: the speed tool</h2>
+<p><b>Symmetric encryption</b> uses one shared secret key. The same key locks and unlocks. It is fast, and it is what bulk encryption actually uses — <b>AES</b> is the standard you will see on the exam.</p>
+<p>Its weakness is <b>key distribution</b>: the key must be shared secretly with every party. Ten partners who all talk securely to each other need 45 separate keys. Across an internet, sharing that first key secretly is the chicken-and-egg problem cryptography had to solve.</p>
+
+<h2>Part 3 — Asymmetric encryption: the pairing tool</h2>
+<p><b>Asymmetric encryption</b> solves key distribution with a <b>key pair</b>: a <b>public key</b> you share with the world, and a <b>private key</b> that never leaves your device. They are mathematically linked: what one key locks, only its partner unlocks.</p>
+<table>
+<tr><th>You use…</th><th>Only this can unlock…</th><th>What you get</th></tr>
+<tr><td class="rowhead">Recipient's public key</td><td>The recipient's private key</td><td>Confidentiality — only they can read it</td></tr>
+<tr><td class="rowhead">Your private key (signing)</td><td>Your public key (verifying)</td><td>Integrity, authenticity, non-repudiation</td></tr>
+</table>
+<div class="box">
+<h3>The two golden rules</h3>
+<ol class="steps">
+<li><b>Public encrypts → private decrypts.</b> (Hiding a message for one reader.)</li>
+<li><b>Private signs → public verifies.</b> (Proving who wrote it and that it is untouched.)</li>
+</ol>
+<p class="meta">Everything else in cryptography questions is a variation on these two rules. RSA is the classic algorithm name; ECC (elliptic-curve cryptography) is its smaller-key modern cousin.</p>
+</div>
+<p>Real systems combine both tools: Transport Layer Security (TLS) uses asymmetric crypto for a moment to agree on a fresh session key, then uses fast symmetric AES for the traffic. Slow and careful to introduce; fast for the bulk.</p>
+
+<h2>Part 4 — Digital signatures: non-repudiation, paid in full</h2>
+<p>In Lesson 0002 you took the word <b>non-repudiation</b> on trust. Here is the machinery. Signing does not encrypt the document — it proves three things about it:</p>
+<ol class="steps">
+<li>The developer's system hashes the release. <em>(Fingerprint of the content.)</em></li>
+<li>The developer's <b>private key encrypts that hash</b>. The result is the <b>digital signature</b>.</li>
+<li>You download the release and hash it yourself.</li>
+<li>You decrypt the signature with the developer's <b>public key</b>, which recovers their hash.</li>
+<li>The hashes match → the content is untouched (<b>integrity</b>), it came from the key holder (<b>authentication</b>), and only that private key could have produced the signature — so the signer cannot deny it (<b>non-repudiation</b>).</li>
+</ol>
+<p class="meta">Exam trap: a digital signature provides <em>no confidentiality</em>. The signed document is still readable by everyone. If the scenario needs secrecy, add encryption.</p>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps practice</th><th>Cryptography cell</th></tr>
+<tr><td>Git commit SHAs; image digests pinned by sha256</td><td>Hashing — integrity</td></tr>
+<tr><td>Passwords stored as salted hashes (bcrypt, argon2)</td><td>Hashing with salt</td></tr>
+<tr><td>"Verified" badge on a signed commit</td><td>Digital signature — public key verified</td></tr>
+<tr><td>TLS handshake in the cluster</td><td>Asymmetric key exchange, then symmetric AES</td></tr>
+<tr><td>AES volume encryption on encrypted disks</td><td>Symmetric — fast bulk encryption</td></tr>
+</table>
+
+<h2>Practice — 8 questions, instant feedback</h2>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1</p>
+<h3>Any input produces a fixed-length fingerprint that cannot be reversed. What is this called?</h3>
+<button class="opt">Salting</button><button class="opt">Hashing</button><button class="opt">Encryption</button><button class="opt">Signature</button>
+<div class="fb"><b>Hashing.</b> One-way, fixed-length, integrity-checking. Encryption is reversible with a key; a hash never is.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 2</p>
+<h3>A random value mixed into a password before hashing, so identical passwords store differently, is called what?</h3>
+<button class="opt">Key</button><button class="opt">Salt</button><button class="opt">Hash</button><button class="opt">Token</button>
+<div class="fb"><b>Salt.</b> It defeats precomputed tables of common password hashes.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3</p>
+<h3>One shared secret key both encrypts and decrypts, very fast — AES works this way. Which model?</h3>
+<button class="opt">Symmetric</button><button class="opt">Asymmetric</button><button class="opt">Hashing</button><button class="opt">Salting</button>
+<div class="fb"><b>Symmetric.</b> One shared key, high speed, and a key-distribution problem at scale.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4</p>
+<h3>You encrypt a message with the recipient's public key. Which key decrypts it?</h3>
+<button class="opt">Recipient's private key</button><button class="opt">Recipient's public key</button><button class="opt">Sender's private key</button><button class="opt">Sender's public key</button>
+<div class="fb"><b>Recipient's private key.</b> Golden rule one: public encrypts, its private partner decrypts.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 5</p>
+<h3>A developer signs a release. Anyone can verify that signature using what?</h3>
+<button class="opt">The developer's private key</button><button class="opt">The developer's public key</button><button class="opt">A shared symmetric key</button><button class="opt">A salted hashing algorithm</button>
+<div class="fb"><b>The developer's public key.</b> Golden rule two: private signs, public verifies. The private key never leaves the developer's device.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 6</p>
+<h3>A valid digital signature on a document proves which three properties?</h3>
+<button class="opt">Integrity, authenticity, non-repudiation</button><button class="opt">Confidentiality, availability, speed</button><button class="opt">Authentication, authorization, accounting</button><button class="opt">Confidentiality, integrity, availability</button>
+<div class="fb"><b>Integrity, authenticity, non-repudiation.</b> Not confidentiality — a signed document is still readable by everyone.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7</p>
+<h3>A download page lists the SHA-256 fingerprint beside the file. What is that fingerprint for?</h3>
+<button class="opt">Verifying file integrity</button><button class="opt">Encrypting file contents</button><button class="opt">Speeding file transfer</button><button class="opt">Authenticating the server</button>
+<div class="fb"><b>Verifying file integrity.</b> You hash the download and compare: equal means unmodified.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 8</p>
+<h3>Two databases share one AES key for nightly replication traffic. Which model, and its main weakness?</h3>
+<button class="opt">Asymmetric; slow speed</button><button class="opt">Symmetric; key distribution</button><button class="opt">Hashing; not reversible</button><button class="opt">Salting; rainbow tables</button>
+<div class="fb"><b>Symmetric; key distribution.</b> Fast and simple — but that one key must be shared and protected by both ends.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/public-key-infrastructure/">Professor Messer 1.4 — Public Key Infrastructure (9:08)</a> for the symmetric/asymmetric foundation and <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/hashing-and-digital-signatures/">Professor Messer 1.4 — Hashing and Digital Signatures (10:24)</a> for this lesson's second half. If the TLS hybrid trick interests you, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/key-exchange/">Key Exchange (3:39)</a> shows it step by step. Gibson covers this in Domain 1's cryptography sections — read them this session, not later.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>The predictable fog here is "which key, whose key." If the two golden rules blur mid-quiz, stop and ask the agent for two fresh worked examples before pushing on. Crypto compounds: fix confusion now, or Lessons 0005 (certificates, PKI) will tax you for it.</p>
+</div>
+
+<footer>
+<p><b>Next lesson:</b> 0005 — Cryptography II: certificates, the PKI chain of trust, and obfuscation (tokenization, masking, steganography). · <a href="0003-zero-trust-deception.html">Lesson 0003</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 1.4); Professor Messer SY0-701 section 1.4; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 1.</p>
+</footer>
+</main>
+<script>
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      var qs = document.querySelectorAll(".quiz-q[data-done]");
+      if (qs.length === document.querySelectorAll(".quiz-q").length) {
+        var warm = document.querySelectorAll('.quiz-q.warmup[data-done="1"]').length;
+        var warmN = document.querySelectorAll(".quiz-q.warmup").length;
+        var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+        var total = document.querySelectorAll(".quiz-q").length;
+        var el = document.getElementById("score");
+        el.style.display = "block";
+        el.textContent = "You scored " + right + " of " + total + " (warm-up: " + warm + " of " + warmN + ")." + (right === total ? " Perfect — the two golden rules are locked in." : right >= 8 ? " Solid — this was the hard one. Review the misses before the next session." : " Expected territory. Reread the two golden rules, retake, then move on.");
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
