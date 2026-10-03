@@ -24,13 +24,15 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0002-cia-triad-aaa.html">Lesson 0002</a></p>
-<nav><a href="#a">A</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#i">I</a> · <a href="#n">N</a> · <a href="#p">P</a> · <a href="#s">S</a> · <a href="#t">T</a></nav>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0003-zero-trust-deception.html">Lesson 0003</a></p>
+<nav><a href="#a">A</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#n">N</a> · <a href="#p">P</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
 <dl>
 <dt>Accounting (the third A in AAA)</dt>
 <dd>Recording what each identity actually did, so actions can be reviewed later. <span class="ex">Login events in a central log; an audit trail.</span></dd>
+<dt>Adaptive identity</dt>
+<dd>Zero trust idea: authentication strength adapts to risk. <span class="ex">A login from a new country triggers a stronger challenge.</span></dd>
 <dt>Authentication (the first A in AAA)</dt>
 <dd>Proving who you are, with evidence such as a password, a token, or a fingerprint. <span class="ex">Password plus one-time code — multifactor authentication (MFA).</span></dd>
 <dt>Authorization (the second A in AAA)</dt>
@@ -45,22 +47,40 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A substitute control used when the ideal control is not possible. <span class="ex">An encrypted VPN instead of an expensive private circuit.</span></dd>
 <dt>Confidentiality</dt>
 <dd>Only approved people can read the data. <span class="ex">Encryption and access controls defend it; a stolen customer list harms it.</span></dd>
+<dt>Control plane</dt>
+<dd>The zero trust brain: where access decisions are made. Users never touch it.</dd>
 <dt>Corrective control (type)</dt>
 <dd>A control that repairs damage after an incident. <span class="ex">Restoring from backup; applying an emergency patch.</span></dd>
 </dl>
 
 <h2 id="d">D</h2>
 <dl>
+<dt>Data plane</dt>
+<dd>The zero trust traffic: where users and applications actually interact, after the control plane says yes.</dd>
 <dt>Deterrent control (type)</dt>
 <dd>A control that discourages an attempt before it starts. It works on motivation, not mechanics. <span class="ex">A warning sign; a visible camera; a guard dog.</span></dd>
 <dt>Detective control (type)</dt>
 <dd>A control that discovers an attack or a policy violation, while it happens or after. <span class="ex">An intrusion detection system (IDS) alert; closed-circuit television (CCTV) footage; a log review.</span></dd>
 <dt>Directive control (type)</dt>
 <dd>A control that tells people what to do. It steers behavior rather than blocking it. <span class="ex">An acceptable use policy (AUP); a patching procedure.</span></dd>
+<dt>DNS sinkhole</dt>
+<dd>A disruption technique: Domain Name System (DNS) answers for known-malicious domains point to a dead end, breaking malware's command-and-control (C2) callbacks.</dd>
+</dl>
+
+<h2 id="h">H</h2>
+<dl>
+<dt>Honeyfile</dt>
+<dd>A decoy document that trips an alert when opened. <span class="ex">A planted "salaries.xlsx."</span></dd>
+<dt>Honeynet</dt>
+<dd>A decoy network of honeypots.</dd>
+<dt>Honeypot</dt>
+<dd>A decoy system built to look valuable, recording everything an attacker does on it.</dd>
 </dl>
 
 <h2 id="i">I</h2>
 <dl>
+<dt>Implicit trust zone</dt>
+<dd>The anti-pattern zero trust exists to eliminate: an area where being inside implies trust. <span class="ex">"It's on the internal VLAN, so it must be safe."</span></dd>
 <dt>Integrity</dt>
 <dd>Data stays correct and complete, with nothing altered or added. <span class="ex">Hashing defends it; an attacker changing a transfer amount in transit harms it.</span></dd>
 </dl>
@@ -73,6 +93,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="p">P</h2>
 <dl>
+<dt>Policy administrator</dt>
+<dd>The zero trust enforcer: opens and closes the session based on the policy engine's decision.</dd>
+<dt>Policy engine</dt>
+<dd>The zero trust decider: compares each request against policy and grants or denies.</dd>
 <dt>Preventive control (type)</dt>
 <dd>A control that stops an attack from succeeding. <span class="ex">A firewall rule; a fence; multifactor authentication (MFA).</span></dd>
 </dl>
@@ -93,6 +117,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <br><b>Physical</b> — something you can touch: fences, locks, cameras, guard dogs.</dd>
 <dt>Control types</dt>
 <dd>Six jobs a control can do: <b>preventive</b> (stop it), <b>deterrent</b> (discourage trying), <b>detective</b> (discover it), <b>corrective</b> (repair it), <b>compensating</b> (substitute when the ideal is impossible), <b>directive</b> (direct behavior).</dd>
+<dt>Threat scope reduction</dt>
+<dd>Zero trust goal: shrink the blast radius. Segment, restrict, and use least privilege so one foothold reaches little.</dd>
+</dl>
+
+<h2 id="z">Z</h2>
+<dl>
+<dt>Zero trust</dt>
+<dd>Architecture philosophy: never trust, always verify. Network location grants nothing; every request authenticates and is authorized; design as if the attacker is already inside.</dd>
 </dl>
 <p class="sub" style="margin-top:2.5rem">Cross-reference: <a href="acronyms.html">acronyms</a> · <a href="exam-map.html">exam map</a></p>
 </main>
