@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0006 — Change Management</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+ol.steps li { margin: .5rem 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q.warmup { border-left: 4px solid #8a6d2f; background: #fbf8f0; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 1 · Objective 1.3 · Lesson 6 of ~30 · ~35 minutes</p>
+<h1>Change Management: Your Home Turf, the Exam's Words</h1>
+<p class="meta">One win today: <b>translate the change process you already run into the exam's vocabulary — and defend why each step exists.</b> New this lesson: a stopwatch. The exam allows about one minute per question, so today's quiz is timed at that pace.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>In the DoD world, change management is not paperwork theater. Systems carry an <b>authorization to operate (ATO)</b> — formal permission to run. An unauthorized change can void that authorization and pull the system offline until it is re-approved. Your future DoD 8140 role will sit inside this process every week: requesting, reviewing, or approving changes. Today turns what you already do as a DevOps engineer into the vocabulary the exam — and your auditors — use.</p>
+</div>
+
+<h2>Warm-up — recall from memory</h2>
+<p class="meta">One from accounting, one from zero trust, one from hashing. All third-and-second-pass material.</p>
+
+<div class="quiz-q warmup" data-a="1">
+<p class="num">WARM-UP 1</p>
+<h3>An administrator reviews the logs of who opened the payroll folder. Which A of AAA is this?</h3>
+<button class="opt">Authentication</button><button class="opt">Accounting</button><button class="opt">Authorization</button><button class="opt">Administration</button>
+<div class="fb"><b>Accounting.</b> Recording what each identity actually did, for later review. (Lesson 0002.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="0">
+<p class="num">WARM-UP 2</p>
+<h3>Which zero-trust principle says to design as if attackers are already inside?</h3>
+<button class="opt">Assume breach</button><button class="opt">Assume change</button><button class="opt">Assume trust</button><button class="opt">Assume safety</button>
+<div class="fb"><b>Assume breach.</b> Design as if the attacker is already inside — one of zero trust's running principles. (Lesson 0003.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="2">
+<p class="num">WARM-UP 3</p>
+<h3>The random value mixed into a password before hashing is called:</h3>
+<button class="opt">A cipher</button><button class="opt">A digest</button><button class="opt">A salt</button><button class="opt">A token</button>
+<div class="fb"><b>A salt.</b> It makes identical passwords produce different stored hashes, so precomputed tables fail. (Lesson 0004.)</div>
+</div>
+
+<h2>Part 1 — Why change is a security topic</h2>
+<p>Objective 1.3 asks you to <b>explain the importance of change management processes and the impact to security</b>. The reasoning chain: change is the most common cause of outages; a rushed change can quietly undo a security control (a firewall rule opened "temporarily" in 2023 is still open); and an attacker who can change a system unreviewed owns it. Change management makes every modification <b>proposed, reviewed, approved, tested, and reversible</b> — turning uncontrolled risk into managed risk.</p>
+
+<h2>Part 2 — The process, in exam vocabulary</h2>
+<table>
+<tr><th>Step</th><th>Plain meaning</th><th>What it protects</th></tr>
+<tr><td class="rowhead">1. Change request</td><td>The formal proposal: what will change, why, the risks, and the plan to undo it.</td><td>Nothing changes without a record.</td></tr>
+<tr><td class="rowhead">2. Risk and impact analysis</td><td>Reviewers ask: what could this break? Who else depends on this system?</td><td>Surprises surface before production does.</td></tr>
+<tr><td class="rowhead">3. Approval</td><td>The <b>change advisory board (CAB)</b> — a cross-team group — approves, rejects, or returns the request.</td><td>A second set of eyes with authority to say no.</td></tr>
+<tr><td class="rowhead">4. Testing</td><td>The change is proven in a <b>test environment</b> or <b>sandbox</b> — isolated, production-like, no blast radius.</td><td>Failure happens where it is cheap.</td></tr>
+<tr><td class="rowhead">5. Maintenance window</td><td>A pre-agreed, low-usage time slot for implementation.</td><td>Availability: disruption lands where it harms fewest.</td></tr>
+<tr><td class="rowhead">6. Backout (rollback) plan</td><td>A tested procedure to restore the previous state if the change fails.</td><td>A safety net — a corrective control (Lesson 0001).</td></tr>
+<tr><td class="rowhead">7. Documentation and communication</td><td>Stakeholders are told; results and deviations are recorded.</td><td>The next reviewer inherits knowledge, not folklore.</td></tr>
+</table>
+
+<h2>Part 3 — The people</h2>
+<p>The exam names three roles. The <b>business owner</b> is accountable for the system the change touches. <b>Stakeholders</b> are everyone affected — databases, networks, applications, users — and the CAB exists to gather them in one room. <b>Communication</b> is the step organizations skip first and regret first: a change nobody announced looks exactly like an attack on the monitoring dashboard.</p>
+
+<h2>Part 4 — Emergency changes</h2>
+<p>Active exploitation does not wait for a board meeting. Every real process has an <b>emergency change path</b>: expedited (often verbal) approval from designated authorities, act immediately, then complete the documentation afterward. The exam's version of this: the best answer applies the emergency process now — it does not skip the process, and it does not wait. Two patterns to remember:</p>
+<ul>
+<li>An undocumented production change is an <b>integrity</b> problem — a modification outside authorization.</li>
+<li>A change deployed during a scheduled, announced window is business as usual; the same deployment with no announcement triggers incident response.</li>
+</ul>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps practice</th><th>Exam vocabulary</th></tr>
+<tr><td>Pull request with required approvals</td><td>Change request and approval process</td></tr>
+<tr><td>Staging environment and CI dry-runs</td><td>Test environment, sandbox</td></tr>
+<tr><td>Canary deploy with automatic rollback</td><td>Backout plan, tested and ready</td></tr>
+<tr><td>Deploy freezes over holidays</td><td>Coordinated maintenance windows</td></tr>
+<tr><td>terraform plan before apply</td><td>Impact analysis</td></tr>
+<tr><td>Postmortems written and filed</td><td>Documentation step</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b> The stopwatch starts at your first answer and stops at your last.<span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1 <span class="hard">MULTI-HOP</span></p>
+<h3>A core switch replacement is scheduled for Sunday 02:00, when usage is lowest. Choosing that low-use moment most directly protects which triad goal?</h3>
+<button class="opt">Confidentiality</button><button class="opt">Availability</button><button class="opt">Integrity</button><button class="opt">Non-repudiation</button>
+<div class="fb"><b>Availability.</b> The change still causes downtime — the window puts it where it harms the fewest users. Timing buys uptime, not secrecy or correctness.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 2</p>
+<h3>In the change process, which step sits between approval and scheduling?</h3>
+<button class="opt">The request is written</button><button class="opt">The results are logged</button><button class="opt">The window is announced</button><button class="opt">The change is tested</button>
+<div class="fb"><b>The change is tested.</b> Approved changes are proven in a test environment before a maintenance window is booked. Writing the request comes before approval; logging results comes after implementation.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 3 <span class="hard">MULTI-HOP</span></p>
+<h3>An auditor discovers a production firewall rule that no change request covers. Which security goal did this unauthorized modification harm?</h3>
+<button class="opt">Confidentiality</button><button class="opt">Availability</button><button class="opt">Integrity</button><button class="opt">Non-repudiation</button>
+<div class="fb"><b>Integrity.</b> The system state was modified outside its authorized process — the classic integrity harm, and how the exam treats undocumented changes. In a DoD setting it can also void the system's authorization to operate.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4</p>
+<h3>What is a change advisory board?</h3>
+<button class="opt">A cross-team group that reviews and approves significant changes</button><button class="opt">A vendor panel that certifies firewall hardware each year</button><button class="opt">A software tool that deploys approved patches automatically</button><button class="opt">A management memo describing the password aging policy</button>
+<div class="fb"><b>A cross-team group that reviews and approves significant changes.</b> The CAB gathers the affected stakeholders so risk and impact are judged by the people who own the consequences.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>Every migration ships with a tested procedure to restore the previous database state. Which control type is that rollback procedure?</h3>
+<button class="opt">Directive</button><button class="opt">Corrective</button><button class="opt">Detective</button><button class="opt">Deterrent</button>
+<div class="fb"><b>Corrective.</b> When the change goes wrong, the rollback repairs the damage — corrective's exact job, from Lesson 0001. It does not stop the failure (preventive) or flag it (detective); it undoes it.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">MULTI-HOP</span></p>
+<h3>Company policy: no change reaches production without approval; violations go to management review. Which control category and type is this policy?</h3>
+<button class="opt">Technical; preventive</button><button class="opt">Physical; detective</button><button class="opt">Managerial; directive</button><button class="opt">Operational; corrective</button>
+<div class="fb"><b>Managerial; directive.</b> A policy is instructions enforced through management — the managerial category — and it steers behavior rather than blocking mechanics: the directive type. Lesson 0001 wearing a change-management costume.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7</p>
+<h3>The platform team wants to try a new monitoring agent. First they run it on isolated virtual machines that mirror production. What is this called in exam vocabulary?</h3>
+<button class="opt">Testing in a sandbox</button><button class="opt">Scheduling a maintenance window</button><button class="opt">Publishing a backout plan</button><button class="opt">Filing a risk analysis</button>
+<div class="fb"><b>Testing in a sandbox.</b> An isolated, production-like environment with no blast radius — where failure is cheap and instructive.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 8 <span class="hard">BEST ANSWER</span></p>
+<h3>An internet-facing server is being actively exploited. A vendor patch exists. Which action is <em>best</em>?</h3>
+<button class="opt">Wait for the next change board meeting</button><button class="opt">Patch now under the emergency process, documenting after</button><button class="opt">Test the patch in staging for two weeks</button><button class="opt">Rebuild the server from a clean template</button>
+<div class="fb"><b>Patch now under the emergency process, documenting after.</b> The tempting distractor is waiting for the board — process matters, but the emergency path exists exactly for active exploitation: expedited approval now, complete record after. Weeks of staging leaves the attack running; a rebuild destroys evidence and may reintroduce the flaw.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/change-management-sy0-701/">Professor Messer 1.3 — Change Management (11:22)</a>, then <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/technical-change-management-sy0-701/">Technical Change Management (10:54)</a> for the technician's-eye view. Gibson Domain 1: the change management section.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>This topic is your home turf — the only way to miss exam points here is vocabulary drift or pacing. If your time ran over 11:00, or the best-answer item felt like a coin flip, tell the agent: pace and discrimination are the two skills now in training.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> the <b>week-1 mixed review</b> — cumulative, interleaved across all six lessons, timed, no lesson-context cues. Then Domain 2 (threats — the biggest vocabulary load of the sprint). <b>Mission checkpoint:</b> if the exam is not yet booked for November 12–13, book it today. · <a href="0005-cryptography-ii.html">Lesson 0005</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 1.3); Professor Messer SY0-701 section 1.3; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 1.</p>
+</footer>
+</main>
+<script>
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      var qs = document.querySelectorAll(".quiz-q[data-done]");
+      if (qs.length === document.querySelectorAll(".quiz-q").length) {
+        stopClock();
+        var warm = document.querySelectorAll('.quiz-q.warmup[data-done="1"]').length;
+        var warmN = document.querySelectorAll(".quiz-q.warmup").length;
+        var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+        var total = document.querySelectorAll(".quiz-q").length;
+        var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+        var budget = 660;
+        var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= budget ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+        var el = document.getElementById("score");
+        el.style.display = "block";
+        el.textContent = "You scored " + right + " of " + total + " (warm-up: " + warm + " of " + warmN + ")." + (right === total ? " Perfect — and timed." : right >= 8 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
