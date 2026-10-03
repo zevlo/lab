@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0007 — Week 1 Mixed Review</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+.pbq-item { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.pbq-item h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.pbq-item .num { color: #8a6d2f; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.pbq-row { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+.pbq-row button.opt { width: auto; flex: 1 1 8rem; text-align: center; font-size: .88rem; padding: .45rem .4rem; }
+#score, #pbqscore { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .pbq-item, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Week 1 Review · All of Domain 1 · Lesson 7 of ~30 · ~40 minutes</p>
+<h1>Week 1 Mixed Review</h1>
+<p class="meta">One win today: <b>prove the whole week is banked — mixed questions, no topic labels, exam pace, and your first performance-based exercise.</b> Nothing here tells you which lesson a question comes from. That is deliberate: the real exam never tells you either.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>The SY0-701 exam is up to 90 questions in 90 minutes, mixing every domain with no labels, and DoD 8140 does not grade on effort — one passing score or none. Six lessons went into you in two days. Fluency you have shown; today tests <em>storage</em>: whether week 1 survived past the lesson it came from. Everything in Domain 2 (starting tomorrow) builds on this vocabulary.</p>
+</div>
+
+<h2>Part 1 — Mixed quiz: 20 questions, timed</h2>
+<p class="meta"><b>Budget: 20 minutes for 20 questions — the exam's pace.</b> The stopwatch starts at your first answer and stops at your last. Answer from memory; the explanation names the lesson only <em>after</em> you answer.<span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 1</p>
+<h3>A guard dog patrols the loading dock. Which control category and type is this?</h3>
+<button class="opt">Physical; deterrent</button><button class="opt">Technical; preventive</button><button class="opt">Operational; detective</button><button class="opt">Managerial; directive</button>
+<div class="fb"><b>Physical; deterrent.</b> Something you can touch, working on the attacker's motivation rather than mechanics. (Lessons 0001, 0002.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 2</p>
+<h3>An attacker alters a wire transfer amount while it is in transit. Which goal is harmed?</h3>
+<button class="opt">Confidentiality</button><button class="opt">Availability</button><button class="opt">Integrity</button><button class="opt">Non-repudiation</button>
+<div class="fb"><b>Integrity.</b> Data altered in transit is the canonical integrity harm; hashing and signatures defend against it. (Lessons 0002, 0004.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 3</p>
+<h3>A client asks the certificate authority's responder in real time whether a certificate is still good. Which mechanism?</h3>
+<button class="opt">Certificate revocation list</button><button class="opt">Online Certificate Status Protocol</button><button class="opt">Certificate signing request</button><button class="opt">Chain of trust</button>
+<div class="fb"><b>Online Certificate Status Protocol (OCSP).</b> Real-time validity queries; stapling lets the server present the proof itself. (Lesson 0005.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4</p>
+<h3>A change fails in production, and the previous state is restored using the procedure that shipped with it. Which control type just fired?</h3>
+<button class="opt">Directive</button><button class="opt">Detective</button><button class="opt">Deterrent</button><button class="opt">Corrective</button>
+<div class="fb"><b>Corrective.</b> It repaired the damage after the failure — corrective's exact job. (Lessons 0001, 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5</p>
+<h3>Encrypting a message before sending it provides which protection, using which key?</h3>
+<button class="opt">Confidentiality with the recipient's public key</button><button class="opt">Integrity with the sender's private key</button><button class="opt">Authenticity with the recipient's private key</button><button class="opt">Non-repudiation with the sender's public key</button>
+<div class="fb"><b>Confidentiality with the recipient's public key.</b> Public encrypts, only the matching private key decrypts. Private signs, public verifies — that is the signature side. (Lesson 0004.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6</p>
+<h3>The security team reviews firewall logs on the first Monday of every month. Which control category?</h3>
+<button class="opt">Managerial</button><button class="opt">Technical</button><button class="opt">Operational</button><button class="opt">Physical</button>
+<div class="fb"><b>Operational.</b> People running a recurring process — log review is the classic operational example, and a detective type. (Lesson 0001.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7</p>
+<h3>Two users have the same password, but their stored hashes differ. What made that happen?</h3>
+<button class="opt">A cipher</button><button class="opt">A salt</button><button class="opt">A token</button><button class="opt">A digest</button>
+<div class="fb"><b>A salt.</b> A random value mixed in before hashing, so identical inputs fingerprint differently. (Lesson 0004.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8</p>
+<h3>Which principle states that network location grants nothing and every request must prove itself?</h3>
+<button class="opt">Never trust, always verify</button><button class="opt">Trust but verify always</button><button class="opt">Verify once, then trust</button><button class="opt">Trust the internal zone</button>
+<div class="fb"><b>Never trust, always verify.</b> The zero-trust summary. "Trust the internal zone" is the implicit-trust anti-pattern zero trust exists to kill. (Lesson 0003.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 9</p>
+<h3>A self-signed certificate works fine between two lab servers but fails in a browser. Why?</h3>
+<button class="opt">Its key pair is weaker</button><button class="opt">It lacks validity dates</button><button class="opt">Revocation is impossible</button><button class="opt">No trusted root backs it</button>
+<div class="fb"><b>No trusted root backs it.</b> The chain of trust has one link — itself. Browsers trust only chains that climb to an installed root. (Lesson 0005.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 10</p>
+<h3>Verification starts with the presented certificate and climbs through an intermediate to an anchor the system already trusts. What is being walked?</h3>
+<button class="opt">A signing request</button><button class="opt">A chain of trust</button><button class="opt">A revocation list</button><button class="opt">A stapled proof</button>
+<div class="fb"><b>A chain of trust.</b> Leaf, intermediate, root — each level's signature checked by the level above. (Lesson 0005.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 11</p>
+<h3>A policy states no change reaches production without approval, and violations go to management review. Which category and type?</h3>
+<button class="opt">Technical; preventive</button><button class="opt">Physical; detective</button><button class="opt">Managerial; directive</button><button class="opt">Operational; corrective</button>
+<div class="fb"><b>Managerial; directive.</b> Instructions enforced through management; steers behavior rather than blocking mechanics. (Lessons 0001, 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 12</p>
+<h3>A planted file named "salaries.xlsx" trips an alert the moment someone opens it. What is it called?</h3>
+<button class="opt">A honeyfile</button><button class="opt">A honeynet</button><button class="opt">A sinkhole</button><button class="opt">A honeypot</button>
+<div class="fb"><b>A honeyfile.</b> A decoy document — the file-level sibling of a decoy system (honeypot) or decoy network (honeynet). (Lesson 0003.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 13</p>
+<h3>A retailer stores meaningless tokens in place of card numbers; the real mapping sits in a separate vault. Which technique?</h3>
+<button class="opt">Masking</button><button class="opt">Hashing</button><button class="opt">Salting</button><button class="opt">Tokenization</button>
+<div class="fb"><b>Tokenization.</b> Substitute a fake value, keep the mapping elsewhere. Masking would only hide part of the real value. (Lesson 0005.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 14</p>
+<h3>A switch replacement is implemented Sunday at 02:00 because usage is lowest then. What is that time slot called?</h3>
+<button class="opt">A change freeze</button><button class="opt">A maintenance window</button><button class="opt">A test window</button><button class="opt">An implementation plan</button>
+<div class="fb"><b>A maintenance window.</b> A pre-agreed, low-usage slot — the availability-protecting step of the change process. (Lesson 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 15</p>
+<h3>In the change process, which activity sits between approval and scheduling?</h3>
+<button class="opt">Testing</button><button class="opt">Requesting</button><button class="opt">Documenting</button><button class="opt">Announcing</button>
+<div class="fb"><b>Testing.</b> Approved changes are proven in a test environment or sandbox before a window is booked. (Lesson 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 16</p>
+<h3>A finance role can open the payroll folder but not the engineering plans. Which element of AAA is this?</h3>
+<button class="opt">Authentication</button><button class="opt">Accounting</button><button class="opt">Authorization</button><button class="opt">Administration</button>
+<div class="fb"><b>Authorization.</b> What an authenticated identity is allowed to do — permissions are authorization's territory. (Lesson 0002.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 17</p>
+<h3>An encrypted VPN replaces a private circuit the organization could not afford. Which control type?</h3>
+<button class="opt">Deterrent</button><button class="opt">Compensating</button><button class="opt">Detective</button><button class="opt">Corrective</button>
+<div class="fb"><b>Compensating.</b> A substitute used when the ideal control is not possible — the textbook example. (Lesson 0001.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 18</p>
+<h3>Who does a change advisory board bring to the table?</h3>
+<button class="opt">The affected stakeholders</button><button class="opt">Only the change requester</button><button class="opt">Only external auditors</button><button class="opt">Only senior executives</button>
+<div class="fb"><b>The affected stakeholders.</b> Databases, network, application owners, users — the people who own the consequences judge the risk. (Lesson 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 19</p>
+<h3>An internet-facing server is being actively exploited, and a vendor patch exists. Which action is <em>best</em>?</h3>
+<button class="opt">Wait for the next board meeting</button><button class="opt">Patch now under the emergency process, documenting after</button><button class="opt">Test the patch in staging for two weeks</button><button class="opt">Rebuild the server from a clean template</button>
+<div class="fb"><b>Patch now under the emergency process, documenting after.</b> The emergency path exists for active exploitation — expedited approval now, complete record after. Waiting leaves the attack running; rebuilding destroys evidence. (Lesson 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 20</p>
+<h3>Tamper with an old block in a distributed ledger and every later block's recorded hash stops matching. What property does this demonstrate?</h3>
+<button class="opt">Tamper-proof</button><button class="opt">Tamper-evident</button><button class="opt">Hash-resistant</button><button class="opt">Collision-free</button>
+<div class="fb"><b>Tamper-evident.</b> The tamper is not prevented — it is detected, because the break cascades forward through chained hashes. (Lessons 0004, 0005.)</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Part 2 — Performance-based exercise: classify the control</h2>
+<p class="meta">This mimics the exam's performance-based questions (PBQs): you act instead of choosing. Not timed — on exam day, PBQs appear <em>first</em>, and you may skip them, bank the multiple choice, and return. Assign each scenario its control <b>type</b>.</p>
+
+<div class="pbq-item" data-a="0">
+<p class="num">ITEM 1</p>
+<h3>A fence surrounds the parking lot.</h3>
+<div class="pbq-row"><button class="opt">Preventive</button><button class="opt">Deterrent</button><button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Compensating</button><button class="opt">Directive</button></div>
+<div class="fb"><b>Preventive.</b> A physical barrier stops the attempt from succeeding — it does not merely discourage it. (Lesson 0001.)</div>
+</div>
+
+<div class="pbq-item" data-a="1">
+<p class="num">ITEM 2</p>
+<h3>A sign warns: "Cameras in use — premises monitored."</h3>
+<div class="pbq-row"><button class="opt">Preventive</button><button class="opt">Deterrent</button><button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Compensating</button><button class="opt">Directive</button></div>
+<div class="fb"><b>Deterrent.</b> The sign works on motivation before any attempt. (If the camera itself catches the act, that part is detective — but the sign is deterrence.) (Lesson 0001.)</div>
+</div>
+
+<div class="pbq-item" data-a="2">
+<p class="num">ITEM 3</p>
+<h3>An intrusion detection system raises an alert during a port scan.</h3>
+<div class="pbq-row"><button class="opt">Preventive</button><button class="opt">Deterrent</button><button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Compensating</button><button class="opt">Directive</button></div>
+<div class="fb"><b>Detective.</b> It discovers and reports; it does not block. Its sibling the IPS blocks — preventive. (Lesson 0001.)</div>
+</div>
+
+<div class="pbq-item" data-a="3">
+<p class="num">ITEM 4</p>
+<h3>After ransomware encrypts a file server, yesterday's backup is restored.</h3>
+<div class="pbq-row"><button class="opt">Preventive</button><button class="opt">Deterrent</button><button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Compensating</button><button class="opt">Directive</button></div>
+<div class="fb"><b>Corrective.</b> Repair after the incident — restoration is corrective's signature move. (Lesson 0001.)</div>
+</div>
+
+<div class="pbq-item" data-a="4">
+<p class="num">ITEM 5</p>
+<h3>Patching the vulnerable IoT camera fleet proves impossible, so the cameras are isolated on their own network segment.</h3>
+<div class="pbq-row"><button class="opt">Preventive</button><button class="opt">Deterrent</button><button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Compensating</button><button class="opt">Directive</button></div>
+<div class="fb"><b>Compensating.</b> The ideal control (patching) is impossible, so a substitute reduces the risk instead. (Lessons 0001, 0003.)</div>
+</div>
+
+<div class="pbq-item" data-a="5">
+<p class="num">ITEM 6</p>
+<h3>The acceptable use policy tells employees how company systems may be used.</h3>
+<div class="pbq-row"><button class="opt">Preventive</button><button class="opt">Deterrent</button><button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Compensating</button><button class="opt">Directive</button></div>
+<div class="fb"><b>Directive.</b> It directs behavior — compliance steers rather than blocks, deters, detects, or repairs. (Lesson 0001.)</div>
+</div>
+
+<p id="pbqscore"></p>
+
+<h2>Primary source</h2>
+<p class="src">Today's outside assignment: the end-of-chapter review questions for Domain 1 in Gibson — untimed first pass, then check every explanation, including for questions you got right. If any topic felt shaky above, its matching section in <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/">Messer's Section 1 videos</a> is the targeted rewatch.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>A miss on this review is worth more than another perfect score — it names exactly what needs a retrieval rep before Domain 2 buries it under new vocabulary. Report your score, your time, and any question where you were torn between two answers.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Domain 2 begins — Lesson 0008, threat actors and their motives (objective 2.1). The largest vocabulary load of the sprint; daily retrieval starts there. <b>Mission checkpoint:</b> the exam must be booked — Nov 12–13, this week at the latest. · <a href="0006-change-management.html">Lesson 0006</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (Domain 1); Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 1 review questions; Professor Messer SY0-701 Section 1.</p>
+</footer>
+</main>
+<script>
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+var start = null, timerInt = null;
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+function wireQuiz(selector, scoreId, onAllDone) {
+  document.querySelectorAll(selector).forEach(function (q) {
+    var opts = q.querySelectorAll("button.opt");
+    var fb = q.querySelector(".fb");
+    var idx = parseInt(q.getAttribute("data-a"), 10);
+    opts.forEach(function (btn, i) {
+      btn.addEventListener("click", function () {
+        if (q.getAttribute("data-done")) return;
+        opts.forEach(function (o) { o.disabled = true; });
+        opts[idx].classList.add("right");
+        var ok = i === idx;
+        if (!ok) btn.classList.add("wrong");
+        fb.classList.add(ok ? "good" : "bad");
+        fb.style.display = "block";
+        q.setAttribute("data-done", ok ? "1" : "0");
+        var qs = document.querySelectorAll(selector + "[data-done]");
+        if (qs.length === document.querySelectorAll(selector).length) {
+          var right = document.querySelectorAll(selector + '[data-done="1"]').length;
+          var total = document.querySelectorAll(selector).length;
+          var el = document.getElementById(scoreId);
+          el.style.display = "block";
+          onAllDone(el, right, total);
+        }
+      });
+    });
+  });
+}
+wireQuiz(".quiz-q", "score", function (el, right, total) {
+  stopClock();
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 20 questions (exam pace: 20:00). " + (t <= 900 ? "Well under pace." : t <= 1200 ? "Under exam pace." : "Over pace — build speed with mixed practice.") : "";
+  el.textContent = "Quiz: " + right + " of " + total + "." + (right === total ? " Perfect — and timed." : right >= 16 ? " Solid. Reread the feedback on every miss." : " Domain 1 has gaps — report them to the agent before starting Domain 2.") + pace;
+});
+wireQuiz(".pbq-item", "pbqscore", function (el, right, total) {
+  el.textContent = "Performance exercise: " + right + " of " + total + "." + (right === total ? " All six types clean — PBQ shape holds." : " The missed types are your first PBQ reps — reread the feedback.");
+});
+</script>
+</body>
+</html>
