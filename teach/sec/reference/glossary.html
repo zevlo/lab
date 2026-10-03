@@ -24,13 +24,27 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0001-security-controls.html">Lesson 0001</a></p>
-<nav><a href="#c">C</a> · <a href="#d">D</a> · <a href="#p">P</a> · <a href="#s">S</a> · <a href="#t">T</a></nav>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0002-cia-triad-aaa.html">Lesson 0002</a></p>
+<nav><a href="#a">A</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#i">I</a> · <a href="#n">N</a> · <a href="#p">P</a> · <a href="#s">S</a> · <a href="#t">T</a></nav>
+
+<h2 id="a">A</h2>
+<dl>
+<dt>Accounting (the third A in AAA)</dt>
+<dd>Recording what each identity actually did, so actions can be reviewed later. <span class="ex">Login events in a central log; an audit trail.</span></dd>
+<dt>Authentication (the first A in AAA)</dt>
+<dd>Proving who you are, with evidence such as a password, a token, or a fingerprint. <span class="ex">Password plus one-time code — multifactor authentication (MFA).</span></dd>
+<dt>Authorization (the second A in AAA)</dt>
+<dd>Deciding what an authenticated identity is allowed to do. <span class="ex">A finance role that permits opening the payroll folder.</span></dd>
+</dl>
 
 <h2 id="c">C</h2>
 <dl>
+<dt>CIA triad</dt>
+<dd>The three goals of security: confidentiality, integrity, availability. Every attack harms at least one goal; every control defends at least one.</dd>
 <dt>Compensating control (type)</dt>
 <dd>A substitute control used when the ideal control is not possible. <span class="ex">An encrypted VPN instead of an expensive private circuit.</span></dd>
+<dt>Confidentiality</dt>
+<dd>Only approved people can read the data. <span class="ex">Encryption and access controls defend it; a stolen customer list harms it.</span></dd>
 <dt>Corrective control (type)</dt>
 <dd>A control that repairs damage after an incident. <span class="ex">Restoring from backup; applying an emergency patch.</span></dd>
 </dl>
@@ -43,6 +57,18 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A control that discovers an attack or a policy violation, while it happens or after. <span class="ex">An intrusion detection system (IDS) alert; closed-circuit television (CCTV) footage; a log review.</span></dd>
 <dt>Directive control (type)</dt>
 <dd>A control that tells people what to do. It steers behavior rather than blocking it. <span class="ex">An acceptable use policy (AUP); a patching procedure.</span></dd>
+</dl>
+
+<h2 id="i">I</h2>
+<dl>
+<dt>Integrity</dt>
+<dd>Data stays correct and complete, with nothing altered or added. <span class="ex">Hashing defends it; an attacker changing a transfer amount in transit harms it.</span></dd>
+</dl>
+
+<h2 id="n">N</h2>
+<dl>
+<dt>Non-repudiation</dt>
+<dd>Proof of an action so strong that the actor cannot deny it. <span class="ex">A digital signature on a contract.</span></dd>
 </dl>
 
 <h2 id="p">P</h2>
