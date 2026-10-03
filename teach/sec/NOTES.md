@@ -13,7 +13,7 @@ All lessons and reference documents use ISO 24495-1:2023 plain language. Applied
 ## User profile (from intake, Oct 2 2026)
 - Background: DevOps. Comfortable with cloud, containers, IaC, CI/CD, networking basics, automation/scripting.
 - Assumed gaps (verify as we go): formal security vocabulary, governance/compliance concepts, cryptography internals, attack taxonomy names.
-  Update after Lesson 0005: PKI, certificates, and obfuscation tested clean at the raised difficulty (multi-hop plus best-answer items) — and the user felt the difficulty. Cryptography (1.4) is acquired at lesson depth; deeper crypto attacks wait in Domain 2. Strongest remaining gap hypotheses: governance (Domain 5), attack-name catalog (2.1–2.4). See LR 0006: calibration is inside the zone of proximal development; pace is now a signal alongside score.
+  Update after Lesson 0006: change management passed 11 of 11 under the exam-pace stopwatch — home turf confirmed, objective 1.3 acquired. All of Domain 1 is now covered at lesson depth; accuracy and pace are both saturated at lesson difficulty (LR 0007). Strongest remaining gap hypotheses: governance (Domain 5), attack-name catalog (2.1–2.4).
 - Mission: DoD 8140 requirement. Exam ~Nov 12–13, 2026.
 - Time: ~40 hrs/week total study. ≥10 hrs/week in this workspace (lessons + review). The rest: Gibson book reading, Messer videos, Gibson practice-exam questions.
 
@@ -30,4 +30,4 @@ All lessons and reference documents use ISO 24495-1:2023 plain language. Applied
 - Week 5 end (Nov 6): first timed full-length practice exam. Target 750+.
 - Week 6 (Nov 7–13): review + PBQ strategy + 1–2 more practice exams. Exam Nov 12–13.
 - Safety net: SY0-701 English retires June 11, 2027 — slipping a week or two is safe.
-- Oct 3: five lessons done in two days — ahead of pace. If Domain 1 exhausts by Oct 5, pull the week-1 review forward or start Domain 2 early; do not stretch Domain 1 artificially. Confirm the exam is booked (Nov 12–13).
+- Oct 3: Domain 1 finished at lesson depth — six lessons in two days, ahead of pace. Week-1 review pulled forward as Lesson 0007 (mixed, timed, no cues, first PBQ-style exercise). If clean at pace, start Domain 2 immediately (Lesson 0008, threat actors). Confirm the exam is booked (Nov 12–13).
