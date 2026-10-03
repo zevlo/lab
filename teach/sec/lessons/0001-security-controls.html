@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0001 — Security Controls</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .82rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .45rem .5rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .72rem; letter-spacing: .03em; }
+td { border: 1px solid #e5e1d8; padding: .45rem .5rem; vertical-align: top; background: #fff; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.hooks td { font-size: .92rem; }
+.hooks { font-size: .92rem; }
+ol.steps li { margin: .5rem 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 1 · Objective 1.1 · Lesson 1 of ~30 · ~30 minutes</p>
+<h1>Security Controls</h1>
+<p class="meta">By the end you can do one thing: <b>take any control the exam describes and name its category and its type.</b> That single skill answers a whole family of exam questions — and it is the daily work of one of the DoD 8140 roles this exam unlocks.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>The US Department of Defense (DoD) 8140 directive lists a work role called <b>security control assessor</b>. That person's entire job is looking at an organization's controls and judging whether they work. CompTIA built objective 1.1 as the vocabulary sheet for that job. Every later domain — threats, architecture, operations — describes controls. This lesson is the foundation.</p>
+</div>
+
+<h2>The idea in three sentences</h2>
+<p>A <b>security control</b> is anything an organization puts in place to reduce risk: a device, a process, a document, or a physical barrier. Every control answers two questions. <b>What kind of thing is it?</b> — that is its <b>category</b>. <b>What job does it do?</b> — that is its <b>type</b>.</p>
+<p>Full definitions live in the <a href="../reference/glossary.html">glossary</a>; acronyms used here are in the <a href="../reference/acronyms.html">acronym sheet</a>.</p>
+
+<h2>Step 1 — The four categories: what kind of thing is it?</h2>
+<table>
+<tr><th>Category</th><th>Test</th><th>Examples</th></tr>
+<tr><td class="rowhead">Managerial</td><td>It is a decision or instruction, written down and enforced by management.</td><td>Policies, risk assessments, disaster recovery plans</td></tr>
+<tr><td class="rowhead">Operational</td><td>A person runs a process, day to day.</td><td>Log reviews, incident response, security training</td></tr>
+<tr><td class="rowhead">Technical</td><td>A machine does the work.</td><td>Firewalls, encryption, intrusion detection systems (IDS)</td></tr>
+<tr><td class="rowhead">Physical</td><td>You can touch it.</td><td>Fences, locks, cameras (CCTV), guard dogs</td></tr>
+</table>
+<p class="meta">Watch for the trap: <b>operational means a person performs the process</b> — not "anything that operates." A firewall is technical even though it operates.</p>
+
+<h2>Step 2 — The six types: what job does it do?</h2>
+<table>
+<tr><th>Type</th><th>Plain meaning</th></tr>
+<tr><td class="rowhead">Preventive</td><td>Stops the attack from succeeding.</td></tr>
+<tr><td class="rowhead">Deterrent</td><td>Discourages the attempt. Works on motivation, not mechanics.</td></tr>
+<tr><td class="rowhead">Detective</td><td>Discovers the attack, during or after.</td></tr>
+<tr><td class="rowhead">Corrective</td><td>Repairs the damage after the attack.</td></tr>
+<tr><td class="rowhead">Compensating</td><td>A substitute, used when the ideal control is not possible.</td></tr>
+<tr><td class="rowhead">Directive</td><td>Tells people what to do. Steers behavior instead of blocking it.</td></tr>
+</table>
+
+<h2>Step 3 — The whole map on one table</h2>
+<p>Most exam questions give you a scenario and expect one cell of this grid. One example per cell:</p>
+<table>
+<tr><th></th><th>Preventive</th><th>Deterrent</th><th>Detective</th><th>Corrective</th><th>Compensating</th><th>Directive</th></tr>
+<tr><td class="rowhead">Managerial</td><td>Policy requiring multifactor authentication (MFA)</td><td>Policy that lists discipline for violations</td><td>Routine audit</td><td>Disaster recovery plan</td><td>Extra approval steps when software cannot enforce separation of duties</td><td>Acceptable use policy (AUP)</td></tr>
+<tr><td class="rowhead">Operational</td><td>User security training</td><td>Posters warning of monitoring</td><td>Weekly log review by staff</td><td>Incident response team actions</td><td>Manual log checks while the SIEM is down</td><td>Patching procedure</td></tr>
+<tr><td class="rowhead">Technical</td><td>Firewall rule; IPS block</td><td>Logon warning banner</td><td>IDS alert</td><td>Automated rollback; backup restore</td><td>VPN instead of a leased private circuit</td><td>DNS block page</td></tr>
+<tr><td class="rowhead">Physical</td><td>Fence; lock</td><td>Guard dog; warning sign</td><td>CCTV</td><td>Fire suppression</td><td>Rack lock when the room cannot be secured</td><td>"Authorized personnel only" sign</td></tr>
+</table>
+<div class="box">
+<h3>Classify in five seconds</h3>
+<ol class="steps">
+<li><b>Who or what enforces it?</b> Machine → technical. Document or decision → managerial. Person doing a process → operational. Something you touch → physical.</li>
+<li><b>When does it act, and on what?</b> Stops the act → preventive. Discourages trying → deterrent. Reveals the act → detective. Repairs after → corrective. Substitutes for the impossible ideal → compensating. Instructs behavior → directive.</li>
+<li><b>Two answers both fit?</b> The scenario gives a clue. Choose the fit the question emphasizes. CompTIA cares about <em>best answer</em>, not the only answer.</li>
+</ol>
+</div>
+
+<h3>Anchor it to what you already know</h3>
+<p class="meta">You run several of these controls already, under DevOps names:</p>
+<table class="hooks">
+<tr><th>DevOps practice</th><th>Control cell</th></tr>
+<tr><td>Pipeline guardrails that reject a bad deploy</td><td>Technical · preventive</td></tr>
+<tr><td>Alerting and paging on error budgets</td><td>Technical · detective</td></tr>
+<tr><td>Automated rollback on failed release</td><td>Technical · corrective</td></tr>
+<tr><td>Runbook for handling incidents</td><td>Operational · directive</td></tr>
+</table>
+
+<h2>Practice — 8 questions, instant feedback</h2>
+<p class="meta">From Lesson 0002 onward, each lesson opens with 3 recall questions from earlier lessons. Today is Lesson 1, so these questions are all new.</p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1</p>
+<h3>A chain-link fence surrounds the parking lot. Which <em>category</em> is this control?</h3>
+<button class="opt">Managerial</button><button class="opt">Operational</button><button class="opt">Physical</button><button class="opt">Technical</button>
+<div class="fb"><b>Physical.</b> You can touch a fence. Its job here — stopping vehicles from reaching the building — makes it preventive.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 2</p>
+<h3>A posted sign says trespassers will be prosecuted. Which <em>type</em> is this control?</h3>
+<button class="opt">Corrective</button><button class="opt">Detective</button><button class="opt">Deterrent</button><button class="opt">Preventive</button>
+<div class="fb"><b>Deterrent.</b> The sign stops nothing mechanically. It works on motivation — it discourages the attempt.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3</p>
+<h3>An intrusion prevention system drops attack packets in real time. Which category and type?</h3>
+<button class="opt">Technical; preventive</button><button class="opt">Physical; deterrent</button><button class="opt">Managerial; directive</button><button class="opt">Operational; corrective</button>
+<div class="fb"><b>Technical; preventive.</b> A machine does the work, and it stops the attack. The IDS cousin only alerts — that would be detective.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4</p>
+<h3>Each week an analyst reviews firewall logs by hand. Which category and type?</h3>
+<button class="opt">Operational; detective</button><button class="opt">Technical; preventive</button><button class="opt">Physical; deterrent</button><button class="opt">Managerial; directive</button>
+<div class="fb"><b>Operational; detective.</b> A person runs a process, and the process looks for what already happened.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5</p>
+<h3>After ransomware encrypts a file server, the team restores files from backup. Which <em>type</em>?</h3>
+<button class="opt">Corrective</button><button class="opt">Deterrent</button><button class="opt">Directive</button><button class="opt">Preventive</button>
+<div class="fb"><b>Corrective.</b> The action happens after the damage, and its job is repair.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 6</p>
+<h3>A document states the rules for using company email. Which category and type?</h3>
+<button class="opt">Managerial; directive</button><button class="opt">Technical; preventive</button><button class="opt">Physical; detective</button><button class="opt">Operational; corrective</button>
+<div class="fb"><b>Managerial; directive.</b> A policy is a document that directs behavior. If it lists punishments, it also acts as a deterrent — the scenario's emphasis decides.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7</p>
+<h3>A leased private circuit is too expensive, so the team encrypts internet traffic with a VPN. Which <em>type</em>?</h3>
+<button class="opt">Compensating</button><button class="opt">Corrective</button><button class="opt">Detective</button><button class="opt">Preventive</button>
+<div class="fb"><b>Compensating.</b> The ideal control was impossible, so a substitute was chosen. This is the exam's classic VPN example.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8</p>
+<h3>A guard dog patrols the yard at night. Which category and type?</h3>
+<button class="opt">Physical; deterrent</button><button class="opt">Technical; preventive</button><button class="opt">Managerial; directive</button><button class="opt">Operational; detective</button>
+<div class="fb"><b>Physical; deterrent.</b> The dog is physical — touch with care — and the job is discouragement: most attackers pick another yard.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/security-controls-sy0-701/">Professor Messer 1.1 — Security Controls (11:48)</a>. It covers exactly this grid with different examples — the repetition is deliberate: two exposures, one day apart, is how memory moves from fleeting to durable. In your Gibson book, read the controls sections of Domain 1 (use the index entry "controls").</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>This workspace has a live instructor. If any cell of the grid feels arbitrary — operational versus managerial is the usual trap — go back to the agent and ask. Working through one confusing example out loud is worth three rereads.</p>
+</div>
+
+<footer>
+<p><b>Next lesson:</b> 0002 — The CIA triad and AAA: the three goals every control serves, and the framework that proves who you are. · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 1.1); Professor Messer SY0-701 section 1.1; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 1. Exam facts verified at comptia.org, Oct 2, 2026.</p>
+</footer>
+</main>
+<script>
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      var qs = document.querySelectorAll(".quiz-q[data-done]");
+      if (qs.length === document.querySelectorAll(".quiz-q").length) {
+        var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+        var total = document.querySelectorAll(".quiz-q").length;
+        var el = document.getElementById("score");
+        el.style.display = "block";
+        el.textContent = "You scored " + right + " of " + total + "." + (right === total ? " Perfect — Lesson 0002 is unlocked." : right >= 6 ? " Solid. Review the misses, then Lesson 0002." : " Reread the two-step method above, retake, then move on.");
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
