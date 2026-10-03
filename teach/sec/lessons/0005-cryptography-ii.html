@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0005 — Cryptography II</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+ol.steps li { margin: .5rem 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q.warmup { border-left: 4px solid #8a6d2f; background: #fbf8f0; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 1 · Objective 1.4 · Lesson 5 of ~30 · ~35 minutes</p>
+<h1>Cryptography II: Certificates, PKI, and Obfuscation</h1>
+<p class="meta">One win today: <b>explain how a stranger's public key becomes trustworthy — the certificate chain — and pick the right hiding technique for sensitive data.</b> Difficulty is up this lesson: multi-hop questions, and one where two answers sound right and you must choose the better.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Public key infrastructure (PKI) is not exotic in the DoD world — it is issued to every employee. The Common Access Card (CAC) that a DoD 8140 role badges in with carries digital certificates and their private keys. Logging into DoD systems with a CAC is a live PKI handshake. This lesson explains what is inside the badge you will carry.</p>
+</div>
+
+<h2>Warm-up — recall from memory</h2>
+<p class="meta">Two from Lesson 0004 (first retest), one from zero trust.</p>
+
+<div class="quiz-q warmup" data-a="1">
+<p class="num">WARM-UP 1</p>
+<h3>Encrypting a message with the recipient's public key provides which protection?</h3>
+<button class="opt">Availability</button><button class="opt">Confidentiality</button><button class="opt">Integrity</button><button class="opt">Non-repudiation</button>
+<div class="fb"><b>Confidentiality.</b> Golden rule one: public encrypts, only the private partner decrypts — nobody else can read it. (Lesson 0004.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="0">
+<p class="num">WARM-UP 2</p>
+<h3>Creating a digital signature uses which key?</h3>
+<button class="opt">The sender's private key</button><button class="opt">The sender's public key</button><button class="opt">The recipient's private key</button><button class="opt">The recipient's public key</button>
+<div class="fb"><b>The sender's private key.</b> Golden rule two: private signs, public verifies. (Lesson 0004.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="0">
+<p class="num">WARM-UP 3</p>
+<h3>Segmentation and least privilege ensure a single foothold reaches little else. Which zero-trust goal is this?</h3>
+<button class="opt">Threat scope reduction</button><button class="opt">Adaptive identity checks</button><button class="opt">Policy engine decisions</button><button class="opt">Implicit trust boundaries</button>
+<div class="fb"><b>Threat scope reduction.</b> Shrinking the blast radius. (Lesson 0003.)</div>
+</div>
+
+<h2>Part 1 — The problem certificates solve</h2>
+<p>Lesson 0004 gave you key pairs. New problem: someone hands you a public key and says "this is Mehdi's." How do you know? A public key by itself is a label with no proven owner. A <b>digital certificate</b> fixes this: it binds a public key to an identity, and a trusted third party — the <b>certificate authority (CA)</b> — signs that binding with its own private key (Lesson 0004's signature machinery, applied to identity).</p>
+<p>How a certificate comes to life:</p>
+<ol class="steps">
+<li>You generate a key pair on your machine. The private key never leaves it.</li>
+<li>You send the public key plus your identity details to a CA. This is a <b>certificate signing request (CSR)</b>.</li>
+<li>The CA verifies you are who you claim (domain control, organization documents).</li>
+<li>The CA issues the certificate: your public key + identity + validity dates, signed by the CA.</li>
+<li>Anyone who trusts that CA can now trust that this public key is really yours.</li>
+</ol>
+
+<h2>Part 2 — The chain of trust</h2>
+<table>
+<tr><th>Level</th><th>Plain meaning</th><th>Lives where</th></tr>
+<tr><td class="rowhead">Root CA</td><td>The anchor of trust. Its certificate is pre-installed in browsers and operating systems — it is trusted because it is already there.</td><td>Offline, in a vault. Signs nothing except intermediates.</td></tr>
+<tr><td class="rowhead">Intermediate CA</td><td>The working layer, issued by the root. Keeps the root offline by doing the daily signing.</td><td>Online, issues leaf certificates.</td></tr>
+<tr><td class="rowhead">Leaf certificate</td><td>The end certificate for a site, service, or person.</td><td>On your server or smart card.</td></tr>
+</table>
+<p>Verification walks the chain from leaf up to a root the verifier already trusts — each level's signature checked by the level above. A <b>self-signed certificate</b> is a chain of one: your own key vouching for itself. Fine in a lab; in a browser it fails trust because no installed root stands behind it.</p>
+
+<h2>Part 3 — Revocation: un-trusting a live certificate</h2>
+<p>Certificates expire on schedule. Revocation is for the off-schedule problem: the private key leaked, or the CA issued wrongly. Two mechanisms:</p>
+<table>
+<tr><th>Mechanism</th><th>How it works</th><th>Weakness</th></tr>
+<tr><td class="rowhead">Certificate revocation list (CRL)</td><td>The CA publishes a list of revoked certificate serial numbers. Clients download and check it.</td><td>Can be large; goes stale between downloads.</td></tr>
+<tr><td class="rowhead">Online Certificate Status Protocol (OCSP)</td><td>The client asks the CA's responder in real time: "is this serial still good?"</td><td>Slower browsing; every visit leaks a query to the CA.</td></tr>
+<tr><td class="rowhead">OCSP stapling</td><td>The <em>server</em> fetches its own fresh OCSP proof and staples it to the handshake.</td><td>Best of both — the exam's favorite answer when a scenario says the server presents proof of valid status.</td></tr>
+</table>
+
+<h2>Part 4 — Obfuscation: hiding instead of encrypting</h2>
+<p>Encryption transforms data with keys. <b>Obfuscation</b> hides or replaces data so exposure is limited — no key, no math, just concealment or substitution:</p>
+<table>
+<tr><th>Technique</th><th>Plain meaning</th><th>Classic use</th></tr>
+<tr><td class="rowhead">Steganography</td><td>Hides data inside another medium — a message inside a photo's pixel values.</td><td>Covert channels; data exfiltration by insiders.</td></tr>
+<tr><td class="rowhead">Tokenization</td><td>Replaces a sensitive value with a meaningless token; the real mapping lives in a separate, tightly guarded vault.</td><td>Payment cards: systems store tokens, so a breach exposes nothing spendable — and shrinks audit scope.</td></tr>
+<tr><td class="rowhead">Data masking</td><td>Shows only part of the value.</td><td>Support staff see "**** **** **** 1234."</td></tr>
+</table>
+
+<h2>Part 5 — Blockchain: hashing at scale</h2>
+<p>A <b>blockchain</b> is an append-only ledger copied across many machines. Each block contains transactions and the <b>hash of the previous block</b> — Lesson 0004's fingerprint, chained. Tamper with an old block and its hash changes, which breaks the next block's recorded hash, and the break cascades forward. The chain is tamper-<em>evident</em> by construction. That is all the exam needs.</p>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps practice</th><th>Concept cell</th></tr>
+<tr><td>cert-manager requesting from Let's Encrypt</td><td>CSR → CA issuance, automated</td></tr>
+<tr><td>mTLS sidecars rotating leaf certs</td><td>Chain of trust, leaf level</td></tr>
+<tr><td>cosign verifying a signed image against a trusted root</td><td>Signature + chain verification, supply-chain edition</td></tr>
+<tr><td>Masked secret values in CI logs</td><td>Data masking</td></tr>
+<tr><td>Vault-issued tokens standing in for credentials</td><td>Tokenization</td></tr>
+</table>
+
+<h2>Practice — 8 questions, difficulty raised</h2>
+<p class="meta">Three questions marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better.</p>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 1 <span class="hard">MULTI-HOP</span></p>
+<h3>A browser validates the certificate for shop.example.com. In which order does the chain get checked?</h3>
+<button class="opt">Leaf, intermediate, root</button><button class="opt">Root, intermediate, leaf</button><button class="opt">Intermediate, leaf, root</button><button class="opt">Root, leaf, intermediate</button>
+<div class="fb"><b>Leaf, intermediate, root.</b> Verification starts with what was presented and climbs to an anchor your system already trusts. Issuance goes the other direction — root signs intermediate, intermediate signs leaf.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>A root CA's signing key sits on a machine in a bank vault, powered off, guarded. Which control category and type best describes this protection?</h3>
+<button class="opt">Physical; preventive</button><button class="opt">Technical; detective</button><button class="opt">Managerial; directive</button><button class="opt">Operational; corrective</button>
+<div class="fb"><b>Physical; preventive.</b> Lesson 0001 through a PKI lens: the vault and air gap are tangible barriers that stop the key from being reached. Detective would notice misuse; preventive stops the attempt.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3</p>
+<h3>You send a CA your public key and identity details, and it returns a signed certificate. What is that request called?</h3>
+<button class="opt">Certificate signing request</button><button class="opt">Certificate revocation list</button><button class="opt">Certificate status protocol</button><button class="opt">Chain of trust</button>
+<div class="fb"><b>Certificate signing request (CSR).</b> The application paperwork for a certificate. The revocation list and status protocol both come later, for un-trusting.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4</p>
+<h3>During the handshake, a web server hands the browser fresh CA-signed proof that its certificate has not been revoked. Which technique?</h3>
+<button class="opt">OCSP stapling</button><button class="opt">CRL publishing</button><button class="opt">CSR renewal</button><button class="opt">Self-signing</button>
+<div class="fb"><b>OCSP stapling.</b> The server staples its own status proof to the handshake — no per-visit query to the CA. Scenario says "server presents proof" → stapling.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>A retailer replaces stored card numbers with meaningless tokens; the real mapping sits in a vendor's vault. Which technique, and which security goal does it mainly serve?</h3>
+<button class="opt">Tokenization; confidentiality</button><button class="opt">Encryption; integrity</button><button class="opt">Masking; availability</button><button class="opt">Steganography; authenticity</button>
+<div class="fb"><b>Tokenization; confidentiality.</b> The sensitive value is not present to be exposed — and systems holding only tokens fall outside the strictest audit scope. Encryption would keep a recoverable ciphertext in place instead.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 6</p>
+<h3>Support staff can see only the last four digits of a customer's card number. Which technique?</h3>
+<button class="opt">Masking</button><button class="opt">Salting</button><button class="opt">Hashing</button><button class="opt">Steganography</button>
+<div class="fb"><b>Masking.</b> Partial display of a real value. Tokenization would substitute a fake value; salting and hashing are password and integrity tools.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7</p>
+<h3>A message is hidden inside the pixel values of a vacation photo. Which technique?</h3>
+<button class="opt">Steganography</button><button class="opt">Tokenization</button><button class="opt">Masking</button><button class="opt">Salting</button>
+<div class="fb"><b>Steganography.</b> Concealment inside another medium — the photo still looks like a photo.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8 <span class="hard">BEST ANSWER</span></p>
+<h3>A public web app's TLS certificate expired an hour ago; users see browser warnings. Which action is <em>best</em>?</h3>
+<button class="opt">Renew the certificate</button><button class="opt">Revoke the certificate</button><button class="opt">Self-sign a replacement</button><button class="opt">Publish a revocation list</button>
+<div class="fb"><b>Renew the certificate.</b> The tempting distractor is "revoke" — but revocation is for suspected key compromise or mis-issuance, not expiry. An expired certificate needs renewal; a self-signed replacement would trade the warning for a total trust failure.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/certificates/">Professor Messer 1.4 — Certificates (14:38)</a> — today's backbone video — plus <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/obfuscation/">Obfuscation (8:00)</a> and the two-minute <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/blockchain-technology/">Blockchain Technology (2:22)</a>. Gibson Domain 1: the PKI and obfuscation sections.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>If chain-of-trust ordering or CRL-versus-OCSP stays foggy, ask the agent before the week-1 review — certificate questions are guaranteed points on the exam, and the review will assume this lesson landed.</p>
+</div>
+
+<footer>
+<p><b>Next lesson:</b> 0006 — Change management (objective 1.3): your home turf — approval, rollback, documentation — told in the exam's vocabulary. Then the <b>week-1 mixed review</b>: cumulative, interleaved, timed. · <a href="0004-cryptography-i.html">Lesson 0004</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 1.4); Professor Messer SY0-701 section 1.4; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 1.</p>
+</footer>
+</main>
+<script>
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      var qs = document.querySelectorAll(".quiz-q[data-done]");
+      if (qs.length === document.querySelectorAll(".quiz-q").length) {
+        var warm = document.querySelectorAll('.quiz-q.warmup[data-done="1"]').length;
+        var warmN = document.querySelectorAll(".quiz-q.warmup").length;
+        var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+        var total = document.querySelectorAll(".quiz-q").length;
+        var el = document.getElementById("score");
+        el.style.display = "block";
+        el.textContent = "You scored " + right + " of " + total + " (warm-up: " + warm + " of " + warmN + ")." + (right === total ? " Perfect at raised difficulty — the signal is real again." : right >= 8 ? " Good — this level is the exam's level. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.");
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

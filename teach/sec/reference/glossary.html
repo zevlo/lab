@@ -24,8 +24,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0004-cryptography-i.html">Lesson 0004</a></p>
-<nav><a href="#a">A</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#n">N</a> · <a href="#p">P</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#z">Z</a></nav>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0005-cryptography-ii.html">Lesson 0005</a></p>
+<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
 <dl>
@@ -41,8 +41,21 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Deciding what an authenticated identity is allowed to do. <span class="ex">A finance role that permits opening the payroll folder.</span></dd>
 </dl>
 
+<h2 id="b">B</h2>
+<dl>
+<dt>Blockchain</dt>
+<dd>An append-only ledger copied across many machines, where each block carries the hash of the previous block. Tampering with an old block breaks every hash after it — tamper-evident by construction.</dd>
+
 <h2 id="c">C</h2>
 <dl>
+<dt>Certificate (digital)</dt>
+<dd>A document binding a public key to an identity, signed by a certificate authority. The unit of trust in PKI.</dd>
+<dt>Certificate authority (CA)</dt>
+<dd>The trusted issuer that verifies identity and signs certificates. A root CA's certificate is pre-installed in browsers and operating systems — trusted because it is already there.</dd>
+<dt>Certificate signing request (CSR)</dt>
+<dd>The application for a certificate: your public key plus identity details, sent to a CA for signing.</dd>
+<dt>Chain of trust</dt>
+<dd>Root CA signs intermediate CAs; intermediates sign leaf certificates. Verification walks from the presented leaf up to a root the verifier already trusts.</dd>
 <dt>CIA triad</dt>
 <dd>The three goals of security: confidentiality, integrity, availability. Every attack harms at least one goal; every control defends at least one.</dd>
 <dt>Compensating control (type)</dt>
@@ -53,10 +66,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The zero trust brain: where access decisions are made. Users never touch it.</dd>
 <dt>Corrective control (type)</dt>
 <dd>A control that repairs damage after an incident. <span class="ex">Restoring from backup; applying an emergency patch.</span></dd>
+<dt>Certificate revocation list (CRL)</dt>
+<dd>The CA's published list of revoked certificate serial numbers. Can be large and goes stale between downloads.</dd>
 </dl>
 
 <h2 id="d">D</h2>
 <dl>
+<dt>Data masking</dt>
+<dd>Showing only part of a real value. <span class="ex">Support staff see "**** **** **** 1234."</span></dd>
 <dt>Data plane</dt>
 <dd>The zero trust traffic: where users and applications actually interact, after the control plane says yes.</dd>
 <dt>Deterrent control (type)</dt>
@@ -97,6 +114,15 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Proof of an action so strong that the actor cannot deny it. <span class="ex">A digital signature on a contract.</span></dd>
 </dl>
 
+<h2 id="o">O</h2>
+<dl>
+<dt>OCSP (Online Certificate Status Protocol)</dt>
+<dd>The client asks the CA's responder in real time whether a certificate is still valid. Fresh but slower, and every visit leaks a query to the CA.</dd>
+<dt>OCSP stapling</dt>
+<dd>The server fetches its own fresh OCSP proof and staples it to the handshake. The exam's answer whenever a scenario says the server presents proof of valid status.</dd>
+<dt>Obfuscation</dt>
+<dd>Hiding or substituting data instead of encrypting it — steganography, tokenization, masking.</dd>
+
 <h2 id="p">P</h2>
 <dl>
 <dt>Policy administrator</dt>
@@ -109,6 +135,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The secret half of an asymmetric key pair. Never leaves its owner's device. Decrypts what the public key encrypted; creates signatures the public key verifies.</dd>
 <dt>Public key</dt>
 <dd>The shareable half of an asymmetric key pair. Encrypts messages only the private key can open; verifies signatures only the private key could create.</dd>
+<dt>Public key infrastructure (PKI)</dt>
+<dd>The full system that issues, signs, verifies, and revokes certificates: certificate authorities, registration, chains of trust, revocation lists and status protocols.</dd>
 </dl>
 
 <h2 id="s">S</h2>
@@ -117,6 +145,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A random value mixed into a password before hashing, so identical passwords produce different stored hashes and precomputed tables fail.</dd>
 <dt>Security control</dt>
 <dd>Anything an organization puts in place to reduce risk — a device, a process, a document, or a physical barrier. Every control has a <b>category</b> (what kind of thing it is) and a <b>type</b> (what job it does).</dd>
+<dt>Self-signed certificate</dt>
+<dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
+<dt>Steganography</dt>
+<dd>Hiding data inside another medium, such as a message inside a photo's pixel values. Concealment, not encryption.</dd>
 <dt>Symmetric encryption</dt>
 <dd>Encryption with one shared secret key that both locks and unlocks. Fast — the bulk-encryption workhorse — but the key must be distributed secretly. <span class="ex">AES.</span></dd>
 </dl>
@@ -133,6 +165,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Six jobs a control can do: <b>preventive</b> (stop it), <b>deterrent</b> (discourage trying), <b>detective</b> (discover it), <b>corrective</b> (repair it), <b>compensating</b> (substitute when the ideal is impossible), <b>directive</b> (direct behavior).</dd>
 <dt>Threat scope reduction</dt>
 <dd>Zero trust goal: shrink the blast radius. Segment, restrict, and use least privilege so one foothold reaches little.</dd>
+<dt>Tokenization</dt>
+<dd>Replacing a sensitive value with a meaningless token, with the real mapping kept in a separate, tightly guarded vault. <span class="ex">Stored payment-card tokens.</span></dd>
 </dl>
 
 <h2 id="z">Z</h2>
