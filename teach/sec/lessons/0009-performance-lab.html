@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0009 — Performance Lab: Five Stations</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 48rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+h4 { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .35rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1.1rem 1.3rem; margin: 1.5rem 0; }
+.station > h3 { margin-top: 0; font-size: 1.1rem; }
+.note { font-size: .88rem; color: #55524a; border-left: 3px solid #b08430; padding: .3rem .7rem; margin: .8rem 0; background: #faf6ec; }
+.tray { background: #f0ede5; border: 1px solid #d8d3c6; border-radius: 8px; padding: .5rem; min-height: 2.8rem; margin: .6rem 0; }
+.chip { display: inline-block; padding: .3rem .7rem; margin: .2rem; background: #fff; border: 1px solid #b9b2a0; border-radius: 16px; cursor: grab; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .85rem; user-select: none; }
+.chip:hover { background: #eef4f1; }
+.chip.sel { outline: 3px solid #0f5c5c; }
+.chip.good { background: #e2efe4; border-color: #4c8a55; }
+.chip.bad { background: #f7e4e2; border-color: #b35248; }
+.zone { border: 2px dashed #b9b2a0; border-radius: 8px; padding: .45rem; background: #fff; min-height: 3.2rem; }
+.zone.over { border-color: #0f5c5c; background: #eef4f1; }
+.zone.good { border-color: #4c8a55; background: #e2efe4; border-style: solid; }
+.zone.bad { border-color: #b35248; background: #f7e4e2; border-style: solid; }
+.buckets { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .6rem; margin: .8rem 0; }
+.orderrow { display: flex; flex-wrap: wrap; gap: .5rem; margin: .8rem 0; }
+.oslot { flex: 1 1 9rem; min-width: 9rem; }
+.zlabel { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .72rem; color: #55524a; letter-spacing: .04em; margin-bottom: .25rem; }
+button.check, button.reset { font: inherit; font-size: .9rem; padding: .45rem 1rem; border-radius: 5px; cursor: pointer; margin: .4rem .4rem .4rem 0; }
+button.check { background: #0f5c5c; color: #fff; border: 1px solid #0f5c5c; }
+button.check:hover { background: #0d4d4d; }
+button.reset { background: #fff; color: #55524a; border: 1px solid #b9b2a0; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.show { display: block; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+.fb ul { margin: .3rem 0; padding-left: 1.2rem; }
+.fb li { margin: .2rem 0; }
+.maprow { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .5rem; margin: .6rem 0; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .85rem; }
+.netbox { border: 2px solid #0f5c5c; border-radius: 8px; padding: .5rem .7rem; background: #eef4f1; text-align: center; }
+.netbox.dmz { border-color: #b08430; background: #faf6ec; }
+.netbox.lan { border-color: #4c8a55; background: #f2f7f4; }
+.netbox .inner { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: .4rem; }
+.netbox .zone { min-width: 8.5rem; }
+.arrow { font-size: 1.3rem; color: #55524a; text-align: center; margin: .1rem 0; }
+select, input.txt { font: inherit; font-size: .9rem; padding: .3rem .4rem; border: 1px solid #b9b2a0; border-radius: 4px; background: #fff; max-width: 100%; }
+select.good { border-color: #4c8a55; background: #e2efe4; }
+select.bad { border-color: #b35248; background: #f7e4e2; }
+.rulerow { margin: .6rem 0; padding: .5rem .6rem; background: #fff; border: 1px solid #e5e1d8; border-radius: 6px; }
+table.log { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: .78rem; }
+table.log td, table.log th { padding: .3rem .45rem; white-space: nowrap; }
+table.log tbody tr { cursor: pointer; }
+table.log tbody tr:hover { background: #eef4f1; }
+table.log tr.picked td { background: #faf0d7; }
+table.log tr.good td { background: #e2efe4; }
+table.log tr.bad td { background: #f7e4e2; }
+table.log tr.missed td { outline: 2px dashed #4c8a55; outline-offset: -2px; }
+table.ruleset tr { cursor: pointer; }
+table.ruleset tr:hover td { background: #eef4f1; }
+table.ruleset tr.picked td { background: #faf0d7; }
+table.ruleset tr.good td { background: #e2efe4; }
+table.ruleset tr.bad td { background: #f7e4e2; }
+.wide { overflow-x: auto; }
+#board { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .95rem; border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; display: none; }
+#board h3 { margin: 0 0 .5rem; }
+#board ul { margin: 0; padding-left: 1.2rem; }
+#final { font-weight: bold; margin-top: .6rem; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .station, .box { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Interleaved lab · Applies lessons 1–8 · Lesson 9 of ~30 · ~60 minutes</p>
+<h1>Performance Lab: Five Stations</h1>
+<p class="meta">One win today: <b>work through the exam's five performance-based question types by doing them — dragging, building, reading, placing, and calculating.</b> No option buttons wearing a costume. Each station checks your work and explains every miss.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>A performance-based question (PBQ) makes you act — drag items, configure a rule, read a log — instead of picking a letter. Several appear at the <b>start</b> of your 90 minutes, and they are skippable: skim, move to the multiple choice, and return with time banked. Lesson <a href="0007-week-1-review.html">0007</a> gave you one stylized exercise; today you get the real shapes. These five tasks are also the daily work of a DoD 8140 security role: writing rules, reading logs, placing devices, and ranking risk.</p>
+</div>
+
+<div class="box">
+<h3>How every station works</h3>
+<ul>
+<li><b>Drag</b> a card into a box — or <b>click</b> the card, then click the box.</li>
+<li>Click a placed card to take it back to the tray.</li>
+<li>Click log rows to mark them. Click again to unmark.</li>
+<li>Type short answers where asked. Numbers may be typed with or without commas.</li>
+<li><b>Check</b> grades the station and explains. <b>Reset</b> returns the cards. Nothing is timed.</li>
+</ul>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Three facts from earlier lessons. Type each answer, then check all three. This includes the second spaced rep of the key-direction pair you missed in <a href="0007-week-1-review.html">Lesson 0007</a>.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> You encrypt a file so that only Maria can read it. Which of Maria's two keys did you encrypt it with? (one word)</label><br><input class="txt" id="wu1" style="width:12rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> A crew runs ransomware-as-a-service and staffs a payment help desk. Type the threat-actor class (two words).</label><br><input class="txt" id="wu2" style="width:14rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> Ransomware encrypted the file server. The team restored yesterday's backup. Type the control type (one word).</label><br><input class="txt" id="wu3" style="width:12rem"></div>
+<button class="check" data-block="wu">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Station 1 — Drag and match</h2>
+<p>Three rounds. Round A sorts <b>security controls</b> by category. Round B sorts <b>authentication factors</b>. Round C puts the <b>incident response phases</b> in order. The reminders below are the only theory you need.</p>
+
+<table>
+<tr><th>Control category</th><th>What it means</th></tr>
+<tr><td class="rowhead">Physical</td><td>Things you can touch: fences, locks, guards, cameras.</td></tr>
+<tr><td class="rowhead">Technical</td><td>Hardware and software doing the work: firewalls, encryption, alarms.</td></tr>
+<tr><td class="rowhead">Managerial</td><td>Plans and rules set by management: policies, risk assessments.</td></tr>
+<tr><td class="rowhead">Operational</td><td>People running recurring processes: log review, training.</td></tr>
+</table>
+
+<table>
+<tr><th>Authentication factor</th><th>What it is</th></tr>
+<tr><td class="rowhead">Something you know</td><td>A secret you hold in your head.</td></tr>
+<tr><td class="rowhead">Something you have</td><td>An object in your possession.</td></tr>
+<tr><td class="rowhead">Something you are</td><td>A body measurement — biometrics.</td></tr>
+<tr><td class="rowhead">Somewhere you are</td><td>Your location at sign-in time.</td></tr>
+</table>
+<p class="meta">SY0-701 also lists <b>something you do</b> (a behavior, such as typing rhythm) and <b>someone you know</b> (a trusted person vouches for you). This round uses the four in the boxes.</p>
+
+<table>
+<tr><th>Incident response phase</th><th>What happens</th></tr>
+<tr><td class="rowhead">Preparation</td><td>Before anything happens: playbooks, contacts, tools, tested backups.</td></tr>
+<tr><td class="rowhead">Identification</td><td>Detect and confirm the incident. Events become evidence.</td></tr>
+<tr><td class="rowhead">Containment</td><td>Stop the spread: isolate systems, cut network access, keep evidence.</td></tr>
+<tr><td class="rowhead">Eradication</td><td>Remove the cause: delete malware, close the hole, patch.</td></tr>
+<tr><td class="rowhead">Recovery</td><td>Restore service from clean sources, verify, monitor closely.</td></tr>
+<tr><td class="rowhead">Lessons learned</td><td>Review what happened. Update controls and the playbook.</td></tr>
+</table>
+
+<div class="station ddblock" id="s1a">
+<h3>Round A — Security control categories</h3>
+<div class="tray" id="tray-s1a">
+<span class="chip" draggable="true" data-cid="bollards">Bollards in front of the entrance</span>
+<span class="chip" draggable="true" data-cid="ips">Intrusion prevention system</span>
+<span class="chip" draggable="true" data-cid="aup">Acceptable use policy</span>
+<span class="chip" draggable="true" data-cid="logs">Weekly firewall log review</span>
+<span class="chip" draggable="true" data-cid="mantrap">Mantrap at the data center door</span>
+<span class="chip" draggable="true" data-cid="fde">Full-disk encryption on laptops</span>
+<span class="chip" draggable="true" data-cid="risk">Annual risk assessment</span>
+<span class="chip" draggable="true" data-cid="train">Quarterly awareness training</span>
+</div>
+<div class="buckets">
+<div><h4>Physical</h4><div class="zone" data-zid="physical" data-zname="Physical"></div></div>
+<div><h4>Technical</h4><div class="zone" data-zid="technical" data-zname="Technical"></div></div>
+<div><h4>Managerial</h4><div class="zone" data-zid="managerial" data-zname="Managerial"></div></div>
+<div><h4>Operational</h4><div class="zone" data-zid="operational" data-zname="Operational"></div></div>
+</div>
+<button class="check" data-block="s1a">Check round A</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s1a"></div>
+</div>
+
+<div class="station ddblock" id="s1b">
+<h3>Round B — Authentication factors</h3>
+<div class="tray" id="tray-s1b">
+<span class="chip" draggable="true" data-cid="pw">Password</span>
+<span class="chip" draggable="true" data-cid="card">Smart card</span>
+<span class="chip" draggable="true" data-cid="iris">Iris scan</span>
+<span class="chip" draggable="true" data-cid="gps">GPS geofence check</span>
+<span class="chip" draggable="true" data-cid="pin">PIN</span>
+<span class="chip" draggable="true" data-cid="token">Hardware one-time password token</span>
+<span class="chip" draggable="true" data-cid="finger">Fingerprint reader</span>
+<span class="chip" draggable="true" data-cid="wifi">Sign-in allowed only from office Wi-Fi</span>
+</div>
+<div class="buckets">
+<div><h4>Something you know</h4><div class="zone" data-zid="know" data-zname="Something you know"></div></div>
+<div><h4>Something you have</h4><div class="zone" data-zid="have" data-zname="Something you have"></div></div>
+<div><h4>Something you are</h4><div class="zone" data-zid="are" data-zname="Something you are"></div></div>
+<div><h4>Somewhere you are</h4><div class="zone" data-zid="where" data-zname="Somewhere you are"></div></div>
+</div>
+<button class="check" data-block="s1b">Check round B</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s1b"></div>
+</div>
+
+<div class="station ddblock" id="s1c">
+<h3>Round C — Incident response, in order</h3>
+<p class="meta">Place the six phases in CompTIA's order, first to last.</p>
+<div class="tray" id="tray-s1c">
+<span class="chip" draggable="true" data-cid="recov">Recovery</span>
+<span class="chip" draggable="true" data-cid="prep">Preparation</span>
+<span class="chip" draggable="true" data-cid="erad">Eradication</span>
+<span class="chip" draggable="true" data-cid="ident">Identification</span>
+<span class="chip" draggable="true" data-cid="less">Lessons learned</span>
+<span class="chip" draggable="true" data-cid="cont">Containment</span>
+</div>
+<div class="orderrow">
+<div class="oslot"><div class="zlabel">PHASE 1</div><div class="zone" data-zid="p1" data-zname="Phase 1"></div></div>
+<div class="oslot"><div class="zlabel">PHASE 2</div><div class="zone" data-zid="p2" data-zname="Phase 2"></div></div>
+<div class="oslot"><div class="zlabel">PHASE 3</div><div class="zone" data-zid="p3" data-zname="Phase 3"></div></div>
+<div class="oslot"><div class="zlabel">PHASE 4</div><div class="zone" data-zid="p4" data-zname="Phase 4"></div></div>
+<div class="oslot"><div class="zlabel">PHASE 5</div><div class="zone" data-zid="p5" data-zname="Phase 5"></div></div>
+<div class="oslot"><div class="zlabel">PHASE 6</div><div class="zone" data-zid="p6" data-zname="Phase 6"></div></div>
+</div>
+<button class="check" data-block="s1c">Check round C</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s1c"></div>
+<p class="note">Exam note: memory hook — <b>P</b>eople <b>I</b>n <b>C</b>haos <b>E</b>at <b>R</b>eady <b>L</b>unch (Preparation, Identification, Containment, Eradication, Recovery, Lessons learned).</p>
+</div>
+
+<h2>Station 2 — Firewall rules and ACLs</h2>
+<p>An <b>access control list (ACL)</b> is an ordered list of ALLOW and DENY rules on a router or firewall. Three facts decide everything:</p>
+<ul>
+<li>The list is read <b>top to bottom</b>. The <b>first matching rule wins</b>, and the rest are never checked.</li>
+<li>A <b>default deny</b> (deny all) at the bottom is the safe pattern: anything you did not permit is dropped.</li>
+<li>This firewall is <b>stateful</b>: replies to allowed connections return automatically. You never write a "back" rule.</li>
+</ul>
+
+<div class="station">
+<h3>The network you are configuring</h3>
+<div class="maprow"><div class="netbox">Internet<br><span class="meta">anything out there</span></div></div>
+<div class="arrow">&#8595;</div>
+<div class="maprow"><div class="netbox">Edge firewall</div></div>
+<div class="arrow">&#8595;</div>
+<div class="maprow">
+<div class="netbox dmz">DMZ — demilitarized zone (buffer network for public servers)<div class="inner">
+<div>Web server<br><b>10.20.0.80</b> (HTTPS)</div>
+<div>FTP server<br><b>10.20.0.21</b></div>
+</div></div>
+</div>
+<div class="arrow">&#8595;</div>
+<div class="maprow"><div class="netbox">Internal firewall</div></div>
+<div class="arrow">&#8595;</div>
+<div class="maprow"><div class="netbox lan">Internal LAN — <b>10.20.1.0/24</b> (staff workstations)</div></div>
+</div>
+
+<div class="station" id="s2a">
+<h3>Part A — Write three rules</h3>
+<p class="meta">Build one rule per requirement. All rules are TCP. Choose an action, a source, a destination, and a port.</p>
+<div class="rulerow"><b>Rule 1.</b> Visitors must reach the company website over HTTPS.<br>
+<select class="ra"><option value="">action</option><option value="allow">ALLOW</option><option value="deny">DENY</option></select>
+from <select class="rs"><option value="">source</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option></select>
+to <select class="rd"><option value="">destination</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option><option value="any">any destination</option></select>
+port <select class="rp"><option value="">port</option><option value="443">443</option><option value="80">80</option><option value="21">21</option><option value="22">22</option><option value="any">any</option></select></div>
+<div class="rulerow"><b>Rule 2.</b> SSH (TCP 22) is for administrators on the internal LAN only. Internet SSH attempts must be stopped — to every destination.<br>
+<select class="ra"><option value="">action</option><option value="allow">ALLOW</option><option value="deny">DENY</option></select>
+from <select class="rs"><option value="">source</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option></select>
+to <select class="rd"><option value="">destination</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option><option value="any">any destination</option></select>
+port <select class="rp"><option value="">port</option><option value="443">443</option><option value="80">80</option><option value="21">21</option><option value="22">22</option><option value="any">any</option></select></div>
+<div class="rulerow"><b>Rule 3.</b> Staff on the internal LAN use the FTP service on the DMZ server.<br>
+<select class="ra"><option value="">action</option><option value="allow">ALLOW</option><option value="deny">DENY</option></select>
+from <select class="rs"><option value="">source</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option></select>
+to <select class="rd"><option value="">destination</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option><option value="any">any destination</option></select>
+port <select class="rp"><option value="">port</option><option value="443">443</option><option value="80">80</option><option value="21">21</option><option value="22">22</option><option value="any">any</option></select></div>
+<button class="check" data-block="s2a">Check rules</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s2a"></div>
+<p class="note">Exam note: HTTPS is 443, HTTP is 80, FTP is 21, SSH is 22. The exam expects these port numbers cold.</p>
+</div>
+
+<div class="station" id="s2b">
+<h3>Part B — Audit the ruleset</h3>
+<p>Someone changed the list during last night's maintenance window. Policy says:</p>
+<ul>
+<li>The public website uses HTTPS only and stays reachable from the internet.</li>
+<li>FTP is for staff on the internal LAN only.</li>
+<li>SSH is for administrators on the internal LAN only.</li>
+</ul>
+<p class="meta">Step 1: click the one rule that breaks policy. Step 2: rebuild it the way policy wants it.</p>
+<div class="wide">
+<table class="ruleset" id="ruleset">
+<tr><th>#</th><th>Action</th><th>Source</th><th>Destination</th><th>Port</th></tr>
+<tr data-rule="1"><td>1</td><td>ALLOW</td><td>Internet</td><td>Web server (DMZ)</td><td>443</td></tr>
+<tr data-rule="2"><td>2</td><td>ALLOW</td><td>Internet</td><td>FTP server (DMZ)</td><td>21</td></tr>
+<tr data-rule="3"><td>3</td><td>ALLOW</td><td>Internal LAN</td><td>FTP server (DMZ)</td><td>21</td></tr>
+<tr data-rule="4"><td>4</td><td>ALLOW</td><td>Internal LAN</td><td>Any</td><td>22</td></tr>
+<tr data-rule="5"><td>5</td><td>DENY</td><td>Any</td><td>Any</td><td>any</td></tr>
+</table>
+</div>
+<div class="rulerow"><b>Your replacement for the faulty rule:</b><br>
+<select class="ra"><option value="">action</option><option value="allow">ALLOW</option><option value="deny">DENY</option></select>
+from <select class="rs"><option value="">source</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option></select>
+to <select class="rd"><option value="">destination</option><option value="internet">Internet</option><option value="web80">web server (DMZ)</option><option value="ftp21">FTP server (DMZ)</option><option value="lan">internal LAN</option><option value="any">any destination</option></select>
+port <select class="rp"><option value="">port</option><option value="443">443</option><option value="80">80</option><option value="21">21</option><option value="22">22</option><option value="any">any</option></select></div>
+<button class="check" data-block="s2b">Check audit</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s2b"></div>
+</div>
+
+<h2>Station 3 — Log analysis</h2>
+<p>Below is one hour of firewall log. A <b>security information and event management (SIEM) system</b> collects logs like this from every device and raises alerts. An <b>indicator of compromise (IOC)</b> is a trace in the data that proves an intrusion — an address, a port, a pattern. Three shapes to spot:</p>
+<table>
+<tr><th>Shape</th><th>What it looks like</th><th>What it means</th></tr>
+<tr><td class="rowhead">Beacon</td><td>One internal host contacts one external host at a fixed interval, small equal packets.</td><td>Malware taking orders from a command-and-control (C2) server.</td></tr>
+<tr><td class="rowhead">Scan</td><td>One external host probes many ports in order, mostly DENY.</td><td>Reconnaissance — someone mapping what is open.</td></tr>
+<tr><td class="rowhead">Bulk transfer</td><td>Gigabytes leaving an internal host for one external destination.</td><td>Data exfiltration — theft.</td></tr>
+</table>
+
+<div class="station" id="s3">
+<h3>Read the log, answer four questions</h3>
+<div class="wide">
+<table class="log" id="logtable">
+<tr><th>#</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th>Port</th><th>Action</th><th>Bytes</th><th>Note</th></tr>
+<tr data-l="L1"><td>1</td><td>13:00:00</td><td>10.20.1.55</td><td>203.0.113.66</td><td>TCP</td><td>4444</td><td>ALLOW</td><td>2 KB</td><td>unknown VPS</td></tr>
+<tr data-l="L2"><td>2</td><td>13:00:02</td><td>10.20.1.23</td><td>140.82.113.4</td><td>TCP</td><td>443</td><td>ALLOW</td><td>46 KB</td><td>github.com</td></tr>
+<tr data-l="L3"><td>3</td><td>13:00:05</td><td>198.51.100.7</td><td>10.20.0.80</td><td>TCP</td><td>21</td><td>DENY</td><td>0</td><td>—</td></tr>
+<tr data-l="L4"><td>4</td><td>13:00:09</td><td>10.20.1.31</td><td>8.8.8.8</td><td>UDP</td><td>53</td><td>ALLOW</td><td>1 KB</td><td>DNS</td></tr>
+<tr data-l="L5"><td>5</td><td>13:00:31</td><td>10.20.1.44</td><td>52.96.7.18</td><td>TCP</td><td>443</td><td>ALLOW</td><td>88 KB</td><td>mail service</td></tr>
+<tr data-l="L6"><td>6</td><td>13:01:00</td><td>10.20.1.55</td><td>203.0.113.66</td><td>TCP</td><td>4444</td><td>ALLOW</td><td>2 KB</td><td>unknown VPS</td></tr>
+<tr data-l="L7"><td>7</td><td>13:01:15</td><td>198.51.100.7</td><td>10.20.0.80</td><td>TCP</td><td>22</td><td>DENY</td><td>0</td><td>—</td></tr>
+<tr data-l="L8"><td>8</td><td>13:01:40</td><td>10.20.1.12</td><td>140.82.113.4</td><td>TCP</td><td>443</td><td>ALLOW</td><td>12 KB</td><td>github.com</td></tr>
+<tr data-l="L9"><td>9</td><td>13:02:00</td><td>10.20.1.55</td><td>203.0.113.66</td><td>TCP</td><td>4444</td><td>ALLOW</td><td>2 KB</td><td>unknown VPS</td></tr>
+<tr data-l="L10"><td>10</td><td>13:02:19</td><td>198.51.100.7</td><td>10.20.0.80</td><td>TCP</td><td>23</td><td>DENY</td><td>0</td><td>—</td></tr>
+<tr data-l="L11"><td>11</td><td>13:02:47</td><td>10.20.1.31</td><td>8.8.8.8</td><td>UDP</td><td>53</td><td>ALLOW</td><td>1 KB</td><td>DNS</td></tr>
+<tr data-l="L12"><td>12</td><td>13:03:00</td><td>10.20.1.55</td><td>203.0.113.66</td><td>TCP</td><td>4444</td><td>ALLOW</td><td>2 KB</td><td>unknown VPS</td></tr>
+<tr data-l="L13"><td>13</td><td>13:03:26</td><td>198.51.100.7</td><td>10.20.0.80</td><td>TCP</td><td>3389</td><td>DENY</td><td>0</td><td>—</td></tr>
+<tr data-l="L14"><td>14</td><td>13:04:03</td><td>10.20.1.70</td><td>151.101.1.5</td><td>TCP</td><td>443</td><td>ALLOW</td><td>210 KB</td><td>CDN</td></tr>
+<tr data-l="L15"><td>15</td><td>13:04:41</td><td>10.20.1.55</td><td>203.0.113.66</td><td>TCP</td><td>21</td><td>ALLOW</td><td>2.1 GB</td><td>unknown VPS</td></tr>
+<tr data-l="L16"><td>16</td><td>13:05:12</td><td>10.20.1.18</td><td>140.82.113.4</td><td>TCP</td><td>443</td><td>ALLOW</td><td>33 KB</td><td>github.com</td></tr>
+</table>
+</div>
+<div class="rulerow"><b>Q1.</b> Click every row that involves the external host 203.0.113.66.</div>
+<div class="rulerow"><label for="q2"><b>Q2.</b> Which internal host is compromised? (type the IP address)</label><br><input class="txt" id="q2" style="width:11rem"></div>
+<div class="rulerow"><label for="q3"><b>Q3.</b> What is 198.51.100.7 doing? (type the activity, two words)</label><br><input class="txt" id="q3" style="width:14rem"></div>
+<div class="rulerow"><label for="q4"><b>Q4.</b> Row 15 moved 2.1 GB to the attacker on port 21. What is this called? (one word)</label><br><input class="txt" id="q4" style="width:14rem"></div>
+<button class="check" data-block="s3">Check analysis</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s3"></div>
+<p class="note">Exam note: the tells — 2 KB on a 60-second timer is a beacon; ascending ports are a scan; 2.1 GB outbound is exfiltration. Port 4444 is a well-known default C2 port.</p>
+</div>
+
+<h2>Station 4 — Place the devices on the diagram</h2>
+<p>One paragraph of theory. A <b>demilitarized zone (DMZ)</b> is a buffer network between the internet and the internal network, holding servers that must be public. If a DMZ server falls, the internal network is still behind its own firewall — <b>defense in depth</b>. An <b>intrusion detection system (IDS)</b> watches a copy of the traffic and alerts; it does not block. A <b>virtual private network (VPN) concentrator</b> terminates encrypted remote connections. A <b>SIEM</b> collects logs from every device into one place.</p>
+
+<div class="station ddblock" id="s4">
+<h3>The topology</h3>
+<div class="tray" id="tray-s4">
+<span class="chip" draggable="true" data-cid="fw1">Edge firewall</span>
+<span class="chip" draggable="true" data-cid="web">Public web server (HTTPS)</span>
+<span class="chip" draggable="true" data-cid="fw2">Internal firewall</span>
+<span class="chip" draggable="true" data-cid="ids">IDS sensor</span>
+<span class="chip" draggable="true" data-cid="vpn">VPN concentrator</span>
+<span class="chip" draggable="true" data-cid="siem">SIEM (log collector)</span>
+</div>
+<div class="maprow"><div class="netbox">Internet</div></div>
+<div class="arrow">&#8595;</div>
+<div class="maprow"><div class="zone" data-zid="A" data-zname="Slot A (first device inbound traffic reaches)" data-cap="one" style="min-width:16rem"><div class="zlabel">SLOT A — first device all inbound traffic reaches</div></div></div>
+<div class="arrow">&#8595;</div>
+<div class="maprow">
+<div class="netbox dmz">DMZ<div class="inner">
+<div class="zone" data-zid="B" data-zname="Slot B (inside the DMZ)" data-cap="one"><div class="zlabel">SLOT B — inside the DMZ</div></div>
+</div></div>
+</div>
+<div class="arrow">&#8595;</div>
+<div class="maprow"><div class="zone" data-zid="C" data-zname="Slot C (between DMZ and LAN)" data-cap="one" style="min-width:16rem"><div class="zlabel">SLOT C — separates the DMZ from the internal LAN</div></div></div>
+<div class="arrow">&#8595;</div>
+<div class="maprow">
+<div class="netbox lan">Internal LAN<div class="inner">
+<div class="zone" data-zid="D" data-zname="Slot D (monitoring copy of traffic)" data-cap="one"><div class="zlabel">SLOT D — watches a copied feed of the traffic</div></div>
+<div class="zone" data-zid="E" data-zname="Slot E (remote workers connect here)" data-cap="one"><div class="zlabel">SLOT E — remote workers connect here</div></div>
+<div class="zone" data-zid="F" data-zname="Slot F (receives every device's logs)" data-cap="one"><div class="zlabel">SLOT F — receives logs from all devices</div></div>
+</div></div>
+</div>
+<button class="check" data-block="s4">Check diagram</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s4"></div>
+</div>
+
+<h2>Station 5 — Vulnerability triage and risk math</h2>
+<p>Two skills. First, ranking scan findings. Second, the four risk numbers.</p>
+<table>
+<tr><th>Number</th><th>Full name</th><th>Formula</th></tr>
+<tr><td class="rowhead">SLE</td><td>Single-loss expectancy — the cost of one bad event</td><td>Asset value × Exposure factor</td></tr>
+<tr><td class="rowhead">ARO</td><td>Annualized rate of occurrence — how often per year</td><td>Given (a frequency)</td></tr>
+<tr><td class="rowhead">ALE</td><td>Annualized loss expectancy — expected loss per year</td><td>SLE × ARO</td></tr>
+</table>
+<p>For vulnerability findings, <b>priority = severity × exposure × active exploitation</b>. A CVSS score alone does not decide. CVSS bands: 9.0–10.0 critical, 7.0–8.9 high, 4.0–6.9 medium, 0.1–3.9 low.</p>
+
+<div class="station ddblock" id="s5a">
+<h3>Part A — Triage the scan report</h3>
+<div class="wide">
+<table>
+<tr><th>Finding</th><th>CVSS</th><th>Where it lives</th><th>Exploited?</th><th>Patch?</th></tr>
+<tr><td class="rowhead">CVE-2026-11842</td><td>9.8</td><td>Payment server — internet-facing</td><td>Yes, in the wild</td><td>Yes</td></tr>
+<tr><td class="rowhead">CVE-2026-20433</td><td>8.1</td><td>Internal file server</td><td>No</td><td>Yes</td></tr>
+<tr><td class="rowhead">CVE-2026-07719</td><td>6.8</td><td>HVAC controller — internal IoT network</td><td>No</td><td><b>No patch exists</b></td></tr>
+<tr><td class="rowhead">CVE-2026-30101</td><td>3.1</td><td>Internal printer</td><td>No</td><td>Yes</td></tr>
+</table>
+</div>
+<p class="meta">Drag each finding into rank 1 (fix first) through rank 4 (fix last). Then choose the response for each finding.</p>
+<div class="tray" id="tray-s5a">
+<span class="chip" draggable="true" data-cid="f3">07719 · 6.8 · HVAC controller · no patch</span>
+<span class="chip" draggable="true" data-cid="f1">11842 · 9.8 · payment server · actively exploited</span>
+<span class="chip" draggable="true" data-cid="f4">30101 · 3.1 · printer</span>
+<span class="chip" draggable="true" data-cid="f2">20433 · 8.1 · internal file server</span>
+</div>
+<div class="orderrow">
+<div class="oslot"><div class="zlabel">RANK 1 — FIRST</div><div class="zone" data-zid="r1" data-zname="Rank 1" data-cap="one"></div></div>
+<div class="oslot"><div class="zlabel">RANK 2</div><div class="zone" data-zid="r2" data-zname="Rank 2" data-cap="one"></div></div>
+<div class="oslot"><div class="zlabel">RANK 3</div><div class="zone" data-zid="r3" data-zname="Rank 3" data-cap="one"></div></div>
+<div class="oslot"><div class="zlabel">RANK 4 — LAST</div><div class="zone" data-zid="r4" data-zname="Rank 4" data-cap="one"></div></div>
+</div>
+<table>
+<tr><th>Finding</th><th>Your response</th></tr>
+<tr><td class="rowhead">11842 (payment)</td><td><select class="act" data-f="f1"><option value="">choose</option><option value="emergency">Patch immediately — emergency change</option><option value="cycle">Patch on the monthly cycle</option><option value="compensate">Apply a compensating control — isolate</option><option value="accept">Accept and monitor</option></select></td></tr>
+<tr><td class="rowhead">20433 (file server)</td><td><select class="act" data-f="f2"><option value="">choose</option><option value="emergency">Patch immediately — emergency change</option><option value="cycle">Patch on the monthly cycle</option><option value="compensate">Apply a compensating control — isolate</option><option value="accept">Accept and monitor</option></select></td></tr>
+<tr><td class="rowhead">07719 (HVAC)</td><td><select class="act" data-f="f3"><option value="">choose</option><option value="emergency">Patch immediately — emergency change</option><option value="cycle">Patch on the monthly cycle</option><option value="compensate">Apply a compensating control — isolate</option><option value="accept">Accept and monitor</option></select></td></tr>
+<tr><td class="rowhead">30101 (printer)</td><td><select class="act" data-f="f4"><option value="">choose</option><option value="emergency">Patch immediately — emergency change</option><option value="cycle">Patch on the monthly cycle</option><option value="compensate">Apply a compensating control — isolate</option><option value="accept">Accept and monitor</option></select></td></tr>
+</table>
+<button class="check" data-block="s5a">Check triage</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s5a"></div>
+<p class="note">Exam note: "no patch exists" plus "internet or shared network exposure" points to a compensating control — the IoT camera fleet in <a href="0003-zero-trust-deception.html">Lesson 0003</a> got the same treatment. "Actively exploited, internet-facing, critical" is the only combination that jumps the emergency queue from <a href="0006-change-management.html">Lesson 0006</a>.</p>
+</div>
+
+<div class="station" id="s5b">
+<h3>Part B — Calculate the risk</h3>
+<p>The warehouse and its contents are worth <b>$2,400,000</b> (asset value). A serious flood would destroy about <b>25 percent</b> of that (exposure factor). Floods of that size hit about <b>once every 10 years</b>. A levee upgrade would cost <b>$15,000 per year</b> and would halve the chance of flooding — to once every 20 years.</p>
+<div class="rulerow"><label for="n1"><b>1.</b> SLE — the loss from one flood, in dollars:</label><br><input class="txt" id="n1" style="width:11rem"></div>
+<div class="rulerow"><label for="n2"><b>2.</b> ALE today, in dollars per year:</label><br><input class="txt" id="n2" style="width:11rem"></div>
+<div class="rulerow"><label for="n3"><b>3.</b> ALE after the levee upgrade, in dollars per year:</label><br><input class="txt" id="n3" style="width:11rem"></div>
+<div class="rulerow"><label for="n4"><b>4.</b> Is the levee worth its cost? (type yes or no)</label><br><input class="txt" id="n4" style="width:8rem"></div>
+<button class="check" data-block="s5b">Check math</button><button class="reset">Reset</button>
+<div class="fb" id="fb-s5b"></div>
+</div>
+
+<div id="board"><h3>Lab scoreboard</h3><ul id="boardlist"></ul><p id="final"></p></div>
+
+<h2>Primary source</h2>
+<p class="src">Today's outside assignment: on <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/">Messer's SY0-701 course index</a>, watch section 4.5 (<b>Incident Response</b>, about 11 minutes) — it deepens Station 1C with the same six phases. Everything else in this lab gets its full lesson in weeks 3–4; today you needed only the primers above.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>Report the scoreboard — all ten blocks, right over total, and roughly how long the lab took. Any block under 80 percent earns a spaced rep in a later lesson. If a station's logic felt foreign (rulesets and risk math are the usual ones), say so: both get full lessons before the exam.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0010 — threat vectors and attack surfaces (objective 2.2): how the actors get in. Its warm-ups carry the key-direction pair's third spaced rep. · <a href="0008-threat-actors.html">Lesson 0008</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objectives 3.3, 4.5, 5.4); Gibson, <em>Get Certified Get Ahead: SY0-701</em>, firewall, incident-response, and risk sections; Professor Messer SY0-701 sections 3.3, 4.5, 5.4.</p>
+</footer>
+</main>
+<script>
+var selChip = null;
+var SB = {};
+var LABELS = { wu: "Warm-ups", s1a: "1A Controls", s1b: "1B Factors", s1c: "1C Response order", s2a: "2A Write rules", s2b: "2B Audit ruleset", s3: "3 Logs", s4: "4 Diagram", s5a: "5A Triage", s5b: "5B Risk math" };
+
+function setupDD(block) {
+  block.querySelectorAll(".chip").forEach(function (c) {
+    c.addEventListener("click", function (e) { e.stopPropagation(); chipClick(c, block); });
+    c.addEventListener("dragstart", function (e) { e.dataTransfer.setData("text/plain", c.dataset.cid); e.dataTransfer.effectAllowed = "move"; });
+  });
+  block.querySelectorAll(".zone").forEach(function (z) {
+    z.addEventListener("dragover", function (e) { e.preventDefault(); z.classList.add("over"); });
+    z.addEventListener("dragleave", function () { z.classList.remove("over"); });
+    z.addEventListener("drop", function (e) {
+      e.preventDefault(); e.stopPropagation(); z.classList.remove("over");
+      var chip = block.querySelector('.chip[data-cid="' + e.dataTransfer.getData("text/plain") + '"]');
+      if (chip) place(chip, z, block);
+    });
+    z.addEventListener("click", function (e) { if (e.target.closest(".chip")) return; if (selChip && selChip.closest(".ddblock") === block) place(selChip, z, block); });
+  });
+}
+function chipClick(c, block) {
+  if (c.parentElement.classList.contains("zone")) {
+    block.querySelector(".tray").appendChild(c);
+    c.classList.remove("sel", "good", "bad");
+    selChip = null;
+    return;
+  }
+  if (selChip === c) { c.classList.remove("sel"); selChip = null; return; }
+  if (selChip) selChip.classList.remove("sel");
+  selChip = c;
+  c.classList.add("sel");
+}
+function place(chip, zone, block) {
+  if (zone.dataset.cap === "one") {
+    var existing = zone.querySelector(".chip");
+    if (existing && existing !== chip) {
+      block.querySelector(".tray").appendChild(existing);
+      existing.classList.remove("good", "bad", "sel");
+    }
+  }
+  zone.appendChild(chip);
+  chip.classList.remove("sel", "good", "bad");
+  selChip = null;
+}
+function zoneLabel(block, zid) {
+  var z = block.querySelector('.zone[data-zid="' + zid + '"]');
+  return z ? z.dataset.zname : zid;
+}
+function checkBucket(block, answers, fbEl) {
+  var right = 0, total = 0, msgs = [];
+  block.querySelectorAll(".chip").forEach(function (c) {
+    total++;
+    var zone = c.parentElement.classList.contains("zone") ? c.parentElement : null;
+    var ok = zone && answers[c.dataset.cid] === zone.dataset.zid;
+    c.classList.toggle("good", ok);
+    c.classList.toggle("bad", !ok);
+    if (ok) right++;
+    else if (!zone) msgs.push(c.textContent + " was left in the tray. It belongs in: " + zoneLabel(block, answers[c.dataset.cid]) + ".");
+    else msgs.push(c.textContent + " belongs in: " + zoneLabel(block, answers[c.dataset.cid]) + ".");
+  });
+  fbEl.className = "fb show " + (right === total ? "good" : "bad");
+  fbEl.innerHTML = "<b>" + right + " of " + total + " placed correctly.</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+  return [right, total];
+}
+function checkSlots(block, answers, fbEl, notes) {
+  var right = 0, total = 0, msgs = [];
+  block.querySelectorAll(".zone[data-zid]").forEach(function (z) {
+    total++;
+    var chip = z.querySelector(".chip");
+    var ok = chip && answers[z.dataset.zid] === chip.dataset.cid;
+    z.classList.remove("good", "bad");
+    z.classList.add(ok ? "good" : "bad");
+    if (chip) { chip.classList.remove("good", "bad"); chip.classList.add(ok ? "good" : "bad"); }
+    if (ok) right++;
+    else msgs.push(notes[z.dataset.zid]);
+  });
+  fbEl.className = "fb show " + (right === total ? "good" : "bad");
+  fbEl.innerHTML = "<b>" + right + " of " + total + " in the right place.</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+  return [right, total];
+}
+function normAns(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+function matches(inp, variants) { var v = normAns(inp); return variants.some(function (x) { return normAns(x) === v; }); }
+function normIp(s) { return s.toLowerCase().replace(/[^0-9.]/g, ""); }
+function num(s) { var v = parseFloat(String(s).replace(/[^0-9.]/g, "")); return isNaN(v) ? null : v; }
+function report(id, right, total) {
+  SB[id] = { right: right, total: total };
+  var board = document.getElementById("board");
+  board.style.display = "block";
+  var ul = document.getElementById("boardlist");
+  ul.innerHTML = "";
+  Object.keys(SB).forEach(function (k) {
+    var li = document.createElement("li");
+    li.textContent = LABELS[k] + ": " + SB[k].right + " of " + SB[k].total;
+    ul.appendChild(li);
+  });
+  if (Object.keys(SB).length === 10) {
+    var r = 0, t = 0;
+    Object.keys(SB).forEach(function (k) { r += SB[k].right; t += SB[k].total; });
+    var pct = Math.round((r / t) * 100);
+    document.getElementById("final").textContent = "Lab total: " + r + " of " + t + " (" + pct + "%). " + (pct >= 85 ? "Strong — you can perform every PBQ shape on the exam." : pct >= 70 ? "Solid base — the missed blocks get spaced reps. Report them." : "This is the working zone. Report the scoreboard so the weak stations get rebuilt before Domain 4.");
+  }
+}
+document.querySelectorAll(".ddblock").forEach(setupDD);
+document.getElementById("ruleset").querySelectorAll("tr[data-rule]").forEach(function (tr) {
+  tr.addEventListener("click", function () {
+    document.querySelectorAll('#ruleset tr[data-rule]').forEach(function (o) { o.classList.remove("good", "bad"); });
+    tr.classList.add("picked");
+  });
+});
+document.querySelectorAll("#logtable tr[data-l]").forEach(function (tr) {
+  tr.addEventListener("click", function () { tr.classList.toggle("picked"); });
+});
+document.querySelectorAll(".reset").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var block = btn.closest(".station");
+    block.querySelectorAll(".chip").forEach(function (c) { c.classList.remove("sel", "good", "bad"); });
+    var tray = block.querySelector(".tray");
+    if (tray) block.querySelectorAll(".chip").forEach(function (c) { tray.appendChild(c); });
+    block.querySelectorAll(".zone").forEach(function (z) { z.classList.remove("good", "bad", "over"); });
+    block.querySelectorAll("select").forEach(function (s) { s.value = ""; s.classList.remove("good", "bad"); });
+    block.querySelectorAll("input.txt").forEach(function (i) { i.value = ""; });
+    block.querySelectorAll("tr").forEach(function (tr) { tr.classList.remove("picked", "good", "bad", "missed"); });
+    var fb = block.querySelector(".fb");
+    if (fb) { fb.className = "fb"; fb.innerHTML = ""; }
+  });
+});
+document.querySelectorAll("button.check").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var id = btn.dataset.block;
+    var block = document.getElementById(id);
+    var fbEl = document.getElementById("fb-" + id);
+    if (id === "wu") {
+      var exp = [
+        { i: "wu1", v: ["public", "public key", "her public key", "marias public key"], ok: "Maria's public key. Public encrypts; only her private key decrypts. (Lesson 0004, second rep — the 0007 miss.)" },
+        { i: "wu2", v: ["organized crime", "organised crime", "organized criminals", "organized criminal group", "criminal organization", "crime syndicate"], ok: "Organized crime. Profit is the signature; ransomware-as-a-service is the business model. (Lesson 0008.)" },
+        { i: "wu3", v: ["corrective", "a corrective control", "corrective control"], ok: "Corrective. Restoring after damage is corrective's exact job. (Lesson 0001.)" }
+      ];
+      var right = 0, msgs = [];
+      exp.forEach(function (e) {
+        var el = document.getElementById(e.i);
+        var ok = matches(el.value, e.v);
+        el.style.borderColor = ok ? "#4c8a55" : "#b35248";
+        el.style.backgroundColor = ok ? "#e2efe4" : "#f7e4e2";
+        if (ok) right++;
+        else msgs.push(e.ok);
+      });
+      fbEl.className = "fb show " + (right === 3 ? "good" : "bad");
+      fbEl.innerHTML = "<b>" + right + " of 3.</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+      report("wu", right, 3);
+    }
+    if (id === "s1a") {
+      var ans = { bollards: "physical", mantrap: "physical", ips: "technical", fde: "technical", aup: "managerial", risk: "managerial", logs: "operational", train: "operational" };
+      var r = checkBucket(block, ans, fbEl);
+      report("s1a", r[0], r[1]);
+    }
+    if (id === "s1b") {
+      var ans = { pw: "know", pin: "know", card: "have", token: "have", iris: "are", finger: "are", gps: "where", wifi: "where" };
+      var r = checkBucket(block, ans, fbEl);
+      report("s1b", r[0], r[1]);
+    }
+    if (id === "s1c") {
+      var ans = { p1: "prep", p2: "ident", p3: "cont", p4: "erad", p5: "recov", p6: "less" };
+      var notes = { p1: "Phase 1 is Preparation — the work done before any incident.", p2: "Phase 2 is Identification — detect and confirm.", p3: "Phase 3 is Containment — stop the spread.", p4: "Phase 4 is Eradication — remove the cause.", p5: "Phase 5 is Recovery — restore and verify.", p6: "Phase 6 is Lessons learned — review and update." };
+      var r = checkSlots(block, ans, fbEl, notes);
+      report("s1c", r[0], r[1]);
+    }
+    if (id === "s2a" || id === "s2b") {
+      var expRules = id === "s2a" ? [
+        { a: "allow", s: "internet", d: "web80", p: "443", why: "ALLOW Internet to web server (DMZ) port 443 — public HTTPS to the public site." },
+        { a: "deny", s: "internet", d: "any", p: "22", why: "DENY Internet to any destination port 22 — stop all inbound SSH at the top of the list." },
+        { a: "allow", s: "lan", d: "ftp21", p: "21", why: "ALLOW internal LAN to FTP server (DMZ) port 21 — staff only." }
+      ] : [{ a: "allow", s: "lan", d: "ftp21", p: "21", why: "ALLOW internal LAN to FTP server (DMZ) port 21 — the rule policy wanted all along." }      ];
+      var ruleRows = [];
+      block.querySelectorAll(".rulerow").forEach(function (rw) { if (rw.querySelector(".ra")) ruleRows.push(rw); });
+      var right = 0, msgs = [];
+      ruleRows.forEach(function (rw, idx) {
+        var e = expRules[idx];
+        var a = rw.querySelector(".ra").value, s = rw.querySelector(".rs").value, d = rw.querySelector(".rd").value, p = rw.querySelector(".rp").value;
+        var ok = a === e.a && s === e.s && d === e.d && p === e.p;
+        [".ra", ".rs", ".rd", ".rp"].forEach(function (cl) {
+          var el = rw.querySelector(cl);
+          var expv = { ".ra": e.a, ".rs": e.s, ".rd": e.d, ".rp": e.p }[cl];
+          el.classList.remove("good", "bad");
+          el.classList.add(el.value === expv ? "good" : "bad");
+        });
+        if (ok) right++;
+        else msgs.push((id === "s2a" ? "Rule " + (idx + 1) + ": " : "Replacement rule: ") + "correct answer — " + e.why);
+      });
+      if (id === "s2b") {
+        var picked = document.querySelector('#ruleset tr.picked');
+        var rulesOk = picked && picked.dataset.rule === "2";
+        document.querySelectorAll('#ruleset tr[data-rule]').forEach(function (tr) { tr.classList.remove("good", "bad"); });
+        if (picked) picked.classList.add(rulesOk ? "good" : "bad");
+        if (rulesOk) right++;
+        else msgs.push("The faulty rule is number 2 — it allows FTP (port 21) from the Internet, breaking internal-only policy. Because it sits above the deny-all (first match wins), the default deny never gets to block it.");
+        if (right === 2) msgs.push("In practice rule 3 already covers LAN FTP, so you would simply delete rule 2 — the default deny then blocks Internet FTP on its own.");
+      }
+      var total = id === "s2a" ? 3 : 2;
+      fbEl.className = "fb show " + (right === total ? "good" : "bad");
+      fbEl.innerHTML = "<b>" + right + " of " + total + ".</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+      report(id, right, total);
+    }
+    if (id === "s3") {
+      var expected = ["L1", "L6", "L9", "L12", "L15"];
+      var pickedRows = [];
+      block.querySelectorAll("tr.picked").forEach(function (tr) { pickedRows.push(tr.dataset.l); });
+      var setOk = expected.length === pickedRows.length && expected.every(function (l) { return pickedRows.indexOf(l) >= 0; });
+      block.querySelectorAll("tr[data-l]").forEach(function (tr) { tr.classList.remove("good", "bad", "missed"); });
+      pickedRows.forEach(function (l) {
+        var tr = block.querySelector('tr[data-l="' + l + '"]');
+        tr.classList.add(expected.indexOf(l) >= 0 ? "good" : "bad");
+      });
+      if (!setOk) expected.forEach(function (l) { if (pickedRows.indexOf(l) < 0) block.querySelector('tr[data-l="' + l + '"]').classList.add("missed"); });
+      var right = 0, msgs = [];
+      if (setOk) right++;
+      else msgs.push("Rows 1, 6, 9, 12, and 15 all involve 203.0.113.66. Dashed outlines mark any you missed; red marks extras.");
+      var ip = normIp(document.getElementById("q2").value);
+      if (ip === "10.20.1.55") right++;
+      else msgs.push("The compromised host is 10.20.1.55 — the only internal address talking to the unknown VPS.");
+      if (matches(document.getElementById("q3").value, ["port scan", "portscan", "port scanning", "portscan attack", "network scan", "network scanning", "scanning", "scan"])) right++;
+      else msgs.push("198.51.100.7 is running a port scan — one host probing ascending ports (21, 22, 23, 3389), all denied.");
+      if (matches(document.getElementById("q4").value, ["exfiltration", "data exfiltration", "exfil", "data exfil", "data theft"])) right++;
+      else msgs.push("Bulk data leaving the network is exfiltration — 2.1 GB over FTP to the same attacker host.");
+      fbEl.className = "fb show " + (right === 4 ? "good" : "bad");
+      fbEl.innerHTML = "<b>" + right + " of 4.</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+      report("s3", right, 4);
+    }
+    if (id === "s4") {
+      var ans = { A: "fw1", B: "web", C: "fw2", D: "ids", E: "vpn", F: "siem" };
+      var notes = {
+        A: "Slot A is the edge firewall — the first device inbound traffic must pass.",
+        B: "Slot B, inside the DMZ, is the public web server — compromise there must not reach the LAN.",
+        C: "Slot C is the internal firewall — the second layer, between DMZ and LAN.",
+        D: "Slot D is the IDS sensor — it watches a copied feed of traffic and alerts, without blocking.",
+        E: "Slot E is the VPN concentrator — remote workers' encrypted tunnels end here, inside the LAN boundary.",
+        F: "Slot F is the SIEM — it receives logs from every device and correlates them."
+      };
+      var r = checkSlots(block, ans, fbEl, notes);
+      report("s4", r[0], r[1]);
+    }
+    if (id === "s5a") {
+      var ans = { r1: "f1", r2: "f2", r3: "f3", r4: "f4" };
+      var notes = {
+        r1: "Rank 1 is CVE-2026-11842 — critical score, internet-facing, and actively exploited. All three signals at once.",
+        r2: "Rank 2 is CVE-2026-20433 — high score, internal, patch exists. Next patch cycle.",
+        r3: "Rank 3 is CVE-2026-07719 — no patch exists, so it gets a compensating control: isolate the controller network.",
+        r4: "Rank 4 is CVE-2026-30101 — low score, internal printer. Accept and monitor."
+      };
+      var acts = { f1: "emergency", f2: "cycle", f3: "compensate", f4: "accept" };
+      var actWhy = { f1: "11842: patch immediately under the emergency change process.", f2: "20433: patch on the monthly cycle.", f3: "07719: no patch exists — isolate the network instead.", f4: "30101: low impact, internal — accept and monitor." };
+      var right = 0, total = 0, msgs = [];
+      block.querySelectorAll('.zone[data-zid^="r"]').forEach(function (z) {
+        total++;
+        var chip = z.querySelector(".chip");
+        var ok = chip && ans[z.dataset.zid] === chip.dataset.cid;
+        z.classList.remove("good", "bad");
+        z.classList.add(ok ? "good" : "bad");
+        if (chip) { chip.classList.remove("good", "bad"); chip.classList.add(ok ? "good" : "bad"); }
+        if (ok) right++;
+        else msgs.push(notes[z.dataset.zid]);
+      });
+      block.querySelectorAll("select.act").forEach(function (sel) {
+        total++;
+        var ok = sel.value === acts[sel.dataset.f];
+        sel.classList.remove("good", "bad");
+        sel.classList.add(ok ? "good" : "bad");
+        if (ok) right++;
+        else msgs.push(actWhy[sel.dataset.f]);
+      });
+      fbEl.className = "fb show " + (right === total ? "good" : "bad");
+      fbEl.innerHTML = "<b>" + right + " of " + total + ".</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+      report("s5a", right, total);
+    }
+    if (id === "s5b") {
+      var inputs = [
+        { i: "n1", want: 600000, why: "SLE = asset value times exposure factor = $2,400,000 times 0.25 = $600,000." },
+        { i: "n2", want: 60000, why: "ALE = SLE times ARO = $600,000 times 0.1 (once per 10 years) = $60,000." },
+        { i: "n3", want: 30000, why: "New ALE = $600,000 times 0.05 (once per 20 years) = $30,000." },
+        { i: "n4", yesno: true, why: "The levee saves $30,000 per year and costs $15,000 — savings double the cost, so yes." }
+      ];
+      var right = 0, msgs = [];
+      inputs.forEach(function (e) {
+        var el = document.getElementById(e.i);
+        var ok;
+        if (e.yesno) ok = matches(el.value, ["yes", "y"]);
+        else { var v = num(el.value); ok = v !== null && Math.abs(v - e.want) < 1; }
+        el.style.borderColor = ok ? "#4c8a55" : "#b35248";
+        el.style.backgroundColor = ok ? "#e2efe4" : "#f7e4e2";
+        if (ok) right++;
+        else msgs.push(e.why);
+      });
+      fbEl.className = "fb show " + (right === 4 ? "good" : "bad");
+      fbEl.innerHTML = "<b>" + right + " of 4.</b>" + (msgs.length ? "<ul>" + msgs.map(function (m) { return "<li>" + m + "</li>"; }).join("") + "</ul>" : "");
+      report("s5b", right, 4);
+    }
+  });
+});
+</script>
+</body>
+</html>
