@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0008 — Threat Actors</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+ol.steps li { margin: .5rem 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q.warmup { border-left: 4px solid #8a6d2f; background: #fbf8f0; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 2 · Objective 2.1 · Lesson 8 of ~30 · ~35 minutes</p>
+<h1>Threat Actors: Who Attacks, and Why</h1>
+<p class="meta">One win today: <b>read any attack scenario and name the actor class and motivation in exam vocabulary.</b> Domain 2 is the vocabulary mountain — new names start arriving in bulk here. Format unchanged: stopwatch, half the practice multi-hop, one best-answer.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Your DoD 8140 role exists because of these actors. DoD networks are a primary target of <b>nation-state actors</b> — "the APT" is daily vocabulary in a DoD security operations center. And DoD requires formal <b>insider-threat programs</b>, which means someone on your future team runs them. Naming the actor from the traces a scenario leaves is the base skill of objective 2.1 — and of the job.</p>
+</div>
+
+<h2>Warm-up — recall from memory</h2>
+<p class="meta">One rephrased rep of yesterday's review miss, its mirror fact, and one control pairing.</p>
+
+<div class="quiz-q warmup" data-a="0">
+<p class="num">WARM-UP 1</p>
+<h3>You encrypt a file so that only Maria can read it. Which key encrypts it, and which key decrypts it?</h3>
+<button class="opt">Maria's public key encrypts; Maria's private key decrypts</button><button class="opt">Your private key encrypts; Maria's public key decrypts</button><button class="opt">Your public key encrypts; your private key decrypts</button><button class="opt">Maria's private key encrypts; Maria's public key decrypts</button>
+<div class="fb"><b>Maria's public key encrypts; Maria's private key decrypts.</b> Golden rule one: public encrypts, only the matching private key opens it — confidentiality. (This was the review's one miss: same fact, new clothes. Lesson 0004.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="1">
+<p class="num">WARM-UP 2</p>
+<h3>You sign a commit with your private key, and anyone can verify it came from you. Which assurances does the signature provide?</h3>
+<button class="opt">Confidentiality and availability</button><button class="opt">Integrity and non-repudiation</button><button class="opt">Authorization and accounting</button><button class="opt">Availability and authentication</button>
+<div class="fb"><b>Integrity and non-repudiation.</b> Golden rule two — the mirror of warm-up one: private signs, public verifies. Same key pair, opposite direction, different goals. (Lesson 0004.)</div>
+</div>
+
+<div class="quiz-q warmup" data-a="2">
+<p class="num">WARM-UP 3</p>
+<h3>Annual security-awareness training for all staff is which control category and type?</h3>
+<button class="opt">Technical; preventive</button><button class="opt">Physical; detective</button><button class="opt">Operational; directive</button><button class="opt">Managerial; corrective</button>
+<div class="fb"><b>Operational; directive.</b> People running a process, steering behavior. (Lesson 0001.)</div>
+</div>
+
+<h2>Part 1 — The actor catalog</h2>
+<p>The exam never names the attacker outright. It describes <b>traces</b> — funding, sophistication, patience, intent, inside access — and you match them to a class. Learn the table as rows of tells:</p>
+<table>
+<tr><th>Actor</th><th>Tells in a scenario</th><th>Typical motivation</th></tr>
+<tr><td class="rowhead">Nation-state</td><td>Best-funded, most sophisticated; custom tools; patient; targets infrastructure, military, secrets.</td><td>Espionage, warfare, disruption.</td></tr>
+<tr><td class="rowhead">Organized crime</td><td>Professional crews, profit-focused; ransomware, phishing, fraud; even run payment support portals.</td><td>Financial gain.</td></tr>
+<tr><td class="rowhead">Hacktivist</td><td>Ideology on display; defacement, leaks, disruption; skill varies widely.</td><td>Ideological ("hacktivism"), sometimes grudges.</td></tr>
+<tr><td class="rowhead">Insider (malicious)</td><td>Already authenticated; legitimate access misused; triggers: grudge, payout, ideology.</td><td>Revenge, espionage, sabotage, financial.</td></tr>
+<tr><td class="rowhead">Insider (negligent)</td><td>No intent to harm; phishing clicks, misdirected files, lost devices.</td><td>None — that is the point.</td></tr>
+<tr><td class="rowhead">Unskilled attacker ("script kiddie")</td><td>Runs other people's tools without understanding them; loud, opportunistic, scans random targets.</td><td>Notoriety, curiosity, boredom.</td></tr>
+<tr><td class="rowhead">Competitor</td><td>Targets your intellectual property and talent specifically.</td><td>Corporate espionage, advantage.</td></tr>
+<tr><td class="rowhead">Shadow IT</td><td>Not an attacker at all — an internal risk actor: teams adopting unapproved services that create unmanaged exposure.</td><td>Convenience.</td></tr>
+</table>
+<p>One boundary case worth a line: a <b>security researcher</b> probes systems like an attacker. What separates them is <b>authorization</b> — permission and responsible disclosure. The exam's motivation for this row is "ethical."</p>
+
+<h2>Part 2 — APT: the term you will use at work</h2>
+<p>An <b>advanced persistent threat (APT)</b> is not a piece of malware — it is an operating pattern, usually nation-state or state-adjacent: <b>advanced</b> tools and techniques, <b>persistent</b> access maintained quietly for months (the stretch of time an attacker stays unnoticed is called <b>dwell time</b>), and a <b>threat actor</b> with intent and funding behind it. In a DoD context, "APT" is shorthand for the adversary you assume is already patient enough to wait.</p>
+
+<h2>Part 3 — The insider problem</h2>
+<p>Insiders are the hardest class to stop because the failure is not at the door — they authenticate successfully every morning. The exam pairs them with exactly the controls you already know:</p>
+<table>
+<tr><th>Control</th><th>Insider risk it cuts</th></tr>
+<tr><td class="rowhead">Least privilege</td><td>Bounds what any misuse can reach — threat scope reduction.</td></tr>
+<tr><td class="rowhead">Accounting (the third A)</td><td>Makes misuse reviewable after the fact.</td></tr>
+<tr><td class="rowhead">Offboarding revocation</td><td>Kills the departed-engineer-with-a-live-token scenario — an authorization failure when skipped.</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Ex-employee's cloud token still valid weeks later</td><td>Insider enabler — authorization failure at offboarding</td></tr>
+<tr><td>Marketing's unapproved SaaS file-sharing account</td><td>Shadow IT</td></tr>
+<tr><td>Cryptojacking alarms on idle CI runners</td><td>Organized crime monetizing compute</td></tr>
+<tr><td>Marketing site defaced after layoff news</td><td>Hacktivist (or grudge insider — context decides)</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from Domain 1. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b> The stopwatch starts at your first answer and stops at your last.<span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1 <span class="hard">MULTI-HOP</span></p>
+<h3>Over eight months, a well-funded group used custom implants to quietly map a power grid's controls and took nothing. Which actor and motivation fit best?</h3>
+<button class="opt">Unskilled attacker; notoriety</button><button class="opt">Hacktivist; financial gain</button><button class="opt">Nation-state; espionage</button><button class="opt">Organized crime; ideology</button>
+<div class="fb"><b>Nation-state; espionage.</b> The tells: patience (months), custom tooling (funding and sophistication), and infrastructure targeting without theft — reconnaissance for espionage or future warfare. Criminals monetize; hacktivists publicize.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 2</p>
+<h3>A professional crew runs ransomware-as-a-service, complete with a payment support portal and negotiators. Which actor class?</h3>
+<button class="opt">Hacktivists</button><button class="opt">Organized crime</button><button class="opt">Script kiddies</button><button class="opt">Nation-states</button>
+<div class="fb"><b>Organized crime.</b> Ransomware with customer service is a business — profit is the signature. Ransomware-as-a-service is the crime syndicate's SaaS pivot.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3 <span class="hard">MULTI-HOP</span></p>
+<h3>A departed engineer's access token stayed valid for weeks after offboarding, and proprietary data later left the network. Which actor, and which element of AAA failed?</h3>
+<button class="opt">Malicious insider; authorization</button><button class="opt">Negligent insider; accounting</button><button class="opt">External actor; authentication</button><button class="opt">Shadow IT; availability</button>
+<div class="fb"><b>Malicious insider; authorization.</b> Revoking access is authorization's job — the offboarding process failed it, and a person with legitimate credentials did the rest. (Lessons 0002 and this one.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>Activists deface a retailer's website and leak internal documents to protest its labor practices. They demand no money. Actor type and motivation?</h3>
+<button class="opt">Organized crime; extortion</button><button class="opt">Nation-state; warfare</button><button class="opt">Unskilled attacker; notoriety</button><button class="opt">Hacktivist; ideological</button>
+<div class="fb"><b>Hacktivist; ideological.</b> The cause is the message, the defacement is the megaphone, and the absence of any demand for payment rules out crime.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 5</p>
+<h3>An employee forwards the payroll spreadsheet to a personal address by clicking the wrong autocomplete entry. No harm was intended. Which insider type?</h3>
+<button class="opt">Malicious insider</button><button class="opt">Negligent insider</button><button class="opt">Shadow IT</button><button class="opt">Competitor actor</button>
+<div class="fb"><b>Negligent insider.</b> Intent is the dividing line inside the insider class: malicious means to harm, negligent means no intent at all — just error.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6</p>
+<h3>What most defines an advanced persistent threat?</h3>
+<button class="opt">Its malware is undetectable</button><button class="opt">It only uses zero-day exploits</button><button class="opt">It maintains long, stealthy access</button><button class="opt">It operates from inside</button>
+<div class="fb"><b>It maintains long, stealthy access.</b> The P is the defining letter — persistence, quiet dwell time measured in months. Advanced tools are common but not required; "undetectable" malware is a myth the exam does not endorse.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7 <span class="hard">MULTI-HOP</span></p>
+<h3>A teenager runs a downloaded exploit kit against random internet addresses and shows up in intrusion detection alerts. Which actor, and which control type most often stops this class?</h3>
+<button class="opt">Unskilled attacker; preventive</button><button class="opt">Nation-state; detective</button><button class="opt">Negligent insider; corrective</button><button class="opt">Hacktivist; compensating</button>
+<div class="fb"><b>Unskilled attacker; preventive.</b> Running other people's tools without understanding them — and routine defenses (patching, firewalls) stop the opportunistic. The IDS caught this one, but catching is detective; stopping is preventive. (Lessons 0001 and this one.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 8 <span class="hard">BEST ANSWER</span></p>
+<h3>Ransomware hits a regional hospital on a holiday weekend. The crew offers a decryptor for payment and a leak-site deadline. Primary motivation?</h3>
+<button class="opt">Service disruption</button><button class="opt">Ideological protest</button><button class="opt">Military advantage</button><button class="opt">Financial gain</button>
+<div class="fb"><b>Financial gain.</b> Extortion is the business model; the hospital and the holiday are chosen to maximize payment pressure. Disruption is the lever, not the goal — the tempting distractor.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/threat-actors-sy0-701/">Professor Messer 2.1 — Threat Actors (10:23)</a> — today's backbone video. Gibson Domain 2: the threat-actor and motivations section, plus its end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>Domain 2 is where the vocabulary volume spikes. If any two actor classes start blurring — insider versus shadow IT is the usual pair — ask the agent before the next lesson: every later objective in this domain assumes the catalog is solid. Report your score and your time.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0009 — threat vectors and attack surfaces (objective 2.2): how the actors get in. The warm-ups will include the key-direction pair's second spaced rep. · <a href="0007-week-1-review.html">Lesson 0007</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 2.1); Professor Messer SY0-701 section 2.1; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 2.</p>
+</footer>
+</main>
+<script>
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      var qs = document.querySelectorAll(".quiz-q[data-done]");
+      if (qs.length === document.querySelectorAll(".quiz-q").length) {
+        stopClock();
+        var warm = document.querySelectorAll('.quiz-q.warmup[data-done="1"]').length;
+        var warmN = document.querySelectorAll(".quiz-q.warmup").length;
+        var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+        var total = document.querySelectorAll(".quiz-q").length;
+        var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+        var budget = 660;
+        var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= budget ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+        var el = document.getElementById("score");
+        el.style.display = "block";
+        el.textContent = "You scored " + right + " of " + total + " (warm-up: " + warm + " of " + warmN + ")." + (right === total ? " Perfect — and timed." : right >= 8 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

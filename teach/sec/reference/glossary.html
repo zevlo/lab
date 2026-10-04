@@ -24,8 +24,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0006-change-management.html">Lesson 0006</a></p>
-<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#z">Z</a></nav>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0008-threat-actors.html">Lesson 0008</a></p>
+<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
 <dl>
@@ -33,6 +33,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Recording what each identity actually did, so actions can be reviewed later. <span class="ex">Login events in a central log; an audit trail.</span></dd>
 <dt>Adaptive identity</dt>
 <dd>Zero trust idea: authentication strength adapts to risk. <span class="ex">A login from a new country triggers a stronger challenge.</span></dd>
+<dt>Advanced persistent threat (APT)</dt>
+<dd>An operating pattern, usually nation-state or state-adjacent: advanced tools, persistent access maintained quietly for months (dwell time), and a funded actor behind it. Not a piece of malware — a patient adversary.</dd>
 <dt>Asymmetric encryption</dt>
 <dd>Encryption with a key pair: a public key shared with the world and a private key that never leaves its owner. Public encrypts → private decrypts (confidentiality); private signs → public verifies (signatures). <span class="ex">RSA, ECC.</span></dd>
 <dt>Authentication (the first A in AAA)</dt>
@@ -93,10 +95,20 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A control that tells people what to do. It steers behavior rather than blocking it. <span class="ex">An acceptable use policy (AUP); a patching procedure; a change management policy.</span></dd>
 <dt>DNS sinkhole</dt>
 <dd>A disruption technique: Domain Name System (DNS) answers for known-malicious domains point to a dead end, breaking malware's command-and-control (C2) callbacks.</dd>
+<dt>Dwell time</dt>
+<dd>The stretch of time an attacker stays present and unnoticed in a compromised environment. Months of quiet dwell time is the APT's signature.</dd>
+</dl>
+
+<h2 id="e">E</h2>
+<dl>
+<dt>Espionage</dt>
+<dd>Motivation: stealing secrets — government or corporate — for a state or competitor's benefit. <span class="ex">Slow exfiltration of design documents over months.</span></dd>
 </dl>
 
 <h2 id="h">H</h2>
 <dl>
+<dt>Hacktivist</dt>
+<dd>An attacker driven by ideology: defacement, leaks, and disruption as protest. Skill varies; the cause is on display. <span class="ex">Defacing a retailer's site over labor practices, demanding no money.</span></dd>
 <dt>Hash (hashing)</dt>
 <dd>A one-way, fixed-length fingerprint of any input. Same input, same fingerprint; one changed character, completely different fingerprint; cannot be reversed. The integrity tool. <span class="ex">SHA-256.</span></dd>
 <dt>Honeyfile</dt>
@@ -111,6 +123,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Implicit trust zone</dt>
 <dd>The anti-pattern zero trust exists to eliminate: an area where being inside implies trust. <span class="ex">"It's on the internal VLAN, so it must be safe."</span></dd>
+<dt>Insider threat</dt>
+<dd>An attacker or risk source already inside authentication. <b>Malicious</b>: legitimate access misused with intent — revenge, espionage, sabotage. <b>Negligent</b>: no intent, just error — phishing clicks, misdirected files, lost devices.</dd>
 <dt>Integrity</dt>
 <dd>Data stays correct and complete, with nothing altered or added. <span class="ex">Hashing defends it; an attacker changing a transfer amount in transit harms it — so does an undocumented change to a production system.</span></dd>
 </dl>
@@ -123,6 +137,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="n">N</h2>
 <dl>
+<dt>Nation-state actor</dt>
+<dd>The best-funded, most sophisticated attacker class: patient, custom tools, targets infrastructure and secrets. Motivations: espionage, warfare, disruption.</dd>
 <dt>Non-repudiation</dt>
 <dd>Proof of an action so strong that the actor cannot deny it. <span class="ex">A digital signature on a contract.</span></dd>
 </dl>
@@ -135,6 +151,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The server fetches its own fresh OCSP proof and staples it to the handshake. The exam's answer whenever a scenario says the server presents proof of valid status.</dd>
 <dt>Obfuscation</dt>
 <dd>Hiding or substituting data instead of encrypting it — steganography, tokenization, masking.</dd>
+<dt>Organized crime actor</dt>
+<dd>Professional crews whose motive is profit: ransomware, phishing, fraud — run like a business, down to payment support portals.</dd>
 </dl>
 
 <h2 id="p">P</h2>
@@ -165,10 +183,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A random value mixed into a password before hashing, so identical passwords produce different stored hashes and precomputed tables fail.</dd>
 <dt>Sandbox</dt>
 <dd>An isolated environment where code can run without touching production. A testing ground with no blast radius. <span class="ex">A virtual machine that mirrors production.</span></dd>
+<dt>Script kiddie (unskilled attacker)</dt>
+<dd>Someone who runs other people's tools without understanding them — loud, opportunistic, scanning random targets. Motivation: notoriety or curiosity.</dd>
 <dt>Security control</dt>
 <dd>Anything an organization puts in place to reduce risk — a device, a process, a document, or a physical barrier. Every control has a <b>category</b> (what kind of thing it is) and a <b>type</b> (what job it does).</dd>
 <dt>Self-signed certificate</dt>
 <dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
+<dt>Shadow IT</dt>
+<dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
 <dt>Steganography</dt>
 <dd>Hiding data inside another medium, such as a message inside a photo's pixel values. Concealment, not encryption.</dd>
 <dt>Symmetric encryption</dt>
@@ -187,6 +209,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Six jobs a control can do: <b>preventive</b> (stop it), <b>deterrent</b> (discourage trying), <b>detective</b> (discover it), <b>corrective</b> (repair it), <b>compensating</b> (substitute when the ideal is impossible), <b>directive</b> (direct behavior).</dd>
 <dt>Test environment</dt>
 <dd>A copy of production where changes are proven before they are scheduled. The step between approval and the maintenance window.</dd>
+<dt>Threat actor</dt>
+<dd>Anyone or anything that intends harm to a system — classified by funding, sophistication, patience, intent, and inside access. The exam describes an actor's traces and expects you to name the class and motive.</dd>
 <dt>Threat scope reduction</dt>
 <dd>Zero trust goal: shrink the blast radius. Segment, restrict, and use least privilege so one foothold reaches little.</dd>
 <dt>Tokenization</dt>
