@@ -13,7 +13,7 @@ All lessons and reference documents use ISO 24495-1:2023 plain language. Applied
 ## User profile (from intake, Oct 2 2026)
 - Background: DevOps. Comfortable with cloud, containers, IaC, CI/CD, networking basics, automation/scripting.
 - Assumed gaps (verify as we go): formal security vocabulary, governance/compliance concepts, cryptography internals, attack taxonomy names.
-  Update after Lesson 0006: change management passed 11 of 11 under the exam-pace stopwatch — home turf confirmed, objective 1.3 acquired. All of Domain 1 is now covered at lesson depth; accuracy and pace are both saturated at lesson difficulty (LR 0007). Strongest remaining gap hypotheses: governance (Domain 5), attack-name catalog (2.1–2.4).
+  Update after week-1 review (Lesson 0007): 19 of 20 — first miss of the sprint: crypto key-direction pairing (protection + key in one answer). Fluency held in-lesson, storage failed in mixed recall; retrieval schedule set (LR 0008). Control category+type pairing held clean in the PBQ, so paired vocab is not weak in general — the crypto golden rules are. Strongest remaining gap hypotheses: governance (Domain 5), attack-name catalog (2.1–2.4).
 - Mission: DoD 8140 requirement. Exam ~Nov 12–13, 2026.
 - Time: ~40 hrs/week total study. ≥10 hrs/week in this workspace (lessons + review). The rest: Gibson book reading, Messer videos, Gibson practice-exam questions.
 
@@ -31,3 +31,4 @@ All lessons and reference documents use ISO 24495-1:2023 plain language. Applied
 - Week 6 (Nov 7–13): review + PBQ strategy + 1–2 more practice exams. Exam Nov 12–13.
 - Safety net: SY0-701 English retires June 11, 2027 — slipping a week or two is safe.
 - Oct 3: Domain 1 finished at lesson depth — six lessons in two days, ahead of pace. Week-1 review pulled forward as Lesson 0007 (mixed, timed, no cues, first PBQ-style exercise). If clean at pace, start Domain 2 immediately (Lesson 0008, threat actors). Confirm the exam is booked (Nov 12–13).
+- Oct 3: Week-1 review 19/20 — only miss: crypto key-direction pairing. Reps scheduled in 0008 warm-ups, ~0010, and the week-2 review (LR 0008). Domain 2 started same day with Lesson 0008 (2.1, threat actors). Review pace and PBQ score not yet reported — ask.
