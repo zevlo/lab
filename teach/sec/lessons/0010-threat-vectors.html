@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0010 — Threat Vectors and Attack Surfaces</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 2 · Objective 2.2 · Lesson 10 of ~30 · ~35 minutes</p>
+<h1>Threat Vectors and Attack Surfaces: How They Get In</h1>
+<p class="meta">One win today: <b>given any scenario, name the delivery route (vector) and the entry point (surface) in exam vocabulary.</b> Format: typed warm-ups, then timed multiple choice — half multi-hop, one best-answer.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Phishing remains the single most common way into any organization — including DoD's. The department literally runs permanent phishing-simulation programs: staff receive fake phishing email continuously, and clicking one queues retraining. In a DoD 8140 role you will live on both sides of that program — and the annual training you help run is a control against the human attack surface. Objective 2.2 is that daily reality in vocabulary form.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Type each answer, then check all three. The first one is the <b>third spaced rep</b> of the pair missed in <a href="0007-week-1-review.html">Lesson 0007</a> — the angle is new.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> Dev encrypted a file with <em>your</em> public key and sent it to you. Type the one thing only you can now do to that file. (one word)</label><br><input class="txt" id="wu1" style="width:12rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> Eight months of quiet dwell time, custom implants, reconnaissance of a power grid. Type the threat-actor class. (two words)</label><br><input class="txt" id="wu2" style="width:14rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> During the TLS handshake, the server itself presents fresh, CA-signed proof that its certificate is still valid. Type the technique. (one or two words)</label><br><input class="txt" id="wu3" style="width:14rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — Two words the exam keeps straight</h2>
+<p>An <b>attack vector</b> is the <em>route</em> an attack travels — the email, the file, the phone call, the USB stick. An <b>attack surface</b> is the <em>sum of every point</em> where an attacker could get in — every open port, every application, every device, every person. Simple test: a vector is how, a surface is where. The exam loves this distinction, so lock it:</p>
+<table>
+<tr><th>Term</th><th>Plain meaning</th><th>Example</th></tr>
+<tr><td class="rowhead">Attack vector</td><td>The delivery route of an attack.</td><td>A phishing email; a poisoned update; a dropped flash drive.</td></tr>
+<tr><td class="rowhead">Attack surface</td><td>Everything an attacker could possibly reach and try.</td><td>Internet-facing services, unpatched laptops, staff inboxes, USB ports.</td></tr>
+</table>
+<p>Surfaces are <b>reduced</b>, never eliminated: close unused ports, retire legacy systems, remove local admin rights, train the staff. Every closed point is one less place to defend.</p>
+
+<h2>Part 2 — The vector catalog</h2>
+<table>
+<tr><th>Vector</th><th>Travels by</th><th>Tells in a scenario</th></tr>
+<tr><td class="rowhead">Phishing</td><td>Email, bulk.</td><td>Generic lure to many recipients; link or attachment.</td></tr>
+<tr><td class="rowhead">Spear phishing</td><td>Email, targeted.</td><td>Named recipient, researched details, convincing context.</td></tr>
+<tr><td class="rowhead">Whaling</td><td>Email, targeted up.</td><td>Executives specifically; CFO wire-fraud themes.</td></tr>
+<tr><td class="rowhead">Business email compromise (BEC)</td><td>Email, impersonated authority.</td><td>Look-alike domain; "CEO" or vendor urges an urgent payment.</td></tr>
+<tr><td class="rowhead">Smishing</td><td>SMS text message.</td><td>"Verify your account" texts with short links.</td></tr>
+<tr><td class="rowhead">Vishing</td><td>Voice call.</td><td>Caller poses as IT, bank, or support; harvests credentials.</td></tr>
+<tr><td class="rowhead">Image and QR</td><td>Pictures, QR codes.</td><td>Malicious QR code on a poster or parking ticket.</td></tr>
+<tr><td class="rowhead">Files and removable media</td><td>Attachments, downloads, USB.</td><td>Flash drives seeded in a parking lot; Trojaned installers.</td></tr>
+<tr><td class="rowhead">Malicious updates</td><td>A trusted update channel.</td><td>Compromised vendor pipeline ships signed malware — the supply-chain vector.</td></tr>
+<tr><td class="rowhead">Default credentials</td><td>Unchanged logins.</td><td>admin/admin still set on an exposed device.</td></tr>
+<tr><td class="rowhead">Physical</td><td>Hands and hardware.</td><td>Skimmers on card readers; dropped drives; tailgating.</td></tr>
+</table>
+
+<h2>Part 3 — Influence techniques: attacking the human surface</h2>
+<p>Most vectors end at a person, so attackers aim at judgment, not just software:</p>
+<table>
+<tr><th>Technique</th><th>What it looks like</th></tr>
+<tr><td class="rowhead">Pretexting</td><td>A manufactured story: "I'm from the help desk and I need your code to close a ticket."</td></tr>
+<tr><td class="rowhead">Impersonation</td><td>Posing as a person or brand you trust — a recruiter, your bank, a vendor's domain.</td></tr>
+<tr><td class="rowhead">Typosquatting (URL hijacking)</td><td>Registering look-alike domains: <i>githuh.com</i>, <i>paypa1.com</i>.</td></tr>
+<tr><td class="rowhead">Watering hole</td><td>Infecting a site your community already visits, instead of emailing anyone.</td></tr>
+<tr><td class="rowhead">Brand impersonation</td><td>Fake versions of known brands; poisoned search results steering to them.</td></tr>
+</table>
+<p>The pressure levers never change: <b>urgency</b> ("act in one hour"), <b>authority</b> ("the CFO already approved"), and <b>familiarity</b> ("saw you at the conference"). Any message pulling all three levers at once is an attack until proven otherwise.</p>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Registry package one letter off a popular one</td><td>Typosquatting — supply-chain vector</td></tr>
+<tr><td>"Maintainer" PR you've never seen, urgent to merge</td><td>Impersonation + urgency lever</td></tr>
+<tr><td>OAuth consent email asking for mailbox access</td><td>Message-based vector, permission harvest</td></tr>
+<tr><td>MFA push spam at 2 a.m. until someone approves</td><td>Message-based vector (MFA fatigue)</td></tr>
+<tr><td>Vendors' signed artifacts as the thing you trust</td><td>Why malicious updates hurt: the channel is trusted</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b> The stopwatch starts at warm-up check-in or your first answer.<span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 1</p>
+<h3>Email crafted for one specific executive references a live acquisition and spoofs a law firm's domain. Which phishing variant?</h3>
+<button class="opt">Phishing</button><button class="opt">Spear phishing</button><button class="opt">Vishing</button><button class="opt">Whaling</button>
+<div class="fb"><b>Whaling.</b> Targeted at senior executives specifically. Spear phishing targets a specific individual at any level — whaling is the spear phish aimed up. Research plus a wire-fraud theme is the classic profile.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 2</p>
+<h3>A text message from "your carrier" reads: "Action required — verify your account: short-link." Which vector?</h3>
+<button class="opt">Vishing</button><button class="opt">Smishing</button><button class="opt">Whaling</button><button class="opt">Watering hole</button>
+<div class="fb"><b>Smishing.</b> SMS is the channel — the s in smishing. Vishing is the voice-call sibling.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3 <span class="hard">MULTI-HOP</span></p>
+<h3>Flash drives seeded in the company parking lot run malware on insertion. Which vector category, and what most directly cuts the risk of staff plugging them in?</h3>
+<button class="opt">Physical; awareness training</button><button class="opt">Message; email filtering</button><button class="opt">Image; content scanning</button><button class="opt">Voice; call blocking</button>
+<div class="fb"><b>Physical; awareness training.</b> Hardware in hand is the physical vector, and the defense is the human one — people trained not to plug in found drives. (Vector catalog plus Lesson 0001's operational/directive controls.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>Attackers quietly infect a small forum that power-grid engineers visit, so visitors pick up malware with no email ever sent. Technique, and who is the intended target?</h3>
+<button class="opt">Phishing; the forum admin</button><button class="opt">Watering hole; the visitors</button><button class="opt">Business email compromise; finance staff</button><button class="opt">Vishing; the help desk</button>
+<div class="fb"><b>Watering hole; the visitors.</b> Poison the place the community drinks instead of chasing individuals — the visitors are the prey, the site is just the delivery surface. Selection by community is also why it suits nation-state espionage (Lesson 0008).</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5</p>
+<h3>Users mistype the vendor portal's address and land on a look-alike domain the attacker registered months ago. Which technique?</h3>
+<button class="opt">Typosquatting</button><button class="opt">Pretexting</button><button class="opt">Smishing</button><button class="opt">Skimming</button>
+<div class="fb"><b>Typosquatting</b> (URL hijacking). Registered look-alike domains harvesting mistyped traffic — the same trick as one-letter-off package names in registries.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 6 <span class="hard">MULTI-HOP</span></p>
+<h3>A criminal impersonates the CFO over email from a look-alike domain, urging an urgent wire to a "new vendor." Which vector and motivation?</h3>
+<button class="opt">Physical; espionage</button><button class="opt">Image; ideology</button><button class="opt">Voice; notoriety</button><button class="opt">Message; financial gain</button>
+<div class="fb"><b>Message; financial gain.</b> Business email compromise is a message-based vector wearing authority and urgency — and the money is the point (Lesson 0008's organized-crime signature).</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7 <span class="hard">MULTI-HOP</span></p>
+<h3>A well-funded actor compromises a vendor's update pipeline so that signed, trusted installs deliver an implant. Which vector, and which actor class fits best?</h3>
+<button class="opt">Malicious update; nation-state</button><button class="opt">Message; hacktivist</button><button class="opt">Physical; unskilled attacker</button><button class="opt">Voice; negligent insider</button>
+<div class="fb"><b>Malicious update; nation-state.</b> The supply-chain vector: the channel is trusted, so the implant rides in signed. Compromising a pipeline takes the patience and funding of a state actor (Lesson 0008's APT pattern).</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 8 <span class="hard">BEST ANSWER</span></p>
+<h3>In most organizations the largest attack surface is the humans. Which single control most directly addresses <em>that</em> surface?</h3>
+<button class="opt">Multifactor authentication</button><button class="opt">Security awareness training</button><button class="opt">Full-disk encryption</button><button class="opt">Patch management</button>
+<div class="fb"><b>Security awareness training.</b> Multifactor authentication is the tempting distractor — strong, but it limits damage <em>after</em> credentials are phished. Training targets the surface itself: fewer clicks, fewer given-up codes. An operational, directive control (Lesson 0001).</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/common-threat-vectors-sy0-701/">Professor Messer 2.2 — Common Threat Vectors (17:14)</a> — today's backbone — plus <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/phishing-sy0-701/">Phishing (6:32)</a> and <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/watering-hole-attacks-sy0-701/">Watering Hole Attacks (4:12)</a>. Gibson Domain 2: threat vectors and attack surfaces, plus its end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>The usual blur points: spear phishing versus whaling, and vector versus surface. If either stays foggy after this quiz, ask the agent — objective 2.4's attack catalog assumes these are solid. Report your score and your time.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0011 — types of vulnerabilities (objective 2.3): injection, overflow, race conditions, misconfiguration — the weaknesses the vectors aim at. The key-direction pair's next spaced pass fires in 0011's warm-ups. · <a href="0009-performance-lab.html">Lesson 0009</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 2.2); Professor Messer SY0-701 section 2.2; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 2.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["decrypt", "decrypt it", "open it", "read it", "decrypt the file"], ok: "Decrypt. Dev encrypted with your public key, so only your private key can open it — confidentiality. (Rep three of the 0007 miss — held. Lesson 0004.)" },
+  wu2: { v: ["nation state", "nation-state actor", "nationstate", "state actor", "apt"], ok: "Nation-state. Patience, custom tools, infrastructure reconnaissance — the APT profile. (Lesson 0008.)" },
+  wu3: { v: ["stapling", "ocsp stapling"], ok: "OCSP stapling. The server presents its own fresh proof during the handshake. (Lesson 0005.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>

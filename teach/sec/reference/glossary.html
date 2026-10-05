@@ -24,8 +24,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0008-threat-actors.html">Lesson 0008</a></p>
-<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#z">Z</a></nav>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0010-threat-vectors.html">Lesson 0010</a></p>
+<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#v">V</a> · <a href="#w">W</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
 <dl>
@@ -37,6 +37,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>An operating pattern, usually nation-state or state-adjacent: advanced tools, persistent access maintained quietly for months (dwell time), and a funded actor behind it. Not a piece of malware — a patient adversary.</dd>
 <dt>Asymmetric encryption</dt>
 <dd>Encryption with a key pair: a public key shared with the world and a private key that never leaves its owner. Public encrypts → private decrypts (confidentiality); private signs → public verifies (signatures). <span class="ex">RSA, ECC.</span></dd>
+<dt>Attack surface</dt>
+<dd>The sum of every point an attacker could reach and try — open ports, applications, devices, removable media, and people. Reduced, never eliminated: close ports, retire legacy systems, train staff.</dd>
+<dt>Attack vector</dt>
+<dd>The route an attack travels to its target: a phishing email, a poisoned update, a dropped flash drive. Simple test: the vector is <em>how</em>, the surface is <em>where</em>.</dd>
 <dt>Authentication (the first A in AAA)</dt>
 <dd>Proving who you are, with evidence such as a password, a token, or a fingerprint. <span class="ex">Password plus one-time code — multifactor authentication (MFA).</span></dd>
 <dt>Authorization (the second A in AAA)</dt>
@@ -47,6 +51,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Blockchain</dt>
 <dd>An append-only ledger copied across many machines, where each block carries the hash of the previous block. Tampering with an old block breaks every hash after it — tamper-evident by construction.</dd>
+<dt>Business email compromise (BEC)</dt>
+<dd>Impersonating an executive or vendor over email — often from a look-alike domain — to redirect a payment. The message vector with the authority and urgency levers pulled at once.</dd>
 </dl>
 
 <h2 id="c">C</h2>
@@ -121,6 +127,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="i">I</h2>
 <dl>
+<dt>Impersonation</dt>
+<dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
 <dt>Implicit trust zone</dt>
 <dd>The anti-pattern zero trust exists to eliminate: an area where being inside implies trust. <span class="ex">"It's on the internal VLAN, so it must be safe."</span></dd>
 <dt>Insider threat</dt>
@@ -157,10 +165,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="p">P</h2>
 <dl>
+<dt>Phishing</dt>
+<dd>A fraudulent lure, usually by email, engineered to harvest credentials or deliver malware. The family ladder: <b>phishing</b> (bulk) → <b>spear phishing</b> (one researched target) → <b>whaling</b> (executives). Siblings: smishing (SMS), vishing (voice).</dd>
 <dt>Policy administrator</dt>
 <dd>The zero trust enforcer: opens and closes the session based on the policy engine's decision.</dd>
 <dt>Policy engine</dt>
 <dd>The zero trust decider: compares each request against policy and grants or denies.</dd>
+<dt>Pretexting</dt>
+<dd>A manufactured story used to justify the ask. <span class="ex">"I'm from the help desk and I need your code to close a ticket." The script behind impersonation.</span></dd>
 <dt>Preventive control (type)</dt>
 <dd>A control that stops an attack from succeeding. <span class="ex">A firewall rule; a fence; multifactor authentication (MFA).</span></dd>
 <dt>Private key</dt>
@@ -191,6 +203,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
 <dt>Shadow IT</dt>
 <dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
+<dt>Smishing</dt>
+<dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
+<dt>Spear phishing</dt>
+<dd>A phishing email crafted for one specific, researched recipient — named, contextual, convincing. Aimed at executives it becomes whaling.</dd>
 <dt>Steganography</dt>
 <dd>Hiding data inside another medium, such as a message inside a photo's pixel values. Concealment, not encryption.</dd>
 <dt>Symmetric encryption</dt>
@@ -215,6 +231,22 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Zero trust goal: shrink the blast radius. Segment, restrict, and use least privilege so one foothold reaches little.</dd>
 <dt>Tokenization</dt>
 <dd>Replacing a sensitive value with a meaningless token, with the real mapping kept in a separate, tightly guarded vault. <span class="ex">Stored payment-card tokens.</span></dd>
+<dt>Typosquatting (URL hijacking)</dt>
+<dd>Registering look-alike domains — githuh.com for github.com — to harvest mistyped traffic. The registry-package one-letter-off trick is the same move on software supply chains.</dd>
+</dl>
+
+<h2 id="v">V</h2>
+<dl>
+<dt>Vishing</dt>
+<dd>Phishing delivered by voice call — the attacker phones as IT, a bank, or support and harvests credentials live.</dd>
+</dl>
+
+<h2 id="w">W</h2>
+<dl>
+<dt>Watering hole attack</dt>
+<dd>Infecting a website a target community already visits, so the victims come to the malware. No email is sent; selection is by community — which is why it suits nation-state espionage.</dd>
+<dt>Whaling</dt>
+<dd>Spear phishing aimed at executives — the CFO wire-fraud profile. Research depth and authority themes are the tells.</dd>
 </dl>
 
 <h2 id="z">Z</h2>
