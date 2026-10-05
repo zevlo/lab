@@ -1,0 +1,20 @@
+# NOTES.md
+
+## User profile
+- Dabbler: has run `docker run` / `docker compose` occasionally, copy-pasted Dockerfiles, no real understanding
+- Goal: career move to DevOps/platform/backend. Wants interview-grade understanding + production operation skills
+- Time budget: 5+ hrs/week (deep dive)
+- Chosen success outcome: "both build and operate"
+
+## Environment
+- macOS, Apple Silicon
+- Docker provided by **OrbStack** (context `orbstack`), NOT Docker Desktop — `open -a Docker` fails; use `open -a OrbStack`
+- Docker CLI 29.4.0. Daemon was started and verified working during session 1
+- Teaching implication: hands-on lessons must note that container processes run inside OrbStack's Linux VM and are not visible in macOS `ps` output
+
+## Teaching preferences
+- (none recorded yet — ask occasionally what's working and what isn't)
+
+## Session log
+- Session 1 (2026-10-05): Mission interview conducted. Workspace initialized. Lesson 0001 (image vs container mental model) created and opened. Prior experience recorded as LR-0001.
+- Session 2 (2026-10-05): Reconfirmed: lessons must run hands-on against Mac + OrbStack. Daemon verified running. Lesson 0001 (re)opened for the user.

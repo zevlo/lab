@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0001 — A Container Is Just a Process</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --good: #1e6b34;
+    --bad: #a12622;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17.5px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.4rem; margin-bottom: 3rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2.3rem; font-weight: 700; margin: 0.5rem 0 0.4rem; line-height: 1.12; letter-spacing: -0.01em; }
+  .sub { color: var(--faint); font-style: italic; font-size: 1.02rem; margin: 0; }
+  .mission { background: var(--code-bg); border-left: 3px solid var(--accent); padding: 0.8rem 1.1rem; margin: 2.2rem 0; font-size: 0.93rem; border-radius: 0 4px 4px 0; }
+  .mission strong { font-style: normal; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin: 3rem 0 0.8rem; line-height: 1.2; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 1rem; margin-right: 0.6rem; font-weight: 600; }
+  p { margin: 0.8rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  em { font-style: italic; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.84em; }
+  pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #14120f; color: #e8e4d8; padding: 1.1rem 1.3rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; line-height: 1.65; }
+  pre .cm { color: #8a857a; }
+  pre .cmd { color: #e3b341; font-weight: 600; }
+  .expected { border-left: 3px solid var(--good); background: #f2f6f0; padding: 0.7rem 1.1rem; margin: 0.6rem 0 1.4rem; border-radius: 0 4px 4px 0; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; white-space: pre-wrap; color: #2c352c; overflow-x: auto; }
+  .expected::before { content: "you should see"; display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--good); margin-bottom: 0.3rem; }
+  .why { font-size: 0.92rem; color: #3c3a30; margin-top: -0.6rem; padding-left: 1.1rem; border-left: 3px solid var(--rule); margin-bottom: 1.6rem; }
+  .why strong { color: var(--accent); font-style: normal; }
+  .sidenote { font-size: 0.85rem; color: #4a4840; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 0.7rem 0.2rem; margin: 1.6rem 0; }
+  .sidenote .tag { font-family: "SF Mono", Menlo, monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-right: 0.5rem; }
+  .diagram { display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin: 1.8rem 0 0.5rem; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; }
+  .box { border: 1.5px solid var(--ink); border-radius: 6px; padding: 0.5rem 0.9rem; background: #fff; text-align: center; }
+  .box small { display: block; font-size: 0.62rem; color: var(--faint); letter-spacing: 0.05em; }
+  .box.dashed { border-style: dashed; background: var(--code-bg); }
+  .arr { color: var(--accent); font-size: 0.95rem; }
+  .cap { text-align: center; font-size: 0.85rem; color: var(--faint); font-style: italic; margin: 0.4rem 0 0; }
+  /* quiz */
+  .quiz { margin: 1.5rem 0 0; }
+  .q { border: 1px solid var(--rule); border-radius: 6px; padding: 1.2rem 1.3rem; margin: 1.1rem 0; background: #fffef9; }
+  .q p.stem { font-weight: 600; margin: 0 0 0.8rem; }
+  .q p.stem .qn { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; font-weight: 600; margin-right: 0.5rem; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+  .opts button {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.35;
+  }
+  .opts button:hover:not(:disabled) { border-color: var(--ink); }
+  .opts button.right { background: #e7f0e4; border-color: var(--good); color: var(--good); font-weight: 600; }
+  .opts button.wrong { background: #f6e5e4; border-color: var(--bad); color: var(--bad); }
+  .opts button:disabled { cursor: default; opacity: 0.75; }
+  .opts button.right:disabled, .opts button.wrong:disabled { opacity: 1; }
+  .fb { display: none; margin-top: 0.8rem; font-size: 0.88rem; padding: 0.6rem 0.9rem; border-radius: 5px; }
+  .fb.ok { display: block; background: #e7f0e4; color: var(--good); }
+  .fb.no { display: block; background: #f6e5e4; color: var(--bad); }
+  .score { font-family: "SF Mono", Menlo, monospace; font-size: 0.95rem; text-align: center; margin-top: 1.4rem; padding: 0.9rem; border-top: 2px solid var(--ink); display: none; }
+  .btnrow { text-align: center; margin-top: 1rem; }
+  .btnrow button { font-family: "SF Mono", Menlo, monospace; font-size: 0.75rem; padding: 0.5rem 1.1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 5px; cursor: pointer; }
+  .box-ask { border: 2px solid var(--accent); border-radius: 6px; padding: 1.1rem 1.4rem; margin: 3rem 0 0; background: #fffdf6; }
+  .box-ask h3 { margin: 0 0 0.5rem; font-size: 1.02rem; }
+  .box-ask p { font-size: 0.93rem; margin: 0.4rem 0; }
+  .tomorrow { border: 1px dashed var(--faint); border-radius: 6px; padding: 1rem 1.3rem; margin: 2.5rem 0 0; font-size: 0.92rem; color: #3c3a30; }
+  .next { margin-top: 3rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; font-size: 0.95rem; }
+  .src { margin-top: 1.5rem; font-size: 0.9rem; background: var(--code-bg); padding: 0.9rem 1.2rem; border-radius: 5px; }
+  ol.lab { padding-left: 1.4rem; }
+  ol.lab > li { margin: 1.8rem 0; }
+  ol.lab > li::marker { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-weight: 600; }
+  @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+  @media print {
+    .page { padding: 0.4in 0.4in; max-width: none; }
+    body { font-size: 11pt; }
+    .quiz, .btnrow, .tomorrow, .box-ask { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Lesson 0001 · Module 1 of 5 · Fundamentals</div>
+  <h1>A Container Is Just a Process</h1>
+  <p class="sub">The image-vs-container mental model that turns copy-paste commands into understanding.</p>
+</header>
+
+<div class="mission">
+  <strong>Why this lesson, for your mission:</strong> you told me you've copy-pasted <code>docker run</code> without knowing what it does. In a DevOps interview, "what is a container?" is the opening question — and "a lightweight VM" is the answer that ends the interview. Today you learn the answer that starts it.
+</div>
+
+<h2><span class="no">§1</span>Two objects, not one</h2>
+<p>Everything confusing about Docker gets unconfusing once you separate two things that the word "Docker" blurs together:</p>
+<p><strong>An image</strong> is a <em>frozen</em>, read-only template: a filesystem plus some metadata (what to run, what ports, what env). It sits on disk doing nothing. It cannot run — it's not alive.</p>
+<p><strong>A container</strong> is what you get when Docker takes an image and <em>launches it</em>: an ordinary Linux process, running in isolation, with a private copy-on-write filesystem made from the image's layers. Containers run; images sit there.</p>
+
+<div class="diagram">
+  <div class="box">IMAGE<small>template · immutable · stored</small></div>
+  <span class="arr">─ docker run →</span>
+  <div class="box dashed">CONTAINER<small>process · live · disposable</small></div>
+</div>
+<p class="cap">One image → many containers. Like a class and its instances.</p>
+
+<p class="sidenote"><span class="tag">source</span>Docker's own definition: "containers are isolated processes." <a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/">What is a container? — Docker docs</a>. On images: <a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/what-is-an-image/">What is an image?</a></p>
+
+<p>Two consequences worth tattooing somewhere:</p>
+<p><strong>1. Containers are disposable; images are the durable artifact.</strong> You delete containers freely and re-run from the image any time. Anything a container <em>wrote</em> inside its own filesystem dies with it — by design.</p>
+<p><strong>2. Containers share the host kernel.</strong> A container is not a small computer with its own OS — it's a process the kernel has <em>deceived</em> into thinking it's alone. That's why they start in milliseconds and why they're Linux (more on that trick in Module 2).</p>
+
+<div class="sidenote"><span class="tag">macOS</span>You're on a Mac, so where's "the host kernel"? Inside OrbStack: a small Linux VM that Docker actually runs containers in. Your containers are invisible to macOS <code>ps</code> — they live in that VM. On Linux servers, they'd be plain processes on the host. Details in Module 2.</div>
+
+<h2><span class="no">§2</span>The lifecycle loop</h2>
+<pre><span class="cmd">docker pull nginx</span>     <span class="cm"># fetch image from registry → stored locally</span>
+<span class="cmd">docker run nginx</span>       <span class="cm"># create container from image, start it</span>
+<span class="cmd">docker ps</span>              <span class="cm"># list running containers (add -a for stopped)</span>
+<span class="cmd">docker stop web</span>        <span class="cm"># graceful shutdown — container still exists</span>
+<span class="cmd">docker rm web</span>          <span class="cm"># destroy container + its private filesystem</span></pre>
+<p>The word to internalize: <strong>stopped ≠ gone</strong>. A stopped container still exists on disk, keeps its name, keeps its writable files — until <code>rm</code>. Full command reference: <a href="../reference/docker-core-commands.html">Docker Core Commands (reference)</a>.</p>
+
+<h2><span class="no">§3</span>Lab — prove it to yourself <span style="font-weight:400; font-size:0.85rem; color:var(--faint)">(≈10 min, in your terminal)</span></h2>
+<p>OrbStack is running on your machine. Each step shows the expected output — if yours matches, you're on track. Immediate feedback, no waiting for me.</p>
+
+<ol class="lab">
+<li>
+<p>Run your first named container:</p>
+<pre><span class="cmd">docker run -d --name web -p 8080:80 nginx</span></pre>
+<div class="expected">a1f7a4bb3a27...  (64-character id, no error)</div>
+<p class="why"><strong>What happened:</strong> Docker pulled <code>nginx</code> (image), created a container named <code>web</code>, started it in the background (<code>-d</code>), and forwarded host port 8080 → container port 80. Open <a href="http://localhost:8080">http://localhost:8080</a> — that page is served from inside the container.</p>
+</li>
+
+<li>
+<p>See it as what it is — one row in a process table:</p>
+<pre><span class="cmd">docker ps</span></pre>
+<div class="expected">CONTAINER ID   IMAGE   PORTS                     NAMES
+a1f7a4bb3a27   nginx   0.0.0.0:8080-&gt;80/tcp      web</div>
+<p class="why"><strong>What happened:</strong> <code>ps</code> = process status. One image (<code>nginx</code>), one running container (<code>web</code>). The id you see is the <em>container's</em> id — not the image's.</p>
+</li>
+
+<li>
+<p>Go inside it:</p>
+<pre><span class="cmd">docker exec -it web sh</span>
+<span class="cmd">hostname</span>
+<span class="cmd">cat /etc/os-release | head -2</span>
+<span class="cmd">ls /etc/nginx</span></pre>
+<div class="expected">a1f7a4bb3a27            (its own hostname = container id)
+PRETTY_NAME="Debian GNU/Linux 12 ..."
+conf.d  fastcgi_params  mime.types  ...</div>
+<p class="why"><strong>What happened:</strong> <code>exec</code> started a <em>second process</em> (a shell) inside the running container. You're now looking at the container's private filesystem — Debian, nginx config, none of your Mac's files. It has its own hostname. A process with its own filesystem view and identity: that's the whole trick.</p>
+</li>
+
+<li>
+<p>Write a file inside, then leave:</p>
+<pre><span class="cmd">touch /I_WAS_HERE</span>
+<span class="cmd">ls /</span>
+<span class="cmd">exit</span></pre>
+<div class="expected">bin  boot  dev  etc  ...  I_WAS_HERE  ...  usr  var</div>
+<p class="why"><strong>What happened:</strong> the file lives in <code>web</code>'s private writable layer. Remember it — we're about to kill it.</p>
+</li>
+
+<li>
+<p>The decisive experiment. Destroy the container, re-create it from the same image:</p>
+<pre><span class="cmd">docker rm -f web</span>
+<span class="cmd">docker run -d --name web -p 8080:80 nginx</span>
+<span class="cmd">docker exec web ls /</span></pre>
+<div class="expected">bin  boot  dev  etc  ...  usr  var      (no I_WAS_HERE)</div>
+<p class="why"><strong>What happened:</strong> <code>rm</code> destroyed the old container's writable layer — the file is gone forever. The new container started clean from the untouched image. <em>This ephemerality is a feature:</em> containers can be killed and replaced at will, which is the entire basis of how production systems stay healthy. (Check <code>docker ps</code> — still one image, fresh container, new id.)</p>
+</li>
+
+<li>
+<p>Clean up after yourself — a good habit from day one:</p>
+<pre><span class="cmd">docker rm -f web</span>
+<span class="cmd">docker ps -a &amp;&amp; docker images</span></pre>
+<div class="expected">CONTAINER ID ...    (empty list)
+REPOSITORY   TAG   IMAGE ID   ...   nginx   latest   ...</div>
+<p class="why"><strong>What happened:</strong> no containers left; the <em>image</em> is still on disk. Templates survive their instances.</p>
+</li>
+</ol>
+
+<h2><span class="no">§4</span>Check yourself</h2>
+<p>Recall from memory — no scrolling up. Wrong answers explain themselves.</p>
+
+<div class="quiz" id="quiz">
+  <div class="q" data-a="1">
+    <p class="stem"><span class="qn">Q1</span>In one precise phrase, a container is:</p>
+    <div class="opts">
+      <button>A package of application code</button>
+      <button>An isolated Linux process</button>
+      <button>A lightweight virtual machine</button>
+      <button>A chroot jail with networking</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q2</span>You run <code>docker run -d nginx</code> twice, exactly as written. Afterwards there exists:</p>
+    <div class="opts">
+      <button>One image and two containers</button>
+      <button>Two images and two containers</button>
+      <button>One image and one container</button>
+      <button>Two images and one container</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <p class="stem"><span class="qn">Q3</span>A file written inside a container is gone after <code>docker rm</code>. Why?</p>
+    <div class="opts">
+      <button>Docker archives it as layer</button>
+      <button>The file uploads to registry</button>
+      <button>Its writable layer is destroyed</button>
+      <button>The image resets itself cleanly</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="1">
+    <p class="stem"><span class="qn">Q4</span><code>docker exec -it web sh</code> does what, precisely?</p>
+    <div class="opts">
+      <button>Restarts the container named web</button>
+      <button>Runs a new process inside web</button>
+      <button>Replaces the main process in web</button>
+      <button>Rebuilds the image behind web</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="score" id="score"></div>
+  <div class="btnrow"><button onclick="resetQuiz()">reset quiz</button></div>
+</div>
+
+<div class="src">
+  <strong>Primary source for this lesson</strong> — read after finishing (10 min):<br>
+  <a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/">"What is a container?" — Docker official docs</a>. It's the canonical phrasing of everything above, from the source that defines the terms.
+</div>
+
+<div class="tomorrow">
+  <strong>Before your next session</strong> (5 min, no notes): cover the terminal and try to recall — (1) the three lifecycle states of a container, (2) why the file vanished, (3) the exact difference between what <code>run</code> and <code>exec</code> start. Struggling to recall is the point: effortful retrieval is what makes this stick.
+</div>
+
+<div class="box-ask">
+  <h3>Your teacher is on call</h3>
+  <p>Anything unclear — "why did the hostname equal the container id?", "what's a writable layer <em>made of</em>?", "when would I use <code>--rm</code>?" — <strong>ask the agent</strong> in your next session (or right now). Questions are the fastest part of the curriculum.</p>
+</div>
+
+<div class="next">
+  <strong>Next lesson — The Anatomy of an Image:</strong> layers, tags, and what <code>docker pull</code> actually downloads. Ask your agent for it when ready. Reference shelf: <a href="../reference/docker-core-commands.html">Docker Core Commands</a>.
+</div>
+
+</div>
+
+<script>
+  const explanations = [
+    ["Right. Docker's own definition: an isolated process — not a VM, not a package. Package and VM answers are the two most common wrong answers in interviews."],
+    ["Exactly — the image is pulled once; each run stamps out a new container from it. Two runs, one template, two instances."],
+    ["Correct — each container gets a private writable layer; rm destroys it. Nothing is archived, uploaded, or committed unless you explicitly do so."],
+    ["Right — exec adds a new process to a running container. The main process keeps running; replace or stop it and the container dies."]
+  ];
+  const quiz = document.getElementById('quiz');
+  let done = 0, right = 0;
+  function scored() {
+    if (done < 4) return;
+    const s = document.getElementById('score');
+    s.style.display = 'block';
+    const msg = right === 4 ? "4 / 4 — model locked in." : right + " / 4 — reread §1 and retry tomorrow.";
+    s.textContent = msg;
+  }
+  quiz.querySelectorAll('.q').forEach((q, qi) => {
+    const ans = parseInt(q.dataset.a, 10);
+    const fb = q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach((b, bi) => {
+      b.addEventListener('click', () => {
+        if (q.dataset.done) return;
+        q.dataset.done = "1"; done++;
+        const correct = bi === ans;
+        if (correct) { b.classList.add('right'); right++; fb.className = 'fb ok'; }
+        else { b.classList.add('wrong'); fb.className = 'fb no'; q.querySelectorAll('.opts button')[ans].classList.add('right'); }
+        fb.textContent = (correct ? "✔ " : "✘ ") + explanations[qi][0];
+        q.querySelectorAll('.opts button').forEach(x => x.disabled = true);
+        scored();
+      });
+    });
+  });
+  function resetQuiz() {
+    done = 0; right = 0;
+    document.getElementById('score').style.display = 'none';
+    quiz.querySelectorAll('.q').forEach(q => { delete q.dataset.done; q.querySelector('.fb').className = 'fb'; q.querySelectorAll('.opts button').forEach(b => { b.disabled = false; b.className = ''; } ); });
+  }
+</script>
+
+</body>
+</html>
