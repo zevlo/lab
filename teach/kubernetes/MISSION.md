@@ -14,7 +14,19 @@ Build real operational competence with Kubernetes for two concrete uses: confide
 - Practice happens hands-on against a local cluster (OrbStack on macOS) plus quizzes for retention
 - Has Docker/container experience; used minikube on LabEx previously, but all local labs target OrbStack
 
+## Post-fundamentals focus (2026-10-05)
+
+Fundamentals track complete (2026-06-30, lessons 0001–0023). Next phase, per user goals — understand and practice:
+
+- Architecture & the Control Plane
+- Workload Controllers & State
+- Networking & Traffic Routing
+- Production Reliability & Operations
+- Security
+
+All lessons run on Mac + OrbStack.
+
 ## Out of scope (for now)
 - Certification prep (CKA/CKAD) — may become relevant later, revisit if mission shifts
-- Cluster bootstrapping internals (Kubernetes the Hard Way territory) — until fundamentals are solid
+- Cluster bootstrapping internals (Kubernetes the Hard Way territory) — fundamentals now solid; revisit as the Architecture & the Control Plane theme deepens
 - Service meshes, operators, CI/CD pipelines — later layers

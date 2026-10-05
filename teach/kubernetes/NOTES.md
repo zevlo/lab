@@ -50,7 +50,9 @@ Scratchpad for teaching preferences and session history. Per the teach skill: pr
 
 **Fundamentals track:** ✓ **COMPLETE** (2026-06-30) — lessons 0001–0023. Sign-off: lesson 0023 **10/10**, Combined Quiz 02 **12/12**. Prior Combined Quiz 01: 11/12 (HPA gap remediated on 02).
 
-**Ops hardening arc (post-fundamentals):** 0024 RBAC + ServiceAccounts ✓. **0025** SecurityContext + Pod Security Standards (in progress). Candidates after: Jobs/CronJobs · PDBs · enforced NetworkPolicy · public ACME.
+**Ops hardening arc (post-fundamentals):** 0024 RBAC + ServiceAccounts ✓. **0025** SecurityContext + Pod Security Standards (in progress) — **user will complete this next.** Candidates after: Jobs/CronJobs · PDBs · enforced NetworkPolicy · public ACME.
+
+**Post-0025 study goals (2026-10-05):** understand *and practice* five themes: Architecture & the Control Plane · Workload Controllers & State · Networking & Traffic Routing · Production Reliability & Operations · Security. All lessons on Mac + OrbStack. Existing candidates map: Jobs/CronJobs → controllers · PDBs → reliability · enforced NetworkPolicy + public ACME → security. Themes mirrored into MISSION.md as post-fundamentals focus.
 
 **OrbStack quirk (0021):** k3s starts with `--disable-network-policy` — policies apply to API only, not enforced. Lab is read-and-predict unless kind/other cluster used.
 
