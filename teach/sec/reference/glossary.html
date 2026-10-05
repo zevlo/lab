@@ -24,7 +24,7 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0013-malware-indicators.html">Lesson 0013</a></p>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0014-attack-name-catalog.html">Lesson 0014</a></p>
 <nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#f">F</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#j">J</a> · <a href="#k">K</a> · <a href="#l">L</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#v">V</a> · <a href="#w">W</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
@@ -101,6 +101,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Showing only part of a real value. <span class="ex">Support staff see "**** **** **** 1234."</span></dd>
 <dt>Data plane</dt>
 <dd>The zero trust traffic: where users and applications actually interact, after the control plane says yes.</dd>
+<dt>Deauthentication attack</dt>
+<dd>Forcing wireless clients off the network — often to capture the reconnect handshake, or to herd victims toward an evil twin.</dd>
+<dt>Denial of service (DoS / DDoS)</dt>
+<dd>Flooding or exhausting a service until it cannot answer. Distributed (DDoS) = the flood comes from many machines at once, usually a rented botnet. Availability attacks by definition.</dd>
 <dt>Deterrent control (type)</dt>
 <dd>A control that discourages an attempt before it starts. It works on motivation, not mechanics. <span class="ex">A warning sign; a visible camera; a guard dog.</span></dd>
 <dt>Detective control (type)</dt>
@@ -109,8 +113,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A hash of the content, encrypted with the signer's private key. Proves integrity, authenticity, and non-repudiation — not confidentiality. Anyone verifies it with the signer's public key.</dd>
 <dt>Directive control (type)</dt>
 <dd>A control that tells people what to do. It steers behavior rather than blocking it. <span class="ex">An acceptable use policy (AUP); a patching procedure; a change management policy.</span></dd>
+<dt>Directory traversal</dt>
+<dd>Input paths like ../../etc/passwd walk out of the web root to read files that should be unreachable. The path, not the payload, is the attack.</dd>
+<dt>DNS poisoning</dt>
+<dd>Corrupting a resolver's cache so a trusted name resolves to the attacker's address — an integrity attack on the name-to-address mapping.</dd>
 <dt>DNS sinkhole</dt>
 <dd>A disruption technique: Domain Name System (DNS) answers for known-malicious domains point to a dead end, breaking malware's command-and-control (C2) callbacks.</dd>
+<dt>Domain hijacking</dt>
+<dd>Taking over the registration of a domain itself — all its traffic and mail redirect.</dd>
+<dt>Downgrade attack</dt>
+<dd>Tricking a handshake into negotiating older, weaker cryptography, then breaking the weak version. "The connection settled on TLS 1.0."</dd>
 <dt>Dwell time</dt>
 <dd>The stretch of time an attacker stays present and unnoticed in a compromised environment. Months of quiet dwell time is the APT's signature.</dd>
 </dl>
@@ -121,6 +133,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The vendor has ended support — no patches will ever come. The answer is replace or isolate; in DoD environments, running EOL software fails inspections. Distinguish from zero-day: EOL will never be patched; a zero-day will be, eventually.</dd>
 <dt>Espionage</dt>
 <dd>Motivation: stealing secrets — government or corporate — for a state or competitor's benefit. <span class="ex">Slow exfiltration of design documents over months.</span></dd>
+<dt>Evil twin</dt>
+<dd>A rogue access point broadcasting a legitimate SSID — auto-joining laptops hand it their traffic. The fake place to connect; deauthentication is the shove that drives victims there.</dd>
 </dl>
 
 <h2 id="f">F</h2>
@@ -205,12 +219,18 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The server fetches its own fresh OCSP proof and staples it to the handshake. The exam's answer whenever a scenario says the server presents proof of valid status.</dd>
 <dt>Obfuscation</dt>
 <dd>Hiding or substituting data instead of encrypting it — steganography, tokenization, masking.</dd>
+<dt>On-path attack</dt>
+<dd>Positioned between client and server, reading and altering both directions (formerly man-in-the-middle). Needs no malware on either endpoint — position is the whole attack.</dd>
 <dt>Organized crime actor</dt>
 <dd>Professional crews whose motive is profit: ransomware, phishing, fraud — run like a business, down to payment support portals.</dd>
 </dl>
 
 <h2 id="p">P</h2>
 <dl>
+<dt>Pass-the-hash</dt>
+<dd>Replaying a captured hash directly as authentication evidence — no password cracking needed. A replay-family attack against authentication.</dd>
+<dt>Password spraying</dt>
+<dd>One carefully chosen password tried against many accounts — staying under any single account's lockout threshold. Its signature indicator: widespread account lockouts.</dd>
 <dt>Phishing</dt>
 <dd>A fraudulent lure, usually by email, engineered to harvest credentials or deliver malware. The family ladder: <b>phishing</b> (bulk) → <b>spear phishing</b> (one researched target) → <b>whaling</b> (executives). Siblings: smishing (SMS), vishing (voice).</dd>
 <dt>Policy administrator</dt>
@@ -223,6 +243,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A control that stops an attack from succeeding. <span class="ex">A firewall rule; a fence; multifactor authentication (MFA).</span></dd>
 <dt>Private key</dt>
 <dd>The secret half of an asymmetric key pair. Never leaves its owner's device. Decrypts what the public key encrypted; creates signatures the public key verifies.</dd>
+<dt>Privilege escalation</dt>
+<dd>Gaining rights beyond your account's own — vertical (user → admin) or horizontal (user → another user). Threat scope reduction is the zero-trust goal that contains it.</dd>
 <dt>Public key</dt>
 <dd>The shareable half of an asymmetric key pair. Encrypts messages only the private key can open; verifies signatures only the private key could create.</dd>
 <dt>Public key infrastructure (PKI)</dt>
@@ -235,6 +257,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Two operations race on the same resource and the result depends on timing. Time-of-check to time-of-use (TOCTOU) is the classic: the file was verified, then swapped before use. Fixed by locking and atomic operations.</dd>
 <dt>Ransomware</dt>
 <dd>Encrypts or exfiltrates data for extortion, with payment demanded under deadline and a leak site for pressure. Loud by design — an availability attack on the victim's use of their own data.</dd>
+<dt>Replay attack</dt>
+<dd>Capturing valid traffic or credentials and re-sending them later — the server cannot tell old from new. Defeated by timestamps and nonces.</dd>
+<dt>RF jamming</dt>
+<dd>Flooding the radio spectrum so wireless stops working at all — a physical-layer availability attack. No exploit, just noise.</dd>
 <dt>Resource reuse</dt>
 <dd>Cloud providers reuse disks and memory across tenants; a prior occupant's data can arrive with the hardware. A passive confidentiality leak — no attack required.</dd>
 <dt>Rollback plan (backout plan)</dt>
@@ -257,6 +283,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Anything an organization puts in place to reduce risk — a device, a process, a document, or a physical barrier. Every control has a <b>category</b> (what kind of thing it is) and a <b>type</b> (what job it does).</dd>
 <dt>Self-signed certificate</dt>
 <dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
+<dt>Session hijacking</dt>
+<dd>Stealing an active session token and riding an already-authenticated connection. Authentication was never attacked — it was borrowed.</dd>
 <dt>Shadow IT</dt>
 <dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
 <dt>Sideloading</dt>
@@ -269,6 +297,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Covertly gathers data — screens, files, conversations — and quietly ships it out. Never announces itself; the anti-ransomware. The keylogger is one tool in this category.</dd>
 <dt>SQL injection</dt>
 <dd>Untrusted input becomes part of a database query, so attacker text is executed as query logic. Server-side: the database is the victim. Fixed by parameterized queries — code and data travel separately.</dd>
+<dt>SSL stripping</dt>
+<dd>Removing encryption before the session starts — downgrading the victim's HTTPS to plain HTTP so the attacker reads traffic in the clear. Distinguish from downgrade attack: stripping happens at the HTTP layer, before negotiation.</dd>
 <dt>Steganography</dt>
 <dd>Hiding data inside another medium, such as a message inside a photo's pixel values. Concealment, not encryption.</dd>
 <dt>Symmetric encryption</dt>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0014 — The Attack-Name Catalog</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 2 · Objective 2.4, part two of two · Lesson 14 of ~30 · ~35 minutes</p>
+<h1>The Attack-Name Catalog</h1>
+<p class="meta">One win today: <b>attach the right name to any attack description the exam reads you — network, wireless, application, password, cryptographic, or physical.</b> Every item here is one sentence long. The catalog is the exam's list, and the list is the lesson.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>These names are the taxonomy of a security operations center's alert queue — and two of them describe exactly what intruders do inside government networks: <b>pass-the-hash</b> to move without cracking anything, and <b>privilege escalation</b> to turn a toe-hold into ownership. When a DoD 8140 role says "what are we looking at?", the answer starts with a name from this table.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Type each answer, then check all three. The first one repairs yesterday's miss with a fresh scenario.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> After segmentation, an attacker who owns one workstation reaches exactly two file shares instead of the whole network. Type the zero-trust goal this demonstrates. (three words)</label><br><input class="txt" id="wu1" style="width:18rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> It hides at kernel level: process lists, connections, and file views all show nothing. Type the malware. (one word)</label><br><input class="txt" id="wu2" style="width:12rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> A crew rents out ransomware-as-a-service with a payment help desk. Type the actor class. (two words)</label><br><input class="txt" id="wu3" style="width:14rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The catalog, grouped by where it strikes</h2>
+<table>
+<tr><th>Attack</th><th>One-sentence mechanism</th><th>Scenario tell</th></tr>
+<tr><td class="rowhead">Denial of service (DoS)</td><td>Flood or exhaust a service until it cannot answer.</td><td>One source, one exhausted service.</td></tr>
+<tr><td class="rowhead">Distributed DoS (DDoS)</td><td>The same flood from thousands of machines at once — usually a rented botnet.</td><td>"Traffic from 40,000 addresses in an hour."</td></tr>
+<tr><td class="rowhead">DNS poisoning</td><td>Corrupt a resolver's cache so a trusted name resolves to the attacker's address.</td><td>The bank's name opens the attacker's site.</td></tr>
+<tr><td class="rowhead">Domain hijacking</td><td>Take over the domain registration itself — all traffic and mail redirect.</td><td>The registrar account was the target.</td></tr>
+<tr><td class="rowhead">On-path attack</td><td>Sit between client and server, reading and altering both directions. (Formerly man-in-the-middle.)</td><td>Both sides think they talk to each other; they talk to the attacker.</td></tr>
+<tr><td class="rowhead">Replay attack</td><td>Capture valid traffic or credentials, re-send them later — the server cannot tell old from new.</td><td>An "old ticket" accepted as fresh.</td></tr>
+<tr><td class="rowhead">Session hijacking</td><td>Steal an active session token and ride an already-authenticated connection.</td><td>Authentication was never attacked — it was borrowed.</td></tr>
+<tr><td class="rowhead">Pass-the-hash</td><td>Replay a captured hash directly as authentication evidence — no cracking.</td><td>The hash itself logs in.</td></tr>
+<tr><td class="rowhead">Evil twin</td><td>A rogue access point broadcasting a legitimate SSID; laptops auto-join.</td><td>The café's Wi-Fi, twice — one of them an attacker.</td></tr>
+<tr><td class="rowhead">Deauthentication attack</td><td>Force wireless clients off the network — often to capture the reconnect, or to herd victims toward the evil twin.</td><td>Everyone dropped, then "reconnected."</td></tr>
+<tr><td class="rowhead">RF jamming</td><td>Flood the radio spectrum so wireless stops working at all.</td><td>Physical-layer denial: no exploit, just noise.</td></tr>
+<tr><td class="rowhead">Privilege escalation</td><td>Gain rights beyond your account's own — vertical (user → admin) or horizontal (user → user).</td><td>A normal account suddenly empties the admin role.</td></tr>
+<tr><td class="rowhead">Directory traversal</td><td>Input paths like <code>../../etc/passwd</code> walk out of the web root to read unreachable files.</td><td>The path, not the payload, is the attack.</td></tr>
+<tr><td class="rowhead">Password spraying</td><td>One carefully chosen password tried against <em>many</em> accounts — staying under lockout thresholds.</td><td>Its signature indicator: widespread account lockouts.</td></tr>
+<tr><td class="rowhead">Brute force (password)</td><td>Many passwords against <em>one</em> account until one works.</td><td>One account, thousands of attempts.</td></tr>
+<tr><td class="rowhead">Downgrade attack</td><td>Trick a handshake into negotiating older, weaker cryptography — then break the weak version.</td><td>"The connection settled on TLS 1.0."</td></tr>
+<tr><td class="rowhead">SSL stripping</td><td>Remove the padlock before the session starts, downgrading the victim's HTTPS to plain HTTP.</td><td>The user typed https://; arrived at http://.</td></tr>
+<tr><td class="rowhead">RFID cloning (physical)</td><td>Copy a badge or card's radio identity and replay it.</td><td>A cloned access badge opens the door.</td></tr>
+</table>
+
+<h2>Part 2 — The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">DoS vs. DDoS</td><td>One source versus many — and DDoS implies a botnet behind it.</td></tr>
+<tr><td class="rowhead">On-path vs. replay</td><td>On-path is a <em>position</em> (between the parties); replay is an <em>action</em> (old data re-sent). An on-path attacker may replay; replay needs no position.</td></tr>
+<tr><td class="rowhead">Session hijacking vs. pass-the-hash</td><td>Ride an existing session (hijack) versus manufacture a new login from stolen material (pass-the-hash). Both are replay-family.</td></tr>
+<tr><td class="rowhead">Evil twin vs. deauthentication</td><td>The twin is a fake place to connect; deauthentication is the shove that often drives victims there.</td></tr>
+<tr><td class="rowhead">Spraying vs. brute force</td><td>One password, many accounts (spraying) versus many passwords, one account (brute force). Lockout patterns reveal which.</td></tr>
+<tr><td class="rowhead">Downgrade vs. SSL stripping</td><td>Downgrade weakens the <em>negotiated protocol</em>; SSL stripping removes encryption <em>before</em> negotiation, at the HTTP layer.</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Stolen CI session token used from another IP</td><td>Session hijacking — authentication borrowed, not beaten</td></tr>
+<tr><td>Secret hash reused to authenticate a service</td><td>Pass-the-hash</td></tr>
+<tr><td>RBAC misbinding letting a pod hit admin APIs</td><td>Privilege escalation</td></tr>
+<tr><td>Path-join bugs on file endpoints</td><td>Directory traversal</td></tr>
+<tr><td>Alerting on TLS 1.0 negotiations at the edge</td><td>Downgrade attack indicator</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1</p>
+<h3>A service is flooded from forty thousand addresses in one hour; the flood is traced to rented botnet machines. Which attack?</h3>
+<button class="opt">Denial of service</button><button class="opt">DNS poisoning</button><button class="opt">Distributed denial of service</button><button class="opt">RF jamming</button>
+<div class="fb"><b>Distributed denial of service (DDoS).</b> Many sources means distributed — and the botnet rental is organized crime's business model (Lesson 0008). One source would be plain DoS; jamming is radio noise, not packets.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>Users type their bank's correct address, but a corrupted resolver cache opens an attacker's server instead. Attack, and which triad goal is harmed?</h3>
+<button class="opt">DNS poisoning; integrity</button><button class="opt">Evil twin; confidentiality</button><button class="opt">RF jamming; non-repudiation</button><button class="opt">Session hijacking; availability</button>
+<div class="fb"><b>DNS poisoning; integrity.</b> The name-to-address mapping was altered — an integrity failure the user cannot see. Confidentiality is the follow-on harm, but the mapping itself is what was tampered with.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 3</p>
+<h3>At a conference, laptops auto-join an access point broadcasting the venue's exact SSID — operated by an attacker. Which attack?</h3>
+<button class="opt">Deauthentication attack</button><button class="opt">Evil twin</button><button class="opt">On-path attack</button><button class="opt">RFID cloning</button>
+<div class="fb"><b>Evil twin.</b> The fake access point wearing the real name. Deauthentication is the shove — forcing clients off so they reconnect (often to the twin); the twin is the destination.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>An attacker steals an active session token and continues the victim's already-authenticated session. Which attack, and which A of AAA did it sidestep?</h3>
+<button class="opt">Session hijacking; authentication</button><button class="opt">DNS poisoning; authorization</button><button class="opt">Password spraying; accounting</button><button class="opt">Deauthentication; authorization</button>
+<div class="fb"><b>Session hijacking; authentication.</b> The login was never attacked — the attacker boarded after it. Authorization still applies to the session; what was skipped was proving who is using it. (Lesson 0002 applied.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>A bug in a web app lets a standard user account perform administrator actions. Which attack, and which zero-trust goal would have limited the blast radius?</h3>
+<button class="opt">Privilege escalation; threat scope reduction</button><button class="opt">Directory traversal; adaptive identity</button><button class="opt">Session hijacking; policy engine</button><button class="opt">Pass-the-hash; assume breach</button>
+<div class="fb"><b>Privilege escalation; threat scope reduction.</b> User turning admin is escalation (vertical); segmentation plus least privilege — threat scope reduction — is exactly the goal that contains it. (Lessons 0003 and this one: the missed term, new frame.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 6</p>
+<h3>A web endpoint accepts <code>../../etc/passwd</code> as a filename and serves a file outside the web root. Which attack?</h3>
+<button class="opt">Privilege escalation</button><button class="opt">SQL injection</button><button class="opt">Buffer overflow</button><button class="opt">Directory traversal</button>
+<div class="fb"><b>Directory traversal.</b> The <em>path</em> is the weapon — walking out of the allowed directory. Listed under cloud and application attacks in Lesson 0012's table; today it gets its name.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7 <span class="hard">MULTI-HOP</span></p>
+<h3>One password is tried against hundreds of accounts overnight, and the morning shows widespread lockouts. Which attack, and which indicator gave it away?</h3>
+<button class="opt">Password spraying; account lockouts</button><button class="opt">Brute force; resource consumption</button><button class="opt">Password spraying; impossible travel</button><button class="opt">Brute force; blocked content</button>
+<div class="fb"><b>Password spraying; account lockouts.</b> One password, many accounts — designed to stay under any single account's threshold, betrayed when lockouts cluster. Brute force is the mirror image: many passwords, one account. (Lesson 0013's indicator table, applied.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8 <span class="hard">BEST ANSWER</span></p>
+<h3>During the handshake, an attacker interferes so the parties settle on an old, weak version of TLS, then breaks it. Which attack is <em>best</em> named?</h3>
+<button class="opt">Downgrade attack</button><button class="opt">SSL stripping</button><button class="opt">Replay attack</button><button class="opt">Hash collision</button>
+<div class="fb"><b>Downgrade attack.</b> The negotiation itself was manipulated into weaker cryptography — that is downgrade's exact signature. SSL stripping is the tempting distractor: it removes encryption before negotiation, at the HTTP layer, swapping https for http. Here the padlock exists; the crypto behind it was weakened.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/on-path-attacks-sy0-701/">Professor Messer 2.4 — On-Path Attacks (5:30)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/replay-attacks-sy0-701/">Replay Attacks (5:45)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/dns-attacks-sy0-701/">DNS Attacks (8:57)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/wireless-attacks-sy0-701/">Wireless Attacks (7:55)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/application-attacks-sy0-701/">Application Attacks (11:48)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/cryptographic-attacks-sy0-701/">Cryptographic Attacks (9:31)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/password-attacks-sy0-701/">Password Attacks (7:15)</a>. Gibson Domain 2: attack-type sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Stuck? Ask your teacher</h3>
+<p>This lesson is the sprint's biggest name-list — if any pair in Part 2 stays blurry (spraying versus brute force is the usual one), tell the agent which. The week-2 review retests this entire catalog no-cue.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0015 — mitigation techniques (objective 2.5): patching, segmentation, allow lists, and the exam's control-versus-attack matching. Then Lesson 0016 — the <b>week-2 mixed review</b>: Domains 1 and 2, no-cue, timed, with a PBQ block. Graduation test for both missed pairs and the zero-trust repair. · <a href="0013-malware-indicators.html">Lesson 0013</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 2.4); Professor Messer SY0-701 section 2.4; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 2.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["threat scope reduction", "scope reduction"], ok: "Threat scope reduction. Segment, restrict, least privilege — one foothold reaches little. (Repair rep for the 0013 miss, new scenario. Lesson 0003.)" },
+  wu2: { v: ["rootkit", "a rootkit"], ok: "Rootkit. Kernel- or firmware-level concealment — the admin's own tools lie. Fileless hides in memory instead. (Lesson 0013.)" },
+  wu3: { v: ["organized crime", "organised crime", "organized criminals", "organized criminal group", "criminal organization"], ok: "Organized crime. Ransomware-as-a-service is a business with a help desk. (Lesson 0008.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
