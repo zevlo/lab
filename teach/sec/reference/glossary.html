@@ -24,7 +24,7 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0010-threat-vectors.html">Lesson 0010</a></p>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0011-vulnerabilities-input-family.html">Lesson 0011</a></p>
 <nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#v">V</a> · <a href="#w">W</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
@@ -51,6 +51,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Blockchain</dt>
 <dd>An append-only ledger copied across many machines, where each block carries the hash of the previous block. Tampering with an old block breaks every hash after it — tamper-evident by construction.</dd>
+<dt>Buffer overflow</dt>
+<dd>Input exceeds the memory allocated to hold it, overwriting adjacent memory — crash, or attacker-chosen code execution. The natural habitat is old C code; the fix is patching and memory-safe languages.</dd>
 <dt>Business email compromise (BEC)</dt>
 <dd>Impersonating an executive or vendor over email — often from a look-alike domain — to redirect a payment. The message vector with the authority and urgency levers pulled at once.</dd>
 </dl>
@@ -83,6 +85,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A control that repairs damage after an incident. <span class="ex">Restoring from backup; applying an emergency patch; a rollback plan.</span></dd>
 <dt>Certificate revocation list (CRL)</dt>
 <dd>The CA's published list of revoked certificate serial numbers. Can be large and goes stale between downloads.</dd>
+<dt>Cross-site scripting (XSS)</dt>
+<dd>Untrusted input becomes part of a web page shown to other users, running attacker script in their browsers. Client-side: the visitors are the victims. Fixed by output encoding — render user content as text, never markup.</dd>
 </dl>
 
 <h2 id="d">D</h2>
@@ -127,6 +131,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="i">I</h2>
 <dl>
+<dt>Input validation</dt>
+<dd>Checking data against strict expectations — an allow list of permitted values — before using it. The root cure for the input family; for SQL injection, parameterized queries are the stronger, by-construction fix.</dd>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
 <dt>Implicit trust zone</dt>
@@ -141,6 +147,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Maintenance window</dt>
 <dd>A pre-agreed, low-usage time slot in which changes are implemented, so disruption harms the fewest users. Protects availability.</dd>
+<dt>Memory injection (DLL / process injection)</dt>
+<dd>Pushing malicious code into a running process's memory so it wears a legitimate process's name. Nothing is written to disk — the enabler of fileless malware.</dd>
 </dl>
 
 <h2 id="n">N</h2>
@@ -185,6 +193,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="r">R</h2>
 <dl>
+<dt>Race condition</dt>
+<dd>Two operations race on the same resource and the result depends on timing. Time-of-check to time-of-use (TOCTOU) is the classic: the file was verified, then swapped before use. Fixed by locking and atomic operations.</dd>
 <dt>Rollback plan (backout plan)</dt>
 <dd>A tested procedure for restoring the previous state if a change fails. A corrective control. The exam expects every change to carry one.</dd>
 </dl>
@@ -207,6 +217,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
 <dt>Spear phishing</dt>
 <dd>A phishing email crafted for one specific, researched recipient — named, contextual, convincing. Aimed at executives it becomes whaling.</dd>
+<dt>SQL injection</dt>
+<dd>Untrusted input becomes part of a database query, so attacker text is executed as query logic. Server-side: the database is the victim. Fixed by parameterized queries — code and data travel separately.</dd>
 <dt>Steganography</dt>
 <dd>Hiding data inside another medium, such as a message inside a photo's pixel values. Concealment, not encryption.</dd>
 <dt>Symmetric encryption</dt>
