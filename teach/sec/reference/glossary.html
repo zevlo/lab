@@ -24,8 +24,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <body>
 <main>
 <h1>Glossary</h1>
-<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0011-vulnerabilities-input-family.html">Lesson 0011</a></p>
-<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#v">V</a> · <a href="#w">W</a> · <a href="#z">Z</a></nav>
+<p class="sub">CompTIA Security+ SY0-701 · Plain-language definitions · Grows every lesson — last updated after <a href="../lessons/0013-malware-indicators.html">Lesson 0013</a></p>
+<nav><a href="#a">A</a> · <a href="#b">B</a> · <a href="#c">C</a> · <a href="#d">D</a> · <a href="#e">E</a> · <a href="#f">F</a> · <a href="#h">H</a> · <a href="#i">I</a> · <a href="#j">J</a> · <a href="#k">K</a> · <a href="#l">L</a> · <a href="#m">M</a> · <a href="#n">N</a> · <a href="#o">O</a> · <a href="#p">P</a> · <a href="#r">R</a> · <a href="#s">S</a> · <a href="#t">T</a> · <a href="#v">V</a> · <a href="#w">W</a> · <a href="#z">Z</a></nav>
 
 <h2 id="a">A</h2>
 <dl>
@@ -49,8 +49,12 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="b">B</h2>
 <dl>
+<dt>Bloatware</dt>
+<dd>Preinstalled, unwanted software. Less an attack than an attack <em>surface</em> — vendor utilities nobody uses and nobody patches.</dd>
 <dt>Blockchain</dt>
 <dd>An append-only ledger copied across many machines, where each block carries the hash of the previous block. Tampering with an old block breaks every hash after it — tamper-evident by construction.</dd>
+<dt>Botnet (zombie army)</dt>
+<dd>A fleet of compromised machines remotely controlled in unison — rented out for denial-of-service, spam, or mining. Each member machine is a zombie.</dd>
 <dt>Buffer overflow</dt>
 <dd>Input exceeds the memory allocated to hold it, overwriting adjacent memory — crash, or attacker-chosen code execution. The natural habitat is old C code; the fix is patching and memory-safe languages.</dd>
 <dt>Business email compromise (BEC)</dt>
@@ -85,6 +89,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A control that repairs damage after an incident. <span class="ex">Restoring from backup; applying an emergency patch; a rollback plan.</span></dd>
 <dt>Certificate revocation list (CRL)</dt>
 <dd>The CA's published list of revoked certificate serial numbers. Can be large and goes stale between downloads.</dd>
+<dt>Cryptojacking</dt>
+<dd>Unauthorized cryptocurrency mining on someone else's hardware. Signature indicator: sustained resource consumption against baseline.</dd>
 <dt>Cross-site scripting (XSS)</dt>
 <dd>Untrusted input becomes part of a web page shown to other users, running attacker script in their browsers. Client-side: the visitors are the victims. Fixed by output encoding — render user content as text, never markup.</dd>
 </dl>
@@ -111,8 +117,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="e">E</h2>
 <dl>
+<dt>End-of-life (EOL)</dt>
+<dd>The vendor has ended support — no patches will ever come. The answer is replace or isolate; in DoD environments, running EOL software fails inspections. Distinguish from zero-day: EOL will never be patched; a zero-day will be, eventually.</dd>
 <dt>Espionage</dt>
 <dd>Motivation: stealing secrets — government or corporate — for a state or competitor's benefit. <span class="ex">Slow exfiltration of design documents over months.</span></dd>
+</dl>
+
+<h2 id="f">F</h2>
+<dl>
+<dt>Fileless malware</dt>
+<dd>Malware that runs entirely in memory, inside legitimate processes — nothing on disk to scan. Enabled by memory injection; clears on reboot, returns on re-infection.</dd>
 </dl>
 
 <h2 id="h">H</h2>
@@ -131,10 +145,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="i">I</h2>
 <dl>
-<dt>Input validation</dt>
-<dd>Checking data against strict expectations — an allow list of permitted values — before using it. The root cure for the input family; for SQL injection, parameterized queries are the stronger, by-construction fix.</dd>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
+<dt>Impossible travel</dt>
+<dd>Indicator: one account logging in from two places no human could cover in the time between — Virginia, then Tokyo, forty minutes later. Suggests credential compromise.</dd>
+<dt>Indicators of compromise (IoC)</dt>
+<dd>Observable departures from baseline that suggest malicious activity: account lockouts, concurrent sessions, impossible travel, blocked content, resource consumption, out-of-cycle logging, missing logs. The objective-2.4 skill: name what the observation suggests.</dd>
+<dt>Input validation</dt>
+<dd>Checking data against strict expectations — an allow list of permitted values — before using it. The root cure for the input family; for SQL injection, parameterized queries are the stronger, by-construction fix.</dd>
 <dt>Implicit trust zone</dt>
 <dd>The anti-pattern zero trust exists to eliminate: an area where being inside implies trust. <span class="ex">"It's on the internal VLAN, so it must be safe."</span></dd>
 <dt>Insider threat</dt>
@@ -143,10 +161,30 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Data stays correct and complete, with nothing altered or added. <span class="ex">Hashing defends it; an attacker changing a transfer amount in transit harms it — so does an undocumented change to a production system.</span></dd>
 </dl>
 
+<h2 id="j">J</h2>
+<dl>
+<dt>Jailbreaking</dt>
+<dd>Stripping the vendor's operating-system controls on Apple devices to run unauthorized code. The Android sibling is rooting.</dd>
+</dl>
+
+<h2 id="k">K</h2>
+<dl>
+<dt>Keylogger</dt>
+<dd>Records keystrokes to capture credentials as they are typed. The specific tool; spyware is the broader category.</dd>
+</dl>
+
+<h2 id="l">L</h2>
+<dl>
+<dt>Logic bomb</dt>
+<dd>Dormant code that detonates when a trigger condition fires — a date, an event, a name leaving payroll. The signature malware of the malicious insider.</dd>
+</dl>
+
 <h2 id="m">M</h2>
 <dl>
 <dt>Maintenance window</dt>
 <dd>A pre-agreed, low-usage time slot in which changes are implemented, so disruption harms the fewest users. Protects availability.</dd>
+<dt>Misconfiguration</dt>
+<dd>The self-inflicted vulnerability category: open storage buckets, default credentials, permissive rules. The most common breach source — and the exam's answer to "most common."</dd>
 <dt>Memory injection (DLL / process injection)</dt>
 <dd>Pushing malicious code into a running process's memory so it wears a legitimate process's name. Nothing is written to disk — the enabler of fileless malware.</dd>
 </dl>
@@ -195,8 +233,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Race condition</dt>
 <dd>Two operations race on the same resource and the result depends on timing. Time-of-check to time-of-use (TOCTOU) is the classic: the file was verified, then swapped before use. Fixed by locking and atomic operations.</dd>
+<dt>Ransomware</dt>
+<dd>Encrypts or exfiltrates data for extortion, with payment demanded under deadline and a leak site for pressure. Loud by design — an availability attack on the victim's use of their own data.</dd>
+<dt>Resource reuse</dt>
+<dd>Cloud providers reuse disks and memory across tenants; a prior occupant's data can arrive with the hardware. A passive confidentiality leak — no attack required.</dd>
 <dt>Rollback plan (backout plan)</dt>
 <dd>A tested procedure for restoring the previous state if a change fails. A corrective control. The exam expects every change to carry one.</dd>
+<dt>Rooting</dt>
+<dd>Stripping the vendor's controls on Android devices to gain full administrative access. The Apple sibling is jailbreaking.</dd>
+<dt>Rootkit</dt>
+<dd>Malware at kernel or firmware level that conceals its own presence — process lists, connections, and files show nothing. Deep and persistent hiding; fileless hides in memory, transiently.</dd>
 </dl>
 
 <h2 id="s">S</h2>
@@ -213,10 +259,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
 <dt>Shadow IT</dt>
 <dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
+<dt>Sideloading</dt>
+<dd>Installing applications from outside the vendor's official store — bypassing the store's review. The installation act itself; jailbreaking or rooting is what strips the controls that forbid it.</dd>
 <dt>Smishing</dt>
 <dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
 <dt>Spear phishing</dt>
 <dd>A phishing email crafted for one specific, researched recipient — named, contextual, convincing. Aimed at executives it becomes whaling.</dd>
+<dt>Spyware</dt>
+<dd>Covertly gathers data — screens, files, conversations — and quietly ships it out. Never announces itself; the anti-ransomware. The keylogger is one tool in this category.</dd>
 <dt>SQL injection</dt>
 <dd>Untrusted input becomes part of a database query, so attacker text is executed as query logic. Server-side: the database is the victim. Fixed by parameterized queries — code and data travel separately.</dd>
 <dt>Steganography</dt>
@@ -243,12 +293,18 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Zero trust goal: shrink the blast radius. Segment, restrict, and use least privilege so one foothold reaches little.</dd>
 <dt>Tokenization</dt>
 <dd>Replacing a sensitive value with a meaningless token, with the real mapping kept in a separate, tightly guarded vault. <span class="ex">Stored payment-card tokens.</span></dd>
+<dt>Trojan</dt>
+<dd>Malicious payload masquerading as legitimate software to get itself run. Deception instead of self-propagation — a trojan convinces; a worm travels.</dd>
 <dt>Typosquatting (URL hijacking)</dt>
 <dd>Registering look-alike domains — githuh.com for github.com — to harvest mistyped traffic. The registry-package one-letter-off trick is the same move on software supply chains.</dd>
 </dl>
 
 <h2 id="v">V</h2>
 <dl>
+<dt>Virtual machine escape</dt>
+<dd>A guest virtual machine breaks out of its hypervisor and reaches the host — and every sibling VM. The active break; resource reuse is the passive leak.</dd>
+<dt>Virus</dt>
+<dd>Malware that attaches to a host file and spreads when a user runs the carrier. Needs a host and a human — the dividing line against the worm.</dd>
 <dt>Vishing</dt>
 <dd>Phishing delivered by voice call — the attacker phones as IT, a bank, or support and harvests credentials live.</dd>
 </dl>
@@ -259,10 +315,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Infecting a website a target community already visits, so the victims come to the malware. No email is sent; selection is by community — which is why it suits nation-state espionage.</dd>
 <dt>Whaling</dt>
 <dd>Spear phishing aimed at executives — the CFO wire-fraud profile. Research depth and authority themes are the tells.</dd>
+<dt>Worm</dt>
+<dd>Malware that self-propagates over the network — no host file, no user action. Speed is its signature: whole subnets in an hour.</dd>
 </dl>
 
 <h2 id="z">Z</h2>
 <dl>
+<dt>Zero-day</dt>
+<dd>A flaw being exploited with no patch available — zero days of protection since discovery. Response: emergency process plus compensating controls (segmentation) until a patch ships.</dd>
 <dt>Zero trust</dt>
 <dd>Architecture philosophy: never trust, always verify. Network location grants nothing; every request authenticates and is authorized; design as if the attacker is already inside.</dd>
 </dl>
