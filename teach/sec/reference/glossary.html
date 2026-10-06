@@ -83,6 +83,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The formal proposal for a modification: what will change, why, the risks, and the plan to back it out.</dd>
 <dt>CIA triad</dt>
 <dd>The three goals of security: confidentiality, integrity, availability. Every attack harms at least one goal; every control defends at least one.</dd>
+<dt>Cloud service models (IaaS / PaaS / SaaS)</dt>
+<dd>The responsibility ladder. IaaS: you run the OS and up. PaaS: you run applications only. SaaS: the provider runs everything; you configure. The higher the service, the less you patch.</dd>
+<dt>Cloud deployment models (public / private / hybrid / community)</dt>
+<dd>Public: anyone who pays. Private: one organization. Hybrid: private plus public, connected. Community: organizations with common concerns — compliance, clearance, regulation — sharing dedicated infrastructure.</dd>
 <dt>Compensating control (type)</dt>
 <dd>A substitute control used when the ideal control is not possible. <span class="ex">An encrypted VPN instead of an expensive private circuit.</span></dd>
 <dt>Confidentiality</dt>
@@ -133,6 +137,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="e">E</h2>
 <dl>
+<dt>Elasticity</dt>
+<dd>Capacity that grows <em>and shrinks</em> on demand. The dividing line with scalability: scalability is one-directional growth; elasticity is bidirectional. <span class="ex">Servers added before the sale, removed after.</span></dd>
 <dt>End-of-life (EOL)</dt>
 <dd>The vendor has ended support — no patches will ever come. The answer is replace or isolate; in DoD environments, running EOL software fails inspections. Distinguish from zero-day: EOL will never be patched; a zero-day will be, eventually.</dd>
 <dt>Espionage</dt>
@@ -163,6 +169,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="i">I</h2>
 <dl>
+<dt>Hypervisor (type 1 / type 2)</dt>
+<dd>Type 1 runs directly on server hardware — bare metal, the enterprise default. Type 2 runs as an application inside a host operating system — one more layer, more attack surface. <span class="ex">A laptop virtualizer is type 2.</span></dd>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
 <dt>Immutable systems</dt>
@@ -171,10 +179,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Indicator: one account logging in from two places no human could cover in the time between — Virginia, then Tokyo, forty minutes later. Suggests credential compromise.</dd>
 <dt>Indicators of compromise (IoC)</dt>
 <dd>Observable departures from baseline that suggest malicious activity: account lockouts, concurrent sessions, impossible travel, blocked content, resource consumption, out-of-cycle logging, missing logs. The objective-2.4 skill: name what the observation suggests.</dd>
+<dt>Industrial control system (ICS) / SCADA</dt>
+<dd>Systems supervising physical processes — grid, water, factories. Availability outranks confidentiality, controllers often cannot be patched, and isolation is the exam's paired answer.</dd>
 <dt>Input validation</dt>
 <dd>Checking data against strict expectations — an allow list of permitted values — before using it. The root cure for the input family; for SQL injection, parameterized queries are the stronger, by-construction fix.</dd>
 <dt>Implicit trust zone</dt>
 <dd>The anti-pattern zero trust exists to eliminate: an area where being inside implies trust. <span class="ex">"It's on the internal VLAN, so it must be safe."</span></dd>
+<dt>Infrastructure as code (IaC)</dt>
+<dd>Infrastructure defined, versioned, and applied from templates — configuration enforcement's native form. Drift becomes visible, and the fix is a re-apply, not a hand edit.</dd>
 <dt>Insider threat</dt>
 <dd>An attacker or risk source already inside authentication. <b>Malicious</b>: legitimate access misused with intent — revenge, espionage, sabotage. <b>Negligent</b>: no intent, just error — phishing clicks, misdirected files, lost devices.</dd>
 <dt>Integrity</dt>
@@ -207,6 +219,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A pre-agreed, low-usage time slot in which changes are implemented, so disruption harms the fewest users. Protects availability.</dd>
 <dt>Measured boot</dt>
 <dd>The trusted platform module (TPM) records a fingerprint of every boot step. The record makes boot tampering visible — detection, not blocking.</dd>
+<dt>Microsegmentation</dt>
+<dd>Segmentation pushed to the individual workload: each workload reaches only its own dependencies. Zero trust's threat scope reduction, implemented in software.</dd>
 <dt>Misconfiguration</dt>
 <dd>The self-inflicted vulnerability category: open storage buckets, default credentials, permissive rules. The most common breach source — and the exam's answer to "most common."</dd>
 <dt>Memory injection (DLL / process injection)</dt>
@@ -271,6 +285,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Two operations race on the same resource and the result depends on timing. Time-of-check to time-of-use (TOCTOU) is the classic: the file was verified, then swapped before use. Fixed by locking and atomic operations.</dd>
 <dt>Ransomware</dt>
 <dd>Encrypts or exfiltrates data for extortion, with payment demanded under deadline and a leak site for pressure. Loud by design — an availability attack on the victim's use of their own data.</dd>
+<dt>Real-time operating system (RTOS)</dt>
+<dd>An operating system that guarantees response deadlines, not just throughput. <span class="ex">Pacemakers, vehicle brakes, industrial actuators.</span></dd>
 <dt>Replay attack</dt>
 <dd>Capturing valid traffic or credentials and re-sending them later — the server cannot tell old from new. Defeated by timestamps and nonces.</dd>
 <dt>Resting memory reboots</dt>
@@ -305,6 +321,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Dividing the network into zones that cannot reach each other freely, so one foothold spreads little. Zero trust's threat scope reduction, implemented. <span class="ex">VLANs; microsegmentation.</span></dd>
 <dt>Self-signed certificate</dt>
 <dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
+<dt>Serverless</dt>
+<dd>Event-triggered functions on the provider's runtime — you bring code, the provider brings everything else, including patching. The responsibility ladder's top rung.</dd>
 <dt>Session hijacking</dt>
 <dd>Stealing an active session token and riding an already-authenticated connection. Authentication was never attacked — it was borrowed.</dd>
 <dt>Shadow IT</dt>
