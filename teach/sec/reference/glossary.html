@@ -149,12 +149,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="f">F</h2>
 <dl>
+<dt>Fail-open vs. fail-close</dt>
+<dd>What a dead inline security device does with traffic. Fail-open passes everything — availability first. Fail-close drops everything — security first. Defense networks choose close. <span class="ex">An IPS that loses power.</span></dd>
 <dt>Fileless malware</dt>
 <dd>Malware that runs entirely in memory, inside legitimate processes — nothing on disk to scan. Enabled by memory injection; clears on reboot, returns on re-infection.</dd>
 </dl>
 
 <h2 id="h">H</h2>
 <dl>
+<dt>Forward proxy</dt>
+<dd>Intermediary for internal users going <em>out</em> — filters, caches, hides the clients. Direction decides the name: serves the users, faces the internet.</dd>
 <dt>Hacktivist</dt>
 <dd>An attacker driven by ideology: defacement, leaks, and disruption as protest. Skill varies; the cause is on display. <span class="ex">Defacing a retailer's site over labor practices, demanding no money.</span></dd>
 <dt>Hash (hashing)</dt>
@@ -171,6 +175,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Hypervisor (type 1 / type 2)</dt>
 <dd>Type 1 runs directly on server hardware — bare metal, the enterprise default. Type 2 runs as an application inside a host operating system — one more layer, more attack surface. <span class="ex">A laptop virtualizer is type 2.</span></dd>
+<dt>IEEE 802.1X</dt>
+<dd>Port-level authentication: the switch forwards nothing until the connecting device proves its identity via EAP. Identity before connectivity — zero trust applied to the physical jack.</dd>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
 <dt>Immutable systems</dt>
@@ -189,6 +195,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Infrastructure defined, versioned, and applied from templates — configuration enforcement's native form. Drift becomes visible, and the fix is a re-apply, not a hand edit.</dd>
 <dt>Insider threat</dt>
 <dd>An attacker or risk source already inside authentication. <b>Malicious</b>: legitimate access misused with intent — revenge, espionage, sabotage. <b>Negligent</b>: no intent, just error — phishing clicks, misdirected files, lost devices.</dd>
+<dt>Intrusion detection system (IDS) / intrusion prevention system (IPS)</dt>
+<dd>Same engine, different seat. IDS receives a copy on a span port — detects, alerts, cannot block (detective). IPS sits inline — blocks in the path (preventive) and must choose fail-open or fail-close.</dd>
 <dt>Integrity</dt>
 <dd>Data stays correct and complete, with nothing altered or added. <span class="ex">Hashing defends it; an attacker changing a transfer amount in transit harms it — so does an undocumented change to a production system.</span></dd>
 </dl>
@@ -203,12 +211,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="k">K</h2>
 <dl>
+<dt>Jump server (bastion host)</dt>
+<dd>One hardened, fully audited host through which all administrative access passes — so every admin action lands in a log. The people-path; a proxy is the data-path.</dd>
 <dt>Keylogger</dt>
 <dd>Records keystrokes to capture credentials as they are typed. The specific tool; spyware is the broader category.</dd>
 </dl>
 
 <h2 id="l">L</h2>
 <dl>
+<dt>Load balancer</dt>
+<dd>Distributes traffic across a server pool, with health checks that pull dead members out of rotation. Availability and scale in one appliance.</dd>
 <dt>Logic bomb</dt>
 <dd>Dormant code that detonates when a trigger condition fires — a date, an event, a name leaving payroll. The signature malware of the malicious insider.</dd>
 </dl>
@@ -231,6 +243,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Nation-state actor</dt>
 <dd>The best-funded, most sophisticated attacker class: patient, custom tools, targets infrastructure and secrets. Motivations: espionage, warfare, disruption.</dd>
+<dt>Next-generation firewall (NGFW)</dt>
+<dd>Firewall with intelligence: application-aware, identity-aware, deep packet inspection with IPS built in. The dividing line with a UTM — intelligence versus bundling.</dd>
 <dt>Non-persistence</dt>
 <dd>Any change vanishes on reboot; the machine returns to its baseline. Malware that modifies the system does not survive. <span class="ex">Lab virtual machines that revert to snapshot.</span></dd>
 <dt>Non-repudiation</dt>
@@ -291,6 +305,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Capturing valid traffic or credentials and re-sending them later — the server cannot tell old from new. Defeated by timestamps and nonces.</dd>
 <dt>Resting memory reboots</dt>
 <dd>Scheduled reboots that clear RAM. Fileless malware lives only in memory, so the reboot takes its home away.</dd>
+<dt>Reverse proxy</dt>
+<dd>Intermediary in front of servers receiving traffic <em>in</em> — load spreading, TLS termination, hides the backend. Serves the servers; faces the internet. <span class="ex">An ingress controller.</span></dd>
 <dt>RF jamming</dt>
 <dd>Flooding the radio spectrum so wireless stops working at all — a physical-layer availability attack. No exploit, just noise.</dd>
 <dt>Resource reuse</dt>
@@ -311,8 +327,12 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A random value mixed into a password before hashing, so identical passwords produce different stored hashes and precomputed tables fail.</dd>
 <dt>Sandbox</dt>
 <dd>An isolated environment where code can run without touching production. A testing ground with no blast radius. <span class="ex">A virtual machine that mirrors production.</span></dd>
+<dt>Screened subnet</dt>
+<dd>The SY0-701 name for the DMZ: public-facing services between an outer and inner filter. A breach there exposes the service — not the internal network.</dd>
 <dt>Script kiddie (unskilled attacker)</dt>
 <dd>Someone who runs other people's tools without understanding them — loud, opportunistic, scanning random targets. Motivation: notoriety or curiosity.</dd>
+<dt>Secure access service edge (SASE)</dt>
+<dd>Networking plus the security stack — filtering, inspection, access policy — delivered together from the cloud. SD-WAN is the networking half without the security stack.</dd>
 <dt>Secure boot</dt>
 <dd>Firmware refuses to run unsigned boot code — a boot-level rootkit is blocked, not just noticed. Block versus detect: this is the blocking half.</dd>
 <dt>Security control</dt>
@@ -375,6 +395,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="v">V</h2>
 <dl>
+<dt>Unified threat management (UTM)</dt>
+<dd>One appliance bundling many functions — firewall, IPS, proxy, content filtering. The small-office default. Bundling, not intelligence: the dividing line with an NGFW.</dd>
 <dt>Virtual machine escape</dt>
 <dd>A guest virtual machine breaks out of its hypervisor and reaches the host — and every sibling VM. The active break; resource reuse is the passive leak.</dd>
 <dt>Virus</dt>
@@ -387,6 +409,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Watering hole attack</dt>
 <dd>Infecting a website a target community already visits, so the victims come to the malware. No email is sent; selection is by community — which is why it suits nation-state espionage.</dd>
+<dt>Web application firewall (WAF)</dt>
+<dd>Layer-7 firewall protecting one application specifically — filters SQL injection, cross-site scripting, and malformed requests at the edge, before they reach the code.</dd>
 <dt>Whaling</dt>
 <dd>Spear phishing aimed at executives — the CFO wire-fraud profile. Research depth and authority themes are the tells.</dd>
 <dt>Worm</dt>
