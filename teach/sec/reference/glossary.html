@@ -35,6 +35,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Zero trust idea: authentication strength adapts to risk. <span class="ex">A login from a new country triggers a stronger challenge.</span></dd>
 <dt>Advanced persistent threat (APT)</dt>
 <dd>An operating pattern, usually nation-state or state-adjacent: advanced tools, persistent access maintained quietly for months (dwell time), and a funded actor behind it. Not a piece of malware — a patient adversary.</dd>
+<dt>Application allow list</dt>
+<dd>Only approved applications may run — execution is default-deny. The exam's strongest answer against malware installation and unauthorized tooling. <span class="ex">A kiosk locked to two vendor-approved apps.</span></dd>
 <dt>Asymmetric encryption</dt>
 <dd>Encryption with a key pair: a public key shared with the world and a private key that never leaves its owner. Public encrypts → private decrypts (confidentiality); private signs → public verifies (signatures). <span class="ex">RSA, ECC.</span></dd>
 <dt>Attack surface</dt>
@@ -53,6 +55,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Preinstalled, unwanted software. Less an attack than an attack <em>surface</em> — vendor utilities nobody uses and nobody patches.</dd>
 <dt>Blockchain</dt>
 <dd>An append-only ledger copied across many machines, where each block carries the hash of the previous block. Tampering with an old block breaks every hash after it — tamper-evident by construction.</dd>
+<dt>Boot attestation</dt>
+<dd>A central verifier reviews a machine's measured-boot record before granting access. Detects a tampered boot chain remotely; it does not block one.</dd>
 <dt>Botnet (zombie army)</dt>
 <dd>A fleet of compromised machines remotely controlled in unison — rented out for denial-of-service, spam, or mining. Each member machine is a zombie.</dd>
 <dt>Buffer overflow</dt>
@@ -161,6 +165,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
+<dt>Immutable systems</dt>
+<dd>Systems never modified after deployment — replaced from a clean build instead. Nothing persists to infect. <span class="ex">Container images rebuilt in CI, never edited in production.</span></dd>
 <dt>Impossible travel</dt>
 <dd>Indicator: one account logging in from two places no human could cover in the time between — Virginia, then Tokyo, forty minutes later. Suggests credential compromise.</dd>
 <dt>Indicators of compromise (IoC)</dt>
@@ -177,6 +183,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="j">J</h2>
 <dl>
+<dt>Isolation</dt>
+<dd>Removing a system from the network entirely — an air gap or a sandbox. The strongest boundary, and the least convenient. The answer for unpatchable crown jewels.</dd>
 <dt>Jailbreaking</dt>
 <dd>Stripping the vendor's operating-system controls on Apple devices to run unauthorized code. The Android sibling is rooting.</dd>
 </dl>
@@ -197,6 +205,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Maintenance window</dt>
 <dd>A pre-agreed, low-usage time slot in which changes are implemented, so disruption harms the fewest users. Protects availability.</dd>
+<dt>Measured boot</dt>
+<dd>The trusted platform module (TPM) records a fingerprint of every boot step. The record makes boot tampering visible — detection, not blocking.</dd>
 <dt>Misconfiguration</dt>
 <dd>The self-inflicted vulnerability category: open storage buckets, default credentials, permissive rules. The most common breach source — and the exam's answer to "most common."</dd>
 <dt>Memory injection (DLL / process injection)</dt>
@@ -207,6 +217,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Nation-state actor</dt>
 <dd>The best-funded, most sophisticated attacker class: patient, custom tools, targets infrastructure and secrets. Motivations: espionage, warfare, disruption.</dd>
+<dt>Non-persistence</dt>
+<dd>Any change vanishes on reboot; the machine returns to its baseline. Malware that modifies the system does not survive. <span class="ex">Lab virtual machines that revert to snapshot.</span></dd>
 <dt>Non-repudiation</dt>
 <dd>Proof of an action so strong that the actor cannot deny it. <span class="ex">A digital signature on a contract.</span></dd>
 </dl>
@@ -231,6 +243,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Replaying a captured hash directly as authentication evidence — no password cracking needed. A replay-family attack against authentication.</dd>
 <dt>Password spraying</dt>
 <dd>One carefully chosen password tried against many accounts — staying under any single account's lockout threshold. Its signature indicator: widespread account lockouts.</dd>
+<dt>Passwordless authentication</dt>
+<dd>Signing in with passkeys, biometrics, or a device instead of a password. No shared secret exists — nothing to spray, crack, or phish. Kills password attacks at the root.</dd>
 <dt>Phishing</dt>
 <dd>A fraudulent lure, usually by email, engineered to harvest credentials or deliver malware. The family ladder: <b>phishing</b> (bulk) → <b>spear phishing</b> (one researched target) → <b>whaling</b> (executives). Siblings: smishing (SMS), vishing (voice).</dd>
 <dt>Policy administrator</dt>
@@ -259,6 +273,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Encrypts or exfiltrates data for extortion, with payment demanded under deadline and a leak site for pressure. Loud by design — an availability attack on the victim's use of their own data.</dd>
 <dt>Replay attack</dt>
 <dd>Capturing valid traffic or credentials and re-sending them later — the server cannot tell old from new. Defeated by timestamps and nonces.</dd>
+<dt>Resting memory reboots</dt>
+<dd>Scheduled reboots that clear RAM. Fileless malware lives only in memory, so the reboot takes its home away.</dd>
 <dt>RF jamming</dt>
 <dd>Flooding the radio spectrum so wireless stops working at all — a physical-layer availability attack. No exploit, just noise.</dd>
 <dt>Resource reuse</dt>
@@ -273,14 +289,20 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="s">S</h2>
 <dl>
+<dt>Safe boot</dt>
+<dd>Apple's version of the signed boot chain: each boot step checks the next before running it. Secure boot's promise on macOS hardware.</dd>
 <dt>Salt</dt>
 <dd>A random value mixed into a password before hashing, so identical passwords produce different stored hashes and precomputed tables fail.</dd>
 <dt>Sandbox</dt>
 <dd>An isolated environment where code can run without touching production. A testing ground with no blast radius. <span class="ex">A virtual machine that mirrors production.</span></dd>
 <dt>Script kiddie (unskilled attacker)</dt>
 <dd>Someone who runs other people's tools without understanding them — loud, opportunistic, scanning random targets. Motivation: notoriety or curiosity.</dd>
+<dt>Secure boot</dt>
+<dd>Firmware refuses to run unsigned boot code — a boot-level rootkit is blocked, not just noticed. Block versus detect: this is the blocking half.</dd>
 <dt>Security control</dt>
 <dd>Anything an organization puts in place to reduce risk — a device, a process, a document, or a physical barrier. Every control has a <b>category</b> (what kind of thing it is) and a <b>type</b> (what job it does).</dd>
+<dt>Segmentation</dt>
+<dd>Dividing the network into zones that cannot reach each other freely, so one foothold spreads little. Zero trust's threat scope reduction, implemented. <span class="ex">VLANs; microsegmentation.</span></dd>
 <dt>Self-signed certificate</dt>
 <dd>A certificate its own key vouches for — a chain of one. Fine in a lab; fails trust in a browser because no installed root stands behind it.</dd>
 <dt>Session hijacking</dt>
@@ -315,6 +337,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <br><b>Physical</b> — something you can touch: fences, locks, cameras, guard dogs.</dd>
 <dt>Control types</dt>
 <dd>Six jobs a control can do: <b>preventive</b> (stop it), <b>deterrent</b> (discourage trying), <b>detective</b> (discover it), <b>corrective</b> (repair it), <b>compensating</b> (substitute when the ideal is impossible), <b>directive</b> (direct behavior).</dd>
+<dt>Configuration enforcement</dt>
+<dd>Automatically applying and holding a known-good baseline — group policy, mobile device management, STIGs. Blunts misconfiguration and configuration drift.</dd>
+<dt>Telemetry</dt>
+<dd>A steady stream of device behavior and health data — the raw feed that monitoring, alerting, and logging turn into detections. Exists to shrink dwell time.</dd>
 <dt>Test environment</dt>
 <dd>A copy of production where changes are proven before they are scheduled. The step between approval and the maintenance window.</dd>
 <dt>Threat actor</dt>

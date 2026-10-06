@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0015 — The Mitigation Catalog</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 2 · Objective 2.5 · Lesson 15 of ~30 · ~35 minutes</p>
+<h1>The Mitigation Catalog</h1>
+<p class="meta">One win today: <b>match any attack you banked in Lesson 0014 to the mitigation that blunts it — and say whether the control blocks, detects, or evicts.</b> Domain 2 ends here: threats, vulnerabilities, attacks — and now the answers.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Yesterday you cataloged attacks; today you bank the controls that blunt them. At DoD scale the first two questions about any system are "is it patched" and "does it match its baseline" — the department's baselines are <b>STIGs</b> (Security Technical Implementation Guides), configuration enforcement as a way of life. A DoD 8140 role spends more time on this objective than on any attack name.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">All three are the zero-trust repair — terms untested since Lesson 0003. Type each answer, then check.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> Zero trust has a component that compares every request against the rules and answers yes or no. Type the component. (two words)</label><br><input class="txt" id="wu1" style="width:18rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> Someone writes those rules and keeps them current. Type the zero-trust role. (two words)</label><br><input class="txt" id="wu2" style="width:18rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> A login from a new country gets a harder challenge and fewer privileges. Type the zero-trust pillar this demonstrates. (two words)</label><br><input class="txt" id="wu3" style="width:18rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The catalog: each control, and the attack it blunts</h2>
+<table>
+<tr><th>Mitigation</th><th>What it does</th><th>What it blunts</th></tr>
+<tr><td class="rowhead">Segmentation</td><td>Divide the network into zones that cannot reach each other freely.</td><td>Lateral movement and pass-the-hash spread (0014). Zero trust's threat scope reduction, implemented.</td></tr>
+<tr><td class="rowhead">Isolation</td><td>Cut a system off entirely — an air gap or a sandbox.</td><td>Everything outside the boundary. The strongest, costliest answer — for unpatchable crown jewels.</td></tr>
+<tr><td class="rowhead">Permission restrictions / allow list</td><td>Only approved identities and applications may act; everything else is refused.</td><td>Malware execution and unauthorized tools (0013).</td></tr>
+<tr><td class="rowhead">Encryption</td><td>Make data unreadable without the key — at rest and in transit.</td><td>Disclosure on capture: stolen laptops, on-path reading (0014).</td></tr>
+<tr><td class="rowhead">Hashing</td><td>Fingerprint data; any alteration breaks the fingerprint.</td><td>Tampering — an integrity failure made visible.</td></tr>
+<tr><td class="rowhead">Masking / tokenization</td><td>Show or store less real data in the first place.</td><td>Exposure through support views and nonproduction copies.</td></tr>
+<tr><td class="rowhead">Patching and updates</td><td>Close known flaws in operating systems, applications, and firmware.</td><td>Exploitation of known vulnerabilities (0011–0012). Powerless against zero-days — no patch exists yet.</td></tr>
+<tr><td class="rowhead">Passwordless authentication</td><td>Passkeys and biometrics replace the shared secret entirely.</td><td>Password spraying and brute force (0014) — nothing exists to guess or spray.</td></tr>
+<tr><td class="rowhead">Telemetry, monitoring, logging</td><td>Watch behavior, keep the record.</td><td>Long quiet intrusions — this is what shrinks dwell time (0008).</td></tr>
+<tr><td class="rowhead">Configuration enforcement</td><td>Apply and hold a known-good baseline automatically.</td><td>Misconfiguration and drift (0012).</td></tr>
+</table>
+
+<h2>Part 2 — Boot integrity and the persistence-killers</h2>
+<p>The exam's specialty hardening terms cluster in one job: <b>keep malware from surviving a reboot or hiding in the boot chain.</b> Note the last column — blocking and detecting are different promises.</p>
+<table>
+<tr><th>Technique</th><th>Mechanism</th><th>Blocks or detects</th></tr>
+<tr><td class="rowhead">Secure boot</td><td>Firmware checks each boot component's signature before running it.</td><td>Blocks — a bootkit or boot-persistence rootkit (0013) is refused outright.</td></tr>
+<tr><td class="rowhead">Safe boot</td><td>Apple's version of the signed boot chain.</td><td>Blocks — same promise on macOS hardware.</td></tr>
+<tr><td class="rowhead">Measured boot</td><td>The TPM (trusted platform module) records a fingerprint of each boot step.</td><td>Detects — the record shows tampering after the fact.</td></tr>
+<tr><td class="rowhead">Boot attestation</td><td>A central verifier reviews the measured-boot record before granting access.</td><td>Detects — remotely, before the machine joins.</td></tr>
+<tr><td class="rowhead">Immutable systems</td><td>Never modified after deployment; replaced from a clean build.</td><td>Blocks persistence — there is nothing to infect that survives.</td></tr>
+<tr><td class="rowhead">Non-persistence</td><td>Any change vanishes on reboot; the baseline returns.</td><td>Blocks persistence — malware's modifications do not survive.</td></tr>
+<tr><td class="rowhead">Resting memory reboots</td><td>Scheduled reboots clear RAM.</td><td>Evicts — fileless malware (0013) lives only in memory, and the reboot takes its home away.</td></tr>
+</table>
+
+<h2>Part 3 — The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Segmentation vs. isolation</td><td>Walls <em>inside</em> the network versus removal <em>from</em> the network. Isolation is the stronger and costlier claim.</td></tr>
+<tr><td class="rowhead">Secure boot vs. measured boot</td><td>Refuse-to-run versus record-and-report. Block versus detect.</td></tr>
+<tr><td class="rowhead">Immutable vs. non-persistent</td><td>Never changes versus changes-discarded-at-reboot. Both kill persistence by design — different mechanisms.</td></tr>
+<tr><td class="rowhead">Encryption vs. hashing</td><td>Hides content versus proves integrity. Confidentiality versus tamper detection.</td></tr>
+<tr><td class="rowhead">Masking vs. tokenization</td><td>Partial display of the real value versus replacement by a vaulted token.</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Container images rebuilt in CI, never edited in production</td><td>Immutable systems</td></tr>
+<tr><td>NetworkPolicy walls between namespaces</td><td>Segmentation</td></tr>
+<tr><td>Terraform plans and drift detection</td><td>Configuration enforcement</td></tr>
+<tr><td>Base-image rebuilds when CVEs land</td><td>Patching and updates</td></tr>
+<tr><td>Ephemeral CI runners, destroyed after each job</td><td>Non-persistence</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1</p>
+<h3>A public kiosk is locked down so only the two applications the vendor approved can run; every other executable is refused. Which mitigation is deployed?</h3>
+<button class="opt">Resting memory reboots</button><button class="opt">Application allow list</button><button class="opt">Boot attestation</button><button class="opt">Passwordless authentication</button>
+<div class="fb"><b>Application allow list.</b> Default-deny execution: only what is approved runs. It blunts malware installation and unauthorized tooling at the execution step (Lesson 0013's malware families) — no scanning required, just refusal.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>The organization replaces passwords with passkeys everywhere. Which Lesson 0014 attack does this eliminate at the root?</h3>
+<button class="opt">Pass-the-hash; hashes stopped being stored</button><button class="opt">Brute force; lockouts now trigger instantly</button><button class="opt">Password spraying; nothing exists to spray</button><button class="opt">Session hijacking; sessions now expire faster</button>
+<div class="fb"><b>Password spraying; nothing exists to spray.</b> Passwordless removes the shared secret itself — the one password the spray relied on is gone for every account. Spraying and brute force lose their target, not just their success rate. (Lesson 0014 applied.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3</p>
+<h3>At boot, the TPM records a fingerprint of every startup step, and a central server reviews that record before the machine joins the network. Which techniques are in play?</h3>
+<button class="opt">Measured boot with boot attestation</button><button class="opt">Secure boot with safe boot</button><button class="opt">Immutable systems with telemetry</button><button class="opt">Non-persistence with configuration enforcement</button>
+<div class="fb"><b>Measured boot with boot attestation.</b> Recording = measured boot; the central review of the record = boot attestation. Together they <em>detect</em> a tampered boot chain. Secure boot would have <em>blocked</em> the tampered component before it ran — a different promise.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>Lesson 0013's fileless species lives only in RAM — nothing on disk to scan. The team schedules automatic nightly restarts. Which mitigation is this?</h3>
+<button class="opt">Application allow list</button><button class="opt">Non-persistence</button><button class="opt">Immutable systems</button><button class="opt">Resting memory reboots</button>
+<div class="fb"><b>Resting memory reboots.</b> The reboot clears RAM, and the fileless malware's only home disappears with it. Non-persistence is the close cousin — changes revert to baseline — but the named exam term for scheduled reboot hygiene is resting memory reboots. (Lesson 0013 applied.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>A zero-day is announced for your database's exact version (Lesson 0012). No patch exists yet. Which mitigation do you reach for first?</h3>
+<button class="opt">Segmentation, as a compensating control</button><button class="opt">Patching on an emergency cycle</button><button class="opt">Passwordless authentication for administrators</button><button class="opt">Measured boot on the database hosts</button>
+<div class="fb"><b>Segmentation, as a compensating control.</b> A zero-day has no patch — "patch now" is the trap answer, as is everything unrelated. The playbook from Lesson 0012: emergency process plus compensating controls — wall the system off — until the patch ships.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6</p>
+<h3>A container fleet is redeployed from clean images on every release; nothing is ever edited while running. Which property does the fleet have?</h3>
+<button class="opt">Non-persistence</button><button class="opt">Resting memory reboots</button><button class="opt">Immutable systems</button><button class="opt">Adaptive identity</button>
+<div class="fb"><b>Immutable systems.</b> Never modified in place, replaced from a clean build — that is immutability's exact definition. Non-persistence is the near miss: it describes changes being discarded at reboot, not a system that is never changed.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7 <span class="hard">MULTI-HOP</span></p>
+<h3>A nation-state actor (Lesson 0008) wants months of quiet dwell time. Which mitigation family exists to shrink exactly that window?</h3>
+<button class="opt">Encryption and data masking</button><button class="opt">Telemetry, monitoring, and logging</button><button class="opt">Application allow lists</button><button class="opt">Boot attestation</button>
+<div class="fb"><b>Telemetry, monitoring, and logging.</b> An advanced persistent threat's whole strategy is staying quiet longer than anyone is looking. Detection is the counter — the detective family that turns dwell time from months into minutes. (Lesson 0008 applied; control types from 0001.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8 <span class="hard">BEST ANSWER</span></p>
+<h3>A factory line is controlled by an unpatchable legacy Windows machine. Which mitigation is <em>best</em>?</h3>
+<button class="opt">Isolation from the main network</button><button class="opt">Segmentation of the main network</button><button class="opt">Nightly resting memory reboots</button><button class="opt">Telemetry on the factory switch</button>
+<div class="fb"><b>Isolation from the main network.</b> Segmentation is the tempting defensible option — it limits the blast radius. But an unpatchable crown jewel has no compensating patch path ever coming: isolation removes the network path entirely, which is the stronger claim. Both appear in the objective; the scenario's "cannot ever patch" detail is the tell.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/segmentation-and-access-control-sy0-701/">Professor Messer 2.5 — Segmentation and Access Control (6:06)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/mitigation-techniques-sy0-701/">Mitigation Techniques (6:51)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/hardening-techniques-sy0-701/">Hardening Techniques (12:11)</a>. Gibson Domain 2: mitigation techniques section, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back — then the graduation test</h3>
+<p>Report your score and the stopwatch time to the agent. Next is Lesson 0016, the <b>week-2 mixed review</b> — no cues, timed, with a PBQ block — and it is the graduation test for the key-direction pair, the sideloading pair, and the zero-trust repair you just warmed up. Also tell the agent whether the exam is booked (Nov 12–13).</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0016 — the <b>week-2 mixed review</b>: Domains 1 and 2, no-cue, timed, with a PBQ block. Graduation test for both missed pairs and the zero-trust repair. · <a href="0014-attack-name-catalog.html">Lesson 0014</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 2.5); Professor Messer SY0-701 section 2.5; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 2.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["policy engine", "the policy engine"], ok: "Policy engine. The zero-trust decision point: compares every request against policy and answers yes or no. (Lesson 0003 — first test since.)" },
+  wu2: { v: ["policy administrator", "the policy administrator", "administrator"], ok: "Policy administrator. The role that writes and maintains the policies the engine enforces — rules are a job, not magic. (Lesson 0003 — first test since.)" },
+  wu3: { v: ["adaptive identity"], ok: "Adaptive identity. Authentication strength adapts to risk — a new country or bad device posture brings a stronger challenge and fewer privileges. (Lesson 0003 — first test since.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
