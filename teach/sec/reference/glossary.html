@@ -51,6 +51,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="b">B</h2>
 <dl>
+<dt>Backup (full / incremental / differential)</dt>
+<dd>Three copy strategies. A <b>full</b> copies everything. An <b>incremental</b> copies changes since the last backup of <em>any kind</em> — restoring needs the full plus every incremental, in order. A <b>differential</b> copies changes since the <em>last full</em> — restoring needs exactly two pieces, always. Incrementals back up fastest; differentials restore simplest.</dd>
+<dt>Beaconing</dt>
+<dd>An infected host calling its command-and-control server on a fixed, timed schedule — low volume, regular as clockwork. The traffic fingerprint of malware phoning home. <span class="ex">A callout every 60 seconds, night and day.</span></dd>
 <dt>Bloatware</dt>
 <dd>Preinstalled, unwanted software. Less an attack than an attack <em>surface</em> — vendor utilities nobody uses and nobody patches.</dd>
 <dt>Blockchain</dt>
@@ -67,6 +71,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="c">C</h2>
 <dl>
+<dt>Capacity planning</dt>
+<dd>Sizing people, technology, and infrastructure for peak demand, not average. Spare capacity is also what absorbs a failure — it runs with resiliency.</dd>
 <dt>Certificate (digital)</dt>
 <dd>A document binding a public key to an identity, signed by a certificate authority. The unit of trust in PKI.</dd>
 <dt>Certificate authority (CA)</dt>
@@ -87,6 +93,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The responsibility ladder. IaaS: you run the OS and up. PaaS: you run applications only. SaaS: the provider runs everything; you configure. The higher the service, the less you patch.</dd>
 <dt>Cloud deployment models (public / private / hybrid / community)</dt>
 <dd>Public: anyone who pays. Private: one organization. Hybrid: private plus public, connected. Community: organizations with common concerns — compliance, clearance, regulation — sharing dedicated infrastructure.</dd>
+<dt>Clustering</dt>
+<dd>Multiple servers acting as one service; a node dies, the others keep answering. The server-room form of no single point of failure.</dd>
+<dt>Cold site</dt>
+<dd>A recovery site with space, power, and cooling but no systems — bring everything. Days to weeks to operate. The cheapest site type; cost runs inverse to recovery time.</dd>
 <dt>Compensating control (type)</dt>
 <dd>A substitute control used when the ideal control is not possible. <span class="ex">An encrypted VPN instead of an expensive private circuit.</span></dd>
 <dt>Confidentiality</dt>
@@ -105,10 +115,20 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="d">D</h2>
 <dl>
+<dt>Data classification</dt>
+<dd>Labels that rank data by the damage disclosure would cause. Government: top secret, secret, confidential, unclassified. Commercial: restricted, confidential, internal, public. The exam asks which label fits which data.</dd>
 <dt>Data masking</dt>
 <dd>Showing only part of a real value. <span class="ex">Support staff see "**** **** **** 1234."</span></dd>
+<dt>Data minimization</dt>
+<dd>Collecting only the data needed and keeping it only as long as needed. The cheapest protection is data never held.</dd>
 <dt>Data plane</dt>
 <dd>The zero trust traffic: where users and applications actually interact, after the control plane says yes.</dd>
+<dt>Data retention</dt>
+<dd>The policy for how long data is kept, with secure destruction at the end of the lifetime. Data kept past its purpose is stored risk.</dd>
+<dt>Data sovereignty</dt>
+<dd>Data is subject to the laws of the country where it physically resides — the reason a defense contract can block the cheap foreign cloud region. Enforced through geolocation restrictions.</dd>
+<dt>Data states</dt>
+<dd>At rest: on storage — protect with encryption. In transit: crossing the network — protect with TLS or a VPN. In use: in memory, being processed — protect with secure enclaves. The exam's tell: where is the data at the moment the question describes?</dd>
 <dt>Deauthentication attack</dt>
 <dd>Forcing wireless clients off the network — often to capture the reconnect handshake, or to herd victims toward an evil twin.</dd>
 <dt>Denial of service (DoS / DDoS)</dt>
@@ -153,12 +173,22 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>What a dead inline security device does with traffic. Fail-open passes everything — availability first. Fail-close drops everything — security first. Defense networks choose close. <span class="ex">An IPS that loses power.</span></dd>
 <dt>Fileless malware</dt>
 <dd>Malware that runs entirely in memory, inside legitimate processes — nothing on disk to scan. Enabled by memory injection; clears on reboot, returns on re-infection.</dd>
+<dt>Forward proxy</dt>
+<dd>Intermediary for internal users going <em>out</em> — filters, caches, hides the clients. Direction decides the name: serves the users, faces the internet.</dd>
+</dl>
+
+<h2 id="g">G</h2>
+<dl>
+<dt>Geolocation restriction</dt>
+<dd>Data may live only in approved physical locations. The enforcement mechanism under data sovereignty.</dd>
+<dt>Geographic dispersal</dt>
+<dd>Keeping copies far enough apart that one disaster cannot reach both. <span class="ex">Primary in one region, replica in another.</span></dd>
+<dt>Generator</dt>
+<dd>Fuel-driven power for hours to days. The uninterruptible power supply holds the minutes; the generator holds the day.</dd>
 </dl>
 
 <h2 id="h">H</h2>
 <dl>
-<dt>Forward proxy</dt>
-<dd>Intermediary for internal users going <em>out</em> — filters, caches, hides the clients. Direction decides the name: serves the users, faces the internet.</dd>
 <dt>Hacktivist</dt>
 <dd>An attacker driven by ideology: defacement, leaks, and disruption as protest. Skill varies; the cause is on display. <span class="ex">Defacing a retailer's site over labor practices, demanding no money.</span></dd>
 <dt>Hash (hashing)</dt>
@@ -169,16 +199,20 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A decoy network of honeypots.</dd>
 <dt>Honeypot</dt>
 <dd>A decoy system built to look valuable, recording everything an attacker does on it.</dd>
+<dt>Hot site</dt>
+<dd>A running replica of production with data synced — back in minutes. The most expensive site type; cost runs inverse to recovery time.</dd>
+<dt>Hypervisor (type 1 / type 2)</dt>
+<dd>Type 1 runs directly on server hardware — bare metal, the enterprise default. Type 2 runs as an application inside a host operating system — one more layer, more attack surface. <span class="ex">A laptop virtualizer is type 2.</span></dd>
 </dl>
 
 <h2 id="i">I</h2>
 <dl>
-<dt>Hypervisor (type 1 / type 2)</dt>
-<dd>Type 1 runs directly on server hardware — bare metal, the enterprise default. Type 2 runs as an application inside a host operating system — one more layer, more attack surface. <span class="ex">A laptop virtualizer is type 2.</span></dd>
 <dt>IEEE 802.1X</dt>
 <dd>Port-level authentication: the switch forwards nothing until the connecting device proves its identity via EAP. Identity before connectivity — zero trust applied to the physical jack.</dd>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
+<dt>Immutable backup</dt>
+<dd>A copy that cannot be changed or deleted for a set period — write once, read many (WORM), object lock. Ransomware holding admin credentials still cannot touch it.</dd>
 <dt>Immutable systems</dt>
 <dd>Systems never modified after deployment — replaced from a clean build instead. Nothing persists to infect. <span class="ex">Container images rebuilt in CI, never edited in production.</span></dd>
 <dt>Impossible travel</dt>
@@ -229,6 +263,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Maintenance window</dt>
 <dd>A pre-agreed, low-usage time slot in which changes are implemented, so disruption harms the fewest users. Protects availability.</dd>
+<dt>Mean time between failures (MTBF)</dt>
+<dd>Average time a component runs before it fails. Measures the equipment's reliability — set by purchasing and design, not by operations.</dd>
+<dt>Mean time to repair (MTTR)</dt>
+<dd>Average time to fix a failed component and restore service. Measures operational readiness — spares, staff, runbooks.</dd>
 <dt>Measured boot</dt>
 <dd>The trusted platform module (TPM) records a fingerprint of every boot step. The record makes boot tampering visible — detection, not blocking.</dd>
 <dt>Microsegmentation</dt>
@@ -237,6 +275,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The self-inflicted vulnerability category: open storage buckets, default credentials, permissive rules. The most common breach source — and the exam's answer to "most common."</dd>
 <dt>Memory injection (DLL / process injection)</dt>
 <dd>Pushing malicious code into a running process's memory so it wears a legitimate process's name. Nothing is written to disk — the enabler of fileless malware.</dd>
+<dt>Mobile site</dt>
+<dd>A recovery site on a trailer, towed to where it is needed. Days to operate; situational cost.</dd>
 </dl>
 
 <h2 id="n">N</h2>
@@ -297,12 +337,22 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Race condition</dt>
 <dd>Two operations race on the same resource and the result depends on timing. Time-of-check to time-of-use (TOCTOU) is the classic: the file was verified, then swapped before use. Fixed by locking and atomic operations.</dd>
+<dt>RAID (redundant array of independent disks)</dt>
+<dd>Level 0: striping — speed, survives nothing. Level 1: mirroring — survives one disk. Level 5: striping with parity, three or more disks — survives one. Level 6: double parity — survives any two. Level 10: stripes of mirrors — one per pair, sometimes two. <b>RAID is availability, not a backup</b>: it survives disk failure, not fire, theft, or ransomware.</dd>
 <dt>Ransomware</dt>
 <dd>Encrypts or exfiltrates data for extortion, with payment demanded under deadline and a leak site for pressure. Loud by design — an availability attack on the victim's use of their own data.</dd>
 <dt>Real-time operating system (RTOS)</dt>
 <dd>An operating system that guarantees response deadlines, not just throughput. <span class="ex">Pacemakers, vehicle brakes, industrial actuators.</span></dd>
+<dt>Recovery point objective (RPO)</dt>
+<dd>How much <b>data</b> the business can afford to lose, measured in time. Sets backup or replication frequency: nightly backups mean a 24-hour RPO. The data twin of RTO.</dd>
+<dt>Recovery testing</dt>
+<dd>Proving the recovery plan works before the disaster. Escalating steps: tabletop (talk it), simulation (do parts), parallel (run both), full cutover (switch over).</dd>
+<dt>Recovery time objective (RTO)</dt>
+<dd>How much <b>downtime</b> the business can afford. Sets redundancy and site choice: a one-week RTO rules out paying for a hot site. The downtime twin of RPO.</dd>
 <dt>Replay attack</dt>
 <dd>Capturing valid traffic or credentials and re-sending them later — the server cannot tell old from new. Defeated by timestamps and nonces.</dd>
+<dt>Replication (storage)</dt>
+<dd>A live, continuous copy at a second site — near-zero data loss. But it replicates corruption and ransomware with the same speed. A backup is a protected, independent copy; replication is not.</dd>
 <dt>Resting memory reboots</dt>
 <dd>Scheduled reboots that clear RAM. Fileless malware lives only in memory, so the reboot takes its home away.</dd>
 <dt>Reverse proxy</dt>
@@ -349,6 +399,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
 <dt>Sideloading</dt>
 <dd>Installing applications from outside the vendor's official store — bypassing the store's review. The installation act itself; jailbreaking or rooting is what strips the controls that forbid it.</dd>
+<dt>Snapshot</dt>
+<dd>A point-in-time marker on the same storage — instant rollback, but not an independent copy. The array dies, the snapshot dies with it.</dd>
 <dt>Smishing</dt>
 <dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
 <dt>Spear phishing</dt>
@@ -393,10 +445,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Registering look-alike domains — githuh.com for github.com — to harvest mistyped traffic. The registry-package one-letter-off trick is the same move on software supply chains.</dd>
 </dl>
 
-<h2 id="v">V</h2>
+<h2 id="u">U</h2>
 <dl>
 <dt>Unified threat management (UTM)</dt>
 <dd>One appliance bundling many functions — firewall, IPS, proxy, content filtering. The small-office default. Bundling, not intelligence: the dividing line with an NGFW.</dd>
+<dt>Uninterruptible power supply (UPS)</dt>
+<dd>Battery power for seconds to minutes — rides through the outage until power returns or the generator starts.</dd>
+</dl>
+
+<h2 id="v">V</h2>
+<dl>
 <dt>Virtual machine escape</dt>
 <dd>A guest virtual machine breaks out of its hypervisor and reaches the host — and every sibling VM. The active break; resource reuse is the passive leak.</dd>
 <dt>Virus</dt>
@@ -407,6 +465,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="w">W</h2>
 <dl>
+<dt>Warm site</dt>
+<dd>A recovery site with equipment and connectivity in place; data restored at failover. Hours to days to operate. The middle site type.</dd>
 <dt>Watering hole attack</dt>
 <dd>Infecting a website a target community already visits, so the victims come to the malware. No email is sent; selection is by community — which is why it suits nation-state espionage.</dd>
 <dt>Web application firewall (WAF)</dt>

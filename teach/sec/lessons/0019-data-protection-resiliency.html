@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0019 — Data Protection and Resiliency</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 3 · Objectives 3.3 + 3.4 · Lesson 19 of ~30 · ~35 minutes</p>
+<h1>Protect Data. Survive Failure.</h1>
+<p class="meta">One win today: <b>name the state data is in and pick the protection that fits it — and when anything fails, pick the backup, the site, and the metric without hesitating.</b> Domain 3 closes here. Everything after the warm-up that is not review is genuinely new vocabulary: restore chains, RAID, site types, and the four metrics.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>In a DoD 8140 role you inherit both halves of this lesson. The data half: where data may legally live, how long it must be kept, who may see it. The recovery half: which site, which backup cadence, which metric the mission owner signs. A defense system that cannot be recovered is not defensible — and the exam's 3.4 questions are exactly that arithmetic in scenario form.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Three spaced retrievals: one from yesterday, one from last week, one from two domains ago.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> In the boot family: the technique where the trusted platform module records a fingerprint of every boot step — detection, not blocking. Type it. (two words)</label><br><input class="txt" id="wu1" style="width:14rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> An inline prevention device at a defense network's edge loses power mid-attack. Type the failure mode it must be configured to use. (hyphenated)</label><br><input class="txt" id="wu2" style="width:12rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> An infected host calls its controller on a fixed, timed schedule — low volume, regular as clockwork. Type the indicator. (one word)</label><br><input class="txt" id="wu3" style="width:12rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The data half (3.3): states, labels, protection</h2>
+<p>Most of the protection toolkit you already own from Lessons 0004 and 0005. What is new: the state taxonomy, the classification labels, and the location and lifetime rules.</p>
+
+<h3>The three states</h3>
+<table>
+<tr><th>State</th><th>Where the data is</th><th>The protection that fits</th></tr>
+<tr><td class="rowhead">At rest</td><td>On storage — disk, database, backup tape.</td><td>Encryption at rest. The drive walking out the door reads as noise.</td></tr>
+<tr><td class="rowhead">In transit</td><td>Crossing a network.</td><td>TLS, VPN (Lessons 0004 and 0018). The on-path attacker sees ciphertext.</td></tr>
+<tr><td class="rowhead">In use</td><td>In memory, being processed right now.</td><td>Trusted execution environment (TEE), secure enclave — the processor family from Lesson 0017.</td></tr>
+</table>
+<p class="meta">The exam's tell: <b>where is the data at the moment the question describes?</b> Processing it is in use; storing or copying it is at rest; sending it is in transit.</p>
+
+<h3>Classification labels</h3>
+<table>
+<tr><th>Government</th><th>Commercial</th><th>The dividing idea</th></tr>
+<tr><td class="rowhead">Top secret → secret → confidential</td><td>Restricted → confidential → internal</td><td>Labels rank damage if disclosed. The name differs by world; the ranking is the point.</td></tr>
+<tr><td class="rowhead">Unclassified</td><td>Public</td><td>No damage on release — but verify before trusting.</td></tr>
+</table>
+<p class="meta">Know both columns. The exam can use either set, and asks which label fits which data more often than it asks for definitions.</p>
+
+<h3>The protection toolkit — review plus three new tools</h3>
+<table>
+<tr><th>Tool</th><th>What it does</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Encryption</td><td>Reversible with the key.</td><td>Confidentiality when the data must come back. (Lesson 0004.)</td></tr>
+<tr><td class="rowhead">Hashing</td><td>One-way fingerprint.</td><td>Integrity and passwords, never display. (Lesson 0005.)</td></tr>
+<tr><td class="rowhead">Masking</td><td>Shows part of the value, keeps the format.</td><td>Realistic but safe test data and displays. Irreversible by design.</td></tr>
+<tr><td class="rowhead">Tokenization</td><td>Swaps the value for a stand-in, vault maps it back.</td><td>Reversible through the vault — the business can get the real value back.</td></tr>
+<tr><td class="rowhead">Data minimization</td><td>Collect only what is needed, keep only as long as needed.</td><td><b>New.</b> The cheapest protection is data you never held.</td></tr>
+<tr><td class="rowhead">Geolocation restriction</td><td>Data may live only in approved locations.</td><td><b>New.</b> Enforced by the provider or by policy. Under it sits <b>data sovereignty</b>: data is subject to the laws of the country where it resides — the reason a defense contract blocks the cheap foreign region.</td></tr>
+<tr><td class="rowhead">Retention policy</td><td>Keep for the defined lifetime, then destroy securely.</td><td><b>New.</b> Data kept past its purpose is stored risk. Destruction methods arrive with Domain 4.</td></tr>
+</table>
+
+<h2>Part 2 — The redundancy half (3.4a): no single point of failure</h2>
+<table>
+<tr><th>Redundancy</th><th>What it does</th></tr>
+<tr><td class="rowhead">Clustering</td><td>Multiple nodes act as one service; one dies, the service answers on.</td></tr>
+<tr><td class="rowhead">Load balancing</td><td>Spreads traffic and health-checks members out — Lesson 0018, already banked.</td></tr>
+<tr><td class="rowhead">Multi-cloud / platform diversity</td><td>The same design in two providers — one burns, one serves. No shared failure mode.</td></tr>
+<tr><td class="rowhead">Geographic dispersal</td><td>Copies far enough apart that one disaster cannot reach both.</td></tr>
+<tr><td class="rowhead">Uninterruptible power supply (UPS)</td><td>Battery ride-through for seconds to minutes — bridges the gap until power returns.</td></tr>
+<tr><td class="rowhead">Generator</td><td>Fuel-driven, sustains hours to days. UPS holds the line; the generator holds the day.</td></tr>
+</table>
+
+<h3>Redundant Array of Independent Disks (RAID)</h3>
+<table>
+<tr><th>Level</th><th>Layout</th><th>Disks</th><th>Survives</th></tr>
+<tr><td class="rowhead">RAID 0</td><td>Striping — split across disks.</td><td>2+</td><td>Nothing. Speed only. Any disk dies, all data dies.</td></tr>
+<tr><td class="rowhead">RAID 1</td><td>Mirroring — identical copies.</td><td>2</td><td>One disk.</td></tr>
+<tr><td class="rowhead">RAID 5</td><td>Striping with parity.</td><td>3+</td><td>Exactly one disk.</td></tr>
+<tr><td class="rowhead">RAID 6</td><td>Striping with double parity.</td><td>4+</td><td>Any two disks.</td></tr>
+<tr><td class="rowhead">RAID 10</td><td>Stripes of mirrors.</td><td>4+</td><td>One per mirror pair — sometimes two, never guaranteed.</td></tr>
+</table>
+<div class="box">
+<h3>The exam classic</h3>
+<p><b>RAID is availability, not a backup.</b> It answers a disk failing. It does not answer fire, theft, ransomware, or a mistaken delete — the array faithfully reproduces all four. Every redundancy tool on this page protects against <em>failure</em>; only Part 3 protects against <em>loss</em>.</p>
+</div>
+
+<h2>Part 3 — Backups, sites, and the metrics (3.4b)</h2>
+<h3>Backup types — the restore chain is what gets tested</h3>
+<table>
+<tr><th>Type</th><th>What it copies</th><th>Restoring requires</th></tr>
+<tr><td class="rowhead">Full</td><td>Everything.</td><td>The full alone. Slowest to make, simplest to restore.</td></tr>
+<tr><td class="rowhead">Incremental</td><td>Changes since the <em>last backup of any kind</em>.</td><td>Full plus <b>every</b> incremental since, in order. Fast backups, long restores.</td></tr>
+<tr><td class="rowhead">Differential</td><td>Changes since the <em>last full</em>.</td><td>Full plus the <b>latest</b> differential — two pieces, always. Differentials grow through the week.</td></tr>
+<tr><td class="rowhead">Snapshot</td><td>A point-in-time marker on the same storage.</td><td>Instant rollback — but not an independent copy. Same array dies, snapshot dies.</td></tr>
+<tr><td class="rowhead">Replication</td><td>A live copy at a second site.</td><td>No restore at all — near-zero data loss. But it replicates corruption and ransomware with the same speed.</td></tr>
+</table>
+<p class="meta">Copy direction matters more than copy speed: <b>online</b> backups are reachable from the network (convenient, reachable by attackers too); <b>offline</b> copies are not. <b>Immutable</b> backups — write once, read many (WORM), object lock — cannot be changed or deleted for a set period. The classic rule of thumb: <b>3 copies, 2 different media, 1 offsite.</b></p>
+
+<h3>Site types</h3>
+<table>
+<tr><th>Site</th><th>What is standing by</th><th>Back in hours?</th><th>Cost</th></tr>
+<tr><td class="rowhead">Hot site</td><td>A running replica, data synced.</td><td>Minutes.</td><td>Highest.</td></tr>
+<tr><td class="rowhead">Warm site</td><td>Equipment and connectivity in place; data restored at failover.</td><td>Hours to days.</td><td>Middle.</td></tr>
+<tr><td class="rowhead">Cold site</td><td>Space, power, cooling. Bring everything.</td><td>Days to weeks.</td><td>Lowest.</td></tr>
+<tr><td class="rowhead">Mobile site</td><td>A trailer you tow to the disaster.</td><td>Days.</td><td>Situational.</td></tr>
+<tr><td class="rowhead">Cloud region failover</td><td>Infrastructure as code brings the environment up elsewhere on demand.</td><td>Minutes to hours.</td><td>Pay when used.</td></tr>
+</table>
+
+<h3>The four metrics</h3>
+<table>
+<tr><th>Metric</th><th>Measures</th><th>What it sets</th></tr>
+<tr><td class="rowhead">Recovery point objective (RPO)</td><td>How much <b>data</b> the business can lose.</td><td>Backup or replication frequency. Nightly backup = 24-hour RPO.</td></tr>
+<tr><td class="rowhead">Recovery time objective (RTO)</td><td>How much <b>downtime</b> the business can take.</td><td>Redundancy and site choice. One-week RTO means no hot site needed.</td></tr>
+<tr><td class="rowhead">Mean time to repair (MTTR)</td><td>Average time to fix a failed component.</td><td>Operational readiness — spares, staff, runbooks.</td></tr>
+<tr><td class="rowhead">Mean time between failures (MTBF)</td><td>Average time a component runs before failing.</td><td>Purchasing and design — reliability of the thing itself.</td></tr>
+</table>
+<p class="meta">Two of the four set <b>requirements</b> (RPO, RTO — the business decides); two <b>measure equipment</b> (MTTR, MTBF — the vendor proves). Capacity planning rides along: people, technology, infrastructure — sized for peak, not average.</p>
+
+<h3>Recovery testing — a plan untested is a wish</h3>
+<table>
+<tr><th>Step</th><th>What happens</th></tr>
+<tr><td class="rowhead">Tabletop</td><td>The team talks the disaster through, on paper.</td></tr>
+<tr><td class="rowhead">Simulation</td><td>Parts of the response are actually performed.</td></tr>
+<tr><td class="rowhead">Parallel</td><td>The recovery site runs <em>alongside</em> production — compare, then decide.</td></tr>
+<tr><td class="rowhead">Full cutover</td><td>Production actually switches to the recovery site.</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Replica sets with anti-affinity</td><td>Clustering, no single point of failure</td></tr>
+<tr><td>Multi-AZ database replicas</td><td>Geographic dispersal</td></tr>
+<tr><td>Nightly snapshots</td><td>A 24-hour recovery point objective</td></tr>
+<tr><td>Streaming replication, point-in-time recovery</td><td>Minutes of RPO — which also replicates your mistakes</td></tr>
+<tr><td>Game-day runbook rehearsal</td><td>Recovery testing: tabletop to full cutover</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Incremental vs. differential</td><td>Since the last backup of <em>any kind</em> versus since the <em>last full</em>. Restore: many pieces versus always two.</td></tr>
+<tr><td class="rowhead">RPO vs. RTO</td><td>Data you can lose versus time you can be down. One sets backup frequency; the other sets the site.</td></tr>
+<tr><td class="rowhead">Snapshot vs. replication vs. backup</td><td>Marker on the same storage versus live second copy versus protected independent copy.</td></tr>
+<tr><td class="rowhead">Hot vs. warm vs. cold</td><td>Minutes versus hours-to-days versus days-to-weeks. Cost runs exactly inverse.</td></tr>
+<tr><td class="rowhead">UPS vs. generator</td><td>Ride-through for minutes versus sustained for days.</td></tr>
+<tr><td class="rowhead">Masking vs. tokenization</td><td>Irreversible, format-preserving hide versus reversible through the vault.</td></tr>
+<tr><td class="rowhead">RAID 5 vs. RAID 6</td><td>Survives exactly one disk versus any two.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1</p>
+<h3>While an application processes a customer record in memory, what state is that record in — and what protects it there?</h3>
+<button class="opt">Data at rest; disk encryption</button><button class="opt">Data in transit; TLS tunneling</button><button class="opt">Data in use; secure enclaves</button><button class="opt">Data in escrow; key custody</button>
+<div class="fb"><b>Data in use; secure enclaves.</b> Being processed in memory is in use — protected by trusted execution environments and secure enclaves, the processor family from Lesson 0017. Stored is at rest; crossing the network is in transit.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>A copy of the production database goes to developers for testing. It must look realistic — right shapes, right formats — but developers must never be able to recover the real customer values. Which protection fits?</h3>
+<button class="opt">Tokenization</button><button class="opt">Data masking</button><button class="opt">Hashing every field</button><button class="opt">Full database encryption</button>
+<div class="fb"><b>Data masking.</b> Format-preserving and irreversible — realistic test data with no road back. Tokenization stays reversible through the vault (defensible, but "never recover" rules it out); hashing destroys the format; encryption hides everything, and one key brings it all back. (Lesson 0004 applied to objective 3.3.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 3 <span class="hard">MULTI-HOP</span></p>
+<h3>The compliance officer blocks a move to a cheaper cloud region: personal data must remain under home-country law. Which concept, and which mechanism enforces it?</h3>
+<button class="opt">Minimization; retention policy</button><button class="opt">Classification; permission restriction</button><button class="opt">Sovereignty; geolocation restriction</button><button class="opt">Retention; geolocation restriction</button>
+<div class="fb"><b>Sovereignty; geolocation restriction.</b> Data sovereignty — data is subject to the laws of the country where it resides — enforced by restricting where the data may live. The tempting distractor pairs a right mechanism with the wrong concept. This is the DoD reality: the cheap foreign region is not on the menu.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>Backups run: full every Sunday, incremental each weeknight. Friday night the server's disks fail. Which set restores to end of Thursday?</h3>
+<button class="opt">Sunday's full plus every incremental</button><button class="opt">Sunday's full plus latest differential</button><button class="opt">Thursday's incremental, standalone</button><button class="opt">Two fulls plus all differentials</button>
+<div class="fb"><b>Sunday's full plus every incremental.</b> An incremental chain restores full first, then each incremental in order. A differential scheme would need exactly two pieces — that is its whole selling point. Trade: incrementals back up fastest and restore longest.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 5</p>
+<h3>A storage array must keep serving through any two simultaneous drive failures. Which RAID level is required?</h3>
+<button class="opt">RAID 0</button><button class="opt">RAID 1</button><button class="opt">RAID 5</button><button class="opt">RAID 6</button>
+<div class="fb"><b>RAID 6.</b> Double parity survives any two disks. RAID 10 sometimes survives two — but only when they land in different mirror pairs; "sometimes" fails an "any two" requirement. RAID 5 survives exactly one.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>A flood destroys the data center. Leadership accepts up to one week of downtime and wants the cheapest option that honors that promise. Which site type?</h3>
+<button class="opt">Hot site</button><button class="opt">Warm site</button><button class="opt">Cold site</button><button class="opt">Mobile site</button>
+<div class="fb"><b>Warm site.</b> Equipment and connectivity standing by, data restored at failover — hours to days, comfortably inside a week. The defensible near miss: the cold site is cheaper, but days-to-weeks can overrun the promise. The divider is the bounded week: spend to it, not past it.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7</p>
+<h3>Leadership asks how much transaction data the business can afford to lose if a system fails. The agreed answer — no more than 15 minutes — defines which metric, and what does it set?</h3>
+<button class="opt">RTO; the site choice</button><button class="opt">RPO; the backup frequency</button><button class="opt">MTTR; the repair staffing</button><button class="opt">MTBF; the purchasing standard</button>
+<div class="fb"><b>RPO; the backup frequency.</b> The recovery point objective measures acceptable data loss — 15 minutes of RPO rules out nightly backups and demands near-continuous copying. Question 6 was the RTO twin in disguise: downtime tolerance set the site.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>Ransomware from Lesson 0013 encrypts the file servers — including the backup target mounted on the same network. Which property would have kept restorable copies?</h3>
+<button class="opt">Encrypted backups</button><button class="opt">Replicated backups</button><button class="opt">Immutable offline backups</button><button class="opt">Differential nightly backups</button>
+<div class="fb"><b>Immutable offline backups.</b> Replication copies the encryption just as faithfully as the data; encryption was no barrier to the attacker's admin reach; the schedule is irrelevant. Copies the network cannot touch and cannot change — WORM, object lock, air gap — are the ransomware answer. (Lesson 0013 plus the 3-2-1 rule.)</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/data-types-and-classifications-sy0-701/">Professor Messer 3.3 — Data Types and Classifications (5:54)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/states-of-data-sy0-701/">States of Data (6:07)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/protecting-data-sy0-701/">Protecting Data (14:28)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/resiliency-sy0-701/">3.4 — Resiliency (9:42)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/capacity-planning-sy0-701/">Capacity Planning (3:53)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/recovery-testing-sy0-701/">Recovery Testing (5:18)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/backups-sy0-701/">Backups (12:16)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/power-resiliency-sy0-701/">Power Resiliency (4:02)</a>. Gibson Domain 3: the data protection and resiliency sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time — and say whether <b>W1 came out uncued</b> (no anchor was printed this time). That is the graduation signal for measured boot at the week-3 review. Any question on restore chains or the metrics is worth asking now — they return in every Domain 4 lesson.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0020 opens Domain 4 — the exam's largest at 28 percent. Objective 4.1: security techniques and hardening, baselines to wireless. Domain 3 is closed, a week ahead of the map. · <a href="0018-applying-security-principles.html">Lesson 0018</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objectives 3.3, 3.4); Professor Messer SY0-701 sections 3.3–3.4; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 3.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["measured boot", "measured"], ok: "Measured boot — the TPM writes it down. Attestation = someone reads the record. Secure and safe = the firmware refuses. The name is the mnemonic: measurements get taken. This rep was uncued — if it came out clean, measured boot is on track to graduate at the week-3 review." },
+  wu2: { v: ["fail-close", "fail closed", "fail close", "fail-closed", "closed"], ok: "Fail-close — the dead device drops everything; security outranks availability at a defense edge. (Lesson 0018. A retail web store would fail-open.)" },
+  wu3: { v: ["beaconing", "beacon"], ok: "Beaconing — the regular heartbeat of command-and-control. Contrast: a scan sweeps; exfiltration moves bulk outbound. (Lesson 0013.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
