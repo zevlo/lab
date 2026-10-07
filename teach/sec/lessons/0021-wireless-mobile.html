@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0021 — Wireless and Mobile</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 4 · Objective 4.1 (part two) · Lesson 21 of ~30 · ~35 minutes</p>
+<h1>The Air and the Pocket</h1>
+<p class="meta">One win today: <b>pick the right wireless security mode for any scenario, and the right amount of mobile management — device, app, or content.</b> This is 4.1's genuinely new half: WPA3 and SAE, personal versus enterprise authentication, site surveys, and the mobile management stack. The wireless <em>attacks</em> are banked from Lesson 0014 — today you learn what settings defeat them.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Defense facilities run classified and unclassified wireless on separate infrastructures, authenticate every wireless user by certificate, and survey for rogue access points as a standing duty — an unsanctioned AP is a reportable incident, not an inconvenience. The exam's wireless questions are that discipline in scenario form: which mode, which handshake, which management layer.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Three spaced retrievals: one scenario rep, one from yesterday, one primer for today. W1 has no anchor printed — it is the uncued graduation rep for the site family.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> A flood destroys the data center. Leadership will accept up to one week of downtime and wants the cheapest site that honors that promise. Type the site type. (two words)</label><br><input class="txt" id="wu1" style="width:14rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> The code-analysis flavor that reads source without running it — it works in the pipeline before anything deploys. Type the acronym. (four letters)</label><br><input class="txt" id="wu2" style="width:10rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> A rogue access point broadcasting a legitimate network name — auto-joining laptops hand it their traffic. Type it. (two words)</label><br><input class="txt" id="wu3" style="width:12rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The pocket: mobile management in three scopes</h2>
+<table>
+<tr><th>Manager</th><th>Scope</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Mobile device management (MDM)</td><td>The whole device — settings, encryption, wipe.</td><td>The device belongs to the policy.</td></tr>
+<tr><td class="rowhead">Mobile application management (MAM)</td><td>Work applications only — install, restrict, contain.</td><td>The device stays personal; the work apps live in a container.</td></tr>
+<tr><td class="rowhead">Unified endpoint management (UEM)</td><td>Every endpoint — phones, laptops, desktops — one console.</td><td>MDM grown to cover everything with a screen.</td></tr>
+</table>
+
+<h3>Who owns the phone? The deployment models</h3>
+<table>
+<tr><th>Model</th><th>Ownership</th><th>Trade</th></tr>
+<tr><td class="rowhead">BYOD — bring your own device</td><td>The employee's.</td><td>Low cost, high convenience — control limited to a work container; privacy rules apply.</td></tr>
+<tr><td class="rowhead">COPE — corporate-owned, personally enabled</td><td>The company's, dual-use.</td><td>Full management rights, personal use allowed — the middle path.</td></tr>
+<tr><td class="rowhead">Corporate-owned</td><td>The company's, full stop.</td><td>Maximum control and wipe rights — the defense default.</td></tr>
+</table>
+
+<h3>The four mobile solutions the exam names</h3>
+<table>
+<tr><th>Solution</th><th>What it does</th><th>Exam tell</th></tr>
+<tr><td class="rowhead">Full device encryption</td><td>Everything on the device is ciphertext at rest.</td><td>The lost-phone answer for <em>reading</em> the data.</td></tr>
+<tr><td class="rowhead">Remote backup</td><td>Copies sync to the cloud or enterprise.</td><td>The lost-phone answer for <em>keeping</em> the data.</td></tr>
+<tr><td class="rowhead">Application management</td><td>Allow-list, block, and update apps; containerize work from personal.</td><td>Which apps may exist — Lesson 0015's allow list, on a phone.</td></tr>
+<tr><td class="rowhead">Content management</td><td>Control which data the device may reach, copy, or share.</td><td>Which data may move — classification (Lesson 0019) enforced at the screen.</td></tr>
+</table>
+<p class="meta">Two more MDM levers worth knowing: <b>remote wipe</b> (erase the device — or just the work container — on command) and <b>geofencing</b> (policy tied to location: the camera works everywhere except inside the building).</p>
+
+<h2>Part 2 — The air: encryption modes and the handshake</h2>
+<table>
+<tr><th>Protocol</th><th>Generation</th><th>The step forward</th></tr>
+<tr><td class="rowhead">WEP</td><td>1999.</td><td>Broken beyond repair — a trivia answer, never a choice.</td></tr>
+<tr><td class="rowhead">WPA (TKIP)</td><td>Stopgap.</td><td>A patch for WEP on old hardware; deprecated.</td></tr>
+<tr><td class="rowhead">WPA2 (AES, CCMP)</td><td>2004.</td><td>Strong encryption — but the shared-key handshake can be captured and attacked offline.</td></tr>
+<tr><td class="rowhead">WPA3 (SAE)</td><td>2018.</td><td><b>Simultaneous authentication of equals</b> replaces the shared-key handshake: a captured exchange cannot be cracked offline, and each session's keys are fresh (forward secrecy).</td></tr>
+</table>
+
+<h3>Personal versus enterprise — the mode decision</h3>
+<table>
+<tr><th>Mode</th><th>Who authenticates</th><th>Choose it when</th></tr>
+<tr><td class="rowhead">Personal (PSK)</td><td>Everyone shares one pre-shared key.</td><td>Home, small office, guest networks. Strength = the passphrase's secrecy; one leak re-keys the world.</td></tr>
+<tr><td class="rowhead">Enterprise (802.1X)</td><td>Each user proves <em>individual</em> identity — password or certificate — to a RADIUS server, via EAP.</td><td>Per-user accountability, per-user revocation, central logs. Lesson 0018's port security, over the air.</td></tr>
+<tr><td class="rowhead">Captive portal</td><td>A web page asks who you are.</td><td>Identity theater for guest access — acceptance, not security. Fine for the coffee shop, useless for the base.</td></tr>
+</table>
+<p class="meta">The exam's mode question is a cost-fit question: enterprise earns its RADIUS server when identity and accounting matter; personal plus a guest SSID is the right-size answer when they do not.</p>
+
+<h2>Part 3 — The survey: know your air before someone else does</h2>
+<p>A <b>site survey</b> walks the facility measuring coverage and interference, producing a <b>heat map</b> of signal strength — access points placed on evidence, channels planned to avoid overlap. The survey's security half: it is also how <b>rogue access points</b> get found — a strong signal where no AP should be. The banked attacks, and their settings:</p>
+<table>
+<tr><th>Banked attack (Lesson 0014)</th><th>The setting that answers it</th></tr>
+<tr><td class="rowhead">Evil twin</td><td>Enterprise mode with <b>server certificate validation</b> — the twin cannot present the RADIUS server's certificate, so clients refuse it. (Lesson 0004's PKI, applied.)</td></tr>
+<tr><td class="rowhead">Handshake capture + offline cracking</td><td><b>WPA3's SAE</b> — the captured exchange is worthless offline.</td></tr>
+<tr><td class="rowhead">Deauthentication floods</td><td>Management frame protection (802.11w) where supported; otherwise detection and the isolation response.</td></tr>
+<tr><td class="rowhead">RF jamming</td><td>No protocol answers raw noise — physical location and spectrum response. (Lesson 0014.)</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Your laptop joined office Wi-Fi with a certificate</td><td>WPA2/3-Enterprise, EAP-TLS, RADIUS</td></tr>
+<tr><td>Intune work profile on your phone</td><td>MAM, containerization</td></tr>
+<tr><td>Guest SSID at the office</td><td>Personal mode, segmentation, captive portal</td></tr>
+<tr><td>Wi-Fi planning walk with a meter</td><td>Site survey, heat map</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Personal vs. enterprise</td><td>One shared key versus per-user identity to a RADIUS server. Accountability decides.</td></tr>
+<tr><td class="rowhead">WPA2 vs. WPA3</td><td>AES with a crackable-shared-handshake versus SAE with offline-attack resistance and forward secrecy.</td></tr>
+<tr><td class="rowhead">MDM vs. MAM vs. UEM</td><td>The device versus the applications versus every endpoint from one console.</td></tr>
+<tr><td class="rowhead">BYOD vs. COPE</td><td>The employee's phone with a work container versus the company's phone with personal use allowed.</td></tr>
+<tr><td class="rowhead">Captive portal vs. 802.1X</td><td>A web page asking versus cryptography proving. Acceptance versus authentication.</td></tr>
+<tr><td class="rowhead">Site survey vs. penetration test</td><td>Measure your own coverage and find rogues versus simulate an attack. Planning versus proving.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1</p>
+<h3>A cafe upgrades its guest Wi-Fi from WPA2 to WPA3. What does the new SAE handshake take off the table?</h3>
+<button class="opt">On-path relay attacks</button><button class="opt">Offline dictionary attacks</button><button class="opt">Deauthentication floods</button><button class="opt">Rogue access points</button>
+<div class="fb"><b>Offline dictionary attacks.</b> Simultaneous authentication of equals replaces the shared-key handshake: capture the exchange all you like — it cannot be cracked offline later, and every session gets fresh keys (forward secrecy). Deauthentication and rogue APs remain live attacks that need other answers.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>A defense network requires every wireless user to authenticate with their own certificate, checked by a central server, with every session logged to their identity. Which mode, and which server protocol?</h3>
+<button class="opt">Personal mode; a shared passphrase</button><button class="opt">Captive portal; a web login</button><button class="opt">Ad hoc mode; push-button pairing</button><button class="opt">Enterprise mode; RADIUS</button>
+<div class="fb"><b>Enterprise mode; RADIUS.</b> Per-user identity, per-user revocation, central accounting — 802.1X over the air (Lesson 0018's port security, wireless edition) with EAP carrying the certificate (Lesson 0004's PKI). A shared passphrase cannot log <em>who</em>; a portal only asks.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 3 <span class="hard">MULTI-HOP</span></p>
+<h3>Lesson 0014's evil twin appears on base: a rogue access point broadcasts the real network name, waiting for laptops to hand it their traffic. Which setting, already running from the enterprise design, defeats it?</h3>
+<button class="opt">A geofence on the clients</button><button class="opt">Full device encryption</button><button class="opt">Server certificate validation</button><button class="opt">A longer pre-shared key</button>
+<div class="fb"><b>Server certificate validation.</b> During EAP authentication the client verifies the RADIUS server's certificate — the twin cannot present it, so no client completes authentication with it. Lesson 0004's PKI defeating Lesson 0014's attack. Encryption protects data at rest; a shared key would not help — the twin steals the session, not the file.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 4</p>
+<h3>Staff use personal phones for work. Policy: control the work apps and work data only — the device and its owner's photos stay out of scope. Which manager fits?</h3>
+<button class="opt">Mobile application management</button><button class="opt">Mobile device management</button><button class="opt">Unified endpoint management</button><button class="opt">Network access control</button>
+<div class="fb"><b>Mobile application management (MAM).</b> The work apps live in a container — managed, updated, and remotely removable — while the personal phone stays personal. MDM would claim the whole device; UEM, every endpoint. BYOD's enforcement layer is MAM, not MDM.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>A manager loses the personal phone that syncs work mail under a BYOD policy. Which pair of capabilities protects the data — unreadable to a finder, and erasable on command?</h3>
+<button class="opt">Code signing; a site survey</button><button class="opt">Full-device encryption; remote wipe</button><button class="opt">Content filtering; captive portal</button><button class="opt">Geofencing; a heat map</button>
+<div class="fb"><b>Full-device encryption; remote wipe.</b> Encryption makes the stored data unreadable without the unlock (Lesson 0019's at-rest rule, pocket edition); remote wipe removes it — or just the work container, under MAM. Backup (the third mobile solution) recovers what the wipe removes.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>A twelve-person dental office wants Wi-Fi: staff devices and a patient guest network, one shared office passphrase, no server on site, minimal budget. Which design is the better fit?</h3>
+<button class="opt">WPA3-Enterprise with RADIUS</button><button class="opt">WPS push-button enrollment</button><button class="opt">WPA3-Personal with a guest SSID</button><button class="opt">An open network with a portal</button>
+<div class="fb"><b>WPA3-Personal with a guest SSID.</b> Right-sized: strong SAE encryption, one shared passphrase for staff, guests segmented away. The defensible near miss: Enterprise — stronger per-user control, but it needs a RADIUS server and per-user certificates to protect... a waiting room. The exam rewards matching control strength to the scenario. WPS and open networks are wrong in any decade.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7</p>
+<h3>Before deploying Wi-Fi in a new warehouse, an engineer walks the floor measuring coverage, interference, and channel overlap, and marks every access point that appears on the spectrum. What is this called?</h3>
+<button class="opt">A site survey</button><button class="opt">A penetration test</button><button class="opt">A risk assessment</button><button class="opt">A wardrive audit</button>
+<div class="fb"><b>A site survey.</b> Measure your own air before and after deployment — the output is a heat map of coverage, and the security byproduct is rogue access points standing where none should be. A penetration test simulates attack; the survey plans and verifies placement.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>Lesson 0013's malware crew now ships a trojan disguised as a popular game, sideloaded onto phones. Which layered pair blocks the install and contains the damage if it runs anyway?</h3>
+<button class="opt">Code signing; an offline backup</button><button class="opt">Input validation; output encoding</button><button class="opt">A captive portal; a heat map</button><button class="opt">An application allow list; containerization</button>
+<div class="fb"><b>An application allow list; containerization.</b> The allow list blocks the install — only approved apps run (Lesson 0015's default-deny, applied by MAM). Containerization contains the blast radius — the trojan runs in the personal container and cannot reach work data (Lesson 0003's threat scope reduction). Sideloading was the vector (Lesson 0012); the store's review was bypassed, so the device policy answers.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/securing-wireless-and-mobile-sy0-701/">Professor Messer 4.1 — Securing Wireless and Mobile (8:58)</a> and <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/wireless-security-settings-sy0-701/">Wireless Security Settings (10:54)</a>. Revisit Lesson 0014's wireless attacks for five minutes first — today is their answer key. Gibson Domain 4: the wireless and mobile sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time — and say whether <b>W1 came out clean with no anchor printed</b>. That is the uncued pass: with yesterday's cued pass it sends the site family to graduation at the week-3 review, alongside measured boot. Anything fuzzy about SAE or the enterprise handshake is worth asking now — it returns in Domain 4 monitoring questions.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Objective 4.2 — asset management: procurement to disposal, media sanitization, and asset inventories. Objective 4.1 closes here: Domain 4 is one-fifth banked. · <a href="0020-hardening-baselines.html">Lesson 0020</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 4.1); Professor Messer SY0-701 section 4.1; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["warm site", "warm"], ok: "Warm site — equipment and connectivity in place, data restored at failover; hours to days, inside the one-week promise at less than hot-site cost. The rule: filter by the promise, then buy the cheapest inside it. No anchor was printed — a clean pass here graduates the site family at the week-3 review." },
+  wu2: { v: ["sast", "static analysis", "static code analysis"], ok: "SAST — static application security testing: reads source without running it, in the pipeline, before deployment. Its twin DAST probes the running system. (Lesson 0020.)" },
+  wu3: { v: ["evil twin", "evil"], ok: "Evil twin — the rogue access point wearing a legitimate name. Today's Part 3 gives it its defeat: enterprise mode with server certificate validation. (Lesson 0014.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
