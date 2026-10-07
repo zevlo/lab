@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0020 — Hardening and Secure Baselines</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 4 · Objective 4.1 (part one) · Lesson 20 of ~30 · ~35 minutes</p>
+<h1>Secure by Default</h1>
+<p class="meta">One win today: <b>start every system from a documented, hardened baseline — and know the six hardening habits the exam expects you to name.</b> This is the exam's largest domain (28 percent). Today is the half of 4.1 you already live in: baselines, images, patching, key and secret custody, code analysis. The wireless and mobile half — genuinely new vocabulary — is Lesson 0021.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>In a DoD 8140 role the baseline is not a habit, it is a requirement: Security Technical Implementation Guides (STIGs) define the known-good state, machines are deployed from hardened images, and measured boot proves they have not drifted. An auditor does not ask "is this machine secure?" — they ask "does it match the baseline, and can you prove it?" That question is this entire lesson.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">W1 is the site-type reframe from Lesson 0019's miss. The ladder: <b>hot = running and synced, minutes · warm = racked and cabled, data restored at failover, hours to days · cold = an empty room, days to weeks.</b> Cost runs exactly inverse to recovery time. The rule the miss taught: <b>filter sites by the promise, then buy the cheapest one inside it.</b></p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> The recovery site type with equipment and connectivity in place, but no data until failover — hours to days to operate. Type it. (two words)</label><br><input class="txt" id="wu1" style="width:14rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> The resilience metric that names how much <em>data</em> the business can lose — nightly backups mean 24 hours of it. Type the acronym. (three letters)</label><br><input class="txt" id="wu2" style="width:10rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> Malware that sleeps until its trigger fires — a date, or a name vanishing from payroll. Type it. (two words)</label><br><input class="txt" id="wu3" style="width:14rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The baseline: deploy from known-good, prove you never left</h2>
+<table>
+<tr><th>Concept</th><th>What it is</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Baseline configuration</td><td>The documented known-good state: every setting, patch, and service.</td><td>A document plus an image. Drift is measured against it, not against memory.</td></tr>
+<tr><td class="rowhead">Hardened image</td><td>The baseline baked into a ready-to-deploy template — patched, minimal, locked down.</td><td>Machines are <em>born</em> hardened, never born default. Your golden image.</td></tr>
+<tr><td class="rowhead">Configuration enforcement</td><td>Automatically applying and holding the baseline — group policy, mobile device management, STIGs.</td><td>Drift gets reverted, not noted. (Glossary; Lesson 0006.)</td></tr>
+<tr><td class="rowhead">Immutable systems</td><td>Never modified after deployment — replaced from a clean build instead.</td><td>Nothing persists to infect. (Glossary; Lesson 0017.)</td></tr>
+</table>
+
+<h3>Boot integrity — the baseline of the boot chain (banked, one look)</h3>
+<table>
+<tr><th>Technique</th><th>What it does</th></tr>
+<tr><td class="rowhead">Measured boot</td><td>The trusted platform module (TPM) records a fingerprint of every boot step — detection, not blocking.</td></tr>
+<tr><td class="rowhead">Boot attestation</td><td>A central verifier reads that record before granting network access — remote proof of a clean boot.</td></tr>
+<tr><td class="rowhead">Secure boot</td><td>Firmware refuses to run unsigned boot code — a boot-level rootkit is blocked, not just noticed.</td></tr>
+</table>
+<p class="meta">You typed measured boot cold yesterday — it graduates at the week-3 review. Boot integrity is a named 4.1 exam topic, so it appears here as content, not as practice.</p>
+
+<h2>Part 2 — Hardening targets and the six habits</h2>
+<p>The exam's hardening questions are one habit applied to one target. The targets: <b>servers, workstations, network devices, embedded and IoT systems, mobile</b> (mobile's full treatment is Lesson 0021). The habits:</p>
+<table>
+<tr><th>Habit</th><th>The move</th><th>Exam tell</th></tr>
+<tr><td class="rowhead">Remove unnecessary software</td><td>Everything installed is attack surface. Bloatware gets removed, not tolerated.</td><td>Shrink the surface — Lesson 0010's answer.</td></tr>
+<tr><td class="rowhead">Close ports and services</td><td>Default deny; run only what the role needs.</td><td>"Which is the hardened configuration?" — the one with fewest doors.</td></tr>
+<tr><td class="rowhead">Change default credentials</td><td>Default passwords are published passwords.</td><td>The first fix on any new device.</td></tr>
+<tr><td class="rowhead">Patch management</td><td>Evaluate, test, schedule, deploy, verify.</td><td>Automated for speed at scale; manual for the fragile few.</td></tr>
+<tr><td class="rowhead">Trusted operating system</td><td>An OS built and formally evaluated to enforce separation and access guarantees.</td><td>Security by construction, not configuration.</td></tr>
+<tr><td class="rowhead">Software self-healing</td><td>The system detects its own failure and restores itself — restart, replace, rebuild.</td><td>Your orchestrator restarting a sick container, named in exam vocabulary.</td></tr>
+</table>
+<p class="meta">Legacy and end-of-life (EOL) platforms break the patch habit — no patches will ever come. The answer is never "wait": it is <b>replace, or isolate</b> (Lesson 0012's ICS answer, now in hardening clothing).</p>
+
+<h3>Two sleep states, two protections</h3>
+<table>
+<tr><th>State</th><th>Where memory goes</th><th>The protection it needs</th></tr>
+<tr><td class="rowhead">Suspend to disk (hibernate)</td><td>Written to storage — the data is now <em>at rest</em>.</td><td>Encryption at rest. The hibernation file reads like any other file.</td></tr>
+<tr><td class="rowhead">Suspend to RAM (sleep)</td><td>Stays in powered memory.</td><td>Physical custody. Contents vanish on power loss — but live extraction works while it sleeps.</td></tr>
+</table>
+
+<h2>Part 3 — Cryptographic techniques, and the two custody problems</h2>
+<p>Encryption, hashing, and salting are banked from Lessons 0004 and 0005. TLS and IPsec are banked from Lesson 0018. What 4.1 adds is the custody question — where the keys and secrets live:</p>
+<table>
+<tr><th>Practice</th><th>Guards</th><th>The shape of it</th></tr>
+<tr><td class="rowhead">Key management</td><td>Cryptographic keys.</td><td>The full life: generate, exchange, store (hardware security module, TPM), rotate, revoke, destroy.</td></tr>
+<tr><td class="rowhead">Secrets management</td><td>Machine credentials — API keys, database passwords.</td><td>Central vault, access control, automatic rotation, audit trail. Nothing in plaintext environment variables or code.</td></tr>
+</table>
+<p class="meta">The dividing line: <b>keys are for cryptography; secrets are for authentication.</b> Both fail the same way when pasted into a pipeline file — and both are your daily work, now with exam names.</p>
+
+<h2>Part 4 — Application security</h2>
+<table>
+<tr><th>Technique</th><th>What it does</th><th>Status</th></tr>
+<tr><td class="rowhead">Input validation</td><td>Check input against strict expectations before using it.</td><td>Banked — Lesson 0011's root cure.</td></tr>
+<tr><td class="rowhead">Secure cookies</td><td>Flags: <b>Secure</b> (HTTPS only) and <b>HttpOnly</b> (scripts cannot read the cookie).</td><td><b>New.</b> Closes the script route to session tokens.</td></tr>
+<tr><td class="rowhead">Static analysis (SAST)</td><td>Reads the source without running it. Runs in the pipeline, before deployment.</td><td><b>New.</b> No live system needed.</td></tr>
+<tr><td class="rowhead">Dynamic analysis (DAST)</td><td>Tests the running application — crafted inputs against a live instance.</td><td><b>New.</b> Needs a system to run.</td></tr>
+<tr><td class="rowhead">Code signing</td><td>Developer signs the binary; the OS verifies before running it.</td><td><b>New.</b> The fix for malicious updates — Lesson 0012's poisoned-update attack, blocked at the verifier.</td></tr>
+<tr><td class="rowhead">Sandboxing</td><td>Run code in an isolated environment with no blast radius.</td><td>Banked — glossary.</td></tr>
+<tr><td class="rowhead">Allow / block lists</td><td>Only approved runs versus known-bad blocked.</td><td>Banked — allow list is the stronger answer.</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Packer-built golden image</td><td>Hardened image</td></tr>
+<tr><td>CIS benchmark or STIG in Terraform</td><td>Baseline configuration</td></tr>
+<tr><td>Orchestrator restarting containers</td><td>Software self-healing</td></tr>
+<tr><td>Vault-managed database credentials</td><td>Secrets management</td></tr>
+<tr><td>KMS, hardware security modules</td><td>Key management</td></tr>
+<tr><td>Pre-commit scanners, Snyk in CI</td><td>Static analysis (SAST)</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Baseline vs. hardened image</td><td>The documented state versus that state packaged for deployment. The document and the machine that ships it.</td></tr>
+<tr><td class="rowhead">Automated vs. manual patching</td><td>Speed at scale versus control for the fragile few.</td></tr>
+<tr><td class="rowhead">SAST vs. DAST</td><td>Reading the source versus probing the running system. Deployment order decides which is possible.</td></tr>
+<tr><td class="rowhead">Key vs. secrets management</td><td>Cryptographic keys versus machine credentials. Crypto versus authentication.</td></tr>
+<tr><td class="rowhead">Suspend to disk vs. suspend to RAM</td><td>Memory lands on storage (encrypt the disk) versus memory stays powered (guard the machine).</td></tr>
+<tr><td class="rowhead">Code signing vs. input validation</td><td>Proves what shipped is authentic versus proves what arrived is acceptable. Producer-side versus consumer-side.</td></tr>
+<tr><td class="rowhead">Trusted OS vs. hardened OS</td><td>Security by evaluated construction versus security by applied configuration.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1</p>
+<h3>Every new server arrives from a template: patched, unnecessary services removed, identical to a documented known-good state. What is that starting state called?</h3>
+<button class="opt">An immutable backup</button><button class="opt">A configuration drift</button><button class="opt">A baseline configuration</button><button class="opt">A compliance audit</button>
+<div class="fb"><b>A baseline configuration.</b> The documented known-good state every machine is deployed from and measured against. Baked into a template it becomes a hardened image; held automatically it is configuration enforcement. Drift is the departure from it — not a starting state.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>A factory's controllers run an operating system the vendor stopped supporting years ago. Production cannot stop for a replacement this quarter. Which pair — the platform's status, and the control that contains it?</h3>
+<button class="opt">Zero-day; emergency patching</button><button class="opt">End of life; isolation</button><button class="opt">Misconfiguration; retraining</button><button class="opt">Bloatware; allow listing</button>
+<div class="fb"><b>End of life; isolation.</b> EOL means no patches will ever come (Lesson 0012's glossary) — so patch management has nothing to manage. Until replacement, the exam's paired answer is isolation: segmentation or air gap, the ICS answer from Lessons 0012 and 0018. A zero-day, in contrast, will be patched eventually.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 3</p>
+<h3>Field laptops hibernate overnight — memory contents land on the internal drive. Which protection does that sleep state need?</h3>
+<button class="opt">A trusted execution environment</button><button class="opt">Encryption at rest</button><button class="opt">Certificate stapling</button><button class="opt">Output encoding</button>
+<div class="fb"><b>Encryption at rest.</b> Suspend to disk writes memory to storage — the data's state changes to at rest, and Lesson 0019's table says what at rest needs. Suspend to RAM keeps contents in powered memory: it needs physical custody instead.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>An update server signs every package it ships; clients refuse to install anything the signature does not verify. Which technique, and which Lesson 0012 attack does it kill?</h3>
+<button class="opt">Sandboxing; memory injection</button><button class="opt">Salting; precomputed tables</button><button class="opt">Input validation; SQL injection</button><button class="opt">Code signing; malicious updates</button>
+<div class="fb"><b>Code signing; malicious updates.</b> The developer's private key signs the binary; the client verifies with the public key before running it. A poisoned or substituted update fails the check — supply-chain integrity at the installer. Input validation is the consumer-side mirror: proves what <em>arrived</em> is acceptable, not that what <em>shipped</em> is authentic.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>Audit finds the deployment pipeline carrying the database password in a plaintext environment variable. Which practice replaces it — and what is the dividing line against its nearest neighbor?</h3>
+<button class="opt">Secrets management</button><button class="opt">Key rotation policy</button><button class="opt">Full-device encryption</button><button class="opt">Certificate pinning</button>
+<div class="fb"><b>Secrets management.</b> A central vault for machine credentials with access control, rotation, and an audit trail. The dividing line against key management: secrets authenticate machines (API keys, database passwords); keys are for cryptography. Both fail the same way when pasted into a file — but only one belongs in a vault per pipeline credential.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>A team must find flaws in code that has not shipped — there is no running system yet, and findings are needed before tomorrow's deployment. Both analyzers are on the shelf. Which do you run tonight?</h3>
+<button class="opt">Dynamic analysis (DAST)</button><button class="opt">Fuzzing the inputs</button><button class="opt">Static analysis (SAST)</button><button class="opt">Sandboxing the build</button>
+<div class="fb"><b>Static analysis (SAST).</b> It reads source without running it — exactly what a pre-deployment, no-live-system window allows. The defensible near miss: DAST probes a running instance and catches what source-reading misses (configuration, environment) — but it requires a system to run, and tonight there is none. Fuzzing is a DAST cousin with the same requirement.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 7</p>
+<h3>Boot integrity: which technique makes firmware refuse to run unsigned boot code — blocking, not just noticing?</h3>
+<button class="opt">Secure boot</button><button class="opt">Measured boot</button><button class="opt">Boot attestation</button><button class="opt">A safe boot</button>
+<div class="fb"><b>Secure boot.</b> The firmware refuses — a boot-level rootkit is blocked. Measured boot records fingerprints for later reading (the TPM writes it down); attestation is someone reading that record remotely. Detect, verify, block — three different verbs, three different names. You typed the detect half cold yesterday.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>After Lesson 0014's session-hijacking incident, the web team hardens the session cookie. Which pair of cookie flags closes the route scripts took to the tokens?</h3>
+<button class="opt">Secure and HttpOnly</button><button class="opt">Salted and hashed</button><button class="opt">Signed and stapled</button><button class="opt">Tokenized and masked</button>
+<div class="fb"><b>Secure and HttpOnly.</b> Secure confines the cookie to HTTPS — never plain HTTP. HttpOnly bars scripts from reading it — which is exactly how cross-site scripting (Lesson 0011) escalated into session theft (Lesson 0014). Not to be confused with the <em>Secure Boot</em> of Question 7 — different universe, same adjective.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/secure-baselines-sy0-701/">Professor Messer 4.1 — Secure Baselines (4:11)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/hardening-targets-sy0-701/">Hardening Targets (10:11)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/application-security-sy0-701/">Application Security (8:26)</a>. The wireless and mobile videos of 4.1 are saved for Lesson 0021 — watch them with it. Gibson Domain 4: hardening and baselines sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time — and say whether <b>W1 came out clean</b> with the ladder anchor printed above it (this rep is cued by design; the uncued version is Lesson 0021's warm-up, in best-answer costume). Anything unclear about SAST versus DAST or secrets versus keys is worth asking now — Domain 4 assumes them from here on.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0021 — the wireless and mobile half of 4.1: site surveys, mobile device management and BYOD, full-device encryption, WPA2 versus WPA3, and personal versus enterprise authentication. Then objective 4.2, asset management. · <a href="0019-data-protection-resiliency.html">Lesson 0019</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 4.1); Professor Messer SY0-701 section 4.1; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["warm site", "warm"], ok: "Warm site — equipment and connectivity in place, data restored at failover; hours to days. The Q6 rule: leadership's one-week promise filters first (cold's days-to-weeks can overrun it), then cost decides — warm is the cheapest site inside the promise. The uncued rep comes in 0021." },
+  wu2: { v: ["rpo", "recovery point objective"], ok: "RPO — the recovery point objective: acceptable data loss, and it sets backup or replication frequency. Its twin RTO sets downtime tolerance and chooses the site — Question 6 of Lesson 0019 was RTO in disguise." },
+  wu3: { v: ["logic bomb", "logic"], ok: "Logic bomb — dormant code that detonates on a trigger: a date, an event, a name leaving payroll. The signature malware of the malicious insider. (Lesson 0013.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>

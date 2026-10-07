@@ -53,6 +53,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Backup (full / incremental / differential)</dt>
 <dd>Three copy strategies. A <b>full</b> copies everything. An <b>incremental</b> copies changes since the last backup of <em>any kind</em> — restoring needs the full plus every incremental, in order. A <b>differential</b> copies changes since the <em>last full</em> — restoring needs exactly two pieces, always. Incrementals back up fastest; differentials restore simplest.</dd>
+<dt>Baseline configuration</dt>
+<dd>The documented known-good state of a system — every setting, patch, and service. Deploy from it, measure against it, re-apply it when drift appears. <span class="ex">A CIS benchmark or DoD STIG rendered in code.</span></dd>
 <dt>Beaconing</dt>
 <dd>An infected host calling its command-and-control server on a fixed, timed schedule — low volume, regular as clockwork. The traffic fingerprint of malware phoning home. <span class="ex">A callout every 60 seconds, night and day.</span></dd>
 <dt>Bloatware</dt>
@@ -95,6 +97,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Public: anyone who pays. Private: one organization. Hybrid: private plus public, connected. Community: organizations with common concerns — compliance, clearance, regulation — sharing dedicated infrastructure.</dd>
 <dt>Clustering</dt>
 <dd>Multiple servers acting as one service; a node dies, the others keep answering. The server-room form of no single point of failure.</dd>
+<dt>Code signing</dt>
+<dd>The developer signs the binary with a private key; the operating system verifies the signature before running it. Tampered or substituted software fails the check — the fix for malicious updates.</dd>
 <dt>Cold site</dt>
 <dd>A recovery site with space, power, and cooling but no systems — bring everything. Days to weeks to operate. The cheapest site type; cost runs inverse to recovery time.</dd>
 <dt>Compensating control (type)</dt>
@@ -153,6 +157,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Tricking a handshake into negotiating older, weaker cryptography, then breaking the weak version. "The connection settled on TLS 1.0."</dd>
 <dt>Dwell time</dt>
 <dd>The stretch of time an attacker stays present and unnoticed in a compromised environment. Months of quiet dwell time is the APT's signature.</dd>
+<dt>Dynamic code analysis (DAST)</dt>
+<dd>Testing a <em>running</em> application — feed it crafted inputs, watch what breaks. Catches what source-reading misses: configuration, environment, runtime behavior. Needs a live system; that is the dividing line with SAST.</dd>
 </dl>
 
 <h2 id="e">E</h2>
@@ -191,6 +197,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Hacktivist</dt>
 <dd>An attacker driven by ideology: defacement, leaks, and disruption as protest. Skill varies; the cause is on display. <span class="ex">Defacing a retailer's site over labor practices, demanding no money.</span></dd>
+<dt>Hardened image</dt>
+<dd>A baseline baked into a ready-to-deploy template — patched, minimal, locked down. Every new machine starts hardened, never default. <span class="ex">A golden virtual machine image built in CI.</span></dd>
 <dt>Hash (hashing)</dt>
 <dd>A one-way, fixed-length fingerprint of any input. Same input, same fingerprint; one changed character, completely different fingerprint; cannot be reversed. The integrity tool. <span class="ex">SHA-256.</span></dd>
 <dt>Honeyfile</dt>
@@ -249,6 +257,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>One hardened, fully audited host through which all administrative access passes — so every admin action lands in a log. The people-path; a proxy is the data-path.</dd>
 <dt>Keylogger</dt>
 <dd>Records keystrokes to capture credentials as they are typed. The specific tool; spyware is the broader category.</dd>
+<dt>Key management</dt>
+<dd>The full life of cryptographic keys: generate, exchange, store (hardware security module, TPM), rotate, revoke, destroy. The keys are small; their handling is the security.</dd>
 </dl>
 
 <h2 id="l">L</h2>
@@ -313,6 +323,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>One carefully chosen password tried against many accounts — staying under any single account's lockout threshold. Its signature indicator: widespread account lockouts.</dd>
 <dt>Passwordless authentication</dt>
 <dd>Signing in with passkeys, biometrics, or a device instead of a password. No shared secret exists — nothing to spray, crack, or phish. Kills password attacks at the root.</dd>
+<dt>Patch management</dt>
+<dd>The process behind patches: evaluate, test, schedule, deploy, verify. Automated patching buys speed at scale; manual patching buys control for the fragile few. End-of-life platforms get neither — isolate or replace.</dd>
 <dt>Phishing</dt>
 <dd>A fraudulent lure, usually by email, engineered to harvest credentials or deliver malware. The family ladder: <b>phishing</b> (bulk) → <b>spear phishing</b> (one researched target) → <b>whaling</b> (executives). Siblings: smishing (SMS), vishing (voice).</dd>
 <dt>Policy administrator</dt>
@@ -385,6 +397,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Networking plus the security stack — filtering, inspection, access policy — delivered together from the cloud. SD-WAN is the networking half without the security stack.</dd>
 <dt>Secure boot</dt>
 <dd>Firmware refuses to run unsigned boot code — a boot-level rootkit is blocked, not just noticed. Block versus detect: this is the blocking half.</dd>
+<dt>Secure cookies</dt>
+<dd>Cookie flags that lock the session cookie down: <b>Secure</b> (HTTPS only, never plain HTTP) and <b>HttpOnly</b> (scripts cannot read it). Closes the script route to session tokens.</dd>
+<dt>Secrets management</dt>
+<dd>A central vault for machine credentials — API keys, database passwords — with access control, automatic rotation, and an audit trail. Dividing line: secrets authenticate machines; keys are for cryptography.</dd>
 <dt>Security control</dt>
 <dd>Anything an organization puts in place to reduce risk — a device, a process, a document, or a physical barrier. Every control has a <b>category</b> (what kind of thing it is) and a <b>type</b> (what job it does).</dd>
 <dt>Segmentation</dt>
@@ -403,6 +419,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A point-in-time marker on the same storage — instant rollback, but not an independent copy. The array dies, the snapshot dies with it.</dd>
 <dt>Smishing</dt>
 <dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
+<dt>Software self-healing</dt>
+<dd>A system that detects its own failure and restores itself without a human — restart the process, replace the instance, rebuild from the image. <span class="ex">An orchestrator that keeps restarting a sick container.</span></dd>
 <dt>Spear phishing</dt>
 <dd>A phishing email crafted for one specific, researched recipient — named, contextual, convincing. Aimed at executives it becomes whaling.</dd>
 <dt>Spyware</dt>
@@ -411,8 +429,12 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Untrusted input becomes part of a database query, so attacker text is executed as query logic. Server-side: the database is the victim. Fixed by parameterized queries — code and data travel separately.</dd>
 <dt>SSL stripping</dt>
 <dd>Removing encryption before the session starts — downgrading the victim's HTTPS to plain HTTP so the attacker reads traffic in the clear. Distinguish from downgrade attack: stripping happens at the HTTP layer, before negotiation.</dd>
+<dt>Static code analysis (SAST)</dt>
+<dd>Reading the source without running it — automated flaw-finding in the pipeline, before deployment. No running system needed; that is the dividing line with DAST.</dd>
 <dt>Steganography</dt>
 <dd>Hiding data inside another medium, such as a message inside a photo's pixel values. Concealment, not encryption.</dd>
+<dt>Suspend to disk vs. suspend to RAM</dt>
+<dd>Hibernate (to disk) writes memory to storage — the data lands at rest, so encrypt the disk. Sleep (to RAM) keeps memory powered — contents vanish on power loss, but live extraction works while it sleeps.</dd>
 <dt>Symmetric encryption</dt>
 <dd>Encryption with one shared secret key that both locks and unlocks. Fast — the bulk-encryption workhorse — but the key must be distributed secretly. <span class="ex">AES.</span></dd>
 </dl>
@@ -441,6 +463,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Replacing a sensitive value with a meaningless token, with the real mapping kept in a separate, tightly guarded vault. <span class="ex">Stored payment-card tokens.</span></dd>
 <dt>Trojan</dt>
 <dd>Malicious payload masquerading as legitimate software to get itself run. Deception instead of self-propagation — a trojan convinces; a worm travels.</dd>
+<dt>Trusted operating system</dt>
+<dd>An operating system built and formally evaluated to enforce separation and access guarantees — security by construction, not by configuration.</dd>
 <dt>Typosquatting (URL hijacking)</dt>
 <dd>Registering look-alike domains — githuh.com for github.com — to harvest mistyped traffic. The registry-package one-letter-off trick is the same move on software supply chains.</dd>
 </dl>
