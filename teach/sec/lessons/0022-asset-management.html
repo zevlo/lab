@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0022 — Asset Management</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 4 · Objective 4.2 · Lesson 22 of ~30 · ~35 minutes</p>
+<h1>Inventory to Incinerator</h1>
+<p class="meta">One win today: <b>account for every asset from procurement to destruction — and pick the sanitization level that fits where the media goes next.</b> The exam's 4.2 questions live in one ladder: erase, clear, purge, destroy. Choose the rung by the data's classification and the media's destination.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Defense property accountability is law, not habit: every asset has a custodian, every disposition is documented, and classified media leaves custody one way — destroyed, with a certificate to prove it. The 4.2 exam questions are that discipline in scenario form. They are also where your DevOps inventory instincts get their exam names.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">W1 is the SAE reframe from Lesson 0021's miss. The anchor: <b>SAE = simultaneous authentication of equals — the WPA3 handshake whose capture is worthless offline. Capture is not crack.</b> Relay and on-path attacks are answered by mutual authentication — certificates, EAP — never by handshake hardness.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> The WPA3 handshake feature: capture the exchange and you still cannot hammer it offline — and every session gets fresh keys. Type the acronym. (three letters)</label><br><input class="txt" id="wu1" style="width:10rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> The Wi-Fi mode where every user authenticates individually to a RADIUS server — per-user identity, per-user revocation, central logs. Type the mode. (one word)</label><br><input class="txt" id="wu2" style="width:12rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> The SY0-701 name for the DMZ: public-facing services sitting between an outer and an inner filter. Type it. (two words)</label><br><input class="txt" id="wu3" style="width:14rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The inventory: you cannot protect what you cannot name</h2>
+<table>
+<tr><th>Practice</th><th>What it is</th><th>Why the exam cares</th></tr>
+<tr><td class="rowhead">Asset inventory</td><td>The authoritative list: every asset's owner, location, classification, and lifecycle state.</td><td>An asset missing from the inventory is unprotected by definition — the root cause behind most "unknown device" scenarios.</td></tr>
+<tr><td class="rowhead">Asset tracking</td><td>Tags, barcodes, RFID, automated discovery — keeping the inventory true as things move.</td><td>Drift between reality and the list is itself a finding.</td></tr>
+<tr><td class="rowhead">Onboarding / offboarding</td><td>Assign owner, tag, baseline, join inventory — and the reverse on the way out: revoke, retrieve, sanitize, dispose.</td><td>Offboarding is where assets and access leak together.</td></tr>
+</table>
+<p class="meta">The undocumented-asset problem is Lesson 0008's shadow IT wearing hardware: the switch under a desk nobody tracks is attack surface nobody watches.</p>
+
+<h2>Part 2 — Procurement: security decided before the purchase</h2>
+<table>
+<tr><th>Evaluation criterion</th><th>The question it answers</th></tr>
+<tr><td class="rowhead">Vendor security posture</td><td>Has the vendor earned trust — breach history, security program, disclosures?</td></tr>
+<tr><td class="rowhead">Supply-chain integrity</td><td>Does the product arrive untouched? Lesson 0012's poisoned-update and typosquatting attacks live here.</td></tr>
+<tr><td class="rowhead">Support lifetime</td><td>Will patches keep coming for the life you plan? Buying near end-of-life is buying future EOL.</td></tr>
+<tr><td class="rowhead">Service agreements</td><td>Who fixes what, how fast — and what is guaranteed.</td></tr>
+</table>
+
+<h2>Part 3 — The sanitization ladder</h2>
+<table>
+<tr><th>Rung</th><th>What happens</th><th>Media after</th><th>Fits</th></tr>
+<tr><td class="rowhead">Erase</td><td>Delete, format — pointers removed, data remains.</td><td>Usable, data recoverable by anyone with tools.</td><td>Nothing sensitive. Ever.</td></tr>
+<tr><td class="rowhead">Clear</td><td>Overwrite every sector with zeros or a pattern.</td><td>Usable; recovery needs a laboratory.</td><td>Reuse inside the organization at the same sensitivity.</td></tr>
+<tr><td class="rowhead">Purge</td><td>Degauss (magnetic media) or crypto-erase (destroy the key).</td><td>Degauss kills the drive; crypto-erase leaves it blank and alive.</td><td>Media leaving your custody with anything sensitive on it.</td></tr>
+<tr><td class="rowhead">Destroy</td><td>Shred, incinerate, pulverize.</td><td>Not media anymore — particles.</td><td>Classified and highest-sensitivity data. The only answer with no "effectively" in front of it.</td></tr>
+</table>
+
+<h3>The two purge tools, and the media trap</h3>
+<table>
+<tr><th>Tool</th><th>How it works</th><th>The trap</th></tr>
+<tr><td class="rowhead">Degausser</td><td>A magnetic field so strong it erases everything — data, servo tracks, firmware.</td><td><b>Magnetic media only</b> — hard disks and tape. Useless on SSDs. And the drive is dead afterward: purged by execution.</td></tr>
+<tr><td class="rowhead">Crypto-erase</td><td>Destroy the encryption key; every sector becomes noise at once.</td><td>Requires the data was <em>already encrypted</em> — it is instant only if it was encrypted from the start. Lesson 0021's full-device encryption, meeting its destiny.</td></tr>
+</table>
+<div class="box">
+<h3>The SSD exception</h3>
+<p>Overwriting assumes you can reach every sector. Solid-state drives <b>wear-level</b> — they silently spread writes and retire sectors, so an overwrite can miss data the controller is hiding. For SSDs the answer is crypto-erase or destroy. The degausser, meanwhile, does nothing at all: no magnetic surface.</p>
+</div>
+<p class="meta">When disposal is outsourced, the vendor returns a <b>certificate of destruction</b> (or of sanitization) — the signed record that closes the audit chain. It is a managerial control: proof, not protection. E-waste rules ride along: disposal must be both secure and compliant.</p>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>The CMDB nobody updated</td><td>Asset inventory drift</td></tr>
+<tr><td>Cloud resource tags (owner, env)</td><td>Asset tagging</td></tr>
+<tr><td>Decommission runbook: crypto-wipe volumes</td><td>Crypto-erase</td></tr>
+<tr><td>Vendor security review before purchase</td><td>Procurement / vendor evaluation</td></tr>
+<tr><td>Shred vendor's signed receipt</td><td>Certificate of destruction</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Clear vs. purge</td><td>Overwrite (recoverable in a lab, media reusable in-org) versus effectively unrecoverable (media leaving custody). Destination decides.</td></tr>
+<tr><td class="rowhead">Purge vs. destroy</td><td>Effectively unrecoverable versus physically gone. Classification decides — classified means destroyed.</td></tr>
+<tr><td class="rowhead">Degausser vs. shredder</td><td>Magnetic media only, drive dies versus any media including SSDs, media dies.</td></tr>
+<tr><td class="rowhead">Crypto-erase vs. overwrite</td><td>Destroy the key (instant, needs prior encryption) versus touch every sector (slow, misses wear-leveled SSD sectors).</td></tr>
+<tr><td class="rowhead">Certificate of destruction vs. sanitization</td><td>Proof the media is gone versus proof the data is gone — same audit chain, different rung.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1 <span class="hard">MULTI-HOP</span></p>
+<h3>Laptops that processed secret-level documents (Lesson 0019's government ladder) are being retired. The drives will leave organizational custody entirely. Which rung of the ladder, and why that one?</h3>
+<button class="opt">Clear — sectors are overwritten</button><button class="opt">Destroy — classified means physical</button><button class="opt">Erase — drives were formatted</button><button class="opt">Purge — media stays functional</button>
+<div class="fb"><b>Destroy — classified means physical.</b> The ladder's rule: classification decides the rung, destination confirms it. Secret-level data leaving custody goes to the shredder or incinerator — clear and purge both carry an "effectively" the government does not accept for classified media. For unclassified-sensitive data leaving custody, purge would be the answer.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 2</p>
+<h3>A decommissioned hard disk is passed through a degausser. What is true of the disk afterward?</h3>
+<button class="opt">Blank, and ready for reuse</button><button class="opt">Recoverable with laboratory tools</button><button class="opt">Dead — servo data erased too</button><button class="opt">Unchanged — degaussing is for SSDs</button>
+<div class="fb"><b>Dead — servo data erased too.</b> The degausser's field wipes data, servo tracks, and firmware together: purged by execution, unusable for anything afterward. It works only on magnetic media — hard disks and tape — and does nothing to SSDs.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3</p>
+<h3>A fleet of laptops has used full-device encryption since day one. Decommissioning needs the fastest method that leaves no recoverable data. Which is it?</h3>
+<button class="opt">Crypto-erase the drives</button><button class="opt">Overwrite every sector</button><button class="opt">Format and reinstall the OS</button><button class="opt">Lock them in storage</button>
+<div class="fb"><b>Crypto-erase the drives.</b> Destroy the key and every sector becomes noise at once — instant, because the encryption was already in place (Lesson 0021's full-device encryption meeting its destiny). Overwriting is slower and misses wear-leveled SSD sectors; formatting removes pointers, not data.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>An auditor asks for the complete list of systems holding customer personal data. The team cannot produce one — five departments bought their own storage, none recorded. Which failed practice is the root cause, in Lesson 0008's language?</h3>
+<button class="opt">Excessive access privilege</button><button class="opt">Weak default configurations</button><button class="opt">Unpatched legacy systems</button><button class="opt">Missing asset inventory</button>
+<div class="fb"><b>Missing asset inventory.</b> You cannot protect what you cannot name — and undocumented purchases are shadow IT (Lesson 0008) wearing hardware. The fix is inventory plus tracking: every asset owned, tagged, classified, and lifecycle-tracked from procurement to disposal.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5</p>
+<h3>Before buying a security appliance, the team investigates the vendor: breach history, patch cadence, how long support will continue, and whether the supply chain is tamper-evident. Which practice is this?</h3>
+<button class="opt">Vendor evaluation in procurement</button><button class="opt">A penetration test</button><button class="opt">Certificate of destruction</button><button class="opt">Data minimization</button>
+<div class="fb"><b>Vendor evaluation in procurement.</b> Security decided before the purchase: posture, supply-chain integrity (Lesson 0012's poisoned updates enter here), and support lifetime — buying near end-of-life is buying future EOL. The shredder receipt and the data-retention rule belong to other parts of the lifecycle.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>Retired finance-server drives, unclassified but sensitive. Two proposals: purge them and donate the machines to a school, or clear them and reuse them as internal test boxes. Both are defensible — which is the better pairing of method to destination?</h3>
+<button class="opt">Clear, then donate to the school</button><button class="opt">Purge, then reuse as test boxes</button><button class="opt">Purge, then donate to the school</button><button class="opt">Erase, then donate to the school</button>
+<div class="fb"><b>Purge, then donate to the school.</b> The destination rule: media leaving custody with sensitive data needs purge or better — clear's "recoverable in a laboratory" is an in-org courtesy, not an external guarantee. The defensible near miss: purging for internal reuse is safe but spends effort the destination does not require. The wrong-but-tempting option: clearing before donation leaves data a motivated party could recover.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7 <span class="hard">MULTI-HOP</span></p>
+<h3>A disposal vendor shreds the drives and returns a signed, dated record itemizing every serial number destroyed. In Lesson 0001's categories and types, what is that certificate?</h3>
+<button class="opt">Technical and preventive</button><button class="opt">Managerial and detective</button><button class="opt">Physical and deterrent</button><button class="opt">Operational and corrective</button>
+<div class="fb"><b>Managerial and detective.</b> The certificate is proof, not protection — a document that records what happened, discoverable in a later audit. Managerial (documents and process) with detective's job (discover and record). The shredding itself was physical; the paper trail is what the exam is pointing at.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>Lesson 0019's retention policy expires for a batch of records: paper reports plus solid-state drives. Which disposal pairing fits both media?</h3>
+<button class="opt">Degauss both, then recycle</button><button class="opt">Clear the SSDs, shred the paper</button><button class="opt">Shred the paper, destroy the SSDs</button><button class="opt">Crypto-erase, then donate both</button>
+<div class="fb"><b>Shred the paper, destroy the SSDs.</b> Retention end means secure destruction (Lesson 0019). Paper shreds or incinerates; SSDs need physical destruction because wear-leveling hides sectors from overwriters and degaussers do nothing without a magnetic surface. Expired-and-expiring data gets the highest rung its media allows.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/asset-management-sy0-701/">Professor Messer 4.2 — Asset Management (8:37)</a>. Gibson Domain 4: asset management and data disposal sections, plus end-of-chapter questions. Skim Lesson 0019's retention entry for five minutes first — disposal is where retention ends.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time — and say whether <b>W1 came out clean</b> (the anchor is printed above it on purpose; the uncued rep follows in 0023). The week-3 review is close on the schedule: measured boot and the site family are queued to graduate, and the three repair phrases come due. Anything unclear about the sanitization ladder is worth asking now — it returns in the Domain 4/5 questions.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Objective 4.3 — vulnerability management: scanning, threat intelligence, penetration testing, and remediation. Objective 4.2 closes here. · <a href="0021-wireless-mobile.html">Lesson 0021</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 4.2); Professor Messer SY0-701 section 4.2; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["sae", "simultaneous authentication of equals"], ok: "SAE — simultaneous authentication of equals. The WPA3 handshake whose capture is worthless offline: capture is not crack, and every session gets fresh keys. On-path relay is defeated by mutual authentication — certificates, EAP — never by handshake hardness. Uncued rep in 0023." },
+  wu2: { v: ["enterprise"], ok: "Enterprise — the 802.1X mode where each user authenticates individually to a RADIUS server. Per-user identity, per-user revocation, central accounting. Personal is the one-shared-passphrase twin. (Lesson 0021.)" },
+  wu3: { v: ["screened subnet", "screened"], ok: "Screened subnet — the DMZ's SY0-701 name: public services between an outer and inner filter, so a breach exposes the service, not the internal network. (Lesson 0018.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>

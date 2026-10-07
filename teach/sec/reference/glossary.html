@@ -39,6 +39,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Only approved applications may run — execution is default-deny. The exam's strongest answer against malware installation and unauthorized tooling. <span class="ex">A kiosk locked to two vendor-approved apps.</span></dd>
 <dt>Asymmetric encryption</dt>
 <dd>Encryption with a key pair: a public key shared with the world and a private key that never leaves its owner. Public encrypts → private decrypts (confidentiality); private signs → public verifies (signatures). <span class="ex">RSA, ECC.</span></dd>
+<dt>Asset inventory</dt>
+<dd>The authoritative list of every asset — owner, location, classification, lifecycle state — kept true by tracking and discovery. You cannot protect what you cannot name; the undocumented asset is unprotected by definition.</dd>
 <dt>Attack surface</dt>
 <dd>The sum of every point an attacker could reach and try — open ports, applications, devices, removable media, and people. Reduced, never eliminated: close ports, retire legacy systems, train staff.</dd>
 <dt>Attack vector</dt>
@@ -67,6 +69,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A fleet of compromised machines remotely controlled in unison — rented out for denial-of-service, spam, or mining. Each member machine is a zombie.</dd>
 <dt>Buffer overflow</dt>
 <dd>Input exceeds the memory allocated to hold it, overwriting adjacent memory — crash, or attacker-chosen code execution. The natural habitat is old C code; the fix is patching and memory-safe languages.</dd>
+<dt>BYOD / COPE / corporate-owned</dt>
+<dd>Three ownership models for phones. BYOD (bring your own device): the employee's phone, work confined to a managed container. COPE (corporate-owned, personally enabled): the company's phone, personal use allowed. Corporate-owned: the company's phone, full stop — the defense default, maximum wipe rights.</dd>
 <dt>Business email compromise (BEC)</dt>
 <dd>Impersonating an executive or vendor over email — often from a look-alike domain — to redirect a payment. The message vector with the authority and urgency levers pulled at once.</dd>
 </dl>
@@ -75,10 +79,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Capacity planning</dt>
 <dd>Sizing people, technology, and infrastructure for peak demand, not average. Spare capacity is also what absorbs a failure — it runs with resiliency.</dd>
+<dt>Captive portal</dt>
+<dd>A web page that asks who you are before granting network access. Acceptance, not authentication — fine for guest Wi-Fi, useless where identity must be proven.</dd>
 <dt>Certificate (digital)</dt>
 <dd>A document binding a public key to an identity, signed by a certificate authority. The unit of trust in PKI.</dd>
 <dt>Certificate authority (CA)</dt>
 <dd>The trusted issuer that verifies identity and signs certificates. A root CA's certificate is pre-installed in browsers and operating systems — trusted because it is already there.</dd>
+<dt>Certificate of destruction</dt>
+<dd>The disposal vendor's signed, itemized record that named media were destroyed. Proof, not protection — a managerial control closing the audit chain from sanitization to disposal.</dd>
 <dt>Certificate signing request (CSR)</dt>
 <dd>The application for a certificate: your public key plus identity details, sent to a CA for signing.</dd>
 <dt>Chain of trust</dt>
@@ -105,6 +113,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A substitute control used when the ideal control is not possible. <span class="ex">An encrypted VPN instead of an expensive private circuit.</span></dd>
 <dt>Confidentiality</dt>
 <dd>Only approved people can read the data. <span class="ex">Encryption and access controls defend it; a stolen customer list harms it.</span></dd>
+<dt>Containerization (mobile)</dt>
+<dd>Work apps and work data sealed in their own sandbox on a personal phone. The MAM enforcement line: the container is managed and remotely erasable; the rest of the phone is not.</dd>
 <dt>Control plane</dt>
 <dd>The zero trust brain: where access decisions are made. Users never touch it.</dd>
 <dt>Corrective control (type)</dt>
@@ -135,6 +145,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>At rest: on storage — protect with encryption. In transit: crossing the network — protect with TLS or a VPN. In use: in memory, being processed — protect with secure enclaves. The exam's tell: where is the data at the moment the question describes?</dd>
 <dt>Deauthentication attack</dt>
 <dd>Forcing wireless clients off the network — often to capture the reconnect handshake, or to herd victims toward an evil twin.</dd>
+<dt>Degausser</dt>
+<dd>A magnetic field strong enough to erase a drive completely — data, servo tracks, firmware. Magnetic media only (hard disks, tape); useless on solid-state drives; the drive is dead afterward. Purging by execution.</dd>
 <dt>Denial of service (DoS / DDoS)</dt>
 <dd>Flooding or exhausting a service until it cannot answer. Distributed (DDoS) = the flood comes from many machines at once, usually a rented botnet. Availability attacks by definition.</dd>
 <dt>Deterrent control (type)</dt>
@@ -181,10 +193,14 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Malware that runs entirely in memory, inside legitimate processes — nothing on disk to scan. Enabled by memory injection; clears on reboot, returns on re-infection.</dd>
 <dt>Forward proxy</dt>
 <dd>Intermediary for internal users going <em>out</em> — filters, caches, hides the clients. Direction decides the name: serves the users, faces the internet.</dd>
+<dt>Full device encryption</dt>
+<dd>Everything on the device is ciphertext at rest, keyed to the unlock. The lost-phone answer for <em>reading</em> the data; remote wipe is the answer for removing it.</dd>
 </dl>
 
 <h2 id="g">G</h2>
 <dl>
+<dt>Geofencing</dt>
+<dd>Policy tied to location — a capability granted or denied based on where the device physically is. <span class="ex">The camera works everywhere except inside the building.</span></dd>
 <dt>Geolocation restriction</dt>
 <dd>Data may live only in approved physical locations. The enforcement mechanism under data sovereignty.</dd>
 <dt>Geographic dispersal</dt>
@@ -201,6 +217,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A baseline baked into a ready-to-deploy template — patched, minimal, locked down. Every new machine starts hardened, never default. <span class="ex">A golden virtual machine image built in CI.</span></dd>
 <dt>Hash (hashing)</dt>
 <dd>A one-way, fixed-length fingerprint of any input. Same input, same fingerprint; one changed character, completely different fingerprint; cannot be reversed. The integrity tool. <span class="ex">SHA-256.</span></dd>
+<dt>Heat map</dt>
+<dd>The site survey's output: signal strength drawn over the floor plan. Coverage, interference, and channel overlap made visible.</dd>
 <dt>Honeyfile</dt>
 <dd>A decoy document that trips an alert when opened. <span class="ex">A planted "salaries.xlsx."</span></dd>
 <dt>Honeynet</dt>
@@ -273,6 +291,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Maintenance window</dt>
 <dd>A pre-agreed, low-usage time slot in which changes are implemented, so disruption harms the fewest users. Protects availability.</dd>
+<dt>Media sanitization (erase / clear / purge / destroy)</dt>
+<dd>The four-rung ladder. <b>Erase</b>: pointers removed, data remains. <b>Clear</b>: every sector overwritten — recoverable only in a laboratory, fit for in-org reuse. <b>Purge</b>: degauss or crypto-erase — effectively unrecoverable, fit for leaving custody. <b>Destroy</b>: shred, incinerate, pulverize — the only rung for classified data. Classification picks the rung; destination confirms it.</dd>
 <dt>Mean time between failures (MTBF)</dt>
 <dd>Average time a component runs before it fails. Measures the equipment's reliability — set by purchasing and design, not by operations.</dd>
 <dt>Mean time to repair (MTTR)</dt>
@@ -285,6 +305,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The self-inflicted vulnerability category: open storage buckets, default credentials, permissive rules. The most common breach source — and the exam's answer to "most common."</dd>
 <dt>Memory injection (DLL / process injection)</dt>
 <dd>Pushing malicious code into a running process's memory so it wears a legitimate process's name. Nothing is written to disk — the enabler of fileless malware.</dd>
+<dt>Mobile device management (MDM / MAM / UEM)</dt>
+<dd>Three management scopes. Mobile device management (MDM): the whole device. Mobile application management (MAM): work applications only — the BYOD fit. Unified endpoint management (UEM): every endpoint from one console.</dd>
 <dt>Mobile site</dt>
 <dd>A recovery site on a trailer, towed to where it is needed. Days to operate; situational cost.</dd>
 </dl>
@@ -363,6 +385,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>How much <b>downtime</b> the business can afford. Sets redundancy and site choice: a one-week RTO rules out paying for a hot site. The downtime twin of RPO.</dd>
 <dt>Replay attack</dt>
 <dd>Capturing valid traffic or credentials and re-sending them later — the server cannot tell old from new. Defeated by timestamps and nonces.</dd>
+<dt>Remote wipe</dt>
+<dd>Erase command delivered over the air — the whole device, or just the work container under MAM. The lost-device answer paired with full-device encryption.</dd>
 <dt>Replication (storage)</dt>
 <dd>A live, continuous copy at a second site — near-zero data loss. But it replicates corruption and ransomware with the same speed. A backup is a protected, independent copy; replication is not.</dd>
 <dt>Resting memory reboots</dt>
@@ -415,6 +439,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
 <dt>Sideloading</dt>
 <dd>Installing applications from outside the vendor's official store — bypassing the store's review. The installation act itself; jailbreaking or rooting is what strips the controls that forbid it.</dd>
+<dt>Site survey</dt>
+<dd>Walking the facility measuring coverage, interference, and channel overlap before and after deployment. Its security byproduct: rogue access points standing where none should be.</dd>
 <dt>Snapshot</dt>
 <dd>A point-in-time marker on the same storage — instant rollback, but not an independent copy. The array dies, the snapshot dies with it.</dd>
 <dt>Smishing</dt>
@@ -479,6 +505,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="v">V</h2>
 <dl>
+<dt>Vendor evaluation</dt>
+<dd>Vetting a vendor before purchase: breach history, patch cadence, supply-chain integrity, support lifetime. Buying near end-of-life is buying future EOL. Security decided at procurement, not after.</dd>
 <dt>Virtual machine escape</dt>
 <dd>A guest virtual machine breaks out of its hypervisor and reaches the host — and every sibling VM. The active break; resource reuse is the passive leak.</dd>
 <dt>Virus</dt>
@@ -499,6 +527,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Spear phishing aimed at executives — the CFO wire-fraud profile. Research depth and authority themes are the tells.</dd>
 <dt>Worm</dt>
 <dd>Malware that self-propagates over the network — no host file, no user action. Speed is its signature: whole subnets in an hour.</dd>
+<dt>WPA2 vs. WPA3</dt>
+<dd>Wi-Fi protection generations. WPA2: AES with a shared-key handshake that can be captured and attacked offline. WPA3: SAE (simultaneous authentication of equals) — the captured exchange cannot be cracked offline, and each session's keys are fresh. Both come in <b>Personal</b> (one shared passphrase) and <b>Enterprise</b> (per-user identity via 802.1X and RADIUS) modes.</dd>
 </dl>
 
 <h2 id="z">Z</h2>
