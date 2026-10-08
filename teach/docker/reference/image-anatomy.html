@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Anatomy — Layers, Tags, Digests — Reference</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.2rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.3rem; line-height: 1.15; }
+  .sub { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 2.4rem 0 0.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; margin-right: 0.5rem; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.85em; }
+  pre { background: var(--code-bg); padding: 1rem 1.2rem; border-radius: 5px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; }
+  pre .cm { color: #7a7a6e; } /* comment */
+  pre .hl { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.45rem 0.6rem 0.45rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: 0.5rem 0.6rem 0.5rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; }
+  .stack { max-width: 480px; margin: 1.2rem 0 0.4rem; }
+  .lay { border: 1.5px solid var(--ink); border-radius: 6px; padding: 0.4rem 0.85rem; margin-top: -1.5px; background: #fff; font-family: "SF Mono", Menlo, monospace; font-size: 0.72rem; display: flex; justify-content: space-between; gap: 1rem; }
+  .lay small { color: var(--faint); white-space: nowrap; }
+  .lay.cfg { border-style: dotted; background: var(--code-bg); }
+  .lay.rw { border-style: dashed; border-color: var(--accent); color: var(--accent); }
+  .cap { font-size: 0.85rem; color: var(--faint); font-style: italic; margin: 0.6rem 0 0; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.5rem 0; }
+  .back { font-size: 0.85rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; color: var(--faint); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  @media print {
+    .page { padding: 0.5in 0.5in; max-width: none; }
+    body { font-size: 11pt; }
+    .back { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Reference · Docker Fundamentals</div>
+  <h1>Image Anatomy — Layers, Tags, Digests</h1>
+  <p class="sub">What an image is made of, how it's named, and which names you can trust.</p>
+</header>
+
+<h2><span class="no">01</span>The image in one line</h2>
+<p>An <strong>image</strong> is an ordered stack of <strong>read-only layer diffs</strong> plus a small <strong>config blob</strong> (entrypoint, env, exposed ports), everything named by <code>sha256:</code> content digest. The container's private <strong>writable layer</strong> is added at run time and is <em>not</em> part of the image.</p>
+
+<div class="stack">
+  <div class="lay cfg">config — CMD, EXPOSE, ENV<small>0 B</small></div>
+  <div class="lay">layer 4 — + nginx config, scripts<small>4.6 kB</small></div>
+  <div class="lay">layer 3 — + apt-get install nginx<small>61 MB</small></div>
+  <div class="lay">layer 2 — + Debian base filesystem<small>74 MB</small></div>
+  <div class="lay rw">writable layer (container's, not the image's)<small>runtime</small></div>
+</div>
+<p class="cap">Stacked diffs reconstruct the filesystem. Metadata instructions create no layer — that's the 0 B rows in <code>history</code>.</p>
+
+<h2><span class="no">02</span>The name has five parts</h2>
+<pre><span class="hl">ghcr.io</span>/<span class="hl">weaveworks</span>/<span class="hl">flagger</span>:<span class="hl">1.28.0</span>@<span class="hl">sha256:9c3f…</span>   <span class="cm"># the whole anatomy</span>
+
+docker pull nginx   <span class="cm"># secretly means…</span>
+docker pull docker.io/library/nginx:latest</pre>
+<table>
+  <tr><th>part</th><th>meaning</th><th>if omitted</th></tr>
+  <tr><td>registry</td><td>who stores and serves it</td><td><code>docker.io</code> (Docker Hub)</td></tr>
+  <tr><td>namespace</td><td>owner — user or org</td><td><code>library</code> (official images)</td></tr>
+  <tr><td>repo</td><td>the image name proper</td><td>required</td></tr>
+  <tr><td>tag</td><td>movable version label</td><td><code>latest</code> (just the default name)</td></tr>
+  <tr><td>@digest</td><td>exact content fingerprint</td><td>you get whatever the tag points at today</td></tr>
+</table>
+
+<div class="note">
+  <strong>Tag ≠ version control.</strong> A tag is a pointer the publisher can re-point at any time; <code>latest</code> guarantees nothing about age. A digest (<code>@sha256:…</code>) is computed from the bytes — same digest, same layers, forever. <strong>Production pins digests or exact version tags.</strong>
+</div>
+
+<h2><span class="no">03</span>Layer rules that matter</h2>
+<ul>
+  <li><strong>Content-addressed:</strong> a layer's true name is its <code>sha256</code> digest — identical bytes, identical ID.</li>
+  <li><strong>Shared across images:</strong> images on the same base store the base layers once. <code>Already exists</code> during a pull = you already have those bytes.</li>
+  <li><strong>Pull = manifest, then missing layers:</strong> the registry hands over a JSON list of layer digests; the client downloads only what it lacks, verifying each against its digest.</li>
+  <li><strong><code>tag</code> is free:</strong> it pins another label onto the same layers — no copy. Two tags, one IMAGE ID.</li>
+  <li><strong><code>rmi</code> removes references:</strong> prints <code>Untagged:</code> for labels; layer bytes are deleted only when the last reference goes.</li>
+</ul>
+
+<h2><span class="no">04</span>Commands</h2>
+<table>
+  <tr><th>command</th><th>what it shows / does</th></tr>
+  <tr><td>docker images</td><td>Local images: repo, tag, IMAGE ID (config digest, short), size. Same ID on two rows = same image, two labels.</td></tr>
+  <tr><td>docker image history IMAGE</td><td>The layers + metadata rows, newest first — the build's birth certificate. <code>0 B</code> rows changed config, not files.</td></tr>
+  <tr><td>docker image inspect IMAGE</td><td>Full JSON. Useful fields: <code>.Id</code> (config digest), <code>.RepoDigests</code> (the registry's content pin), <code>.RootFS.Layers</code> (ordered layer digests).</td></tr>
+  <tr><td>docker tag SRC NEW</td><td>Add a label. Zero bytes copied.</td></tr>
+  <tr><td>docker rmi REF</td><td>Remove a reference. <code>Untagged:</code> = label gone, layers kept while referenced.</td></tr>
+</table>
+
+<h2><span class="no">05</span>Worth taping to the wall</h2>
+<ul>
+  <li>The image is a <em>manifest</em>: a config blob plus an ordered list of layer digests. No magic — checksums in JSON.</li>
+  <li><code>IMAGE ID</code> (from <code>docker images</code>) is the config digest. The <em>content</em> pin is <code>RepoDigests</code> — use <code>image@sha256:…</code> to re-pull the exact same thing in 2030.</li>
+  <li>Small images = fewer/smaller layers (fewer diffs, slimmer base). How to get there: Module 3, Dockerfile optimization.</li>
+  <li>"Just re-pull <code>latest</code>" is how a Tuesday becomes an incident.</li>
+</ul>
+
+<p class="back">Companion to <a href="../lessons/0002-the-anatomy-of-an-image.html">Lesson 0002 — The Anatomy of an Image</a> · See also <a href="docker-core-commands.html">Core Commands &amp; The Lifecycle</a> · Sources: <a href="https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/what-is-an-image/">Docker docs: What is an image?</a>, <a href="https://docs.docker.com/get-started/docker-concepts/building-images/build-tag-and-publish-an-image/">Docker docs: Build, tag, and publish an image</a></p>
+
+</div>
+</body>
+</html>

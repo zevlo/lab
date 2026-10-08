@@ -13,8 +13,10 @@
 - Teaching implication: hands-on lessons must note that container processes run inside OrbStack's Linux VM and are not visible in macOS `ps` output
 
 ## Teaching preferences
-- (none recorded yet — ask occasionally what's working and what isn't)
+- No "Why this lesson" mission-callout boxes in lessons — user had the block removed from 0001 (2026-10-08). Keep mission ties inline in prose instead.
+- (ask occasionally what's working and what isn't)
 
 ## Session log
 - Session 1 (2026-10-05): Mission interview conducted. Workspace initialized. Lesson 0001 (image vs container mental model) created and opened. Prior experience recorded as LR-0001.
 - Session 2 (2026-10-05): Reconfirmed: lessons must run hands-on against Mac + OrbStack. Daemon verified running. Lesson 0001 (re)opened for the user.
+- Session 3 (2026-10-08): Lesson 0001 quiz aced 4/4 first pass (LR-0002). Mission callout box removed from 0001 on request (recorded as preference). Lesson 0002 (image anatomy: layers, tags, digests) + reference/image-anatomy.html created; lesson opened.
