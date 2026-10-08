@@ -69,6 +69,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A fleet of compromised machines remotely controlled in unison — rented out for denial-of-service, spam, or mining. Each member machine is a zombie.</dd>
 <dt>Buffer overflow</dt>
 <dd>Input exceeds the memory allocated to hold it, overwriting adjacent memory — crash, or attacker-chosen code execution. The natural habitat is old C code; the fix is patching and memory-safe languages.</dd>
+<dt>Bug bounty</dt>
+<dd>A formal vendor program that pays for verified vulnerability reports — responsible disclosure with a paycheck. Turns the world's researchers into an extended security team.</dd>
 <dt>BYOD / COPE / corporate-owned</dt>
 <dd>Three ownership models for phones. BYOD (bring your own device): the employee's phone, work confined to a managed container. COPE (corporate-owned, personally enabled): the company's phone, personal use allowed. Corporate-owned: the company's phone, full stop — the defense default, maximum wipe rights.</dd>
 <dt>Business email compromise (BEC)</dt>
@@ -119,12 +121,18 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>The zero trust brain: where access decisions are made. Users never touch it.</dd>
 <dt>Corrective control (type)</dt>
 <dd>A control that repairs damage after an incident. <span class="ex">Restoring from backup; applying an emergency patch; a rollback plan.</span></dd>
+<dt>Credentialed vs. non-credentialed scan</dt>
+<dd>Logged in versus locked out. A credentialed scan reads installed versions and configurations directly — deeper, more accurate. Non-credentialed sees the attacker's outside view — shallower, more false positives. The exam's tell: the scanner authenticating to hosts.</dd>
 <dt>Certificate revocation list (CRL)</dt>
 <dd>The CA's published list of revoked certificate serial numbers. Can be large and goes stale between downloads.</dd>
 <dt>Cryptojacking</dt>
 <dd>Unauthorized cryptocurrency mining on someone else's hardware. Signature indicator: sustained resource consumption against baseline.</dd>
 <dt>Cross-site scripting (XSS)</dt>
 <dd>Untrusted input becomes part of a web page shown to other users, running attacker script in their browsers. Client-side: the visitors are the victims. Fixed by output encoding — render user content as text, never markup.</dd>
+<dt>CVE (Common Vulnerabilities and Exposures)</dt>
+<dd>The public catalog of named, disclosed vulnerabilities — CVE-YYYY-number. The name: everyone discussing "that TLS flaw" means the same entry. Where the name gets its number is NVD, the National Vulnerability Database.</dd>
+<dt>CVSS (Common Vulnerability Scoring System)</dt>
+<dd>The standardized 0–10 severity score for a vulnerability — attack vector, complexity, privileges required, impact. How bad the flaw could be; 9.0+ is critical. Says nothing about your network: exposure and asset value do the rest.</dd>
 </dl>
 
 <h2 id="d">D</h2>
@@ -189,12 +197,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Fail-open vs. fail-close</dt>
 <dd>What a dead inline security device does with traffic. Fail-open passes everything — availability first. Fail-close drops everything — security first. Defense networks choose close. <span class="ex">An IPS that loses power.</span></dd>
+<dt>False positive</dt>
+<dd>Flagged, but not real — the scanner guessed wrong. Wastes effort until validated; the cure is validation before remediation. Its mirror, the false negative, is the dangerous one: a real weakness never flagged.</dd>
 <dt>Fileless malware</dt>
 <dd>Malware that runs entirely in memory, inside legitimate processes — nothing on disk to scan. Enabled by memory injection; clears on reboot, returns on re-infection.</dd>
 <dt>Forward proxy</dt>
 <dd>Intermediary for internal users going <em>out</em> — filters, caches, hides the clients. Direction decides the name: serves the users, faces the internet.</dd>
 <dt>Full device encryption</dt>
 <dd>Everything on the device is ciphertext at rest, keyed to the unlock. The lost-phone answer for <em>reading</em> the data; remote wipe is the answer for removing it.</dd>
+<dt>Fuzzing</dt>
+<dd>Feeding a program random and malformed input — mutated copies of known-bad shapes — while watching for crashes. Automated chaos that finds what test suites never imagined: the input family's cousins.</dd>
 </dl>
 
 <h2 id="g">G</h2>
@@ -237,6 +249,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Port-level authentication: the switch forwards nothing until the connecting device proves its identity via EAP. Identity before connectivity — zero trust applied to the physical jack.</dd>
 <dt>Impersonation</dt>
 <dd>Posing as a person or brand the target trusts — a recruiter, a bank, a vendor. Works with a pretext (the story) and against the familiarity lever.</dd>
+<dt>Information sharing and analysis center (ISAC)</dt>
+<dd>Sector peers — finance, health, government, defense — sharing incident signatures and attacker tradecraft under trusted-sharing rules. Real attacks, seen by real victims, hours old. Distinct from a bug bounty: victims sharing what happened, not vendors paying for flaws.</dd>
 <dt>Immutable backup</dt>
 <dd>A copy that cannot be changed or deleted for a set period — write once, read many (WORM), object lock. Ransomware holding admin credentials still cannot touch it.</dd>
 <dt>Immutable systems</dt>
@@ -335,6 +349,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Positioned between client and server, reading and altering both directions (formerly man-in-the-middle). Needs no malware on either endpoint — position is the whole attack.</dd>
 <dt>Organized crime actor</dt>
 <dd>Professional crews whose motive is profit: ransomware, phishing, fraud — run like a business, down to payment support portals.</dd>
+<dt>OSINT (open-source intelligence)</dt>
+<dd>Intelligence gathered from everything public: registries, job posts, DNS, social media, leak dumps. Free and legal — for defenders and attackers alike. In a pentest it is passive reconnaissance: learning without touching.</dd>
 </dl>
 
 <h2 id="p">P</h2>
@@ -347,8 +363,12 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Signing in with passkeys, biometrics, or a device instead of a password. No shared secret exists — nothing to spray, crack, or phish. Kills password attacks at the root.</dd>
 <dt>Patch management</dt>
 <dd>The process behind patches: evaluate, test, schedule, deploy, verify. Automated patching buys speed at scale; manual patching buys control for the fragile few. End-of-life platforms get neither — isolate or replace.</dd>
+<dt>Penetration test</dt>
+<dd>Authorized attack: prove weaknesses are real by exploiting them, under signed rules of engagement. Reconnaissance, scanning, exploitation, escalation, pivoting, cleanup, report. Find versus prove — the dividing line with a vulnerability scan.</dd>
 <dt>Phishing</dt>
 <dd>A fraudulent lure, usually by email, engineered to harvest credentials or deliver malware. The family ladder: <b>phishing</b> (bulk) → <b>spear phishing</b> (one researched target) → <b>whaling</b> (executives). Siblings: smishing (SMS), vishing (voice).</dd>
+<dt>Pivoting</dt>
+<dd>Using a compromised host as the launchpad into networks it can reach — and the attacker, until then, could not. Segmentation quality gets proven by this, not by diagram.</dd>
 <dt>Policy administrator</dt>
 <dd>The zero trust enforcer: opens and closes the session based on the policy engine's decision.</dd>
 <dt>Policy engine</dt>
@@ -375,6 +395,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Level 0: striping — speed, survives nothing. Level 1: mirroring — survives one disk. Level 5: striping with parity, three or more disks — survives one. Level 6: double parity — survives any two. Level 10: stripes of mirrors — one per pair, sometimes two. <b>RAID is availability, not a backup</b>: it survives disk failure, not fire, theft, or ransomware.</dd>
 <dt>Ransomware</dt>
 <dd>Encrypts or exfiltrates data for extortion, with payment demanded under deadline and a leak site for pressure. Loud by design — an availability attack on the victim's use of their own data.</dd>
+<dt>Red, blue, and purple teams</dt>
+<dd>Red attacks (authorized offense), blue defends (detection and response), purple is the two in one loop — red's findings feeding blue's detections.</dd>
 <dt>Real-time operating system (RTOS)</dt>
 <dd>An operating system that guarantees response deadlines, not just throughput. <span class="ex">Pacemakers, vehicle brakes, industrial actuators.</span></dd>
 <dt>Recovery point objective (RPO)</dt>
@@ -397,12 +419,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Flooding the radio spectrum so wireless stops working at all — a physical-layer availability attack. No exploit, just noise.</dd>
 <dt>Resource reuse</dt>
 <dd>Cloud providers reuse disks and memory across tenants; a prior occupant's data can arrive with the hardware. A passive confidentiality leak — no attack required.</dd>
+<dt>Responsible disclosure</dt>
+<dd>The finder reports a flaw privately and publication waits for the vendor's fix. The ethical default; a bug bounty is the same ethics with a paycheck.</dd>
 <dt>Rollback plan (backout plan)</dt>
 <dd>A tested procedure for restoring the previous state if a change fails. A corrective control. The exam expects every change to carry one.</dd>
 <dt>Rooting</dt>
 <dd>Stripping the vendor's controls on Android devices to gain full administrative access. The Apple sibling is jailbreaking.</dd>
 <dt>Rootkit</dt>
 <dd>Malware at kernel or firmware level that conceals its own presence — process lists, connections, and files show nothing. Deep and persistent hiding; fileless hides in memory, transiently.</dd>
+<dt>Rules of engagement</dt>
+<dd>The signed document defining a penetration test's scope, targets, methods, and timeline. The line between authorized testing and crime: without it, the identical actions are an offense.</dd>
 </dl>
 
 <h2 id="s">S</h2>
@@ -411,6 +437,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Apple's version of the signed boot chain: each boot step checks the next before running it. Secure boot's promise on macOS hardware.</dd>
 <dt>Salt</dt>
 <dd>A random value mixed into a password before hashing, so identical passwords produce different stored hashes and precomputed tables fail.</dd>
+<dt>Scan types (discovery / port / vulnerability / compliance)</dt>
+<dd>Discovery: what exists — hosts and services, the map. Port: what is open per host. Vulnerability: what is weak — versions versus known-flaw catalogs, plus misconfigurations. Compliance: does reality match the benchmark — the baseline audited, pass/fail per rule. Each answers a different question; scenarios name the question.</dd>
 <dt>Sandbox</dt>
 <dd>An isolated environment where code can run without touching production. A testing ground with no blast radius. <span class="ex">A virtual machine that mirrors production.</span></dd>
 <dt>Screened subnet</dt>
@@ -479,6 +507,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Automatically applying and holding a known-good baseline — group policy, mobile device management, STIGs. Blunts misconfiguration and configuration drift.</dd>
 <dt>Telemetry</dt>
 <dd>A steady stream of device behavior and health data — the raw feed that monitoring, alerting, and logging turn into detections. Exists to shrink dwell time.</dd>
+<dt>Threat intelligence</dt>
+<dd>Knowledge about adversaries and their methods, from OSINT, commercial feeds, ISAC sharing, and dark-web monitoring. Raw observation until analysis turns it into prioritized action. What attackers are doing — the question CVSS cannot answer.</dd>
 <dt>Test environment</dt>
 <dd>A copy of production where changes are proven before they are scheduled. The step between approval and the maintenance window.</dd>
 <dt>Threat actor</dt>
@@ -513,6 +543,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Malware that attaches to a host file and spreads when a user runs the carrier. Needs a host and a human — the dividing line against the worm.</dd>
 <dt>Vishing</dt>
 <dd>Phishing delivered by voice call — the attacker phones as IT, a bank, or support and harvests credentials live.</dd>
+<dt>VPR (Vulnerability Priority Rating)</dt>
+<dd>A threat-driven priority score — weighs whether exploitation is actually being observed in the wild. CVSS asks how bad the flaw could be; VPR asks whether anyone is using it.</dd>
+<dt>Vulnerability remediation</dt>
+<dd>The toolbox, in order of preference: patch; if no patch, segment and compensate; insure what remains; and accept only via a documented exception — named owner, justification, expiration date. Undocumented acceptance is not a control.</dd>
 </dl>
 
 <h2 id="w">W</h2>

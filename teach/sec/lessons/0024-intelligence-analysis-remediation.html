@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0024 — Intelligence, Analysis, Remediation</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 4 · Objective 4.3 (part two) · Lesson 24 of ~30 · ~35 minutes</p>
+<h1>Name It, Score It, Fix It</h1>
+<p class="meta">One win today: <b>turn a finding into a decision — score it against what it exposes, then pick the remediation that the situation actually allows.</b> This is 4.3's second half: where intelligence comes from, how CVE and CVSS rank a flaw, and the toolbox that runs from patching to documented exceptions. The week-3 review is next.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Defense networks consume sector threat intelligence through government-coordinated sharing, rank findings by exposure as much as by score, and cannot simply patch an ICS controller or a weapons system — remediation there is segmentation and compensating controls with signed exceptions. The exam's hardest 4.3 questions are exactly that arithmetic.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Three spaced retrievals: two from yesterday's scanning half, one from Domain 1's foundation.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> The scan mode where the scanner logs in and reads exact installed versions and configurations — deeper results, fewer false positives. Type it. (one word)</label><br><input class="txt" id="wu1" style="width:12rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> The pentest phase where the tester uses the first compromised host as a launchpad into subnets they could not reach directly. Type it. (one word)</label><br><input class="txt" id="wu2" style="width:12rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> The architecture philosophy: never trust, always verify — every request authenticates and is authorized, as if the attacker is already inside. Type it. (two words)</label><br><input class="txt" id="wu3" style="width:14rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — Where intelligence comes from</h2>
+<table>
+<tr><th>Source</th><th>What it gives you</th><th>The trade</th></tr>
+<tr><td class="rowhead">OSINT — open-source intelligence</td><td>Everything public: registries, job posts, DNS, social media, leak dumps.</td><td>Free and legal — for the defender and the attacker alike (it is also passive reconnaissance, Lesson 0023).</td></tr>
+<tr><td class="rowhead">Closed and third-party intelligence</td><td>Commercial feeds, reputation lists, curated indicators.</td><td>Costs money; arrives structured and current.</td></tr>
+<tr><td class="rowhead">Information sharing and analysis centers (ISACs)</td><td>Sector peers sharing incident signatures under trust rules — finance, health, government, defense.</td><td>Real attacks, seen by real victims, hours old.</td></tr>
+<tr><td class="rowhead">Dark web monitoring</td><td>What is being sold, planned, or bragged about.</td><td>Signals before the attack, if you can watch safely.</td></tr>
+<tr><td class="rowhead">File and behavior analysis, threat maps</td><td>What the malware does; where campaigns are burning now.</td><td>Raw observation — feeds the analysis half.</td></tr>
+</table>
+
+<h2>Part 2 — Naming and scoring: the analysis half</h2>
+<table>
+<tr><th>System</th><th>What it is</th><th>One-line grip</th></tr>
+<tr><td class="rowhead">CVE — Common Vulnerabilities and Exposures</td><td>The public catalog: every disclosed flaw has a name (CVE-YYYY-number).</td><td>The name. Everyone calls the same flaw the same thing.</td></tr>
+<tr><td class="rowhead">NVD — National Vulnerability Database</td><td>The public repository that carries the scores.</td><td>Where the name gets its number.</td></tr>
+<tr><td class="rowhead">CVSS — Common Vulnerability Scoring System</td><td>A 0–10 severity score from a standard formula: attack vector, complexity, privileges, impact.</td><td>The number. 0.0 low → 9.0+ critical.</td></tr>
+<tr><td class="rowhead">VPR — Vulnerability Priority Rating</td><td>A threat-driven priority score — weighs whether exploitation is actually being seen in the wild.</td><td>The number that asks "is anyone using this?" not just "how bad could it be?"</td></tr>
+</table>
+<p class="meta">CVSS says how bad the flaw <em>could</em> be; VPR weighs what attackers are <em>doing</em> with it. Neither knows your network — that is what prioritization adds.</p>
+
+<h3>What moves a finding up the queue</h3>
+<table>
+<tr><th>Factor</th><th>The question</th></tr>
+<tr><td class="rowhead">Exposure</td><td>Can it be reached? An internet-facing 7.5 outranks a isolated-lab 9.8.</td></tr>
+<tr><td class="rowhead">Asset value</td><td>What does it protect? Crown jewels jump the queue (Lesson 0019's classification).</td></tr>
+<tr><td class="rowhead">Prevalence</td><td>How widely deployed is the flawed component? One host or the whole fleet?</td></tr>
+<tr><td class="rowhead">Risk tolerance</td><td>What has the organization agreed it can carry? The line between "fix" and "accept."</td></tr>
+</table>
+
+<h2>Part 3 — The remediation toolbox</h2>
+<table>
+<tr><th>Tool</th><th>When it fits</th><th>Status</th></tr>
+<tr><td class="rowhead">Patching</td><td>The default. Evaluate, test, schedule, deploy, verify (Lesson 0020).</td><td>Banked.</td></tr>
+<tr><td class="rowhead">Segmentation</td><td>No patch, or patch impossible — shrink what the flaw can reach (Lessons 0015, 0012).</td><td>Banked.</td></tr>
+<tr><td class="rowhead">Compensating controls</td><td>The ideal control is out of reach — substitute something that reduces the risk (Lesson 0001).</td><td>Banked.</td></tr>
+<tr><td class="rowhead">Insurance</td><td>Transfer the financial impact of what remains.</td><td><b>New.</b> It moves cost, not risk.</td></tr>
+<tr><td class="rowhead">Exception</td><td>Formal, documented acceptance — an owner, a justification, and an <b>expiration date</b>.</td><td><b>New.</b> Undocumented acceptance is not a control.</td></tr>
+</table>
+<div class="box">
+<h3>The zero-day run of the ladder</h3>
+<p>Flaw announced, no patch exists (Lesson 0012's zero-day): patch is out → segment and compensate now → patch when it ships → and if none of that is possible in time, the exception paper trail is what keeps the acceptance honest. Scan frequency rides the same logic: the faster threats move (Lesson 0009's feeds), the shorter the cadence — continuous where regulation or risk demands it.</p>
+</div>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Trivy severity badges</td><td>CVSS scores</td></tr>
+<tr><td>Severity-based patch SLAs</td><td>Prioritization by score + exposure</td></tr>
+<tr><td>Risk-acceptance tickets with expiry</td><td>Documented exceptions</td></tr>
+<tr><td>Vendor advisories and mailing lists</td><td>Third-party threat intelligence</td></tr>
+<tr><td>WAF rule as a stopgap for a library flaw</td><td>Compensating control / virtual patch</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">CVE vs. CVSS</td><td>The name versus the number. Catalog entry versus severity score.</td></tr>
+<tr><td class="rowhead">CVSS vs. VPR</td><td>How bad it could be versus whether attackers are using it. Potential versus activity.</td></tr>
+<tr><td class="rowhead">OSINT vs. closed intelligence</td><td>Free and public for everyone versus paid, curated, and structured.</td></tr>
+<tr><td class="rowhead">Segmentation vs. compensating control</td><td>Shrink the reach versus substitute a control. Often deployed together — segmentation is the compensating control of choice.</td></tr>
+<tr><td class="rowhead">Exception vs. neglect</td><td>Documented, owned, expiring versus silent. Paperwork is the difference.</td></tr>
+<tr><td class="rowhead">Bug bounty vs. ISAC</td><td>Vendors paying for flaws in their products versus peers sharing attack signatures across an industry.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1</p>
+<h3>A finding lists "CVE-2026-10432 — CVSS 9.8." What do the identifier and the number each give you?</h3>
+<button class="opt">Both are severity scores</button><button class="opt">A name and a severity score</button><button class="opt">A patch and a target date</button><button class="opt">A vendor and an exploit price</button>
+<div class="fb"><b>A name and a severity score.</b> The CVE identifier is the public catalog's name — everyone discussing "that TLS flaw" means the same entry. The CVSS number (0–10, here critical) is the standardized severity. NVD is where the name carries its number; VPR would ask whether anyone is exploiting it in the wild.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>Before an authorized test begins, an analyst profiles the target entirely from public records, DNS entries, and job postings — the target sees nothing. Which intelligence source, and which Lesson 0023 phase?</h3>
+<button class="opt">OSINT; passive reconnaissance</button><button class="opt">Closed feeds; active scanning</button><button class="opt">Dark web; exploitation</button><button class="opt">An ISAC; pivoting</button>
+<div class="fb"><b>OSINT; passive reconnaissance.</b> Open-source intelligence is everything public — the same library the attacker reads, which is why you read it first. Active reconnaissance probes and leaves footprints; OSINT never touches the target.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 3</p>
+<h3>Defense contractors in the same sector exchange incident signatures and attacker tradecraft hours after detection, under trusted-sharing rules that predate the internet. Which mechanism?</h3>
+<button class="opt">A bug bounty program</button><button class="opt">A vulnerability scan</button><button class="opt">An information sharing and analysis center</button><button class="opt">Full disclosure</button>
+<div class="fb"><b>An information sharing and analysis center (ISAC).</b> Sector peers sharing real attack data under trust rules — finance, health, government, defense. A bug bounty pays for flaws in a vendor's products; an ISAC shares what attackers did to victims.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>Two findings, both CVSS 8.1. One is on an internet-facing server holding customer records (Lesson 0019's classification: restricted). The other is on an isolated test host. Which factor pair correctly sends the first to the top of the queue?</h3>
+<button class="opt">Prevalence and patch level</button><button class="opt">Risk tolerance and cost</button><button class="opt">Scan type and credential age</button><button class="opt">Exposure and asset value</button>
+<div class="fb"><b>Exposure and asset value.</b> The score is identical — what differs is reach (internet-facing versus isolated) and what a compromise costs (restricted customer data versus test data). Prioritization is CVSS multiplied by your network's reality. Prevalence matters when the flawed component is fleet-wide; here the deciding facts are reach and worth.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>Lesson 0012's zero-day arrives: a flaw in an internet-facing service, actively exploited, no patch exists yet. Which pair is the exam's immediate answer?</h3>
+<button class="opt">Segmentation and compensating controls</button><button class="opt">Insurance and exceptions</button><button class="opt">Crypto-erase and media disposal</button><button class="opt">Full disclosure and a bounty</button>
+<div class="fb"><b>Segmentation and compensating controls.</b> With no patch, you shrink the reach and substitute a control — segment the service, filter the exploitation path at the IPS or WAF, watch harder. Insurance and exceptions come later for what remains; patching arrives when the vendor ships it. This is the zero-day run of the ladder.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>A flawed library has no patch and powers a revenue-critical service that cannot be turned off. Two proposals are both defensible: segment the service so only the payment path can reach it, or leave it exposed and add an IPS signature blocking the known exploit patterns. Which is better — and what is the reasoning?</h3>
+<button class="opt">The IPS rule — it is surgical</button><button class="opt">The IPS rule — signatures cover variants</button><button class="opt">Segmentation — it cuts reach regardless of variant</button><button class="opt">Segmentation — it removes the flaw itself</button>
+<div class="fb"><b>Segmentation — it cuts reach regardless of variant.</b> A signature blocks the <em>known</em> exploit patterns; attackers iterate past signatures (and a zero-day has no signature yet). Segmentation reduces what the flaw can reach no matter how it is exploited. The honest framing: both are compensating controls, and the strongest answer deploys both — segmentation first. Note what segmentation does <em>not</em> do: the flaw itself remains until patched.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7</p>
+<h3>A manager says "that old server stays as it is" — but formally: a written justification, a named owner, an approved risk acceptance, and a date it expires. What is this called?</h3>
+<button class="opt">A compensating control</button><button class="opt">A documented exception</button><button class="opt">A rollback plan</button><button class="opt">A maintenance window</button>
+<div class="fb"><b>A documented exception.</b> Acceptance made honest by paperwork: owner, justification, approval, expiration. Lesson 0006's discipline applied to risk — "we'll live with it" is not a control until it is written down and revisited. Compensating controls <em>reduce</em> risk; exceptions <em>record</em> it.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>A critical CVE drops in a logging library deployed on the whole fleet — Lesson 0012's supply-chain pattern again. The organization scans annually. Which failure does the scenario expose, and what changes?</h3>
+<button class="opt">Scan accuracy; move to credentialed scanning</button><button class="opt">Asset inventory; tag the library hosts</button><button class="opt">Patch testing; open a test window</button><button class="opt">Scan frequency; scan continuously or on event</button>
+<div class="fb"><b>Scan frequency; scan continuously or on event.</b> An annual scan is blind for 364 days — supply-chain flaws burn in hours, so cadence must match threat speed: continuous monitoring, event-triggered scans on new advisories, plus regulatory minimums. Credentialed accuracy and inventory truth matter, but the gap here is time: the finding arrives eleven months late.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/threat-intelligence-sy0-701/">Professor Messer 4.3 — Threat Intelligence (4:46)</a>, <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/analyzing-vulnerabilities-sy0-701/">Analyzing Vulnerabilities (10:29)</a>, and <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/vulnerability-remediation-sy0-701/">Vulnerability Remediation (8:45)</a>. That closes 4.3's video set. Gibson Domain 4: the vulnerability analysis sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time. The next session is the <b>week-3 mixed review</b> — no-cue, timed, with a performance station: everything from Domains 1–4 so far, and graduations for measured boot, the site family, and SAE, plus the three repair phrases and vertical/horizontal coming due. Come to it rested.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0025 — the week-3 mixed review: no-cue items across Domains 1–4, timed, with a performance station. Graduation day for measured boot, the site family, and SAE. Objective 4.3 closes here — Domain 4 is nearly half banked. · <a href="0023-scanning-and-testing.html">Lesson 0023</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 4.3); Professor Messer SY0-701 section 4.3; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["credentialed", "a credentialed scan", "credentialed scan"], ok: "Credentialed — the scanner logs in and reads installed versions and configurations directly: deeper findings, fewer false positives. Non-credentialed gives the attacker's outside view. (Lesson 0023.)" },
+  wu2: { v: ["pivoting", "pivot"], ok: "Pivoting — the compromised host becomes the launchpad into networks it can reach and the tester could not. The reason segmentation gets proven by testing, not diagrams. (Lesson 0023.)" },
+  wu3: { v: ["zero trust", "zerotrust"], ok: "Zero trust — never trust, always verify. Every request authenticates and is authorized; design as if the attacker is already inside. Its goal-word pair: threat scope reduction. (Lesson 0003, reinforced throughout.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
