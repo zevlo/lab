@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0023 — Scanning and Testing</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 4 · Objective 4.3 (part one) · Lesson 23 of ~30 · ~35 minutes</p>
+<h1>Find It, Then Prove It</h1>
+<p class="meta">One win today: <b>name the right scan for the question being asked — and walk a penetration test through its phases without skipping authorization.</b> This is 4.3's scanning half: scan types, credentialed versus not, false positives, fuzzing, and the pentest lifecycle. The intelligence, scoring, and remediation half is Lesson 0024.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>Defense networks are scanned on a schedule by directive — compliance scans against STIGs, vulnerability scans feeding a rolling risk list — and penetration testing happens only under signed rules of engagement. The line between authorized testing and a federal crime is a document. The exam's 4.3 questions sit exactly on that line.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Three spaced retrievals: W1 is the SAE reframe, uncued this time — no anchor is printed. A clean pass sends it to graduation at the week-3 review.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> Name the WPA3 handshake: capture the whole exchange and it still cannot be cracked offline, and every session gets fresh keys. Type the acronym. (three letters)</label><br><input class="txt" id="wu1" style="width:10rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> The sanitization rung for media leaving your custody with sensitive data — degauss or crypto-erase, effectively unrecoverable. Type it. (one word)</label><br><input class="txt" id="wu2" style="width:10rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> The replay-family attack that sends a captured hash directly as authentication evidence — no password cracking needed. Type it. (three words, hyphenated)</label><br><input class="txt" id="wu3" style="width:14rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The scanning toolkit</h2>
+<table>
+<tr><th>Scan</th><th>The question it answers</th><th>Output</th></tr>
+<tr><td class="rowhead">Discovery scan</td><td>What exists? Hosts, addresses, services.</td><td>The map — including the asset inventory's missing members (Lesson 0022).</td></tr>
+<tr><td class="rowhead">Port scan</td><td>What is open on each host?</td><td>Open doors per machine.</td></tr>
+<tr><td class="rowhead">Vulnerability scan</td><td>What is weak? Versions compared against the public catalogs of named flaws (CVE — Common Vulnerabilities and Exposures), plus misconfigurations.</td><td>A ranked list of findings.</td></tr>
+<tr><td class="rowhead">Compliance scan</td><td>Does reality match the benchmark — a STIG or CIS baseline?</td><td>Pass/fail per configuration rule (Lesson 0020's baseline, audited).</td></tr>
+<tr><td class="rowhead">Stealth scan</td><td>Can the scan itself stay unnoticed? Half-open connections that never complete.</td><td>The same answers, quietly.</td></tr>
+</table>
+
+<h3>Credentialed or not — the big discriminator</h3>
+<table>
+<tr><th>Mode</th><th>What it sees</th><th>The trade</th></tr>
+<tr><td class="rowhead">Non-credentialed</td><td>The outside view — what an attacker without a login sees.</td><td>Guessing from the outside: more false positives, shallower findings.</td></tr>
+<tr><td class="rowhead">Credentialed</td><td>The scanner logs in and reads installed software, versions, configurations.</td><td>Deeper and more accurate — the exam's tell is the scanner authenticating to hosts.</td></tr>
+</table>
+
+<h3>Reading the results — the four outcomes</h3>
+<table>
+<tr><th>Outcome</th><th>Meaning</th><th>Why the exam cares</th></tr>
+<tr><td class="rowhead">True positive</td><td>Real weakness, correctly flagged.</td><td>The finding you remediate.</td></tr>
+<tr><td class="rowhead">False positive</td><td>Flagged, but not real.</td><td>The classic scenario: version-detection guesses wrong, analyst validates before acting.</td></tr>
+<tr><td class="rowhead">True negative</td><td>Clean, correctly clean.</td><td>Nothing to do.</td></tr>
+<tr><td class="rowhead">False negative</td><td>Weak, but missed.</td><td>The dangerous one — quiet comfort while exposed.</td></tr>
+</table>
+
+<h3>The testing spectrum — two banked, one new</h3>
+<table>
+<tr><th>Test</th><th>How it works</th><th>Status</th></tr>
+<tr><td class="rowhead">Static analysis (SAST)</td><td>Reads source without running it.</td><td>Banked — Lesson 0020.</td></tr>
+<tr><td class="rowhead">Dynamic analysis (DAST)</td><td>Probes the running application.</td><td>Banked — Lesson 0020.</td></tr>
+<tr><td class="rowhead">Fuzzing</td><td><b>New.</b> Feed the program random and malformed input — mutated copies of known-bad shapes — and watch for crashes.</td><td>The automated hunt for the input family's cousins (Lesson 0011): whatever the test suite never imagined.</td></tr>
+</table>
+
+<h2>Part 2 — Penetration testing: authorized attack</h2>
+<p>The line between a pentest and a crime is written permission. Everything below happens inside <b>rules of engagement</b>: the signed document defining scope, targets, methods, and timeline.</p>
+<table>
+<tr><th>Phase</th><th>What happens</th></tr>
+<tr><td class="rowhead">Reconnaissance</td><td>Learn the target. Passive (OSINT — open-source intelligence, no touching) or active (probing that could be noticed).</td></tr>
+<tr><td class="rowhead">Scanning and enumeration</td><td>Part 1's toolkit, aimed at the scope.</td></tr>
+<tr><td class="rowhead">Exploitation</td><td>Prove a weakness is real by using it.</td></tr>
+<tr><td class="rowhead">Escalation and persistence</td><td>Turn the foothold into privileges; establish a way back.</td></tr>
+<tr><td class="rowhead">Pivoting</td><td>Use the first compromised box as a launchpad into networks it can reach and you could not.</td></tr>
+<tr><td class="rowhead">Cleanup and reporting</td><td>Remove evidence and tools; deliver findings with severity and fixes.</td></tr>
+</table>
+
+<h3>When researchers find flaws</h3>
+<table>
+<tr><th>Path</th><th>The arrangement</th></tr>
+<tr><td class="rowhead">Responsible disclosure</td><td>The finder reports privately; release waits for the vendor's fix. The ethical default.</td></tr>
+<tr><td class="rowhead">Bug bounty</td><td>Responsible disclosure with a paycheck — a formal program paying for verified findings.</td></tr>
+<tr><td class="rowhead">Full disclosure</td><td>Publication regardless — the controversial pressure tactic.</td></tr>
+</table>
+<p class="meta">Team colors: <b>red</b> attacks, <b>blue</b> defends, <b>purple</b> is the two working together — red's findings feeding blue's detections in one loop.</p>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>Trivy/Nessus in the pipeline</td><td>Vulnerability scanning, SAST</td></tr>
+<tr><td>Scheduled STIG/CIS checks</td><td>Compliance scanning</td></tr>
+<tr><td>Pentest vendor's signed scope doc</td><td>Rules of engagement</td></tr>
+<tr><td>Bastion used as an internal foothold</td><td>Pivoting (from the other side)</td></tr>
+<tr><td>Dependency confusion reports</td><td>Responsible disclosure</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">Credentialed vs. non-credentialed</td><td>Logged-in depth versus attacker's-eye breadth. Accuracy versus realism.</td></tr>
+<tr><td class="rowhead">Vulnerability scan vs. pentest</td><td>Find versus prove. Broad, repeatable, automated versus deep, manual, expensive.</td></tr>
+<tr><td class="rowhead">False positive vs. false negative</td><td>Wasted effort versus quiet exposure. The exam validates the first and fears the second.</td></tr>
+<tr><td class="rowhead">Passive vs. active reconnaissance</td><td>Learning without touching versus probing that leaves footprints.</td></tr>
+<tr><td class="rowhead">Fuzzing vs. DAST</td><td>Malformed input hunting for crashes versus structured testing of the running app. Fuzzing is chaos with a purpose.</td></tr>
+<tr><td class="rowhead">Bug bounty vs. responsible disclosure</td><td>The same ethics with different funding — a formal program versus a private report.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1</p>
+<h3>A scanner authenticates to each server with a service account and reads the exact installed versions and configurations before comparing them against known flaws. Which scan mode is this?</h3>
+<button class="opt">A stealth scan</button><button class="opt">A non-credentialed scan</button><button class="opt">A credentialed scan</button><button class="opt">A discovery scan</button>
+<div class="fb"><b>A credentialed scan.</b> Logging in turns guessing into reading: exact versions and settings instead of fingerprints from the outside. The trade: deeper and more accurate, but the scanner now holds credentials worth protecting. Non-credentialed shows the attacker's view — shallower, noisier.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>The scanner flags a library version as vulnerable, but Lesson 0020's patch process had already replaced it — the file name just kept the old version string. What is this finding, and what must happen before anyone remediates?</h3>
+<button class="opt">False positive; validate first</button><button class="opt">True positive; patch tonight</button><button class="opt">False negative; rescan wider</button><button class="opt">True negative; close the ticket</button>
+<div class="fb"><b>False positive; validate first.</b> Flagged but not real — the scanner guessed from the outside (or from a stale string). Acting on unvalidated findings wastes the maintenance window; skipping validation is how noise drowns signal. The mirror danger is the false negative: a real weakness never flagged, quietly exposed.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 3</p>
+<h3>A file parser is fed thousands of mutated, malformed inputs — oversized fields, broken headers, truncated strings — while engineers watch for crashes. Which technique?</h3>
+<button class="opt">Static analysis</button><button class="opt">Fuzzing</button><button class="opt">A port scan</button><button class="opt">Rules of engagement</button>
+<div class="fb"><b>Fuzzing.</b> Automated chaos with a purpose: feed the program inputs no test suite imagined and watch what breaks. It hunts the input family's cousins — Lesson 0011's injection relatives — at the parser level. Static analysis reads source; DAST tests a running app with structured intent.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4 <span class="hard">MULTI-HOP</span></p>
+<h3>A contractor is hired to test a defense network's perimeter. Before any packet is sent, both parties sign a document defining targets, methods, and the testing window. What is the document, and what is it the difference between?</h3>
+<button class="opt">A change request; fast and slow testing</button><button class="opt">A certificate; paid and unpaid findings</button><button class="opt">A baseline; configured and default systems</button><button class="opt">Rules of engagement; authorized and criminal</button>
+<div class="fb"><b>Rules of engagement; authorized and criminal.</b> Written permission with scope, methods, and timeline — without it, the identical actions are a federal offense. The exam pairs 4.3 with exactly this line. (Lesson 0006's change discipline is the sibling: nothing significant happens undocumented.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5</p>
+<h3>During an authorized test, the tester uses a compromised jump host as a launchpad to reach an engineering subnet that was never exposed to the internet. Which phase?</h3>
+<button class="opt">Pivoting</button><button class="opt">Reconnaissance</button><button class="opt">Cleanup</button><button class="opt">Reporting</button>
+<div class="fb"><b>Pivoting.</b> The first box becomes the new attack origin — reaching networks the tester could never touch directly. It is Lesson 0018's jump server viewed from the other side, and the reason segmentation quality gets proven by testing, not by diagram.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>Leadership wants evidence for an annual compliance report: every one of 2,000 hosts checked against a known-flaw catalog, repeatably, with the same evidence next quarter. A penetration test is on the shelf too. Which is the better fit?</h3>
+<button class="opt">A penetration test</button><button class="opt">A credentialed pentest only</button><button class="opt">A recurring vulnerability scan</button><button class="opt">One fuzzing engagement</button>
+<div class="fb"><b>A recurring vulnerability scan.</b> Broad, automated, repeatable, evidence-producing — exactly what compliance needs. The defensible near miss: a pentest proves exploitability in depth, but it is manual, narrow, and different every time — the wrong shape for a repeatable annual control. Find versus prove (Lesson 0022's audit thinking).</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7 <span class="hard">MULTI-HOP</span></p>
+<h3>Every quarter, the team must show each server's configuration matches the organization's STIG-derived known-good state — with pass/fail evidence per rule. Which scan type, and which Lesson 0020 concept does it audit?</h3>
+<button class="opt">A discovery scan; the heat map</button><button class="opt">A compliance scan; the baseline</button><button class="opt">A stealth scan; the rules</button><button class="opt">A port scan; the inventory</button>
+<div class="fb"><b>A compliance scan; the baseline.</b> It measures reality against the benchmark — the baseline configuration from Lesson 0020, now with pass/fail per rule instead of trust. Discovery maps what exists; port scans list doors; neither audits configuration.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>A researcher privately reports a flaw in a vendor's authentication library and waits for the patch before publishing. The vendor runs a formal program that pays for verified findings like this. Name the ethics path and the program type.</h3>
+<button class="opt">Full disclosure; a red team</button><button class="opt">Silent exploitation; a bug bounty</button><button class="opt">Full disclosure; a purple team</button><button class="opt">Responsible disclosure; a bug bounty</button>
+<div class="fb"><b>Responsible disclosure; a bug bounty.</b> Report privately, release after the fix — the ethical default — and the vendor's paid program makes it a bounty. Full disclosure publishes regardless, the pressure tactic. Lesson 0012's supply-chain flaws get patched because this path exists.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/vulnerability-scanning-sy0-701/">Professor Messer 4.3 — Vulnerability Scanning (7:45)</a> and <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/penetration-testing-sy0-701/">Penetration Testing (6:21)</a>. Save the threat-intelligence, analyzing, and remediation videos for Lesson 0024 — they are its half. Gibson Domain 4: vulnerability scanning and penetration testing sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time — and say whether <b>W1 came out clean with no anchor printed</b>. That is SAE's graduation signal: with it, the week-3 review graduates measured boot, the site family, and SAE together. Anything unclear about credentialed scanning or the pentest phases is worth asking now — 0024 builds on both.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Lesson 0024 — 4.3's second half: threat intelligence sources, CVE and CVSS scoring, risk prioritization, and the remediation toolbox. The week-3 mixed review follows close behind, with three graduations queued. · <a href="0022-asset-management.html">Lesson 0022</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 4.3); Professor Messer SY0-701 section 4.3; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["sae", "simultaneous authentication of equals"], ok: "SAE — simultaneous authentication of equals. Capture is not crack: the captured handshake resists offline attack, and every session gets fresh keys. Relay and on-path attacks fall to mutual authentication — certificates, EAP — not to handshake hardness. No anchor was printed — a clean pass graduates SAE at the week-3 review." },
+  wu2: { v: ["purge", "purging"], ok: "Purge — degauss or crypto-erase, effectively unrecoverable, for media leaving custody. Clear stays in-org; destroy is the classified rung. Classification picks the rung; destination confirms it. (Lesson 0022.)" },
+  wu3: { v: ["pass the hash", "pass-the-hash", "passthehash"], ok: "Pass-the-hash — the captured hash replayed as authentication evidence itself. The replay family's credential twin: session hijacking borrows a token; this borrows a hash. (Lesson 0014.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
