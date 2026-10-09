@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0025 — Week 3 Mixed Review</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num, .tq .num, .pbq .num { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .num, .tq .num { color: #0f5c5c; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+.tq, .pbq { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.tq h3, .pbq h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.pbq .num { color: #8a6d2f; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+#score, #pbqscore { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .tq, .pbq, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Week 3 Review · Domains 1–4 · Lesson 25 of ~30 · ~45 minutes</p>
+<h1>Week 3 Mixed Review — Graduation Day</h1>
+<p class="meta">One win today: <b>prove three domains' worth of repair schedules are finished — no cues, no topic labels, exam pace, and construction instead of choosing.</b> Three graduations ride on this lesson: measured boot, the site family, and SAE. The three repair phrases come due in Station 3. A miss is not a shame — it is a new retrieval schedule.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>The exam is booked and close. Four domains of material — controls, cryptography, threats, architecture, operations — now have to answer without a lesson title telling them apart, because exam day mixes everything with everything. Today is the dress rehearsal: act first, choose second, construct what cannot be chosen.</p>
+</div>
+
+<h2>Part 1 — Mixed quiz: 24 questions, timed, three typed</h2>
+<p class="meta"><b>Budget: 24 minutes for 24 questions — the exam's pace.</b> The stopwatch starts at your first answer and stops at your last. Questions 7, 13, and 19 are typed — those are the graduations. The explanation names the lesson only <em>after</em> you answer.<span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 1</p>
+<h3>A payroll clerk's account can suddenly edit everyone's pay rates — same person, far more power. Which direction of escalation?</h3>
+<button class="opt">Horizontal; a peer's level</button><button class="opt">Vertical; beyond own role</button><button class="opt">Lateral; other users' records</button><button class="opt">Scalar; a wider scope</button>
+<div class="fb"><b>Vertical; beyond own role.</b> User rising to admin power. Horizontal is the sideways twin — a user reaching into other users' things at the same level. (Lesson 0014; this pair's scheduled rep.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 2</p>
+<h3>The ideal control — a dedicated private circuit — is unaffordable, so an encrypted VPN over the internet is deployed instead. Which control type?</h3>
+<button class="opt">Detective</button><button class="opt">Corrective</button><button class="opt">Directive</button><button class="opt">Compensating</button>
+<div class="fb"><b>Compensating.</b> The substitute when the ideal control is impossible: reduce the risk with what is achievable. (Lessons 0001, 0007.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 3</p>
+<h3>During the handshake, the server itself hands the client fresh proof that its certificate is still good — the client never queries the certificate authority. Which technique?</h3>
+<button class="opt">OCSP stapling</button><button class="opt">Certificate signing request</button><button class="opt">A certificate revocation list</button><button class="opt">Key escrow</button>
+<div class="fb"><b>OCSP stapling.</b> The server fetches its own status proof and staples it to the handshake — fresh, without every visit leaking a query. (Lesson 0005.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 4</p>
+<h3>"It sits on the internal VLAN, so it must be safe." Which anti-pattern does this sentence name?</h3>
+<button class="opt">Shadow IT</button><button class="opt">Bloatware acceptance</button><button class="opt">An implicit trust zone</button><button class="opt">Default credentials</button>
+<div class="fb"><b>An implicit trust zone.</b> Location granting trust — the exact assumption zero trust exists to eliminate. (Lesson 0003.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 5</p>
+<h3>A cross-team board reviews every proposed modification for risk and impact, and approves or rejects it before scheduling. Which body?</h3>
+<button class="opt">The policy engine</button><button class="opt">The change advisory board</button><button class="opt">The ISAC</button><button class="opt">The incident response team</button>
+<div class="fb"><b>The change advisory board.</b> The checkpoint between "proposed" and "scheduled" — change management's gate. (Lesson 0006.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6</p>
+<h3>A trade forum that defense contractors frequent is infected — no email sent, victims selected purely by community. Which attack, and which actor best fits?</h3>
+<button class="opt">Spear phishing; organized crime</button><button class="opt">Watering hole; hacktivists</button><button class="opt">Watering hole; nation-state</button><button class="opt">Supply chain; script kiddie</button>
+<div class="fb"><b>Watering hole; nation-state.</b> Selection by community suits patient espionage — the victims come to the malware. (Lessons 0008, 0014.)</div>
+</div>
+
+<div class="tq" id="t1">
+<div class="rulerow"><label for="t1i"><span class="num">QUESTION 7 — TYPED (GRADUATION)</span><br><b>Inside the boot family: the trusted platform module writes down a fingerprint of every boot step — detection, never blocking.</b> Type the technique. (two words)</label><br><input class="txt" id="t1i" style="width:16rem"> <button class="check tcheck">Check</button></div>
+<div class="fb"></div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 8</p>
+<h3>"I'm from the help desk and I need your code to close a ticket." The manufactured story itself is called what?</h3>
+<button class="opt">Pretexting</button><button class="opt">Impersonation</button><button class="opt">Whaling</button><button class="opt">Typosquatting</button>
+<div class="fb"><b>Pretexting.</b> The invented justification — the script. Impersonation is the role being worn; pretexting is the story that makes the ask sound legitimate. (Lesson 0010.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 9</p>
+<h3>A new cloud instance shows leftover files from the previous tenant — no one attacked anyone. Which vulnerability is this, by mechanism?</h3>
+<button class="opt">Virtual machine escape, an active break</button><button class="opt">Misconfiguration, a wrong rule</button><button class="opt">Supply chain, a poisoned update</button><button class="opt">Resource reuse, a passive leak</button>
+<div class="fb"><b>Resource reuse, a passive leak.</b> Provider hardware recycled across tenants — prior data arrives with it. VM escape is the active sibling: a guest breaking out to the host. (Lesson 0012.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 10</p>
+<h3>Malware running inside a legitimate process's memory: nothing on disk to scan, and a reboot clears it out. Which species?</h3>
+<button class="opt">Rootkit</button><button class="opt">Fileless malware</button><button class="opt">Trojan</button><button class="opt">Virus</button>
+<div class="fb"><b>Fileless malware.</b> Memory injection enables it; resting memory reboots fight it. The rootkit hides deep and persists — the opposite trade. (Lesson 0013.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 11</p>
+<h3>An attacker rides an already-authenticated connection using a stolen token. Authentication was never attacked — it was what?</h3>
+<button class="opt">Replayed as a hash</button><button class="opt">Downgraded mid-handshake</button><button class="opt">Borrowed, not attacked</button><button class="opt">Sprayed across accounts</button>
+<div class="fb"><b>Borrowed, not attacked.</b> Session hijacking: steal the token, ride the session. Pass-the-hash is its credential sibling — the evidence replayed directly. (Lesson 0014.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 12</p>
+<h3>Domain name system answers for known-malicious domains are pointed at a dead end, so malware's callbacks never reach home. Which technique?</h3>
+<button class="opt">DNS sinkholing</button><button class="opt">DNS poisoning</button><button class="opt">Domain hijacking</button><button class="opt">RF jamming</button>
+<div class="fb"><b>DNS sinkholing.</b> The defender's move: break command-and-control by answering the malware's own DNS questions with nothing. Poisoning is the attacker's mirror — corrupting a trusted cache. (Lessons 0014, 0015.)</div>
+</div>
+
+<div class="tq" id="t2">
+<div class="rulerow"><label for="t2i"><span class="num">QUESTION 13 — TYPED (GRADUATION)</span><br><b>A flood destroys the data center. Leadership accepts up to one week of downtime and wants the cheapest site that honors that promise.</b> Type the site type. (two words)</label><br><input class="txt" id="t2i" style="width:16rem"> <button class="check tcheck">Check</button></div>
+<div class="fb"></div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 14</p>
+<h3>Servers are added before the product launch and removed after it. Capacity that grows <em>and shrinks</em> on demand is called what?</h3>
+<button class="opt">Scalability</button><button class="opt">Redundancy</button><button class="opt">Clustering</button><button class="opt">Elasticity</button>
+<div class="fb"><b>Elasticity.</b> Bidirectional — the dividing line with scalability, which only grows one way. (Lesson 0017.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 15</p>
+<h3>One appliance: application-aware, identity-aware inspection with intrusion prevention built in. Another: many functions bundled in one box for a small office. First and second, in order?</h3>
+<button class="opt">UTM; NGFW</button><button class="opt">NGFW; UTM</button><button class="opt">WAF; proxy</button><button class="opt">NGFW; SASE</button>
+<div class="fb"><b>NGFW; UTM.</b> Intelligence versus bundling — the divider from Lesson 0018. A WAF guards one application layer; SASE delivers the whole edge from the cloud.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 16</p>
+<h3>An ingress sits in front of a server pool: terminates TLS, spreads load, hides the backend from the internet. Which appliance, facing which way?</h3>
+<button class="opt">Forward proxy; outbound</button><button class="opt">Load balancer only; inline</button><button class="opt">Reverse proxy; inbound</button><button class="opt">Jump server; administrative</button>
+<div class="fb"><b>Reverse proxy; inbound.</b> Serves the servers, faces the internet — your ingress controller's exam name. Forward serves users going out. (Lesson 0018.)</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 17</p>
+<h3>Backups run: full every Sunday, <em>differential</em> each weeknight. Friday night the disks fail. What does the restore require?</h3>
+<button class="opt">The full and the latest differential</button><button class="opt">The full and every differential in order</button><button class="opt">Friday's differential alone</button><button class="opt">Two fulls and all incrementals</button>
+<div class="fb"><b>The full and the latest differential.</b> Always exactly two pieces — that is the differential's whole selling point. The incremental chain is the one that grows piece by piece. (Lesson 0019.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 18</p>
+<h3>The pipeline's database password moves from a plaintext environment variable into a central vault with rotation and access logs. Which practice?</h3>
+<button class="opt">Key management</button><button class="opt">Secrets management</button><button class="opt">Tokenization</button><button class="opt">Salting</button>
+<div class="fb"><b>Secrets management.</b> Machine credentials in a vault, rotated and audited. Key management is the cryptographic-key lifecycle — its nearest neighbor and constant distractor. (Lesson 0020.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 19</p>
+<h3>Honest label for the hotel Wi-Fi page that asks your name and room number before granting access?</h3>
+<button class="opt">Certificate validation</button><button class="opt">WPA3-Enterprise authentication</button><button class="opt">Acceptance, not authentication</button><button class="opt">802.1X port security</button>
+<div class="fb"><b>Acceptance, not authentication.</b> A captive portal records that someone agreed — it proves nothing. Per-user proof needs enterprise mode and a RADIUS server. (Lesson 0021.)</div>
+</div>
+
+<div class="tq" id="t3">
+<div class="rulerow"><label for="t3i"><span class="num">QUESTION 20 — TYPED (GRADUATION)</span><br><b>Wi-Fi: you capture the entire WPA3 handshake exchange and take it home — and it is worthless; every session's keys are fresh.</b> Type the handshake's acronym. (three letters)</label><br><input class="txt" id="t3i" style="width:12rem"> <button class="check tcheck">Check</button></div>
+<div class="fb"></div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 21</p>
+<h3>Drives from an internal file server will be wiped and reused by the same team, same data sensitivity, next project. Which rung fits?</h3>
+<button class="opt">Clear — every sector overwritten</button><button class="opt">Purge — degauss the drives</button><button class="opt">Destroy — shred them</button><button class="opt">Erase — reformat and move on</button>
+<div class="fb"><b>Clear.</b> Same custody, same sensitivity: overwrite and reuse. Purge is for leaving custody; destroy for classified; erase protects nothing. (Lesson 0022.)</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 22</p>
+<h3>The scanner reports a host clean, but a flaw is present and reachable the whole time. Which outcome, and why is it the dangerous one?</h3>
+<button class="opt">False positive; wasted effort</button><button class="opt">True negative; nothing owed</button><button class="opt">True positive; a finding to fix</button><button class="opt">False negative; quiet exposure</button>
+<div class="fb"><b>False negative; quiet exposure.</b> The miss that feels like safety. Its mirror, the false positive, wastes effort — annoying, not dangerous. (Lesson 0023.)</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 23</p>
+<h3>Two scores sit on one flaw. One measures theoretical severity from a standard formula; the other weighs whether exploitation is actually being seen in the wild. First and second?</h3>
+<button class="opt">VPR; CVSS</button><button class="opt">CVSS; VPR</button><button class="opt">CVE; NVD</button><button class="opt">SAST; DAST</button>
+<div class="fb"><b>CVSS; VPR.</b> How bad it could be versus whether anyone is using it. CVE is the name, NVD carries the number. (Lesson 0024.)</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 24</p>
+<h3>Ransomware holds full administrator credentials — including over the backup server. Which property keeps restorable copies no matter what the attacker deletes?</h3>
+<button class="opt">Replication to a second site</button><button class="opt">Nightly differential scheduling</button><button class="opt">Immutability — write once, read many</button><button class="opt">Full-device encryption</button>
+<div class="fb"><b>Immutability.</b> Copies that cannot be changed or deleted for a set period — WORM, object lock, an air gap. Replication copies the encryption just as faithfully. (Lessons 0019, 0022.)</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Part 2 — Performance block: construct, do not choose</h2>
+<p class="meta">Three stations, all typed — no options to eliminate. Not timed. Station 1 is measured boot's graduation, in full family context. Station 2 is the resiliency arithmetic. Station 3 is the phrase trio's expanding-gap confirmation — the phrases from Lesson 0016's repair.</p>
+
+<div class="pbq" id="p1">
+<p class="num">STATION 1 — The boot family, complete (graduation)</p>
+<h3>Four techniques, four verbs: write down, read, block, sign. Fill in each name.</h3>
+<div class="rulerow">1. The trusted platform module writes a fingerprint of every boot step — detection: <input class="txt" id="p1a" style="width:14rem"></div>
+<div class="rulerow">2. A central verifier reads that record before granting network access — remote proof: <input class="txt" id="p1b" style="width:14rem"></div>
+<div class="rulerow">3. Firmware refuses to run unsigned boot code — blocking: <input class="txt" id="p1c" style="width:14rem"></div>
+<div class="rulerow">4. Apple's name for its signed boot chain: <input class="txt" id="p1d" style="width:14rem"></div>
+<button class="check pcheck">Check station 1</button>
+<div class="fb"></div>
+</div>
+
+<div class="pbq" id="p2">
+<p class="num">STATION 2 — The resiliency arithmetic</p>
+<h3>One scenario, four answers. A flood destroyed the data center Thursday night. Backups: full every Sunday, incremental each weeknight through Thursday.</h3>
+<div class="rulerow">1. Nightly backups define this metric — acceptable data loss, in time. Type the acronym: <input class="txt" id="p2a" style="width:8rem"></div>
+<div class="rulerow">2. The one-week downtime tolerance defines this metric — acceptable unavailability. Type the acronym: <input class="txt" id="p2b" style="width:8rem"></div>
+<div class="rulerow">3. The cheapest site type that honors that one-week promise: <input class="txt" id="p2c" style="width:14rem"></div>
+<div class="rulerow">4. Number of restore pieces the incremental chain needs (a number): <input class="txt" id="p2d" style="width:6rem"></div>
+<button class="check pcheck">Check station 2</button>
+<div class="fb"></div>
+</div>
+
+<div class="pbq" id="p3">
+<p class="num">STATION 3 — The zero-trust phrases (confirmation)</p>
+<h3>Three scenarios from Lessons 0003 and 0016's repair. Type the phrase each one names.</h3>
+<div class="rulerow">1. A login from a new country earns a harder challenge and fewer privileges — verification strength adapts to risk: <input class="txt" id="p3a" style="width:18rem"></div>
+<div class="rulerow">2. Segmentation and least privilege mean one compromised foothold reaches almost nothing: <input class="txt" id="p3b" style="width:20rem"></div>
+<div class="rulerow">3. Passkeys and device sign-in remove the shared secret entirely — nothing left to spray or phish: <input class="txt" id="p3c" style="width:20rem"></div>
+<button class="check pcheck">Check station 3</button>
+<div class="fb"></div>
+</div>
+
+<p id="pbqscore"></p>
+
+<h2>Primary source</h2>
+<p class="src">Today's outside assignment: Gibson end-of-chapter review questions for Domains 3 and 4, untimed first pass, then read every explanation — including for the ones you got right. Any shaky topic above maps to its section in <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/">Messer's course index</a> for a targeted rewatch.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report both scores and the stopwatch time — and say which graduation items, if any, wobbled: Q7 (measured boot), Q13 (the site), Q20 (SAE), and every Station 3 blank. A miss here is worth more than a perfect score — it names exactly what earns a new schedule before Domain 4's second half moves on.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Domain 4's second half — objective 4.4: security monitoring and security tools: log aggregation, SIEM, dashboards, alerting, and the operations toolkit. Then 4.5 enterprise security. Domains 1–4 will then be banked; Domain 5's governance block follows. · <a href="0024-intelligence-analysis-remediation.html">Lesson 0024</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (Domains 1–4); Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 1–4 review questions; Professor Messer SY0-701 Sections 1–4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+var start = null, timerInt = null;
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+var typedAnswers = {
+  t1i: { v: ["measured boot", "measured"], ok: "Measured boot — the TPM writes it down. Detection, not blocking; attestation is the reading; secure boot is the blocking. Graduation item one." },
+  t2i: { v: ["warm site", "warm"], ok: "Warm site — racked and cabled, data restored at failover, hours to days: the cheapest site inside the one-week promise. Filter by the promise, then buy the cheapest inside it. Graduation item two." },
+  t3i: { v: ["sae"], ok: "SAE — simultaneous authentication of equals. Capture is not crack: the captured exchange resists offline attack, and every session keys fresh. Graduation item three." }
+};
+document.querySelectorAll(".tq").forEach(function (q) {
+  var inp = q.querySelector("input.txt");
+  var btn = q.querySelector("button.tcheck");
+  var fb = q.querySelector(".fb");
+  btn.addEventListener("click", function () {
+    if (q.getAttribute("data-done")) return;
+    startClock();
+    var a = typedAnswers[inp.id];
+    var ok = a.v.indexOf(norm(inp.value || "")) !== -1;
+    inp.disabled = true;
+    btn.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    fb.classList.add(ok ? "good" : "bad");
+    fb.innerHTML = "<b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok;
+    fb.style.display = "block";
+    q.setAttribute("data-done", ok ? "1" : "0");
+    checkQuizDone();
+  });
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      if (q.getAttribute("data-done")) return;
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkQuizDone();
+    });
+  });
+});
+function checkQuizDone() {
+  var all = document.querySelectorAll(".quiz-q, .tq");
+  var done = document.querySelectorAll(".quiz-q[data-done], .tq[data-done]");
+  if (done.length !== all.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"], .tq[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 24 questions (exam pace: 24:00). " + (t <= 1080 ? "Well under pace." : t <= 1440 ? "Under exam pace." : "Over pace — build speed with mixed practice.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "Quiz: " + right + " of 24." + (right === 24 ? " Perfect — no cues, and timed." : right >= 19 ? " Solid. Reread the feedback on every miss." : " Gaps named — report them to the agent before moving on.") + pace;
+}
+var pbqAnswers = {
+  p1a: { v: ["measured boot", "measured"], ok: "Measured boot — write it down." },
+  p1b: { v: ["boot attestation", "attestation"], ok: "Boot attestation — someone reads the record before granting access." },
+  p1c: { v: ["secure boot", "secure"], ok: "Secure boot — the firmware refuses what is unsigned." },
+  p1d: { v: ["safe boot", "safe"], ok: "Safe boot — Apple's signed boot chain." },
+  p2a: { v: ["rpo", "recovery point objective"], ok: "RPO — nightly backups mean a 24-hour data-loss tolerance." },
+  p2b: { v: ["rto", "recovery time objective"], ok: "RTO — one week of acceptable downtime; it chooses the site." },
+  p2c: { v: ["warm site", "warm"], ok: "Warm site — cheapest inside the promise." },
+  p2d: { v: ["5", "five"], ok: "Five — the Sunday full plus Monday through Thursday's four incrementals, in order." },
+  p3a: { v: ["adaptive identity"], ok: "Adaptive identity — verification strength adapts to risk." },
+  p3b: { v: ["threat scope reduction", "scope reduction"], ok: "Threat scope reduction — shrink the blast radius." },
+  p3c: { v: ["passwordless authentication", "passwordless"], ok: "Passwordless authentication — no shared secret exists." }
+};
+document.querySelectorAll(".pbq").forEach(function (st) {
+  var btn = st.querySelector("button.pcheck");
+  var fb = st.querySelector(".fb");
+  btn.addEventListener("click", function () {
+    if (st.getAttribute("data-done")) return;
+    var inps = st.querySelectorAll("input.txt");
+    var right = 0, html = "";
+    Array.prototype.forEach.call(inps, function (inp) {
+      var a = pbqAnswers[inp.id];
+      var ok = a.v.indexOf(norm(inp.value || "")) !== -1;
+      inp.disabled = true;
+      inp.classList.add(ok ? "right" : "wrong");
+      if (ok) right++;
+      html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+    });
+    btn.disabled = true;
+    fb.classList.add(right === inps.length ? "good" : "bad");
+    fb.innerHTML = html;
+    fb.style.display = "block";
+    st.setAttribute("data-done", "1");
+    st.setAttribute("data-right", String(right));
+    st.setAttribute("data-total", String(inps.length));
+    checkPbqDone();
+  });
+});
+function checkPbqDone() {
+  var sts = document.querySelectorAll(".pbq[data-done]");
+  if (sts.length !== document.querySelectorAll(".pbq").length) return;
+  var right = 0, total = 0;
+  Array.prototype.forEach.call(sts, function (s) { right += parseInt(s.getAttribute("data-right"), 10); total += parseInt(s.getAttribute("data-total"), 10); });
+  var el = document.getElementById("pbqscore");
+  el.style.display = "block";
+  el.textContent = "Performance block: " + right + " of " + total + " blanks." + (right === total ? " Every graduation and confirmation holds — the whole repair family retires clean." : " The wobbled blanks keep their retrieval schedules — report them to the agent.");
+}
+</script>
+</body>
+</html>
