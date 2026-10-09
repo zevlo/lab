@@ -139,6 +139,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Data classification</dt>
 <dd>Labels that rank data by the damage disclosure would cause. Government: top secret, secret, confidential, unclassified. Commercial: restricted, confidential, internal, public. The exam asks which label fits which data.</dd>
+<dt>Data loss prevention (DLP)</dt>
+<dd>Content-aware sensors on mail, endpoints, and storage that block sensitive data from leaving by policy — classification made enforceable at egress. Watches the <em>data</em>, not the attacker: the dividing line with web filtering, which watches destinations.</dd>
 <dt>Data masking</dt>
 <dd>Showing only part of a real value. <span class="ex">Support staff see "**** **** **** 1234."</span></dd>
 <dt>Data minimization</dt>
@@ -173,6 +175,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Corrupting a resolver's cache so a trusted name resolves to the attacker's address — an integrity attack on the name-to-address mapping.</dd>
 <dt>DNS sinkhole</dt>
 <dd>A disruption technique: Domain Name System (DNS) answers for known-malicious domains point to a dead end, breaking malware's command-and-control (C2) callbacks.</dd>
+<dt>DNSSEC</dt>
+<dd>Signed DNS answers — a forged or poisoned record fails verification. Integrity for names, not confidentiality: it proves the answer true while leaving who-is-asking visible.</dd>
 <dt>Domain hijacking</dt>
 <dd>Taking over the registration of a domain itself — all its traffic and mail redirect.</dd>
 <dt>Downgrade attack</dt>
@@ -187,6 +191,10 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Elasticity</dt>
 <dd>Capacity that grows <em>and shrinks</em> on demand. The dividing line with scalability: scalability is one-directional growth; elasticity is bidirectional. <span class="ex">Servers added before the sale, removed after.</span></dd>
+<dt>Email authentication (SPF / DKIM / DMARC)</dt>
+<dd>Three checks, three verbs. <b>SPF</b> authorizes the <em>server</em>: a DNS record listing who may send for the domain. <b>DKIM</b> signs the <em>message</em>: a cryptographic signature verified against the sender's published public key. <b>DMARC</b> decides the <em>policy</em>: what receivers do when the other two fail, with reports back. None of them encrypt anything.</dd>
+<dt>Endpoint detection and response (EDR)</dt>
+<dd>Behavioral telemetry across every endpoint — process ancestry, file changes, network calls — plus response actions: isolate, kill, roll back. Detection and response, fleet-wide, behavior-first. Antivirus matches signatures; EDR watches what the malware <em>does</em>.</dd>
 <dt>End-of-life (EOL)</dt>
 <dd>The vendor has ended support — no patches will ever come. The answer is replace or isolate; in DoD environments, running EOL software fails inspections. Distinguish from zero-day: EOL will never be patched; a zero-day will be, eventually.</dd>
 <dt>Espionage</dt>
@@ -297,6 +305,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="l">L</h2>
 <dl>
+<dt>LDAPS</dt>
+<dd>Directory lookups wrapped in TLS — LDAP credentials never cross the wire in the clear. One of the secure-protocol upgrades: HTTP to HTTPS, Telnet to SSH, FTP to SFTP or FTPS, DNS to DNSSEC.</dd>
 <dt>Load balancer</dt>
 <dd>Distributes traffic across a server pool, with health checks that pull dead members out of rotation. Availability and scale in one appliance.</dd>
 <dt>Log aggregation</dt>
@@ -473,6 +483,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Event-triggered functions on the provider's runtime — you bring code, the provider brings everything else, including patching. The responsibility ladder's top rung.</dd>
 <dt>Session hijacking</dt>
 <dd>Stealing an active session token and riding an already-authenticated connection. Authentication was never attacked — it was borrowed.</dd>
+<dt>SFTP vs. FTPS</dt>
+<dd>Two ways to make file transfer safe, and a classic exam pair. <b>SFTP</b> runs inside SSH — one connection, one protocol. <b>FTPS</b> wraps classic FTP in TLS — a second channel to negotiate. scp and rsync are SFTP's family.</dd>
 <dt>Shadow IT</dt>
 <dd>Not an attacker — an internal risk actor: teams adopting unapproved services, creating data exposure nobody manages. Motivation: convenience.</dd>
 <dt>Sideloading</dt>
@@ -485,6 +497,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A point-in-time marker on the same storage — instant rollback, but not an independent copy. The array dies, the snapshot dies with it.</dd>
 <dt>Smishing</dt>
 <dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
+<dt>SNMP versions (v1/v2c vs. v3)</dt>
+<dd>The management protocol's generations: v1 and v2c send community strings in the clear; v3 adds authentication and encryption. The same upgrade story as Telnet to SSH.</dd>
 <dt>Software self-healing</dt>
 <dd>A system that detects its own failure and restores itself without a human — restart the process, replace the instance, rebuild from the image. <span class="ex">An orchestrator that keeps restarting a sick container.</span></dd>
 <dt>SOAR (security orchestration, automation, and response)</dt>
@@ -573,6 +587,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Infecting a website a target community already visits, so the victims come to the malware. No email is sent; selection is by community — which is why it suits nation-state espionage.</dd>
 <dt>Web application firewall (WAF)</dt>
 <dd>Layer-7 firewall protecting one application specifically — filters SQL injection, cross-site scripting, and malformed requests at the edge, before they reach the code.</dd>
+<dt>Web filtering (content / URL / proxy / DNS / reputation)</dt>
+<dd>Five depths, one idea. Content: the page itself. URL: the address and its category list. Proxy: the checkpoint all web traffic already crosses. DNS: the name never resolves — blocking every protocol, not just HTTP. Reputation: the destination's history scoring the decision.</dd>
 <dt>Whaling</dt>
 <dd>Spear phishing aimed at executives — the CFO wire-fraud profile. Research depth and authority themes are the tells.</dd>
 <dt>Worm</dt>
