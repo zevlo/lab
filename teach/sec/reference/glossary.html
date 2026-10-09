@@ -157,6 +157,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>A magnetic field strong enough to erase a drive completely — data, servo tracks, firmware. Magnetic media only (hard disks, tape); useless on solid-state drives; the drive is dead afterward. Purging by execution.</dd>
 <dt>Denial of service (DoS / DDoS)</dt>
 <dd>Flooding or exhausting a service until it cannot answer. Distributed (DDoS) = the flood comes from many machines at once, usually a rented botnet. Availability attacks by definition.</dd>
+<dt>Detection methods</dt>
+<dd>How alerts get decided. <b>Signature</b>: matches a known pattern — precise, blind to novelty. <b>Heuristic / behavioral</b>: matches how attacks tend to act — catches variants, needs tuning. <b>Anomaly</b>: deviates from a learned baseline — catches the unknown, but the baseline itself is fragile. <b>Trend analysis</b>: the shape over time is wrong — sees what single events hide.</dd>
 <dt>Deterrent control (type)</dt>
 <dd>A control that discourages an attempt before it starts. It works on motivation, not mechanics. <span class="ex">A warning sign; a visible camera; a guard dog.</span></dd>
 <dt>Detective control (type)</dt>
@@ -297,6 +299,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Load balancer</dt>
 <dd>Distributes traffic across a server pool, with health checks that pull dead members out of rotation. Availability and scale in one appliance.</dd>
+<dt>Log aggregation</dt>
+<dd>Every source's events land in one protected timeline — shipped off-host as they happen, so local deletion or rootkit editing cannot erase the record. The first stages of the monitoring pipeline: aggregate, normalize, correlate.</dd>
 <dt>Logic bomb</dt>
 <dd>Dormant code that detonates when a trigger condition fires — a date, an event, a name leaving payroll. The signature malware of the malicious insider.</dd>
 </dl>
@@ -329,6 +333,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dl>
 <dt>Nation-state actor</dt>
 <dd>The best-funded, most sophisticated attacker class: patient, custom tools, targets infrastructure and secrets. Motivations: espionage, warfare, disruption.</dd>
+<dt>NetFlow</dt>
+<dd>Flow metadata — source, destination, ports, bytes, duration — with no payload. Who talked to whom, how much, when: conversation patterns at scale, cheaply. The dividing line with packet capture: the record of the call, not the content.</dd>
 <dt>Next-generation firewall (NGFW)</dt>
 <dd>Firewall with intelligence: application-aware, identity-aware, deep packet inspection with IPS built in. The dividing line with a UTM — intelligence versus bundling.</dd>
 <dt>Non-persistence</dt>
@@ -355,6 +361,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 
 <h2 id="p">P</h2>
 <dl>
+<dt>Packet capture</dt>
+<dd>The bytes themselves, recorded by a protocol analyzer — full-fidelity evidence of exactly what crossed the wire. Decisive in investigation, expensive to store: choose it when the question is content, not pattern.</dd>
 <dt>Pass-the-hash</dt>
 <dd>Replaying a captured hash directly as authentication evidence — no password cracking needed. A replay-family attack against authentication.</dd>
 <dt>Password spraying</dt>
@@ -441,6 +449,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Discovery: what exists — hosts and services, the map. Port: what is open per host. Vulnerability: what is weak — versions versus known-flaw catalogs, plus misconfigurations. Compliance: does reality match the benchmark — the baseline audited, pass/fail per rule. Each answers a different question; scenarios name the question.</dd>
 <dt>Sandbox</dt>
 <dd>An isolated environment where code can run without touching production. A testing ground with no blast radius. <span class="ex">A virtual machine that mirrors production.</span></dd>
+<dt>SCAP (Security Content Automation Protocol)</dt>
+<dd>A suite of standards for automating vulnerability and compliance checking against benchmarks. The machinery behind compliance scans: STIGs machine-checked, not eyeballed.</dd>
 <dt>Screened subnet</dt>
 <dd>The SY0-701 name for the DMZ: public-facing services between an outer and inner filter. A breach there exposes the service — not the internal network.</dd>
 <dt>Script kiddie (unskilled attacker)</dt>
@@ -469,12 +479,16 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Installing applications from outside the vendor's official store — bypassing the store's review. The installation act itself; jailbreaking or rooting is what strips the controls that forbid it.</dd>
 <dt>Site survey</dt>
 <dd>Walking the facility measuring coverage, interference, and channel overlap before and after deployment. Its security byproduct: rogue access points standing where none should be.</dd>
+<dt>SIEM (security information and event management)</dt>
+<dd>Aggregates, normalizes, and correlates logs from every source into one timeline — dashboards, digests, alerts, search. Correlation is its whole value: three events from three systems become one story.</dd>
 <dt>Snapshot</dt>
 <dd>A point-in-time marker on the same storage — instant rollback, but not an independent copy. The array dies, the snapshot dies with it.</dd>
 <dt>Smishing</dt>
 <dd>Phishing delivered by SMS text message. <span class="ex">"Verify your account" texts with short links.</span></dd>
 <dt>Software self-healing</dt>
 <dd>A system that detects its own failure and restores itself without a human — restart the process, replace the instance, rebuild from the image. <span class="ex">An orchestrator that keeps restarting a sick container.</span></dd>
+<dt>SOAR (security orchestration, automation, and response)</dt>
+<dd>Executes the playbook when an alert fires: enrichment, ticket, containment — without a human. SIEM decides and shows; SOAR acts.</dd>
 <dt>Spear phishing</dt>
 <dd>A phishing email crafted for one specific, researched recipient — named, contextual, convincing. Aimed at executives it becomes whaling.</dd>
 <dt>Spyware</dt>
@@ -491,6 +505,8 @@ nav { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size
 <dd>Hibernate (to disk) writes memory to storage — the data lands at rest, so encrypt the disk. Sleep (to RAM) keeps memory powered — contents vanish on power loss, but live extraction works while it sleeps.</dd>
 <dt>Symmetric encryption</dt>
 <dd>Encryption with one shared secret key that both locks and unlocks. Fast — the bulk-encryption workhorse — but the key must be distributed secretly. <span class="ex">AES.</span></dd>
+<dt>Syslog</dt>
+<dd>The standard protocol for shipping event messages to a central collector (UDP 514, or TLS when protected). The common log dialect of firewalls, switches, and servers. SNMP traps are its management-protocol sibling.</dd>
 </dl>
 
 <h2 id="t">T</h2>

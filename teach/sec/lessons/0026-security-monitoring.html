@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0026 — Security Monitoring</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { font-family: Georgia, "Times New Roman", serif; background: #fdfcf8; color: #1c1b18; margin: 0; padding: 2rem 1.25rem 4rem; line-height: 1.65; font-size: 17px; }
+main { max-width: 46rem; margin: 0 auto; }
+.kicker { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: #0f5c5c; margin: 0 0 .4rem; }
+h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 .5rem; }
+h2 { font-size: 1.3rem; margin: 2.4rem 0 .6rem; color: #0f5c5c; }
+h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+p { margin: .7rem 0; }
+.meta { color: #66635a; font-size: .92rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+.meta b { color: #1c1b18; }
+a { color: #0f5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: .92rem; }
+th { background: #0f5c5c; color: #fff; text-align: left; padding: .5rem .6rem; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .03em; }
+td { border-bottom: 1px solid #e5e1d8; padding: .5rem .6rem; vertical-align: top; }
+tr:nth-child(even) td { background: #f6f4ee; }
+td.rowhead { background: #f0ede5; font-weight: bold; white-space: nowrap; }
+.box { border: 1px solid #cfe3d8; background: #f2f7f4; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+.box.mission { border-left: 5px solid #0f5c5c; }
+.box.ask { border-left: 5px solid #b08430; background: #faf6ec; border-color: #e8d9b8; }
+.box h3 { margin-top: 0; }
+.quiz-q { border: 1px solid #e5e1d8; background: #fff; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.quiz-q h3 { margin: 0 0 .6rem; font-size: 1rem; }
+.quiz-q .num { color: #0f5c5c; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .75rem; letter-spacing: .06em; }
+.quiz-q .hard { display: inline-block; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-size: .68rem; letter-spacing: .05em; color: #8a4a2f; border: 1px solid #d8b8a8; border-radius: 3px; padding: 0 .35rem; margin-left: .4rem; vertical-align: middle; }
+.station { border: 1px solid #d8cdb4; background: #fffdf5; padding: 1rem 1.2rem; margin: 1.25rem 0; }
+.rulerow { margin: .6rem 0; font-size: .95rem; }
+input.txt { font: inherit; padding: .35rem .5rem; border: 1px solid #d8d3c6; border-radius: 4px; background: #fff; }
+input.txt.right { border-color: #4c8a55; background: #e2efe4; }
+input.txt.wrong { border-color: #b35248; background: #f7e4e2; }
+button.check { font: inherit; font-size: .9rem; padding: .45rem .9rem; margin: .5rem .3rem 0 0; background: #0f5c5c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+button.check:disabled { opacity: .5; cursor: default; }
+button.opt { display: block; width: 100%; text-align: left; font: inherit; font-size: .95rem; padding: .55rem .8rem; margin: .4rem 0; background: #f6f4ee; border: 1px solid #d8d3c6; border-radius: 4px; cursor: pointer; }
+button.opt:hover { background: #ecefe9; }
+button.opt:disabled { cursor: default; opacity: .55; }
+button.opt.right { background: #e2efe4; border-color: #4c8a55; opacity: 1; font-weight: bold; }
+button.opt.wrong { background: #f7e4e2; border-color: #b35248; opacity: 1; }
+.fb { display: none; margin-top: .7rem; padding: .7rem .9rem; font-size: .93rem; border-left: 4px solid #999; background: #f6f4ee; }
+.fb.good { border-left-color: #4c8a55; }
+.fb.bad { border-left-color: #b35248; }
+#score { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; font-weight: bold; font-size: 1.05rem; margin-top: 1.5rem; display: none; }
+.src { font-size: .95rem; }
+footer { margin-top: 3rem; border-top: 1px solid #e5e1d8; padding-top: 1rem; font-size: .9rem; color: #55524a; }
+@media print { body { background: #fff; padding: 0; font-size: 11pt; } .quiz-q, .station, .box { break-inside: avoid; } button.opt { border: 1px solid #999; } }
+</style>
+</head>
+<body>
+<main>
+<p class="kicker">SY0-701 Sprint · Domain 4 · Objective 4.4 · Lesson 26 of ~30 · ~35 minutes</p>
+<h1>Watch Everything, Miss Nothing</h1>
+<p class="meta">One win today: <b>name the data source for the question an investigation asks — and the system that turns a thousand logs into one alert.</b> This is your observability world wearing exam names: aggregation, normalization, correlation, SIEM, SOAR, netflow. Home turf — so today the signal is pace and best-answer discrimination, not raw score.</p>
+
+<div class="box mission">
+<h3>Why this matters to your mission</h3>
+<p>A DoD 8140 role is very often a seat in a security operations center: centralized logging is mandated, the SIEM is the workbench, and the mission is shrinking dwell time — the quiet stretch Lesson 0013 named. Everything today is the machinery that makes Lesson 0013's indicators of compromise actually surface.</p>
+</div>
+
+<h2>Warm-up — typed recall, no choices</h2>
+<p class="meta">Three spaced retrievals, interleaved across domains. The repair ledger is empty — these are maintenance reps now, not repairs.</p>
+
+<div class="station" id="wu">
+<div class="rulerow"><label for="wu1"><b>W1.</b> In enterprise Wi-Fi, this is what defeats the evil twin: the client verifies it before completing authentication. Type what the client verifies. (three words)</label><br><input class="txt" id="wu1" style="width:16rem"></div>
+<div class="rulerow"><label for="wu2"><b>W2.</b> The disk array must survive any two simultaneous drive failures. Which RAID level? Type it. (two tokens)</label><br><input class="txt" id="wu2" style="width:10rem"></div>
+<div class="rulerow"><label for="wu3"><b>W3.</b> The control category for policies, plans, and risk assessments — enforced through documents and decisions, not machines. Type it. (one word)</label><br><input class="txt" id="wu3" style="width:12rem"></div>
+<button class="check" id="wucheck">Check warm-ups</button>
+<div class="fb" id="fb-wu"></div>
+</div>
+
+<h2>Part 1 — The feed: logs and where they go</h2>
+<table>
+<tr><th>Source</th><th>What it records</th></tr>
+<tr><td class="rowhead">Firewall logs</td><td>Permits and denies — who tried to cross which boundary, when.</td></tr>
+<tr><td class="rowhead">IDS / IPS logs</td><td>Detections and blocks, with the signature or behavior that fired (Lesson 0018).</td></tr>
+<tr><td class="rowhead">Application logs</td><td>What the software itself did — authentication events, errors, transactions.</td></tr>
+<tr><td class="rowhead">Endpoint / OS security logs</td><td>Process starts, privilege use, logins, changes — the host's own story.</td></tr>
+<tr><td class="rowhead">Network logs, flow data</td><td>Who talked to whom, how much, when — metadata without payloads.</td></tr>
+</table>
+<p class="meta">Two transport names: <b>syslog</b> — the standard protocol devices use to ship event messages to a collector (UDP 514, or TCP/TLS when protected). <b>SNMP traps</b> — the management protocol's push messages: the device reports "something happened to me" without being asked.</p>
+
+<h3>The pipeline</h3>
+<table>
+<tr><th>Stage</th><th>What happens</th><th>Why</th></tr>
+<tr><td class="rowhead">Agents / collectors</td><td>Ship events off the host as they happen.</td><td>Local logs die with the host — and rootkits edit them (Lesson 0013). Off-host, quickly.</td></tr>
+<tr><td class="rowhead">Aggregation</td><td>Everything lands in one place.</td><td>One timeline, not forty.</td></tr>
+<tr><td class="rowhead">Normalization</td><td>Different vendors' formats become one schema.</td><td>"Login failed" in a dozen dialects becomes one comparable event.</td></tr>
+<tr><td class="rowhead">Retention, encrypted</td><td>Keep the record, provably unaltered.</td><td>Investigations and audits look backward; the chain must hold.</td></tr>
+</table>
+
+<h2>Part 2 — The workbench: SIEM, and the automation on top</h2>
+<table>
+<tr><th>System</th><th>The job</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">SIEM — security information and event management</td><td>Aggregates, normalizes, <b>correlates</b>, and presents: dashboards, digests, alerts, searching.</td><td>One place where firewall denies meet IDS alerts meet impossible-travel logins — correlation is its whole value.</td></tr>
+<tr><td class="rowhead">SOAR — security orchestration, automation, and response</td><td>Executes the playbook: alert fires, enrichment runs, ticket opens, block deploys — without a human.</td><td>SIEM decides and shows; SOAR <em>acts</em>. The runbook automation of detection.</td></tr>
+<tr><td class="rowhead">SCAP — Security Content Automation Protocol</td><td>A suite of standards for automating vulnerability checks and compliance audits.</td><td>The machinery behind Lesson 0023's compliance scans — benchmarks machine-checked, not eyeballed.</td></tr>
+</table>
+
+<h3>How alerts get decided: the detection methods</h3>
+<table>
+<tr><th>Method</th><th>Fires when</th><th>The trade</th></tr>
+<tr><td class="rowhead">Signature-based</td><td>Activity matches a known pattern.</td><td>Few false positives; blind to anything novel.</td></tr>
+<tr><td class="rowhead">Heuristic / behavioral</td><td>Activity matches rules about <em>how attacks tend to behave</em>.</td><td>Catches variations; more tuning, more noise.</td></tr>
+<tr><td class="rowhead">Anomaly-based</td><td>Activity deviates from a learned baseline.</td><td>Catches the unknown; the baseline itself is the risk — noisy day one, poisoned day worse.</td></tr>
+<tr><td class="rowhead">Trend analysis</td><td>The <em>shape over time</em> is wrong — slow drift, low and slow exfiltration.</td><td>Sees what single events hide.</td></tr>
+</table>
+<p class="meta">Lesson 0013's indicators — lockouts, impossible travel, beaconing, consumption against baseline — are exactly what these methods turn into alerts. Monitoring is indicators, industrialized.</p>
+
+<h3>Two capture depths</h3>
+<table>
+<tr><th>Depth</th><th>What you get</th><th>Choose it when</th></tr>
+<tr><td class="rowhead">NetFlow (flow data)</td><td>Metadata: source, destination, ports, bytes, duration — <b>no payload</b>.</td><td>Traffic patterns, exfil volumes, who-talks-to-whom maps — at scale, cheaply.</td></tr>
+<tr><td class="rowhead">Packet capture (protocol analyzer)</td><td>The bytes themselves — full-fidelity evidence.</td><td>Proving <em>what</em> crossed the wire. Expensive to store; decisive in investigation.</td></tr>
+</table>
+
+<h3>Anchor it to what you already know</h3>
+<table>
+<tr><th>DevOps experience</th><th>Exam vocabulary</th></tr>
+<tr><td>ELK / Loki stack</td><td>SIEM — aggregation, normalization, dashboards</td></tr>
+<tr><td>Grafana panels</td><td>SIEM dashboards and digests</td></tr>
+<tr><td>VPC flow logs</td><td>NetFlow — metadata without payloads</td></tr>
+<tr><td>Alertmanager routing to runbooks</td><td>SOAR — automated response playbooks</td></tr>
+<tr><td>Node exporters and traps</td><td>SNMP monitoring</td></tr>
+<tr><td>tcpdump on the wire</td><td>Packet capture with a protocol analyzer</td></tr>
+</table>
+
+<h2>The discrimination pairs</h2>
+<table>
+<tr><th>Pair</th><th>The dividing line</th></tr>
+<tr><td class="rowhead">SIEM vs. SOAR</td><td>Correlate and show versus orchestrate and act. Decision support versus runbook execution.</td></tr>
+<tr><td class="rowhead">NetFlow vs. packet capture</td><td>Metadata at scale versus full-fidelity evidence. Who talked versus what they said.</td></tr>
+<tr><td class="rowhead">Signature vs. anomaly detection</td><td>Matches the known versus deviates from the baseline. Precision versus novelty — at the price of noise.</td></tr>
+<tr><td class="rowhead">Syslog vs. SNMP traps</td><td>The standard event-shipping protocol versus the management protocol's unsolicited "something happened to me."</td></tr>
+<tr><td class="rowhead">Aggregated vs. local logs</td><td>One protected timeline versus evidence that dies — or gets edited — with the host.</td></tr>
+<tr><td class="rowhead">Dashboard vs. alert</td><td>Pulled when looking versus pushed when it matters. Visibility versus reaction.</td></tr>
+</table>
+
+<h2>Practice — 8 questions, timed</h2>
+<p class="meta">Four marked <span class="hard">MULTI-HOP</span> combine frameworks from earlier lessons. One marked <span class="hard">BEST ANSWER</span> has two defensible options — pick the better. <b>Budget: 11 minutes for 11 questions — the exam's pace.</b><span id="timerwrap" style="display:none"> Stopwatch: <b id="timer">0:00</b></span></p>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 1</p>
+<h3>Firewall denies, an IDS signature, and an impossible-travel login arrive as one combined event on one timeline with one alert. Which system, and which capability did the joining?</h3>
+<button class="opt">SOAR; orchestration</button><button class="opt">SCAP; validation</button><button class="opt">SIEM; correlation</button><button class="opt">SNMP; trapping</button>
+<div class="fb"><b>SIEM; correlation.</b> Aggregate, normalize, correlate — three events from three sources become one story. SOAR would be what fires <em>after</em> the decision: the automated enrichment, ticket, block.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 2 <span class="hard">MULTI-HOP</span></p>
+<h3>No signature exists for the new malware family. Still, the alert fires: the host's outbound volume is four times its learned normal, to a destination it has never called. Which detection method, and which Lesson 0013 indicator is it industrializing?</h3>
+<button class="opt">Anomaly-based; resource consumption</button><button class="opt">Signature-based; beaconing</button><button class="opt">Heuristic; account lockouts</button><button class="opt">Trend analysis; blocked content</button>
+<div class="fb"><b>Anomaly-based; resource consumption.</b> Deviation from a learned baseline — no signature required, which is exactly its value against novel threats. The price: a noisy first week and a poisonable baseline. Consumption-against-baseline was 0013's indicator; monitoring is that indicator, automated.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 3</p>
+<h3>Network gear ships its event messages to a central collector over UDP port 514. Which standard protocol?</h3>
+<button class="opt">SNMP</button><button class="opt">Syslog</button><button class="opt">NetFlow</button><button class="opt">SCAP</button>
+<div class="fb"><b>Syslog.</b> The event-shipping standard — firewalls, switches, servers all speaking one log dialect to a collector. SNMP is management (and its traps are the device's unsolicited reports); NetFlow is metadata about conversations, not events.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 4</p>
+<h3>Investigators need who-talked-to-whom maps across ten thousand hosts — volumes, timing, destinations — cheaply, without storing any payload. Which source fits?</h3>
+<button class="opt">Full packet capture</button><button class="opt">Endpoint agents</button><button class="opt">SCAP audits</button><button class="opt">NetFlow</button>
+<div class="fb"><b>NetFlow.</b> Metadata at scale: source, destination, ports, bytes, duration — the conversation record without the content. Packet capture gives the bytes themselves: decisive evidence, unaffordable at this scale.</div>
+</div>
+
+<div class="quiz-q" data-a="0">
+<p class="num">QUESTION 5 <span class="hard">MULTI-HOP</span></p>
+<h3>Lesson 0013's rootkit edits the local log to hide its tracks. Which two pipeline properties take that option away?</h3>
+<button class="opt">Off-host shipping and encrypted retention</button><button class="opt">Local caching and daily digesting</button><button class="opt">Signature tuning and dashboard filtering</button><button class="opt">Log rotation and timestamping</button>
+<div class="fb"><b>Off-host shipping and encrypted retention.</b> Events leave the compromised host immediately — nothing left to edit — and the stored copy cannot be silently altered. The rootkit's hiding trick works only on logs that stayed home.</div>
+</div>
+
+<div class="quiz-q" data-a="2">
+<p class="num">QUESTION 6 <span class="hard">BEST ANSWER</span></p>
+<h3>A suspected exfiltration happened last night. Two capabilities are on the shelf: NetFlow records and a protocol analyzer with full packet capture for that window. The question is exactly what was sent. Which serves better, and why?</h3>
+<button class="opt">NetFlow — cheaper to query</button><button class="opt">NetFlow — patterns prove content</button><button class="opt">Capture — the payload is the evidence</button><button class="opt">Capture — metadata is optional</button>
+<div class="fb"><b>Capture — the payload is the evidence.</b> "What was sent" is a content question: only the bytes answer it. The defensible near miss: NetFlow proves the exfil pattern (volume, destination, timing) and is already in hand — but it names the conversation, not the content. Exams ask the question that picks the depth.</div>
+</div>
+
+<div class="quiz-q" data-a="1">
+<p class="num">QUESTION 7</p>
+<h3>An organization wants its STIG checks machine-checked instead of eyeballed — vulnerability status and configuration compliance validated automatically against benchmarks. Which standard suite?</h3>
+<button class="opt">Syslog</button><button class="opt">SCAP</button><button class="opt">SOAR</button><button class="opt">CVE</button>
+<div class="fb"><b>SCAP — Security Content Automation Protocol.</b> Standards for automating vulnerability and compliance checking: the machinery under Lesson 0023's compliance scans. CVE names flaws; SCAP automates checking for them.</div>
+</div>
+
+<div class="quiz-q" data-a="3">
+<p class="num">QUESTION 8 <span class="hard">MULTI-HOP</span></p>
+<h3>The SIEM correlates a confirmed beaconing pattern to a workstation. Without a human touching it, the system pulls the host's process list, opens a ticket, and pushes a firewall block. Which system ran the playbook — and which earlier lesson's detection fed it?</h3>
+<button class="opt">SIEM; Lesson 0001's control types</button><button class="opt">SCAP; Lesson 0020's baselines</button><button class="opt">NetFlow; Lesson 0018's zones</button><button class="opt">SOAR; Lesson 0013's indicators</button>
+<div class="fb"><b>SOAR; Lesson 0013's indicators.</b> Orchestration, automation, response — the alert-triggered runbook: enrich, ticket, contain. The SIEM correlated and decided; SOAR executed. And the trigger was an indicator of compromise — beaconing, the regular heartbeat of command-and-control — automated end to end.</div>
+</div>
+
+<p id="score"></p>
+
+<h2>Primary source</h2>
+<p class="src">Watch <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/security-monitoring-sy0-701/">Professor Messer 4.4 — Security Monitoring (10:27)</a> and <a href="https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/security-tools-sy0-701/">Security Tools (14:06)</a>. Gibson Domain 4: the monitoring and SIEM sections, plus end-of-chapter questions.</p>
+
+<div class="box ask">
+<h3>Report back</h3>
+<p>Report your score and the stopwatch time. Home-turf lesson: raw score is not the signal — pace and the best-answer item (Q6, capture versus flow) carry the information. Anything unclear about SIEM versus SOAR is worth asking now; incident response in the next lessons assumes both.</p>
+</div>
+
+<footer>
+<p><b>Next:</b> Objective 4.5 — enterprise security: firewalls and proxying in practice, web and email filtering, operating system hardening in production, and secure protocols end to end. Domain 4's second half is nearly banked. · <a href="0025-week-3-review.html">Lesson 0025</a> · <a href="../reference/exam-map.html">Exam map</a> · <a href="../reference/glossary.html">Glossary</a> · <a href="../reference/acronyms.html">Acronyms</a></p>
+<p class="meta">Sources: CompTIA Security+ SY0-701 exam objectives (objective 4.4); Professor Messer SY0-701 section 4.4; Gibson, <em>Get Certified Get Ahead: SY0-701</em>, Domain 4.</p>
+</footer>
+</main>
+<script>
+function norm(s) { return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim(); }
+var warmRight = 0, warmDone = false;
+var warmAnswers = {
+  wu1: { v: ["server certificate validation", "the servers certificate", "server certificate", "the radius server certificate", "certificate"], ok: "Server certificate validation — during EAP the client verifies the RADIUS server's certificate; the evil twin cannot present it, so no client completes authentication with it. (Lessons 0021, 0014.)" },
+  wu2: { v: ["raid 6", "raid6", "6"], ok: "RAID 6 — double parity survives any two simultaneous failures. RAID 10 only sometimes survives two (different mirror pairs); 'sometimes' fails an 'any two' requirement. (Lesson 0019.)" },
+  wu3: { v: ["managerial"], ok: "Managerial — documents and decisions: policies, plans, risk assessments. The other categories: operational (people running processes), technical (machines), physical (things you can touch). (Lesson 0001.)" }
+};
+var start = null, timerInt = null;
+function fmt(s) { var m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+function startClock() {
+  if (start) return;
+  start = Date.now();
+  var w = document.getElementById("timerwrap");
+  if (w) {
+    w.style.display = "inline";
+    timerInt = setInterval(function () {
+      document.getElementById("timer").textContent = fmt(Math.floor((Date.now() - start) / 1000));
+    }, 500);
+  }
+}
+function stopClock() { if (timerInt) { clearInterval(timerInt); timerInt = null; } }
+document.getElementById("wucheck").addEventListener("click", function () {
+  if (warmDone) return;
+  warmDone = true;
+  startClock();
+  this.disabled = true;
+  var fb = document.getElementById("fb-wu");
+  var html = "";
+  ["wu1", "wu2", "wu3"].forEach(function (id) {
+    var inp = document.getElementById(id);
+    var val = norm(inp.value || "");
+    var a = warmAnswers[id];
+    var ok = a.v.indexOf(val) !== -1;
+    inp.disabled = true;
+    inp.classList.add(ok ? "right" : "wrong");
+    if (ok) warmRight++;
+    html += "<div><b>" + (ok ? "Right." : "Not quite.") + "</b> " + a.ok + "</div>";
+  });
+  fb.innerHTML = html;
+  fb.style.display = "block";
+  checkAllDone();
+});
+document.querySelectorAll(".quiz-q").forEach(function (q) {
+  var opts = q.querySelectorAll("button.opt");
+  var fb = q.querySelector(".fb");
+  var idx = parseInt(q.getAttribute("data-a"), 10);
+  opts.forEach(function (btn, i) {
+    btn.addEventListener("click", function () {
+      startClock();
+      opts.forEach(function (o) { o.disabled = true; });
+      opts[idx].classList.add("right");
+      var ok = i === idx;
+      if (!ok) btn.classList.add("wrong");
+      fb.classList.add(ok ? "good" : "bad");
+      fb.style.display = "block";
+      q.setAttribute("data-done", ok ? "1" : "0");
+      checkAllDone();
+    });
+  });
+});
+function checkAllDone() {
+  var mcq = document.querySelectorAll(".quiz-q");
+  var done = document.querySelectorAll(".quiz-q[data-done]");
+  if (!warmDone || done.length !== mcq.length) return;
+  stopClock();
+  var right = document.querySelectorAll('.quiz-q[data-done="1"]').length;
+  var t = start ? Math.round((Date.now() - start) / 1000) : 0;
+  var pace = start ? " Time: " + fmt(t) + " for 11 questions (exam pace: 11:00). " + (t <= 480 ? "Well under pace." : t <= 660 ? "Under exam pace." : "Over pace — speed is the next skill to train.") : "";
+  var el = document.getElementById("score");
+  el.style.display = "block";
+  el.textContent = "You scored " + (right + warmRight) + " of 11 (typed warm-up: " + warmRight + " of 3)." + (right + warmRight === 11 ? " Perfect — and timed." : right >= 6 ? " Good. Note the misses." : " This is the working zone. Review the misses with the agent, then retake.") + pace;
+}
+</script>
+</body>
+</html>
