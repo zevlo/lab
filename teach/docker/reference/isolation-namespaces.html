@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Isolation &amp; Namespaces — Reference</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.2rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.3rem; line-height: 1.15; }
+  .sub { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 2.4rem 0 0.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; margin-right: 0.5rem; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.85em; }
+  pre { background: var(--code-bg); padding: 1rem 1.2rem; border-radius: 5px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; }
+  pre .cm { color: #7a7a6e; } /* comment */
+  pre .hl { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.45rem 0.6rem 0.45rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: 0.5rem 0.6rem 0.5rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; }
+  tr.dim td { color: var(--faint); }
+  .views { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin: 1.2rem 0 0.3rem; font-family: "SF Mono", Menlo, monospace; font-size: 0.75rem; }
+  .node { border: 1.5px dashed var(--accent); border-radius: 5px; padding: 0.35rem 0.9rem; color: var(--accent); background: #fff; }
+  .kernel { border: 1.5px solid var(--ink); border-style: solid; border-radius: 5px; padding: 0.35rem 0.9rem; background: var(--code-bg); color: var(--ink); }
+  .views .arr { color: var(--accent); font-size: 0.85rem; }
+  .cap { font-size: 0.85rem; color: var(--faint); font-style: italic; margin: 0.6rem 0 0; text-align: center; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.5rem 0; }
+  .back { font-size: 0.85rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; color: var(--faint); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  @media print {
+    .page { padding: 0.5in 0.5in; max-width: none; }
+    body { font-size: 11pt; }
+    .back { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Reference · Container Architecture</div>
+  <h1>Isolation &amp; Namespaces</h1>
+  <p class="sub">Eight filtered views, one shared kernel — and the Docker flags that poke holes in each.</p>
+</header>
+
+<h2><span class="no">01</span>The model in one line</h2>
+<p>A container's "isolation" is a set of <strong>namespaces</strong>: kernel wrappers that give a process a <em>private view</em> of one global resource. Nothing is copied or virtualized — one kernel holds every process, interface, and mount; namespaces just narrow the window. (Limits — CPU, memory — are the other half: <strong>cgroups</strong>.)</p>
+
+<div class="views">
+  <div class="node">container A: sees pid 1 · own eth0 · own hostname</div>
+  <div class="node">container B: sees pid 1 · own eth0 · own hostname</div>
+  <div class="arr">↕ namespaces narrow the view ↕</div>
+  <div class="kernel">one shared kernel: all processes · all interfaces · all mounts</div>
+</div>
+<p class="cap">The kernel's own words: a namespace makes it <em>appear</em> that processes have "their own isolated instance" of a global resource — <a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">namespaces(7)</a>.</p>
+
+<h2><span class="no">02</span>The eight, with their Docker switches</h2>
+<table>
+  <tr><th>namespace</th><th>privatizes</th><th>share host's via</th><th>you met it when</th></tr>
+  <tr><td>UTS</td><td>hostname</td><td>--uts=host</td><td>hostname = container id; <code>-h</code> fills the slot</td></tr>
+  <tr><td>PID</td><td>process numbering</td><td>--pid=host</td><td><code>ps</code> showing one process; the reveal</td></tr>
+  <tr><td>NET</td><td>interfaces, IPs, ports</td><td>--network=host</td><td><code>ip addr</code>; why <code>-p</code> exists</td></tr>
+  <tr><td>MNT</td><td>mount points</td><td>(no simple flag)</td><td>private Debian fs; volumes are deliberate holes</td></tr>
+  <tr><td>IPC</td><td>SysV IPC, POSIX queues</td><td>--ipc=host</td><td>—</td></tr>
+  <tr><td>user</td><td>uid/gid mapping</td><td>off by default</td><td>Module 5 — security</td></tr>
+  <tr class="dim"><td>cgroup</td><td>cgroup root view</td><td>—</td><td>rarely visible</td></tr>
+  <tr class="dim"><td>time</td><td>boot/monotonic clocks</td><td>—</td><td>rarely visible</td></tr>
+</table>
+
+<div class="note">
+  <strong>À la carte is the whole point.</strong> Each <code>*=host</code> flag shares exactly one dimension and leaves the others private. <code>--network=host</code> still gets a private PID table and filesystem — but it now shares one network stack, so host ports collide first-come-first-served.
+</div>
+
+<h2><span class="no">03</span>Rules worth taping to the wall</h2>
+<ul>
+  <li><strong>One kernel, many views.</strong> Every container's "PID 1" is an ordinary high-numbered process on the shared kernel. <code>--pid=host</code> proves it by showing neighbors.</li>
+  <li><strong>Every <code>=host</code> flag is a hole in the wall.</strong> Handy for debugging; an attack surface by habit. Seeing other containers' processes or sharing their network is something to justify, not default to.</li>
+  <li><strong>"Host" on macOS = OrbStack's Linux VM</strong> — the kernel containers always shared. Never macOS itself.</li>
+  <li><strong>Port publishing is hole-punching between NET namespaces.</strong> <code>-p 8080:80</code> forwards host:8080 → container:80 across the boundary that <code>--network=host</code> would erase.</li>
+  <li><strong>Namespaces die with the process.</strong> Kernel tears the views down when the container's last process exits — no separate cleanup exists.</li>
+  <li><strong>User namespaces are off by default</strong> — containers run as root-in-container mapped to root-on-host unless configured. Why that matters: Module 5.</li>
+</ul>
+
+<h2><span class="no">04</span>The demos, condensed</h2>
+<pre><span class="hl">docker run --rm busybox ps</span>                  <span class="cm"># a universe with one process (fresh PID ns)</span>
+<span class="hl">docker run --rm --pid=host busybox ps</span>       <span class="cm"># the truth: all containers' processes, one kernel</span>
+<span class="hl">docker run --rm busybox hostname</span>            <span class="cm"># 12-char id — its own UTS slot</span>
+<span class="hl">docker run --rm alpine ip addr</span>              <span class="cm"># own lo + one private eth0 (fresh NET ns)</span>
+<span class="hl">docker run --rm --network=host alpine ip addr</span> <span class="cm"># the VM's whole wiring instead</span></pre>
+
+<p class="back">Companion to <a href="../lessons/0003-how-the-kernel-lies.html">Lesson 0003 — How the Kernel Lies to a Process</a> · See also <a href="docker-core-commands.html">Core Commands</a>, <a href="image-anatomy.html">Image Anatomy</a> · Sources: <a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">namespaces(7) — Linux man-pages</a>, <a href="https://github.com/lizrice/containers-from-scratch">Liz Rice — containers-from-scratch</a></p>
+
+</div>
+</body>
+</html>

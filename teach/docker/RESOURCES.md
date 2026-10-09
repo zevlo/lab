@@ -12,6 +12,8 @@ All links verified live. Annotate when adding new ones; prune ruthlessly when so
   build context, image naming anatomy (`HOST/PATH:TAG`), push workflow. Use for: Dockerfile/registry lessons.
 - [Docs: Dockerfile best practices — Docker official](https://docs.docker.com/build/concepts/dockerfile-best-practices/) (tree under docs.docker.com/build — verify exact page when first cited)
   Use for: layer ordering, cache optimization, multi-stage builds.
+- [Docs: namespaces(7) — Linux man-pages](https://man7.org/linux/man-pages/man7/namespaces.7.html)
+  The kernel's own manual: definition, all 8 namespace types in one table, the clone/setns/unshare API. Use for: Module 2 — isolation ground truth. Verified live 2026-10-08.
 - [Repo: containers-from-scratch — Liz Rice](https://github.com/lizrice/containers-from-scratch)
   A container in ~100 lines of Go (namespaces + cgroups). Use for: Module 2 — seeing isolation primitives with zero Docker magic. Companion talk: [DockerCon 2017 video](https://www.youtube.com/watch?v=MHv6cWjvQjM&t=1316s).
 - [Cheat Sheet: Docker Security — OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html)

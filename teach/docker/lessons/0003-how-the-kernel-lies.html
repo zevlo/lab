@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0003 — How the Kernel Lies to a Process</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --good: #1e6b34;
+    --bad: #a12622;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17.5px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.4rem; margin-bottom: 3rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2.3rem; font-weight: 700; margin: 0.5rem 0 0.4rem; line-height: 1.12; letter-spacing: -0.01em; }
+  .sub { color: var(--faint); font-style: italic; font-size: 1.02rem; margin: 0; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin: 3rem 0 0.8rem; line-height: 1.2; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 1rem; margin-right: 0.6rem; font-weight: 600; }
+  p { margin: 0.8rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  em { font-style: italic; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.84em; }
+  pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #14120f; color: #e8e4d8; padding: 1.1rem 1.3rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; line-height: 1.65; }
+  pre .cm { color: #8a857a; }
+  pre .cmd { color: #e3b341; font-weight: 600; }
+  .expected { border-left: 3px solid var(--good); background: #f2f6f0; padding: 0.7rem 1.1rem; margin: 0.6rem 0 1.4rem; border-radius: 0 4px 4px 0; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; white-space: pre-wrap; color: #2c352c; overflow-x: auto; }
+  .expected::before { content: "you should see"; display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--good); margin-bottom: 0.3rem; }
+  .why { font-size: 0.92rem; color: #3c3a30; margin-top: -0.6rem; padding-left: 1.1rem; border-left: 3px solid var(--rule); margin-bottom: 1.6rem; }
+  .why strong { color: var(--accent); font-style: normal; }
+  .sidenote { font-size: 0.85rem; color: #4a4840; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 0.7rem 0.2rem; margin: 1.6rem 0; }
+  .sidenote .tag { font-family: "SF Mono", Menlo, monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-right: 0.5rem; }
+  .diagram { display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin: 1.8rem 0 0.3rem; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; }
+  .box { border: 1.5px solid var(--ink); border-radius: 6px; padding: 0.5rem 0.9rem; background: #fff; text-align: center; }
+  .box small { display: block; font-size: 0.62rem; color: var(--faint); letter-spacing: 0.05em; }
+  .box.dashed { border-style: dashed; background: var(--code-bg); }
+  .arr { color: var(--accent); font-size: 0.95rem; }
+  .cap { text-align: center; font-size: 0.85rem; color: var(--faint); font-style: italic; margin: 0.4rem 0 0; }
+  table.ns { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1.2rem 0; }
+  table.ns th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.4rem 0.5rem 0.4rem 0; }
+  table.ns td { border-bottom: 1px solid var(--rule); padding: 0.45rem 0.5rem 0.45rem 0; vertical-align: top; }
+  table.ns td:first-child { font-family: "SF Mono", Menlo, monospace; font-size: 0.78rem; white-space: nowrap; }
+  table.ns tr.dim td { color: var(--faint); }
+  /* quiz */
+  .quiz { margin: 1.5rem 0 0; }
+  .q { border: 1px solid var(--rule); border-radius: 6px; padding: 1.2rem 1.3rem; margin: 1.1rem 0; background: #fffef9; }
+  .q p.stem { font-weight: 600; margin: 0 0 0.8rem; }
+  .q p.stem .qn { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; font-weight: 600; margin-right: 0.5rem; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+  .opts button {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.35;
+  }
+  .opts button:hover:not(:disabled) { border-color: var(--ink); }
+  .opts button.right { background: #e7f0e4; border-color: var(--good); color: var(--good); font-weight: 600; }
+  .opts button.wrong { background: #f6e5e4; border-color: var(--bad); color: var(--bad); }
+  .opts button:disabled { cursor: default; opacity: 0.75; }
+  .opts button.right:disabled, .opts button.wrong:disabled { opacity: 1; }
+  .fb { display: none; margin-top: 0.8rem; font-size: 0.88rem; padding: 0.6rem 0.9rem; border-radius: 5px; }
+  .fb.ok { display: block; background: #e7f0e4; color: var(--good); }
+  .fb.no { display: block; background: #f6e5e4; color: var(--bad); }
+  .score { font-family: "SF Mono", Menlo, monospace; font-size: 0.95rem; text-align: center; margin-top: 1.4rem; padding: 0.9rem; border-top: 2px solid var(--ink); display: none; }
+  .btnrow { text-align: center; margin-top: 1rem; }
+  .btnrow button { font-family: "SF Mono", Menlo, monospace; font-size: 0.75rem; padding: 0.5rem 1.1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 5px; cursor: pointer; }
+  .box-ask { border: 2px solid var(--accent); border-radius: 6px; padding: 1.1rem 1.4rem; margin: 3rem 0 0; background: #fffdf6; }
+  .box-ask h3 { margin: 0 0 0.5rem; font-size: 1.02rem; }
+  .box-ask p { font-size: 0.93rem; margin: 0.4rem 0; }
+  .tomorrow { border: 1px dashed var(--faint); border-radius: 6px; padding: 1rem 1.3rem; margin: 2.5rem 0 0; font-size: 0.92rem; color: #3c3a30; }
+  .next { margin-top: 3rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; font-size: 0.95rem; }
+  .src { margin-top: 1.5rem; font-size: 0.9rem; background: var(--code-bg); padding: 0.9rem 1.2rem; border-radius: 5px; }
+  ol.lab { padding-left: 1.4rem; }
+  ol.lab > li { margin: 1.8rem 0; }
+  ol.lab > li::marker { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-weight: 600; }
+  @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+  @media print {
+    .page { padding: 0.4in 0.4in; max-width: none; }
+    body { font-size: 11pt; }
+    .quiz, .btnrow, .tomorrow, .box-ask { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Lesson 0003 · Module 2 of 5 · Architecture &amp; Isolation</div>
+  <h1>How the Kernel Lies to a Process</h1>
+  <p class="sub">Namespaces — the machinery behind "isolated", one filtered view at a time.</p>
+</header>
+
+<h2><span class="no">§1</span>The lie, named</h2>
+<p>Lesson 0001 called a container "a process the kernel has <em>deceived</em> into thinking it's alone." Here is the deception, named: <strong>namespaces</strong>. The kernel's own manual defines one as wrapping a global system resource "in an abstraction that makes it appear to the processes within the namespace that they have their own isolated instance" of it.</p>
+<p>Read that twice. Nothing is copied. Nothing is virtualized. The processes, network interfaces, and mount points all exist exactly once, on one shared kernel — but each namespace <em>filters the view</em> a process gets of them. A container is an ordinary process looking at the kernel through a set of carefully narrowed windows.</p>
+
+<div class="diagram">
+  <div class="box dashed">CONTAINER A<small>sees: pid 1 · own eth0 · hostname a1b2…</small></div>
+  <div class="box dashed">CONTAINER B<small>sees: pid 1 · own eth0 · hostname c3d4…</small></div>
+</div>
+<div class="diagram"><span class="arr">↕ namespaces narrow the view ↕</span></div>
+<div class="diagram">
+  <div class="box">ONE SHARED KERNEL<small>every process · every interface · every mount</small></div>
+</div>
+<p class="cap">Same kernel, same reality — different windows.</p>
+
+<p>Linux has eight namespace types: <strong>mount</strong>, <strong>PID</strong>, <strong>network</strong>, <strong>UTS</strong> (hostname), <strong>IPC</strong>, <strong>user</strong>, <strong>cgroup</strong>, <strong>time</strong>. Docker's run creates fresh copies of the ones that matter most — mount, PID, network, UTS, IPC — per container. You've already met mount (the private Debian filesystem in Lesson 0001's lab) and UTS (the hostname that equalled the container id). Today you'll pin down PID and network with your own hands.</p>
+
+<p class="sidenote"><span class="tag">source</span>The kernel's own definitions, all eight types in one table: <a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">namespaces(7) — Linux man-pages</a>.</p>
+
+<h2><span class="no">§2</span>Isolation is à la carte</h2>
+<p>Here's the part that interviewers love and operators <em>live</em>: namespaces are independent. Each dimension can be isolated — or deliberately shared with the host — on its own. Docker exposes the switch for each:</p>
+
+<table class="ns">
+  <tr><th>namespace</th><th>privatizes</th><th>share it with</th><th>you met it when</th></tr>
+  <tr><td>UTS</td><td>hostname</td><td>--uts=host</td><td>hostname = container id (L0001)</td></tr>
+  <tr><td>PID</td><td>process numbering</td><td>--pid=host</td><td>today, step 3</td></tr>
+  <tr><td>NET</td><td>interfaces, IPs, ports</td><td>--network=host</td><td>today, step 5 — and why -p exists</td></tr>
+  <tr><td>MNT</td><td>filesystem mounts</td><td>(no simple flag)</td><td>private Debian fs (L0001)</td></tr>
+  <tr><td>IPC</td><td>shared memory</td><td>--ipc=host</td><td>—</td></tr>
+  <tr class="dim"><td>user</td><td>uid/gid mapping</td><td>off by default</td><td>Module 5 (security)</td></tr>
+  <tr class="dim"><td>cgroup · time</td><td>rarely visible</td><td>—</td><td>—</td></tr>
+</table>
+
+<p>Two things follow. First: <strong>sharing one dimension doesn't surrender the others</strong> — <code>--pid=host</code> still gives the container its own network and filesystem. Second: <strong>every <code>=host</code> flag is a hole in the wall</strong>. Useful for debugging, dangerous by default — seeing other containers' processes is an attack surface, which is why these flags belong to the production-hardening conversation (Module 5).</p>
+
+<div class="sidenote"><span class="tag">macOS</span>"Host" here means OrbStack's Linux VM — the kernel your containers have been sharing all along — not macOS itself. On a Linux server, it would be the real host. That's why <code>--pid=host</code> will show the VM's processes, never your Mac's.</div>
+
+<h2><span class="no">§3</span>Lab — prove it to yourself <span style="font-weight:400; font-size:0.85rem; color:var(--faint)">(≈10 min, in your terminal)</span></h2>
+<p>Short commands, big reveals. You'll watch one process table become many, and one network become many.</p>
+
+<ol class="lab">
+<li>
+<p>Start a witness — one boring process in the background:</p>
+<pre><span class="cmd">docker run -d --name victim busybox sleep 1000</span></pre>
+<div class="expected">e4b2c1a90f7d…  (container id, no error — busybox image may pull first, ~2 MB)</div>
+<p class="why"><strong>What happened:</strong> nothing fancy — <code>sleep 1000</code> is an ordinary process, no different in kind from nginx. It's now running on the shared kernel, believing otherwise.</p>
+</li>
+
+<li>
+<p>Open a fresh universe and count its processes:</p>
+<pre><span class="cmd">docker run --rm busybox ps</span></pre>
+<div class="expected">PID   USER     TIME  COMMAND
+    1 root      0:00  ps</div>
+<p class="why"><strong>What happened:</strong> a whole world containing exactly one process — <code>ps</code> itself, and it's PID 1. This container has a <em>fresh PID namespace</em>: its own numbering, starting at 1. There is no other process in this universe because none was started in it.</p>
+</li>
+
+<li>
+<p>The reveal. Ask for the host's numbering instead:</p>
+<pre><span class="cmd">docker run --rm --pid=host busybox ps</span></pre>
+<div class="expected">PID   USER     TIME  COMMAND
+    1 root      0:00  /sbin/init …       ← the VM's pid 1
+    ⋮  (the VM's daemon processes — rows vary)
+  731 root      0:00  sleep 1000         ← victim!
+  742 root      0:00  ps                 ← you</div>
+<p class="why"><strong>What happened:</strong> same kernel, wider window. Without a private PID namespace, you see the true process table: the VM's init, its daemons — and <code>sleep 1000</code>, which turned out to be PID 731 on the shared kernel all along. The container's "PID 1" was a renumbering, not a separate machine. This flag is also why <code>--pid=host</code> weakens isolation: neighbors become visible.</p>
+</li>
+
+<li>
+<p>Hostname = a private slot, not a private computer:</p>
+<pre><span class="cmd">docker run --rm busybox hostname</span>
+<span class="cmd">docker run --rm -h myownworld busybox hostname</span></pre>
+<div class="expected">a1f7a4bb3a27        (a 12-char id — its own UTS namespace, seeded with the id)
+myownworld         (same kind of namespace, your choice of contents)</div>
+<p class="why"><strong>What happened:</strong> the UTS namespace gives each container its own hostname slot. Lesson 0001's mystery — "why did hostname equal the container id?" — is now solved: Docker simply fills that slot with the short id. <code>-h</code> fills it with whatever you like.</p>
+</li>
+
+<li>
+<p>Networks: one per container, or the host's one:</p>
+<pre><span class="cmd">docker run --rm alpine ip addr</span>          <span class="cm"># alpine pulls first if needed (~3 MB)</span>
+<span class="cmd">docker run --rm --network=host alpine ip addr</span></pre>
+<div class="expected"># first command — its own NET namespace:
+lo:  127.0.0.1
+eth0: 192.168.x.x  (or 172.x.x.x — one private interface, one IP)
+
+# second command — the host's stack:
+lo, eth0, plus bridges and veths — the VM's full wiring</div>
+<p class="why"><strong>What happened:</strong> every container normally gets a fresh NET namespace: its own loopback, one private interface and IP. That's why Lesson 0001 needed <code>-p 8080:80</code> — a hole punched between namespaces. <code>--network=host</code> skips all that and shares the VM's single stack — fast, but its ports are first-come-first-served (Quiz Q3 will test this).</p>
+</li>
+
+<li>
+<p>Clean up, and notice what isolation costs to dismantle:</p>
+<pre><span class="cmd">docker rm -f victim</span>
+<span class="cmd">docker ps -a &amp;&amp; docker images</span></pre>
+<div class="expected">CONTAINER ID ...    (empty list)
+REPOSITORY   TAG      ...   nginx   latest   ...   nginx   1.27   ...</div>
+<p class="why"><strong>What happened:</strong> the victim, its namespaces, and its writable layer are gone — nothing to clean up separately, the kernel tears the views down with the process. The images (Lessons 0001–0002) never even noticed. Review the full isolation cheat sheet: <a href="../reference/isolation-namespaces.html">Isolation &amp; Namespaces (reference)</a>.</p>
+</li>
+</ol>
+
+<h2><span class="no">§4</span>Check yourself</h2>
+<p>Recall from memory — no scrolling up. Wrong answers explain themselves.</p>
+
+<div class="quiz" id="quiz">
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q1</span>A namespace is, most precisely:</p>
+    <div class="opts">
+      <button>A private view of resources</button>
+      <button>A lightweight virtual machine</button>
+      <button>A copy of the kernel</button>
+      <button>An encrypted jail for processes</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <p class="stem"><span class="qn">Q2</span>Your <code>--pid=host</code> container saw <code>sleep 1000</code> from another container. That's because:</p>
+    <div class="opts">
+      <button>The pid flag clones processes</button>
+      <button>The victim published them first</button>
+      <button>All processes share one kernel</button>
+      <button>The flag enables privileged mode</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="3">
+    <p class="stem"><span class="qn">Q3</span>Container A was started with a flag and now occupies host port 80. Container B, started with the same flag, fails to start. It was:</p>
+    <div class="opts">
+      <button>--pid=host</button>
+      <button>--uts=host</button>
+      <button>--ipc=host</button>
+      <button>--network=host</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="1">
+    <p class="stem"><span class="qn">Q4</span>After the lab's <code>docker rm -f victim</code>, the layers of your <code>nginx</code> images are:</p>
+    <div class="opts">
+      <button>Uploaded back to the registry</button>
+      <button>Untouched — images outlive containers</button>
+      <button>Rebuilt from the writable layer</button>
+      <button>Deleted along with the container</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="score" id="score"></div>
+  <div class="btnrow"><button onclick="resetQuiz()">reset quiz</button></div>
+</div>
+
+<div class="src">
+  <strong>Primary source for this lesson</strong> — watch after finishing (25 min, optional but glorious):<br>
+  <a href="https://www.youtube.com/watch?v=MHv6cWjvQjM">"Containers from scratch" — Liz Rice, DockerCon</a>. She writes ~100 lines of Go, calls the same syscalls Docker does, and conjures a container with no Docker in sight. The lie, demonstrated by hand.
+</div>
+
+<div class="tomorrow">
+  <strong>Before your next session</strong> (5 min, no notes): recall — (1) which flag shares the host's process numbering, (2) why it revealed <code>sleep 1000</code>, (3) from Lesson 0001: what happens to a container when its PID 1 dies, (4) from Lesson 0002: why the image layers survived today's cleanup. Retrieval struggle is the point.
+</div>
+
+<div class="box-ask">
+  <h3>Your teacher is on call</h3>
+  <p>Anything unclear — "what does <code>setns</code> do?", "why is the user namespace off by default?", "what's a veth?" — <strong>ask the agent</strong> in your next session (or right now). Questions are the fastest part of the curriculum.</p>
+</div>
+
+<div class="next">
+  <strong>Next lesson — Cgroups: the Other Half of the Lie.</strong> Namespaces fake "I'm alone"; cgroups enforce "I only get <em>this much</em>" — CPU, memory, and what <code>OOMKilled</code> actually means. Review anytime: <a href="0001-a-container-is-a-process.html">Lesson 0001</a> · <a href="0002-the-anatomy-of-an-image.html">Lesson 0002</a> · Reference shelf: <a href="../reference/isolation-namespaces.html">Isolation &amp; Namespaces</a>, <a href="../reference/docker-core-commands.html">Core Commands</a>, <a href="../reference/image-anatomy.html">Image Anatomy</a>.
+</div>
+
+</div>
+
+<script>
+  const explanations = [
+    ["Right — the kernel's own definition: a namespace wraps a global resource so its members see their own isolated instance. Nothing copied, nothing encrypted — the view is filtered."],
+    ["Exactly — one kernel holds every process of every container; PID namespaces just renumber the view. --pid=host skips the renumbering, so neighbors become visible."],
+    ["Correct — --network=host shares the host's single network stack, so its ports collide first-come-first-served. The other flags share different dimensions and can't occupy a port."],
+    ["Right — rm destroyed the container and its writable layer only. Images and their layers persist until their last reference goes (Lesson 0002). Isolation machinery dies with the process; templates never noticed."]
+  ];
+  const quiz = document.getElementById('quiz');
+  let done = 0, right = 0;
+  function scored() {
+    if (done < 4) return;
+    const s = document.getElementById('score');
+    s.style.display = 'block';
+    const msg = right === 4 ? "4 / 4 — the lie is yours." : right + " / 4 — reread §1 and §2, retry tomorrow.";
+    s.textContent = msg;
+  }
+  quiz.querySelectorAll('.q').forEach((q, qi) => {
+    const ans = parseInt(q.dataset.a, 10);
+    const fb = q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach((b, bi) => {
+      b.addEventListener('click', () => {
+        if (q.dataset.done) return;
+        q.dataset.done = "1"; done++;
+        const correct = bi === ans;
+        if (correct) { b.classList.add('right'); right++; fb.className = 'fb ok'; }
+        else { b.classList.add('wrong'); fb.className = 'fb no'; q.querySelectorAll('.opts button')[ans].classList.add('right'); }
+        fb.textContent = (correct ? "✔ " : "✘ ") + explanations[qi][0];
+        q.querySelectorAll('.opts button').forEach(x => x.disabled = true);
+        scored();
+      });
+    });
+  });
+  function resetQuiz() {
+    done = 0; right = 0;
+    document.getElementById('score').style.display = 'none';
+    quiz.querySelectorAll('.q').forEach(q => { delete q.dataset.done; q.querySelector('.fb').className = 'fb'; q.querySelectorAll('.opts button').forEach(b => { b.disabled = false; b.className = ''; } ); });
+  }
+</script>
+
+</body>
+</html>
