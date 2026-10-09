@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cgroups &amp; Limits — Reference</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.2rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.3rem; line-height: 1.15; }
+  .sub { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 2.4rem 0 0.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; margin-right: 0.5rem; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.85em; }
+  pre { background: var(--code-bg); padding: 1rem 1.2rem; border-radius: 5px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; }
+  pre .cm { color: #7a7a6e; } /* comment */
+  pre .hl { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.45rem 0.6rem 0.45rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: 0.5rem 0.6rem 0.5rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.5rem 0; }
+  .back { font-size: 0.85rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; color: var(--faint); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  @media print {
+    .page { padding: 0.5in 0.5in; max-width: none; }
+    body { font-size: 11pt; }
+    .back { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Reference · Container Architecture</div>
+  <h1>Cgroups &amp; Limits</h1>
+  <p class="sub">What each Docker limit flag does — and what happens when a container hits it.</p>
+</header>
+
+<h2><span class="no">01</span>The model in one line</h2>
+<p>A <strong>cgroup</strong> is a group of processes the kernel measures and caps. Docker puts each container's processes in one cgroup. Your <code>docker run</code> flags become kernel caps. Namespaces hide the world (Lesson 0003); cgroups cap the damage.</p>
+
+<h2><span class="no">02</span>The flags</h2>
+<table>
+  <tr><th>flag</th><th>caps</th><th>at the cap, the kernel…</th></tr>
+  <tr><td>--memory=256m</td><td>RAM</td><td>kills the process — OOM killer, exit 137</td></tr>
+  <tr><td>--cpus=1.5</td><td>CPU</td><td>throttles — the process runs slower, never dies</td></tr>
+  <tr><td>--pids-limit=100</td><td>process count</td><td>blocks new processes ("can't fork")</td></tr>
+  <tr><td>--memory-swap=256m</td><td>RAM + swap</td><td>same as memory when swap is off — set equal to --memory to disable swap</td></tr>
+</table>
+
+<div class="note">
+  <strong>Memory kills. CPU slows.</strong> This pair answers most "why did my container die / why is it slow" questions before you open a single log.
+</div>
+
+<h2><span class="no">03</span>Exit codes worth decoding</h2>
+<table>
+  <tr><th>code</th><th>means</th><th>how to check</th></tr>
+  <tr><td>0</td><td>process finished normally</td><td>—</td></tr>
+  <tr><td>137</td><td>128 + 9 — SIGKILL: OOM kill, or <code>docker kill</code> / <code>rm -f</code></td><td><code>docker inspect --format '{{.State.OOMKilled}} {{.State.ExitCode}}' NAME</code></td></tr>
+  <tr><td>143</td><td>128 + 15 — SIGTERM: <code>docker stop</code> ended it gracefully</td><td>same inspect command</td></tr>
+</table>
+
+<h2><span class="no">04</span>Where the caps live</h2>
+<p>Cgroups expose themselves as files under <code>/sys/fs/cgroup</code> (cgroup v2). Docker writes your flags there. The kernel enforces the files.</p>
+<pre><span class="hl">docker run --rm --memory=100m busybox cat /sys/fs/cgroup/memory.max</span>
+<span class="cm"># 104857600            ← 100 MB in bytes</span>
+<span class="hl">docker run --rm --cpus=1.5 busybox cat /sys/fs/cgroup/cpu.max</span>
+<span class="cm"># 150000 100000        ← quota 150 ms per 100 ms period = 1.5 cores</span>
+<span class="hl">docker run --rm busybox cat /sys/fs/cgroup/memory.current</span>
+<span class="cm"># usage right now, in bytes</span></pre>
+
+<h2><span class="no">05</span>Rules worth taping to the wall</h2>
+<ul>
+  <li><strong>Always set <code>--memory</code> in production.</strong> An uncapped container can starve every neighbor on the host.</li>
+  <li><strong>Check <code>OOMKilled</code> before blaming the app.</strong> Exit 137 with <code>OOMKilled: true</code> is a cap problem, not a crash.</li>
+  <li><strong>Disable swap deliberately:</strong> set <code>--memory-swap</code> equal to <code>--memory</code>. Otherwise the kernel will swap instead of killing, and everything just gets slow.</li>
+  <li><strong><code>--pids-limit</code> is cheap insurance.</strong> It stops a runaway fork loop from eating the host's process table.</li>
+  <li><strong>A CPU cap never kills.</strong> If a capped container died, look at memory.</li>
+</ul>
+
+<p class="back">Companion to <a href="../lessons/0004-cgroups-the-other-half.html">Lesson 0004 — Cgroups: The Other Half</a> · See also <a href="isolation-namespaces.html">Isolation &amp; Namespaces</a>, <a href="docker-core-commands.html">Core Commands</a> · Sources: <a href="https://docs.kernel.org/admin-guide/cgroup-v2.html">Control Group v2 — kernel.org</a>, <a href="https://docs.docker.com/reference/cli/docker/container/run/">docker run reference</a></p>
+
+</div>
+</body>
+</html>
