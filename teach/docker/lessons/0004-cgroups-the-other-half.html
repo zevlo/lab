@@ -168,12 +168,15 @@
 
 <li>
 <p>Now the opposite. Cap the CPU and watch it slow, not die:</p>
-<pre><span class="cmd">time docker run --rm busybox timeout 5 sha256sum /dev/zero</span>
-<span class="cmd">time docker run --rm --cpus=0.25 busybox timeout 5 sha256sum /dev/zero</span></pre>
-<div class="expected">real  0m5.0x s   user 0m4.9x s     ← no cap: ~5 s of CPU in 5 s
-real  0m5.0x s   user 0m1.2x s     ← capped: ~1.2 s of CPU in the same 5 s</div>
-<p class="why"><strong>What happened:</strong> <code>sha256sum</code> burns one core. <code>timeout 5</code> stops it after five seconds. Both runs lasted five real seconds. The capped run got only a quarter of a core, so it got about 1.2 seconds of real work done. Your exact numbers will differ. The ratio is the result: <strong>the process ran the whole time. It was slower. Nothing died.</strong></p>
+<pre><span class="cmd">docker run --rm busybox dd if=/dev/zero of=/dev/null bs=1M count=4000</span>
+<span class="cmd">docker run --rm --cpus=0.25 busybox dd if=/dev/zero of=/dev/null bs=1M count=4000</span></pre>
+<div class="expected">4000+0 records in / 4000+0 records out, then:
+4194304000 bytes (3.9GB) copied, 0.15 seconds, 26.6GB/s    ← no cap
+4194304000 bytes (3.9GB) copied, 1.46 seconds, 2.7GB/s     ← capped to a quarter core</div>
+<p class="why"><strong>What happened:</strong> both runs copied the same 3.9 GB and exited with code 0. <code>dd</code> prints its own speed, and speed is the whole lesson. The capped run was about ten times slower. Pure math says four, because a quarter core does the work in four times the time. Real throttling costs a little more. Your exact numbers will differ. The outcome is what counts: <strong>same work, same result, slower. Nothing died.</strong> (If you wrap the command in <code>time</code>, ignore its <code>user</code> and <code>sys</code> lines — they measure the docker client on your Mac, not the container. The container works inside OrbStack's VM.)</p>
 </li>
+
+<div class="sidenote"><span class="tag">field note</span>An earlier version of this step used <code>timeout 5</code> to stop a program that never ends. The container ran forever. Ctrl-C did nothing. <code>docker stop</code> waited ten seconds, then killed by force. Only <code>docker kill</code> worked at once. The reason is a kernel rule: <strong>the main process in a container is PID 1, and PID 1 ignores any signal it has not registered a handler for.</strong> The busybox timer sent SIGTERM to its parent. The parent was PID 1. The kernel dropped the signal. SIGKILL is the one signal no process can refuse, and that is what <code>docker kill</code> sends. Docker's fix is the <code>--init</code> flag: a tiny signal-forwarding PID 1 in front of your program. You will meet this again in Module 4, where graceful shutdown matters.</div>
 
 <li>
 <p>See the cap in the kernel's own files:</p>

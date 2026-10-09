@@ -101,6 +101,7 @@
   <li><strong>Disable swap deliberately:</strong> set <code>--memory-swap</code> equal to <code>--memory</code>. Otherwise the kernel will swap instead of killing, and everything just gets slow.</li>
   <li><strong><code>--pids-limit</code> is cheap insurance.</strong> It stops a runaway fork loop from eating the host's process table.</li>
   <li><strong>A CPU cap never kills.</strong> If a capped container died, look at memory.</li>
+  <li><strong>The main process is PID 1, and PID 1 ignores unhandled signals.</strong> <code>docker stop</code> waits its 10-second grace, then SIGKILLs. <code>docker kill</code> SIGKILLs at once. Use <code>--init</code> to get a signal-forwarding PID 1 for programs that need it.</li>
 </ul>
 
 <p class="back">Companion to <a href="../lessons/0004-cgroups-the-other-half.html">Lesson 0004 — Cgroups: The Other Half</a> · See also <a href="isolation-namespaces.html">Isolation &amp; Namespaces</a>, <a href="docker-core-commands.html">Core Commands</a> · Sources: <a href="https://docs.kernel.org/admin-guide/cgroup-v2.html">Control Group v2 — kernel.org</a>, <a href="https://docs.docker.com/reference/cli/docker/container/run/">docker run reference</a></p>
