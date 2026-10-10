@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0007 — Two Stages, One Image</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --good: #1e6b34;
+    --bad: #a12622;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17.5px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.4rem; margin-bottom: 3rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2.3rem; font-weight: 700; margin: 0.5rem 0 0.4rem; line-height: 1.12; letter-spacing: -0.01em; }
+  .sub { color: var(--faint); font-style: italic; font-size: 1.02rem; margin: 0; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin: 3rem 0 0.8rem; line-height: 1.2; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 1rem; margin-right: 0.6rem; font-weight: 600; }
+  p { margin: 0.8rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  em { font-style: italic; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.84em; }
+  pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #14120f; color: #e8e4d8; padding: 1.1rem 1.3rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; line-height: 1.65; }
+  pre .cm { color: #8a857a; }
+  pre .cmd { color: #e3b341; font-weight: 600; }
+  .expected { border-left: 3px solid var(--good); background: #f2f6f0; padding: 0.7rem 1.1rem; margin: 0.6rem 0 1.4rem; border-radius: 0 4px 4px 0; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; white-space: pre-wrap; color: #2c352c; overflow-x: auto; }
+  .expected::before { content: "you should see"; display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--good); margin-bottom: 0.3rem; }
+  .why { font-size: 0.92rem; color: #3c3a30; margin-top: -0.6rem; padding-left: 1.1rem; border-left: 3px solid var(--rule); margin-bottom: 1.6rem; }
+  .why strong { color: var(--accent); font-style: normal; }
+  .sidenote { font-size: 0.85rem; color: #4a4840; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 0.7rem 0.2rem; margin: 1.6rem 0; }
+  .sidenote .tag { font-family: "SF Mono", Menlo, monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-right: 0.5rem; }
+  table.ns { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1.2rem 0; }
+  table.ns th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.4rem 0.5rem 0.4rem 0; }
+  table.ns td { border-bottom: 1px solid var(--rule); padding: 0.45rem 0.5rem 0.45rem 0; vertical-align: top; }
+  table.ns td:first-child { font-family: "SF Mono", Menlo, monospace; font-size: 0.78rem; white-space: nowrap; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; background: #fffdf6; }
+  /* quiz */
+  .quiz { margin: 1.5rem 0 0; }
+  .q { border: 1px solid var(--rule); border-radius: 6px; padding: 1.2rem 1.3rem; margin: 1.1rem 0; background: #fffef9; }
+  .q p.stem { font-weight: 600; margin: 0 0 0.8rem; }
+  .q p.stem .qn { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; font-weight: 600; margin-right: 0.5rem; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+  .opts button {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.35;
+  }
+  .opts button:hover:not(:disabled) { border-color: var(--ink); }
+  .opts button.right { background: #e7f0e4; border-color: var(--good); color: var(--good); font-weight: 600; }
+  .opts button.wrong { background: #f6e5e4; border-color: var(--bad); color: var(--bad); }
+  .opts button:disabled { cursor: default; opacity: 0.75; }
+  .opts button.right:disabled, .opts button.wrong:disabled { opacity: 1; }
+  .fb { display: none; margin-top: 0.8rem; font-size: 0.88rem; padding: 0.6rem 0.9rem; border-radius: 5px; }
+  .fb.ok { display: block; background: #e7f0e4; color: var(--good); }
+  .fb.no { display: block; background: #f6e5e4; color: var(--bad); }
+  .score { font-family: "SF Mono", Menlo, monospace; font-size: 0.95rem; text-align: center; margin-top: 1.4rem; padding: 0.9rem; border-top: 2px solid var(--ink); display: none; }
+  .btnrow { text-align: center; margin-top: 1rem; }
+  .btnrow button { font-family: "SF Mono", Menlo, monospace; font-size: 0.75rem; padding: 0.5rem 1.1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 5px; cursor: pointer; }
+  .box-ask { border: 2px solid var(--accent); border-radius: 6px; padding: 1.1rem 1.4rem; margin: 3rem 0 0; background: #fffdf6; }
+  .box-ask h3 { margin: 0 0 0.5rem; font-size: 1.02rem; }
+  .box-ask p { font-size: 0.93rem; margin: 0.4rem 0; }
+  .tomorrow { border: 1px dashed var(--faint); border-radius: 6px; padding: 1rem 1.3rem; margin: 2.5rem 0 0; font-size: 0.92rem; color: #3c3a30; }
+  .next { margin-top: 3rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; font-size: 0.95rem; }
+  .src { margin-top: 1.5rem; font-size: 0.9rem; background: var(--code-bg); padding: 0.9rem 1.2rem; border-radius: 5px; }
+  ol.lab { padding-left: 1.4rem; }
+  ol.lab > li { margin: 1.8rem 0; }
+  ol.lab > li::marker { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-weight: 600; }
+  @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+  @media print {
+    .page { padding: 0.4in 0.4in; max-width: none; }
+    body { font-size: 11pt; }
+    .quiz, .btnrow, .tomorrow, .box-ask { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Lesson 0007 · Module 3 of 5 · Image Building · Mini-Project I</div>
+  <h1>Two Stages, One Image</h1>
+  <p class="sub">Ship the program, not the compiler — and this time the program is yours.</p>
+</header>
+
+<h2><span class="no">§1</span>The workshop and the product</h2>
+<p>Your mission says: take a real application and ship it end-to-end. Starting now, the real application is <code>count_errors</code> — your Rust tool that walks a directory and counts lines containing <code>ERROR</code> in <code>.log</code> files. One real dependency (<code>walkdir</code>). One binary. Perfect cargo for this lesson.</p>
+<p>Think about what that binary needs from the world. To <strong>build</strong> it, you need the whole Rust workshop: <code>cargo</code>, the compiler, headers, a registry download. The official <code>rust:1-alpine</code> image carrying that workshop unpacks to well over a gigabyte. To <strong>run</strong> it, you need: one file. A compiled Rust binary asks the kernel for syscalls and nothing else.</p>
+<p>Lesson 0006 gave you the recipe. Followed naively, it welds the factory to the product: compiler, build cache, source, and binary all frozen into one image. Every server that pulls your image drags a gigabyte of workshop it will never use. That is the problem this lesson deletes.</p>
+
+<h2><span class="no">§2</span>Two stages</h2>
+<p>A Dockerfile may contain more than one <code>FROM</code>. Each <code>FROM</code> starts a <strong>stage</strong> — its own image, its own layers, its own cache chain. Stages build in order. When the build ends, <strong>only the last stage becomes your image.</strong> The earlier stages are scaffolding. They are kept out of the shipping product.</p>
+<p>One instruction moves things between stages: <code>COPY --from=build</code> copies files out of an earlier stage. It is the only door. Anything not carried through that door stays behind with the compiler.</p>
+<p>The final stage below is <code>FROM scratch</code> — the empty image. No base at all. Your files are the entire filesystem. That works only because the builder is Alpine: Alpine's Rust compiles against <strong>musl</strong>, which produces a <strong>static</strong> binary — every library it needs is inside itself. A binary built on Debian asks the system for shared libraries at startup, and on <code>scratch</code> there is no system to ask.</p>
+<pre><span class="cmd">FROM rust:1-alpine AS build</span>      <span class="cm"># the workshop</span>
+<span class="cmd">WORKDIR /src</span>
+<span class="cmd">COPY Cargo.toml Cargo.lock ./</span>
+<span class="cmd">RUN mkdir src &amp;&amp; echo 'fn main() {}' &gt; src/main.rs &amp;&amp; cargo fetch --locked</span>
+<span class="cmd">COPY src ./src</span>
+<span class="cmd">RUN cargo build --release --locked</span>
+
+<span class="cmd">FROM scratch</span>                       <span class="cm"># the product — this ships</span>
+<span class="cmd">COPY --from=build /src/target/release/count_errors /count_errors</span>
+<span class="cmd">ENTRYPOINT ["/count_errors"]</span>
+<span class="cmd">CMD ["/logs"]</span></pre>
+
+<p>Two new instructions share the last line's job:</p>
+<table class="ns">
+  <tr><th></th><th>ENTRYPOINT</th><th>CMD</th></tr>
+  <tr><td>role</td><td>The fixed program</td><td>Default arguments</td></tr>
+  <tr><td>docker run img /data</td><td>stays</td><td>replaced by /data</td></tr>
+  <tr><td>suits</td><td>CLI tool images</td><td>server images (Lesson 0006)</td></tr>
+</table>
+
+<p>And note the ordering, because it is Lesson 0006's rule wearing work clothes. The manifests (<code>Cargo.toml</code>, <code>Cargo.lock</code>) are copied before the source. So the dependency download sits in its own layer, above your daily edits. Change <code>main.rs</code>, rebuild: the fetch layer stays cached. You will watch it happen in the lab.</p>
+
+<div class="note">
+<strong>The recipe met reality.</strong> This Dockerfile's dependency line was first written as plain <code>cargo fetch --locked</code>. It failed, live: <em>"no targets specified in the manifest — either src/main.rs … must be present."</em> Cargo refuses to read a project with no source. The standard fix is the placeholder: create a one-line dummy <code>main.rs</code>, fetch dependencies, then overwrite it with your real <code>src</code>. Failures like this are why lessons get verified before they get taught.
+</div>
+
+<p class="sidenote"><span class="tag">source</span>Stage mechanics, naming, and <code>--target</code>: <a href="https://docs.docker.com/build/building/multi-stage/">Multi-stage builds — Docker docs</a>. Full patterns and the linking rule: <a href="../reference/multi-stage-builds.html">Multi-Stage Builds (reference)</a>.</p>
+
+<h2><span class="no">§3</span>Lab — your code, two stages <span style="font-weight:400; font-size:0.85rem; color:var(--faint)">(≈25 min, in your terminal)</span></h2>
+<p>Everything below was built and run on this machine before you read it. First, one disclosure: identical layers from that verification may still sit in your build cache. If a "first" build shows <code>CACHED</code>, that is why. To feel the true cold build, run <code>docker builder prune -f</code> first — it empties the build cache (Lesson 0006's little app rebuilds in seconds, so nothing is lost).</p>
+
+<ol class="lab">
+<li>
+<p>Arrive at your project, and measure what must never enter an image:</p>
+<pre><span class="cmd">cd ~/lab/rust/count_errors</span>
+<span class="cmd">du -sh target</span></pre>
+<div class="expected">300M    target        ← your number will differ; all of it is macOS build output</div>
+<p>That folder is your Mac's compiled output. It is useless inside a Linux image, and <code>COPY . .</code> would ship every byte of it. Keep it out, plus the test logs you are about to make:</p>
+<pre><span class="cmd">cat &gt; .dockerignore &lt;&lt;'EOF'
+target/
+testlogs/
+.git/
+EOF</span></pre>
+</li>
+
+<li>
+<p>The honest first attempt — one stage, everything in. Write <code>Dockerfile.fat</code>:</p>
+<pre><span class="cmd">FROM rust:1-alpine</span>
+<span class="cmd">WORKDIR /src</span>
+<span class="cmd">COPY . .</span>
+<span class="cmd">RUN cargo build --release</span>
+<span class="cmd">CMD ["./target/release/count_errors", "/logs"]</span></pre>
+<p>Build it:</p>
+<pre><span class="cmd">docker build -f Dockerfile.fat -t count-errors:fat .</span></pre>
+<div class="expected">#4 [1/4] FROM docker.io/library/rust:1-alpine@sha256:0cce0a5e0e8b…
+#4 DONE 391.0s          ← the one long wait: pulling the workshop (~280 MB)
+#5 [2/4] WORKDIR /src
+#5 DONE 0.4s
+#7 [3/4] COPY . .
+#7 DONE 0.0s            ← tiny, because .dockerignore kept target/ out
+#8 [4/4] RUN cargo build --release
+#8 DONE 1.2s
+#9 naming to docker.io/library/count-errors:fat done</div>
+<p class="why"><strong>What happened:</strong> the base pull dominates (first time only — Lesson 0005's image store remembers it). The compile itself took seconds: <code>walkdir</code> is small. Note the tag resolved to a digest again — Lesson 0002, every time, forever.</p>
+</li>
+
+<li>
+<p>The bill:</p>
+<pre><span class="cmd">docker images</span></pre>
+<div class="expected">IMAGE                ID            DISK USAGE   CONTENT SIZE
+count-errors:fat     7587a4eb923a      1.35GB          352MB
+first-app:latest     33c3f4ac29a8       201MB         43.5MB</div>
+<p class="why"><strong>What happened:</strong> one point three five gigabytes, for a tool that reads text files. The workshop, the product, and cargo's download cache — welded into one layer stack. Every pull of your image moves all of it.</p>
+</li>
+
+<li>
+<p>It works, though. Make test data and run the giant:</p>
+<pre><span class="cmd">mkdir -p testlogs</span>
+<span class="cmd">printf 'INFO started\nERROR db timeout\nERROR retry failed\nINFO done\n' &gt; testlogs/app.log</span>
+<span class="cmd">printf 'ERROR conn refused\nINFO ok\nERROR bad crc\nERROR disk full\n' &gt; testlogs/web.log</span>
+<span class="cmd">printf 'ERROR i am not a .log file\n' &gt; testlogs/notes.txt</span>
+<span class="cmd">docker run --rm -v "$(pwd)/testlogs":/logs:ro count-errors:fat</span></pre>
+<div class="expected">5 errors found</div>
+<p class="why"><strong>What happened:</strong> five — two from <code>app.log</code>, three from <code>web.log</code>, and <code>notes.txt</code> correctly ignored (not a <code>.log</code>). Same count your Mac's build gives you: same code, same kernel syscalls, different filesystem view. Two flags did new work: <code>--rm</code> deletes the container the moment it exits (CLI containers exit at once — no point keeping corpses), and <code>-v "$(pwd)/testlogs":/logs:ro</code> lends a Mac folder into the container, read-only. That is a <strong>bind mount</strong> — Module 4's subject, previewed today because your tool needs data to chew on.</p>
+</li>
+
+<li>
+<p>Now the real Dockerfile. Name it <code>Dockerfile</code> (the default name, so builds need no <code>-f</code>):</p>
+<pre><span class="cmd">FROM rust:1-alpine AS build</span>
+<span class="cmd">WORKDIR /src</span>
+<span class="cmd">COPY Cargo.toml Cargo.lock ./</span>
+<span class="cmd">RUN mkdir src &amp;&amp; echo 'fn main() {}' &gt; src/main.rs &amp;&amp; cargo fetch --locked</span>
+<span class="cmd">COPY src ./src</span>
+<span class="cmd">RUN cargo build --release --locked</span>
+
+<span class="cmd">FROM scratch</span>
+<span class="cmd">COPY --from=build /src/target/release/count_errors /count_errors</span>
+<span class="cmd">ENTRYPOINT ["/count_errors"]</span>
+<span class="cmd">CMD ["/logs"]</span></pre>
+</li>
+
+<li>
+<p>Build and read the log closely — BuildKit <em>names your stages</em>:</p>
+<pre><span class="cmd">docker build -t count-errors .</span></pre>
+<div class="expected">#4 [build 1/6] FROM docker.io/library/rust:1-alpine@sha256:0cce0a5e…
+#4 CACHED
+#8 [build 4/6] RUN mkdir src && echo 'fn main() {}' … && cargo fetch --locked
+#8 0.855  Downloaded walkdir v2.5.0
+#8 0.962  Downloaded rustix v1.1.4
+#8 3.996  Downloaded windows-sys v0.61.2   ← yes, Windows — the lockfile lists every platform
+#8 DONE 4.2s
+#9 [build 5/6] COPY src ./src
+#9 DONE 0.0s
+#10 [build 6/6] RUN cargo build --release --locked
+#10 0.400  Compiling walkdir v2.5.0
+#10 0.575  Finished `release` profile [optimized] in 0.49s
+#11 [stage-1 1/1] COPY --from=build /src/target/release/count_errors /count_errors
+#11 DONE 0.0s
+#13 naming to docker.io/library/count-errors:latest done</div>
+<p class="why"><strong>What happened:</strong> rows say <code>[build n/6]</code> for the workshop and <code>[stage-1 1/1]</code> for the product. The final stage has exactly one instruction: copy the binary across the only door. <code>From rust:1-alpine</code> pulled nothing this time — and notice it never appears in <code>docker images</code> either: BuildKit keeps build bases in its cache, not the image list.</p>
+</li>
+
+<li>
+<p>The new bill:</p>
+<pre><span class="cmd">docker images</span>
+<span class="cmd">docker image history count-errors</span></pre>
+<div class="expected">IMAGE                ID            DISK USAGE   CONTENT SIZE
+count-errors:latest  4ef836a1c54c       921kB          274kB
+count-errors:fat     7587a4eb923a      1.35GB          352MB
+first-app:latest     33c3f4ac29a8       201MB         43.5MB
+
+IMAGE          CREATED BY                                     SIZE
+4ef836a1c54c   CMD ["/logs"]                                  0B
+&lt;missing&gt;      ENTRYPOINT ["/count_errors"]                   0B
+&lt;missing&gt;      COPY /src/target/release/count_errors /count…  647kB
+               ⋮  nothing below — scratch has no base</div>
+<p class="why"><strong>What happened:</strong> 921 kilobytes against 1.35 gigabytes — about 1,470 times lighter, and the binary is 647 kB of it. And the birth certificate from Lesson 0002 has just three rows with <em>nothing underneath</em>: the first image you have built that stands on no base at all. Delete the fat one — it served its purpose as the before-picture:</p>
+<pre><span class="cmd">docker rmi count-errors:fat</span></pre>
+</li>
+
+<li>
+<p>Run yours, then argue with it. First, no arguments — the defaults drive:</p>
+<pre><span class="cmd">docker run --rm -v "$(pwd)/testlogs":/logs:ro count-errors</span></pre>
+<div class="expected">5 errors found</div>
+<p>Now mount the same folder somewhere else and say so:</p>
+<pre><span class="cmd">docker run --rm -v "$(pwd)/testlogs":/data:ro count-errors /data</span></pre>
+<div class="expected">5 errors found</div>
+<p class="why"><strong>What happened:</strong> same five, two ways. Bare <code>docker run</code> used the defaults: ENTRYPOINT ran <code>/count_errors</code>, CMD handed it <code>/logs</code>. The second time, <code>/data</code> replaced CMD's default — ENTRYPOINT never moved. That split is what makes a CLI tool usable as an image.</p>
+</li>
+
+<li>
+<p>The cache dance, with real dependencies. Edit <code>src/main.rs</code> — change one line:</p>
+<pre>println!("{} errors found (v2)", total);</pre>
+<p>Rebuild and watch which layers flinch:</p>
+<pre><span class="cmd">docker build -t count-errors .</span></pre>
+<div class="expected">#8 [build 4/6] RUN mkdir src && echo 'fn main() {}' … && cargo fetch --locked
+#8 CACHED                    ← your edit did not touch this
+#9 [build 5/6] COPY src ./src
+#9 DONE 0.0s                 ← content changed (Lesson 0006)
+#10 [build 6/6] RUN cargo build --release --locked
+#10 DONE 0.6s                ← recompiled, against already-downloaded deps
+#11 [stage-1 1/1] COPY --from=build …
+#11 DONE 0.0s</div>
+<pre><span class="cmd">docker run --rm -v "$(pwd)/testlogs":/logs:ro count-errors</span></pre>
+<div class="expected">5 errors found (v2)</div>
+<p class="why"><strong>What happened:</strong> Lesson 0006's rule, now carrying a real dependency graph. The fetch layer — the slow one on a big project — stayed cached, because <code>Cargo.toml</code> and <code>Cargo.lock</code> did not change. Only the copy, the compile, and the final image rebuilt. Revert the edit if you like; the image you keep is yours either way.</p>
+</li>
+</ol>
+
+<h2><span class="no">§4</span>Check yourself</h2>
+<p>Recall from memory — no scrolling up. Wrong answers explain themselves.</p>
+
+<div class="quiz" id="quiz">
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q1</span>What crosses from the builder stage into the final image?</p>
+    <div class="opts">
+      <button>Only what COPY --from carries</button>
+      <button>Every layer the builder made</button>
+      <button>The builder's whole base image</button>
+      <button>Nothing can cross between stages</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <p class="stem"><span class="qn">Q2</span>Why is the binary legal on <code>FROM scratch</code>?</p>
+    <div class="opts">
+      <button>Scratch secretly ships tiny libc</button>
+      <button>Kernel compiles it at launch</button>
+      <button>It is statically linked inside</button>
+      <button>Docker injects libraries at runtime</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q3</span>Why are <code>Cargo.toml</code> and <code>Cargo.lock</code> copied before <code>src</code>?</p>
+    <div class="opts">
+      <button>Dependencies cache while your code churns</button>
+      <button>Cargo refuses manifests without source present</button>
+      <button>Lockfiles invalidate fewer layers when changed</button>
+      <button>The build context gets smaller that way</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q4</span><code>docker run count-errors /data</code> — what replaced what?</p>
+    <div class="opts">
+      <button>/data replaced the CMD's default argument</button>
+      <button>/data replaced the ENTRYPOINT program path</button>
+      <button>/data was appended next to /logs</button>
+      <button>/data was mounted by Docker itself</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="score" id="score"></div>
+  <div class="btnrow"><button onclick="resetQuiz()">reset quiz</button></div>
+</div>
+
+<div class="src">
+  <strong>Primary source for this lesson</strong> — read after finishing (12 min):<br>
+  <a href="https://docs.docker.com/build/building/multi-stage/">"Multi-stage builds" — Docker official docs</a>. Read "Use an external build stage", "Stop at a specific build stage" (<code>--target</code> — debug the workshop without shipping it), and "Use a specific stage as final". Then skim the size table in <a href="https://docs.docker.com/build/building/best-practices/">best practices</a> again with new eyes.
+</div>
+
+<div class="tomorrow">
+  <strong>Before your next session</strong> (5 min, no notes): recall — (1) why the fat image weighed 1.35 GB, in one sentence; (2) what crosses between stages, and through which instruction; (3) why the builder being Alpine makes <code>scratch</code> legal; (4) ENTRYPOINT vs CMD, one sentence each; (5) from Lesson 0006: why <code>touch</code> changed nothing but your edit changed everything. Bonus, no notes either: look at one image you rely on at work, and guess what its builder stage shed.
+</div>
+
+<div class="box-ask">
+  <h3>Your teacher is on call</h3>
+  <p>Anything unclear — "why <code>--locked</code>?", "what if I need CA certs on scratch?", "how would a Python app do this without compiling?" — <strong>ask the agent</strong> in your next session (or right now). Questions are the fastest part of the curriculum.</p>
+</div>
+
+<div class="next">
+  <strong>Next lesson — where data really lives.</strong> Today a bind mount lent your Mac's <code>testlogs/</code> into a container. That is one of three ways Docker handles storage, and the least durable. Module 4: volumes, bind mounts, container filesystems — what survives a container's death — then networks, and compose stacks that tie a real deployment together. Review anytime: <a href="0001-a-container-is-a-process.html">0001</a> · <a href="0002-the-anatomy-of-an-image.html">0002</a> · <a href="0003-how-the-kernel-lies.html">0003</a> · <a href="0004-cgroups-the-other-half.html">0004</a> · <a href="0005-the-docker-brain.html">0005</a> · <a href="0006-your-first-dockerfile.html">0006</a> · Reference shelf: <a href="../reference/multi-stage-builds.html">Multi-Stage Builds</a>, <a href="../reference/dockerfile-basics.html">Dockerfile Basics</a>, <a href="../reference/image-anatomy.html">Image Anatomy</a>.
+</div>
+
+</div>
+
+<script>
+  const explanations = [
+    ["Right. COPY --from is the only door between stages, and only files pass through it. The builder's gigabytes of toolchain, cache, and base layers stay behind — that is the entire trick."],
+    ["Exactly — the Alpine build is static: every library it needs is inside the binary, so it talks straight to the kernel. A dynamic binary would ask scratch for libraries that do not exist, and die instantly."],
+    ["Correct. The cache stops at the first change. Manifests rarely change; code changes daily. With the fetch layer above your edits, dependencies never re-download — you watched exactly that in step 9. (The dummy main.rs exists only because cargo refuses to parse a manifest with no source.)"],
+    ["Right. ENTRYPOINT is the fixed program; CMD holds default arguments. Words after the image name replace CMD, so /logs stepped out and /data stepped in — ENTRYPOINT never moved."]
+  ];
+  const quiz = document.getElementById('quiz');
+  let done = 0, right = 0;
+  function scored() {
+    if (done < 4) return;
+    const s = document.getElementById('score');
+    s.style.display = 'block';
+    const msg = right === 4 ? "4 / 4 — the stage is yours." : right + " / 4 — reread §1 and §2, try again tomorrow.";
+    s.textContent = msg;
+  }
+  quiz.querySelectorAll('.q').forEach((q, qi) => {
+    const ans = parseInt(q.dataset.a, 10);
+    const fb = q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach((b, bi) => {
+      b.addEventListener('click', () => {
+        if (q.dataset.done) return;
+        q.dataset.done = "1"; done++;
+        const correct = bi === ans;
+        if (correct) { b.classList.add('right'); right++; fb.className = 'fb ok'; }
+        else { b.classList.add('wrong'); fb.className = 'fb no'; q.querySelectorAll('.opts button')[ans].classList.add('right'); }
+        fb.textContent = (correct ? "✔ " : "✘ ") + explanations[qi][0];
+        q.querySelectorAll('.opts button').forEach(x => x.disabled = true);
+        scored();
+      });
+    });
+  });
+  function resetQuiz() {
+    done = 0; right = 0;
+    document.getElementById('score').style.display = 'none';
+    quiz.querySelectorAll('.q').forEach(q => { delete q.dataset.done; q.querySelector('.fb').className = 'fb'; q.querySelectorAll('.opts button').forEach(b => { b.disabled = false; b.className = ''; } ); });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Stage Builds — Reference</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitika Text", Cambria, Georgia, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.2rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.3rem; line-height: 1.15; }
+  .sub { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 2.4rem 0 0.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; margin-right: 0.5rem; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.85em; }
+  pre { background: var(--code-bg); padding: 1rem 1.2rem; border-radius: 5px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; }
+  pre .cm { color: #7a7a6e; } /* comment */
+  pre .hl { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.45rem 0.6rem 0.45rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: 0.5rem 0.6rem 0.5rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.8rem; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.5rem 0; }
+  .back { font-size: 0.85rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; color: var(--faint); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  @media print {
+    .page { padding: 0.5in 0.5in; max-width: none; }
+    body { font-size: 11pt; }
+    .back { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Reference · Image Building</div>
+  <h1>Multi-Stage Builds</h1>
+  <p class="sub">Build in the factory, ship the product: stage selection, <code>FROM scratch</code>, and the linking rule that makes it legal.</p>
+</header>
+
+<h2><span class="no">01</span>The idea in one breath</h2>
+<p>Compiling needs a workshop. Running needs an artifact. A <strong>multi-stage build</strong> puts the workshop in an early stage and ships only the last one. Earlier stages are scaffolding: BuildKit labels their steps <code>[build 4/6]</code>; the final stage's steps carry no prefix (or <code>[stage-1 1/1]</code>).</p>
+<pre><span class="hl">FROM</span> rust:1-alpine <span class="hl">AS</span> build        <span class="cm"># stage 1: the workshop</span>
+<span class="hl">WORKDIR</span> /src
+<span class="hl">COPY</span> Cargo.toml Cargo.lock ./
+<span class="hl">RUN</span> mkdir src && echo 'fn main() {}' &gt; src/main.rs && cargo fetch --locked
+<span class="hl">COPY</span> src ./src
+<span class="hl">RUN</span> cargo build --release --locked
+
+<span class="hl">FROM</span> scratch                        <span class="cm"># stage 2: the product — this ships</span>
+<span class="hl">COPY</span> --from=build /src/target/release/count_errors /count_errors
+<span class="hl">ENTRYPOINT</span> ["/count_errors"]
+<span class="hl">CMD</span> ["/logs"]</pre>
+<ul>
+  <li><strong>Every <code>FROM</code> starts a new stage.</strong> Each stage is its own image with its own layers and cache chain.</li>
+  <li><strong>Only the last stage becomes your image.</strong> Everything the builder downloaded, compiled, and cached stays behind.</li>
+  <li><strong><code>COPY --from=STAGE</code> is the only door between stages.</strong> What isn't copied doesn't cross.</li>
+  <li><strong>Build a middle stage alone:</strong> <code>docker build --target build .</code> — handy for debugging the workshop without shipping it.</li>
+</ul>
+
+<div class="note">
+<strong>The Rust gotcha (verified the hard way).</strong> <code>cargo fetch</code> refuses a manifest with no targets — no <code>src/main.rs</code>, no parse. So the dummy <code>mkdir src &amp;&amp; echo 'fn main() {}' &gt; src/main.rs</code> line exists to satisfy cargo during the dependency step. The real <code>COPY src ./src</code> overwrites the dummy afterwards.
+</div>
+
+<h2><span class="no">02</span>Picking the final stage</h2>
+<table>
+  <tr><th>final stage</th><th>contains</th><th>use when</th></tr>
+  <tr><td>scratch</td><td>Literally nothing. Your files are the whole filesystem.</td><td>One static binary. Smallest possible image (Lesson 0007: 921&nbsp;kB).</td></tr>
+  <tr><td>gcr.io/distroless/…</td><td>Runtime libs + certs, no shell, no package manager.</td><td>You need libc/CA certs but want no attack surface.</td></tr>
+  <tr><td>*-slim (debian)</td><td>Debian minus docs/toolchains. Has a shell.</td><td>Dynamic builds; you want <code>apt</code>-adjacent debugging.</td></tr>
+  <tr><td>alpine</td><td>BusyBox + musl. Shell included, ~5&nbsp;MB.</td><td>Small runtime with a shell; musl-compatible software.</td></tr>
+</table>
+
+<h2><span class="no">03</span>The linking rule (why the builder was alpine)</h2>
+<p>A <strong>static</strong> binary carries every library it needs inside itself. It makes raw syscalls and nothing else — so <code>FROM scratch</code> is legal. A <strong>dynamic</strong> binary asks the loader for shared libraries at start (<code>libc</code> at minimum) — on <code>scratch</code> it dies instantly with <code>not found</code>.</p>
+<ul>
+  <li>Alpine's rust targets <strong>musl</strong>, and musl binaries are static by default → runs on scratch.</li>
+  <li>Debian rust builds against <strong>glibc</strong>, dynamic → final stage needs <code>*-slim</code> or distroless.</li>
+  <li>Check any binary: <code>file BINARY</code> says "statically linked" or "dynamically linked"; <code>ldd BINARY</code> lists what it will ask for.</li>
+</ul>
+
+<h2><span class="no">04</span>Dependency cache, per language</h2>
+<p>The Lesson 0006 rule — <em>stable things first, changing things last</em> — becomes more valuable with every real dependency. Copy the manifest, install deps, only then copy code.</p>
+<table>
+  <tr><th>language</th><th>manifest step</th><th>dep step</th></tr>
+  <tr><td>Rust</td><td><code>COPY Cargo.toml Cargo.lock ./</code> + dummy <code>src/main.rs</code></td><td><code>cargo fetch --locked</code></td></tr>
+  <tr><td>Python</td><td><code>COPY requirements.txt .</code></td><td><code>pip install -r requirements.txt</code></td></tr>
+  <tr><td>Node</td><td><code>COPY package.json package-lock.json .</code></td><td><code>npm ci</code></td></tr>
+  <tr><td>Go</td><td><code>COPY go.mod go.sum ./</code></td><td><code>go mod download</code></td></tr>
+</table>
+<p>Then <code>COPY</code> the source. Edit code → the manifest layers stay <code>CACHED</code> → the slow dep step never re-runs.</p>
+
+<h2><span class="no">05</span>ENTRYPOINT vs CMD</h2>
+<table>
+  <tr><th></th><th>ENTRYPOINT</th><th>CMD</th></tr>
+  <tr><td>role</td><td>The fixed program</td><td>Default arguments</td></tr>
+  <tr><td><code>docker run img a b</code></td><td>stays</td><td>replaced by <code>a b</code></td></tr>
+  <tr><td>good for</td><td>CLI tool images</td><td>server images; defaults</td></tr>
+</table>
+<div class="note"><strong>Verified shape for a CLI tool:</strong> <code>ENTRYPOINT ["/count_errors"]</code> + <code>CMD ["/logs"]</code>. Bare <code>docker run img</code> scans <code>/logs</code>; <code>docker run img /data</code> scans <code>/data</code>. For a web service, plain <code>CMD</code> is enough (Lesson 0006).</div>
+
+<h2><span class="no">06</span>Worth taping to the wall</h2>
+<ul>
+  <li><strong>Verified payoff:</strong> same app, fat single-stage image 1.35&nbsp;GB → multi-stage scratch image 921&nbsp;kB. About 1,470× lighter.</li>
+  <li><strong>Base images used by builds often don't appear in <code>docker images</code></strong> — BuildKit keeps them in its build cache. <code>docker system df</code> shows both stores; <code>docker builder prune</code> clears the build cache.</li>
+  <li><strong>Shrink further:</strong> <code>RUN strip target/release/BIN</code> drops symbol names — typically 30–50% off a Rust binary. Do it in the builder, before <code>COPY --from</code>.</li>
+  <li><strong><code>--locked</code></strong> on cargo commands: use the lockfile exactly as committed; fail instead of silently upgrading deps inside the image.</li>
+  <li><strong>Scratch has no shell, no <code>ls</code>, no anything.</strong> If you need to look inside a broken container, debug the <code>--target build</code> stage or use a slim final stage first, shrink later.</li>
+</ul>
+
+<p class="back">Companion to <a href="../lessons/0007-two-stages-one-image.html">Lesson 0007 — Two Stages, One Image</a> · See also <a href="dockerfile-basics.html">Dockerfile Basics</a>, <a href="image-anatomy.html">Image Anatomy</a> · Sources: <a href="https://docs.docker.com/build/building/multi-stage/">Multi-stage builds — Docker docs</a>, <a href="https://docs.docker.com/build/building/best-practices/">Building best practices — Docker docs</a></p>
+
+</div>
+</body>
+</html>
