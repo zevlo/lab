@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dockerfile Basics — Reference</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.2rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.3rem; line-height: 1.15; }
+  .sub { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 2.4rem 0 0.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; margin-right: 0.5rem; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.85em; }
+  pre { background: var(--code-bg); padding: 1rem 1.2rem; border-radius: 5px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; }
+  pre .cm { color: #7a7a6e; } /* comment */
+  pre .hl { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.45rem 0.6rem 0.45rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: 0.5rem 0.6rem 0.5rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.5rem 0; }
+  .back { font-size: 0.85rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; color: var(--faint); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  @media print {
+    .page { padding: 0.5in 0.5in; max-width: none; }
+    body { font-size: 11pt; }
+    .back { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Reference · Image Building</div>
+  <h1>Dockerfile Basics</h1>
+  <p class="sub">Every instruction, the RUN-vs-CMD line, and the cache rules that decide build speed.</p>
+</header>
+
+<h2><span class="no">01</span>The instructions you'll actually use</h2>
+<table>
+  <tr><th>instruction</th><th>does</th><th>layer?</th></tr>
+  <tr><td>FROM image</td><td>Base image. Always first.</td><td>inherits its layers</td></tr>
+  <tr><td>WORKDIR /app</td><td>Working directory for RUN/COPY/CMD.</td><td>0 B — config</td></tr>
+  <tr><td>COPY file .</td><td>File from build context into the image.</td><td>file's size</td></tr>
+  <tr><td>RUN cmd</td><td>Execute at build time; result frozen into the image.</td><td>bytes changed</td></tr>
+  <tr><td>ENV k=v</td><td>Set an environment variable in the image.</td><td>0 B — config</td></tr>
+  <tr><td>EXPOSE port</td><td>Document the port for humans. <code>-p</code> does the real mapping.</td><td>0 B — config</td></tr>
+  <tr><td>CMD ["exe","arg"]</td><td>What a container runs at start. Exec form (quotes) is the default choice.</td><td>0 B — config</td></tr>
+</table>
+
+<div class="note">
+  <strong>RUN vs CMD.</strong> RUN: once, at build, frozen in. CMD: every container start, saves nothing. RUN makes the image; CMD runs it. Your CMD process becomes PID 1 (Lesson 0004 field note).
+</div>
+
+<h2><span class="no">02</span>The build cache rules</h2>
+<ul>
+  <li><strong>Cache stops at the first change.</strong> Docker walks top to bottom; the first instruction whose inputs changed breaks the chain. Above it: reused. From it down: rebuilt.</li>
+  <li><strong>Content, not timestamps.</strong> COPY's cache is keyed on file checksums. <code>touch</code> does nothing; a one-character edit rebuilds that layer.</li>
+  <li><strong>Order stable → changing:</strong> base image → system packages → dependency install (<code>pip install</code> / <code>npm ci</code> after copying only the lockfile) → your code, last.</li>
+  <li><strong>A Dockerfile edit busts everything below it too</strong> — instruction text itself is an input.</li>
+  <li><strong>Escape hatches:</strong> <code>docker build --no-cache</code> rebuilds all layers; <code>--pull</code> fetches a fresh base image even if one is cached.</li>
+</ul>
+
+<h2><span class="no">03</span>Build context and .dockerignore</h2>
+<p><code>docker build -t name .</code> — the dot is the <strong>build context</strong>: the folder the CLI sends to the daemon. COPY paths are relative to it. Keep it small: a <code>.dockerignore</code> file (gitignore syntax) keeps <code>.git</code>, <code>node_modules</code>, and secrets out of the context — and out of the image.</p>
+
+<h2><span class="no">04</span>The canonical ordering (copy this shape)</h2>
+<pre><span class="hl">FROM</span> python:3.12-slim          <span class="cm"># 1. base — changes rarely</span>
+<span class="hl">WORKDIR</span> /app                   <span class="cm"># 2. layout</span>
+<span class="hl">COPY</span> requirements.txt .        <span class="cm"># 3. dependency list only</span>
+<span class="hl">RUN</span> pip install -r requirements.txt   <span class="cm"># 4. slow step — cached until the list changes</span>
+<span class="hl">COPY</span> . .                        <span class="cm"># 5. your code, last — changes every day</span>
+<span class="hl">EXPOSE</span> 8000
+<span class="hl">CMD</span> ["python", "app.py"]</pre>
+
+<h2><span class="no">05</span>Worth taping to the wall</h2>
+<ul>
+  <li><strong>One instruction = one layer.</strong> <code>docker image history IMAGE</code> shows your Dockerfile as rows — the birth certificate (Lesson 0002).</li>
+  <li><strong>Slim bases, pinned versions.</strong> <code>python:3.12-slim</code> beats <code>python:latest</code>: smaller, and predictable. Tags are mutable pointers (Lesson 0002); pin versions you've tested.</li>
+  <li><strong>Chain RUN cleanups:</strong> <code>RUN apt-get update &amp;&amp; apt-get install -y pkg &amp;&amp; rm -rf /var/lib/apt/lists/*</code> — one layer, no leftover cache.</li>
+  <li><strong>Slow steps belong high (early), fast steps low (late).</strong> Rebuild cost = everything below your first change.</li>
+</ul>
+
+<p class="back">Companion to <a href="../lessons/0006-your-first-dockerfile.html">Lesson 0006 — Your First Dockerfile</a> · See also <a href="image-anatomy.html">Image Anatomy</a>, <a href="docker-architecture.html">Docker Architecture</a> · Sources: <a href="https://docs.docker.com/build/building/best-practices/">Building best practices — Docker docs</a>, <a href="https://docs.docker.com/reference/dockerfile/">Dockerfile reference</a></p>
+
+</div>
+</body>
+</html>

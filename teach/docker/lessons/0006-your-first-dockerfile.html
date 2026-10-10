@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0006 — Your First Dockerfile</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --good: #1e6b34;
+    --bad: #a12622;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17.5px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.4rem; margin-bottom: 3rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2.3rem; font-weight: 700; margin: 0.5rem 0 0.4rem; line-height: 1.12; letter-spacing: -0.01em; }
+  .sub { color: var(--faint); font-style: italic; font-size: 1.02rem; margin: 0; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin: 3rem 0 0.8rem; line-height: 1.2; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 1rem; margin-right: 0.6rem; font-weight: 600; }
+  p { margin: 0.8rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  em { font-style: italic; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.84em; }
+  pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #14120f; color: #e8e4d8; padding: 1.1rem 1.3rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; line-height: 1.65; }
+  pre .cm { color: #8a857a; }
+  pre .cmd { color: #e3b341; font-weight: 600; }
+  .expected { border-left: 3px solid var(--good); background: #f2f6f0; padding: 0.7rem 1.1rem; margin: 0.6rem 0 1.4rem; border-radius: 0 4px 4px 0; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; white-space: pre-wrap; color: #2c352c; overflow-x: auto; }
+  .expected::before { content: "you should see"; display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--good); margin-bottom: 0.3rem; }
+  .why { font-size: 0.92rem; color: #3c3a30; margin-top: -0.6rem; padding-left: 1.1rem; border-left: 3px solid var(--rule); margin-bottom: 1.6rem; }
+  .why strong { color: var(--accent); font-style: normal; }
+  .sidenote { font-size: 0.85rem; color: #4a4840; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 0.7rem 0.2rem; margin: 1.6rem 0; }
+  .sidenote .tag { font-family: "SF Mono", Menlo, monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-right: 0.5rem; }
+  table.ns { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1.2rem 0; }
+  table.ns th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.4rem 0.5rem 0.4rem 0; }
+  table.ns td { border-bottom: 1px solid var(--rule); padding: 0.45rem 0.5rem 0.45rem 0; vertical-align: top; }
+  table.ns td:first-child { font-family: "SF Mono", Menlo, monospace; font-size: 0.78rem; white-space: nowrap; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; background: #fffdf6; }
+  /* quiz */
+  .quiz { margin: 1.5rem 0 0; }
+  .q { border: 1px solid var(--rule); border-radius: 6px; padding: 1.2rem 1.3rem; margin: 1.1rem 0; background: #fffef9; }
+  .q p.stem { font-weight: 600; margin: 0 0 0.8rem; }
+  .q p.stem .qn { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; font-weight: 600; margin-right: 0.5rem; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+  .opts button {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.35;
+  }
+  .opts button:hover:not(:disabled) { border-color: var(--ink); }
+  .opts button.right { background: #e7f0e4; border-color: var(--good); color: var(--good); font-weight: 600; }
+  .opts button.wrong { background: #f6e5e4; border-color: var(--bad); color: var(--bad); }
+  .opts button:disabled { cursor: default; opacity: 0.75; }
+  .opts button.right:disabled, .opts button.wrong:disabled { opacity: 1; }
+  .fb { display: none; margin-top: 0.8rem; font-size: 0.88rem; padding: 0.6rem 0.9rem; border-radius: 5px; }
+  .fb.ok { display: block; background: #e7f0e4; color: var(--good); }
+  .fb.no { display: block; background: #f6e5e4; color: var(--bad); }
+  .score { font-family: "SF Mono", Menlo, monospace; font-size: 0.95rem; text-align: center; margin-top: 1.4rem; padding: 0.9rem; border-top: 2px solid var(--ink); display: none; }
+  .btnrow { text-align: center; margin-top: 1rem; }
+  .btnrow button { font-family: "SF Mono", Menlo, monospace; font-size: 0.75rem; padding: 0.5rem 1.1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 5px; cursor: pointer; }
+  .box-ask { border: 2px solid var(--accent); border-radius: 6px; padding: 1.1rem 1.4rem; margin: 3rem 0 0; background: #fffdf6; }
+  .box-ask h3 { margin: 0 0 0.5rem; font-size: 1.02rem; }
+  .box-ask p { font-size: 0.93rem; margin: 0.4rem 0; }
+  .tomorrow { border: 1px dashed var(--faint); border-radius: 6px; padding: 1rem 1.3rem; margin: 2.5rem 0 0; font-size: 0.92rem; color: #3c3a30; }
+  .next { margin-top: 3rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; font-size: 0.95rem; }
+  .src { margin-top: 1.5rem; font-size: 0.9rem; background: var(--code-bg); padding: 0.9rem 1.2rem; border-radius: 5px; }
+  ol.lab { padding-left: 1.4rem; }
+  ol.lab > li { margin: 1.8rem 0; }
+  ol.lab > li::marker { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-weight: 600; }
+  @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+  @media print {
+    .page { padding: 0.4in 0.4in; max-width: none; }
+    body { font-size: 11pt; }
+    .quiz, .btnrow, .tomorrow, .box-ask { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Lesson 0006 · Module 3 of 5 · Image Building</div>
+  <h1>Your First Dockerfile</h1>
+  <p class="sub">Write the recipe, build the image, and make the cache obey your ordering.</p>
+</header>
+
+<h2><span class="no">§1</span>The recipe</h2>
+<p>You know what an image is: a stack of layers (Lesson 0002). You know who builds it: the daemon (Lesson 0005). A <strong>Dockerfile</strong> is the recipe they follow — a short file of instructions. The daemon reads it top to bottom. Each instruction produces one layer. The result is an image.</p>
+
+<table class="ns">
+  <tr><th>instruction</th><th>what it does</th></tr>
+  <tr><td>FROM python:3.12-slim</td><td>Start from a base image. Every Dockerfile begins here.</td></tr>
+  <tr><td>WORKDIR /app</td><td>Set the working directory inside the image.</td></tr>
+  <tr><td>COPY file .</td><td>Copy a file from your folder into a layer.</td></tr>
+  <tr><td>RUN command</td><td>Run a command <strong>at build time</strong> and freeze the result into a layer.</td></tr>
+  <tr><td>EXPOSE 8000</td><td>Document the port. Humans read it; <code>-p</code> does the real work (Lesson 0001).</td></tr>
+  <tr><td>CMD ["python", "app.py"]</td><td>Declare what a container of this image runs <strong>at start time</strong>.</td></tr>
+</table>
+
+<div class="note">
+  <strong>RUN vs CMD — the classic confusion, settled now.</strong> <code>RUN</code> happens once, during the build. Its result is frozen into the image forever. <code>CMD</code> happens every time a container starts, and nothing it does is ever saved. <code>RUN</code> makes the image. <code>CMD</code> runs it. (And remember the field note from Lesson 0004: your CMD process becomes PID 1.)
+</div>
+
+<p>One more file worth knowing: <code>.dockerignore</code>. A build sends your whole folder to the daemon. List junk there — <code>.git</code>, <code>node_modules</code>, secrets — and it stays out of the image. Same syntax as <code>.gitignore</code>.</p>
+
+<h2><span class="no">§2</span>The cache</h2>
+<p>Rebuilding an unchanged Dockerfile takes no time. The daemon recognizes every instruction it has already run and reuses the layers. This is the <strong>build cache</strong>.</p>
+<p>The rule that runs your career: <strong>the cache stops at the first change.</strong> Docker walks your instructions top to bottom. It reuses every cached layer until it hits one whose inputs changed. From that line down, everything rebuilds.</p>
+<p>So the order of your Dockerfile is a decision. Put stable things first (base image, system packages, dependencies) and changing things last (your code). Then a one-line code change rebuilds one small layer — not a ten-minute dependency install.</p>
+<p>One refinement that surprises everyone: the cache checks file <em>content</em>, not timestamps. You will prove this in the lab with <code>touch</code>.</p>
+
+<p class="sidenote"><span class="tag">source</span>Docker's own guidance on ordering, cache, and RUN vs CMD: <a href="https://docs.docker.com/build/building/best-practices/">Building best practices — Docker docs</a>.</p>
+
+<h2><span class="no">§3</span>Lab — build your first image <span style="font-weight:400; font-size:0.85rem; color:var(--faint)">(≈15 min, in your terminal)</span></h2>
+<p>A tiny real web app: one Python file, one page. No dependencies, so the build is fast and nothing can go wrong. Next lesson you containerize a project of your own with this exact pattern.</p>
+
+<ol class="lab">
+<li>
+<p>Make the project folder and three files:</p>
+<pre><span class="cmd">mkdir -p ~/docker-first && cd ~/docker-first</span></pre>
+<p><code>index.html</code>:</p>
+<pre>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;lesson 0006&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;hello from my first image&lt;/h1&gt;&lt;/body&gt;
+&lt;/html&gt;</pre>
+<p><code>app.py</code> — serves the page, and <code>ok</code> at <code>/health</code>:</p>
+<pre>import pathlib
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+ROOT = pathlib.Path(__file__).parent
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/health":
+            body, ctype = b"ok\n", "text/plain"
+        else:
+            body, ctype = (ROOT / "index.html").read_bytes(), "text/html"
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.end_headers()
+        self.wfile.write(body)
+
+HTTPServer(("0.0.0.0", 8000), Handler).serve_forever()</pre>
+<p><code>Dockerfile</code> — five instructions, five layers:</p>
+<pre><span class="cmd">FROM python:3.12-slim</span>
+<span class="cmd">WORKDIR /app</span>
+<span class="cmd">COPY index.html .</span>
+<span class="cmd">COPY app.py .</span>
+<span class="cmd">EXPOSE 8000</span>
+<span class="cmd">CMD ["python", "app.py"]</span></pre>
+<p class="why"><strong>Note the order:</strong> the rarely-changing file (<code>index.html</code>) is copied before the often-changing one (<code>app.py</code>). That ordering earns its keep in step 6.</p>
+</li>
+
+<li>
+<p>Build. The dot at the end matters — it is the <strong>build context</strong>, the folder sent to the daemon (Lesson 0005):</p>
+<pre><span class="cmd">docker build -t first-app .</span></pre>
+<div class="expected">#5 [1/4] FROM docker.io/library/python:3.12-slim@sha256:a6e34c59…
+#5 DONE 1.7s
+#6 [2/4] WORKDIR /app
+#6 DONE 0.2s
+#7 [3/4] COPY index.html .
+#7 DONE 0.0s
+#8 [4/4] COPY app.py .
+#8 DONE 0.0s
+#9 naming to docker.io/library/first-app:latest done</div>
+<p class="why"><strong>What happened:</strong> the daemon pulled the base image (first time only — it is now cached locally), then ran your instructions in order. Look closely at line <code>#5</code>: the tag <code>python:3.12-slim</code> resolved to a digest — Lesson 0002 happening live in your build log.</p>
+</li>
+
+<li>
+<p>Read the birth certificate:</p>
+<pre><span class="cmd">docker image history first-app</span></pre>
+<div class="expected">IMAGE          CREATED BY                      SIZE
+a60b4fb30151   CMD ["python" "app.py"]         0B
+&lt;missing&gt;      EXPOSE [8000/tcp]              0B
+&lt;missing&gt;      COPY app.py . # buildkit      4.1kB
+&lt;missing&gt;      COPY index.html . # buildkit  4.1kB
+&lt;missing&gt;      WORKDIR /app                   0B
+&lt;missing&gt;      ENV PYTHON_VERSION=3.12.15     0B
+&lt;missing&gt;      RUN … apt-get …                43.7MB
+&lt;missing&gt;      … debian base …                109MB
+   ⋮  (python:3.12-slim's layers below — from Lesson 0002's chart)</div>
+<p class="why"><strong>What happened:</strong> your five instructions are the top five rows, sitting on the base image's layers — exactly the stack you drew in Lesson 0002. <code>EXPOSE</code> and <code>CMD</code> show <code>0B</code>: they change config, not files. That was Lesson 0002's quiz prediction, now in your own image.</p>
+</li>
+
+<li>
+<p>Run it and prove it serves:</p>
+<pre><span class="cmd">docker run -d --name web -p 8000:8000 first-app</span>
+<span class="cmd">curl -s localhost:8000</span>
+<span class="cmd">curl -s localhost:8000/health</span></pre>
+<div class="expected">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;lesson 0006&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;hello from my first image&lt;/h1&gt;&lt;/body&gt;
+&lt;/html&gt;
+ok</div>
+<p class="why"><strong>What happened:</strong> an image you wrote, built, and ran. Every prior lesson is inside this moment: the image layers (0002), the container as a process (0001), the daemon doing the work (0005), the port hole-punch between network namespaces (0003). <code>-p 8000:8000</code> forwards your Mac's port 8000 into the container, where your CMD's Python listens.</p>
+</li>
+
+<li>
+<p>Now the cache. Change nothing and rebuild:</p>
+<pre><span class="cmd">docker build -t first-app .</span></pre>
+<div class="expected">#6 [2/4] WORKDIR /app
+#6 CACHED
+#7 [3/4] COPY index.html .
+#7 CACHED
+#8 [4/4] COPY app.py .
+#8 CACHED
+#9 naming to docker.io/library/first-app:latest done      (≈0 s total)</div>
+<p class="why"><strong>What happened:</strong> every layer recognized, every layer reused. This is why ordered Dockerfiles make builds fast. In a real project, the slow steps — <code>pip install</code>, <code>apt-get</code> — sit above this cached zone and never re-run for a code change.</p>
+</li>
+
+<li>
+<p>The decisive experiment, in two acts.</p>
+<p>Act one — change nothing but the timestamp:</p>
+<pre><span class="cmd">touch app.py</span>
+<span class="cmd">docker build -t first-app .</span></pre>
+<div class="expected">#6 CACHED
+#7 CACHED
+#8 CACHED          ← still! touch changed nothing the cache can see</div>
+<p>Act two — change actual content:</p>
+<pre><span class="cmd">echo "# v2" &gt;&gt; app.py</span>
+<span class="cmd">docker build -t first-app .</span></pre>
+<div class="expected">#6 [2/4] WORKDIR /app
+#6 CACHED
+#7 [3/4] COPY index.html .
+#7 CACHED
+#8 [4/4] COPY app.py .
+#8 DONE 0.0s       ← rebuilt: content changed
+#9 naming … done</div>
+<p class="why"><strong>What happened:</strong> the cache checks content checksums, not file timestamps — <code>touch</code> is invisible to it. A real edit to <code>app.py</code> rebuilt exactly one layer: its own. <code>index.html</code> stayed cached because its instruction comes <em>before</em> the change. Cache stops at the first change; everything below rebuilds, everything above survives. That is the whole game.</p>
+</li>
+
+<li>
+<p>Clean up. Keep the images — next lesson uses the base again:</p>
+<pre><span class="cmd">docker rm -f web</span>
+<span class="cmd">docker images</span></pre>
+<div class="expected">CONTAINER ID ...    (empty)
+REPOSITORY   TAG          IMAGE ID       SIZE
+first-app    latest       a60b4fb30151   132MB
+nginx        1.27/latest  …              …
+python       3.12-slim    …              127MB</div>
+<p class="why"><strong>What happened:</strong> container gone, your first image kept. Full instruction table and cache rules: <a href="../reference/dockerfile-basics.html">Dockerfile Basics (reference)</a>.</p>
+</li>
+</ol>
+
+<h2><span class="no">§4</span>Check yourself</h2>
+<p>Recall from memory — no scrolling up. Wrong answers explain themselves.</p>
+
+<div class="quiz" id="quiz">
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q1</span>When does each instruction do its work?</p>
+    <div class="opts">
+      <button>RUN at build; CMD at start</button>
+      <button>RUN at start; CMD at build</button>
+      <button>Both happen during the build</button>
+      <button>Both happen at container start</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <p class="stem"><span class="qn">Q2</span>You edit one line of <code>app.py</code> and rebuild. Docker:</p>
+    <div class="opts">
+      <button>Rebuilds the whole image again</button>
+      <button>Reuses every layer as before</button>
+      <button>Rebuilds from the change down</button>
+      <button>Refuses; images are immutable</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="1">
+    <p class="stem"><span class="qn">Q3</span>In <code>image history</code>, the <code>EXPOSE</code> and <code>CMD</code> rows show 0 B. Why?</p>
+    <div class="opts">
+      <button>Their files are empty files</button>
+      <button>They change config, not files</button>
+      <button>Docker compresses them away</button>
+      <button>They failed during the build</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="3">
+    <p class="stem"><span class="qn">Q4</span>The dot in <code>docker build -t first-app .</code> is:</p>
+    <div class="opts">
+      <button>A separator inside the image tag</button>
+      <button>The directory inside the container</button>
+      <button>Shorthand for the latest tag</button>
+      <button>The context folder sent to the daemon</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="score" id="score"></div>
+  <div class="btnrow"><button onclick="resetQuiz()">reset quiz</button></div>
+</div>
+
+<div class="src">
+  <strong>Primary source for this lesson</strong> — read after finishing (15 min):<br>
+  <a href="https://docs.docker.com/build/building/best-practices/">"Building best practices" — Docker official docs</a>. Read the <code>RUN</code>, <code>CMD</code>, and "Leverage build cache" parts. Everything above, plus what's coming next lesson (multi-stage builds, ordering, <code>.dockerignore</code>).
+</div>
+
+<div class="tomorrow">
+  <strong>Before your next session</strong> (5 min, no notes): recall — (1) RUN vs CMD in one sentence each, (2) why <code>index.html</code> stayed cached when <code>app.py</code> changed, (3) why <code>touch</code> changed nothing, (4) from Lesson 0002: why the <code>FROM</code> line resolved to a digest. Then bring a project of yours — next lesson is about <em>your</em> app.
+</div>
+
+<div class="box-ask">
+  <h3>Your teacher is on call</h3>
+  <p>Anything unclear — "why exec-form CMD with quotes?", "what does WORKDIR create?", "how would pip install change the ordering?" — <strong>ask the agent</strong> in your next session (or right now). Questions are the fastest part of the curriculum.</p>
+</div>
+
+<div class="next">
+  <strong>Next lesson — your app, for real.</strong> Bring any project of yours (any language — Python, Node, Go, whatever you actually use). We containerize it: pick the base, order the layers for cache, add dependencies, and multi-stage the build. The stretch begins: this is the mini-project thread of your mission. Review anytime: <a href="0001-a-container-is-a-process.html">0001</a> · <a href="0002-the-anatomy-of-an-image.html">0002</a> · <a href="0003-how-the-kernel-lies.html">0003</a> · <a href="0004-cgroups-the-other-half.html">0004</a> · <a href="0005-the-docker-brain.html">0005</a> · Reference shelf: <a href="../reference/dockerfile-basics.html">Dockerfile Basics</a>, <a href="../reference/docker-architecture.html">Docker Architecture</a>, <a href="../reference/image-anatomy.html">Image Anatomy</a>.
+</div>
+
+</div>
+
+<script>
+  const explanations = [
+    ["Right. RUN executes once during the build and freezes its result into a layer. CMD declares what every container runs at start, saving nothing. RUN makes the image; CMD runs it."],
+    ["Correct. The cache walks top to bottom and stops at the first changed instruction. Layers above it survive; layers from the change down rebuild. Your ordering decides how far the damage spreads."],
+    ["Exactly — EXPOSE and CMD write metadata into the image config, not files into layers. You predicted this in Lesson 0002's history chart; now it's in your own image."],
+    ["Right. The dot is the build context: the folder the CLI sends to the daemon so its COPY instructions have something to copy from (Lesson 0005 — the client owns nothing, the daemon does the work)."]
+  ];
+  const quiz = document.getElementById('quiz');
+  let done = 0, right = 0;
+  function scored() {
+    if (done < 4) return;
+    const s = document.getElementById('score');
+    s.style.display = 'block';
+    const msg = right === 4 ? "4 / 4 — the recipe is yours." : right + " / 4 — reread §1 and §2, try again tomorrow.";
+    s.textContent = msg;
+  }
+  quiz.querySelectorAll('.q').forEach((q, qi) => {
+    const ans = parseInt(q.dataset.a, 10);
+    const fb = q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach((b, bi) => {
+      b.addEventListener('click', () => {
+        if (q.dataset.done) return;
+        q.dataset.done = "1"; done++;
+        const correct = bi === ans;
+        if (correct) { b.classList.add('right'); right++; fb.className = 'fb ok'; }
+        else { b.classList.add('wrong'); fb.className = 'fb no'; q.querySelectorAll('.opts button')[ans].classList.add('right'); }
+        fb.textContent = (correct ? "✔ " : "✘ ") + explanations[qi][0];
+        q.querySelectorAll('.opts button').forEach(x => x.disabled = true);
+        scored();
+      });
+    });
+  });
+  function resetQuiz() {
+    done = 0; right = 0;
+    document.getElementById('score').style.display = 'none';
+    quiz.querySelectorAll('.q').forEach(q => { delete q.dataset.done; q.querySelector('.fb').className = 'fb'; q.querySelectorAll('.opts button').forEach(b => { b.disabled = false; b.className = ''; } ); });
+  }
+</script>
+
+</body>
+</html>

@@ -13,8 +13,8 @@ All links verified live. Annotate when adding new ones; prune ruthlessly when so
   Image layers, tags, registries explained from first principles. Use for: image model, layer caching groundwork.
 - [Docs: Build, tag, and publish an image — Docker official](https://docs.docker.com/get-started/docker-concepts/building-images/build-tag-and-publish-an-image/)
   build context, image naming anatomy (`HOST/PATH:TAG`), push workflow. Use for: Dockerfile/registry lessons.
-- [Docs: Dockerfile best practices — Docker official](https://docs.docker.com/build/concepts/dockerfile-best-practices/) (tree under docs.docker.com/build — verify exact page when first cited)
-  Use for: layer ordering, cache optimization, multi-stage builds.
+- [Docs: Building best practices — Docker official](https://docs.docker.com/build/building/best-practices/)
+  Cache rules, instruction-by-instruction guidance (RUN/CMD/EXPOSE), ordering, .dockerignore, multi-stage, digest pinning. Use for: Module 3 — Dockerfile lessons. Verified live 2026-10-08 (old /build/concepts/dockerfile-best-practices/ path is dead).
 - [Docs: namespaces(7) — Linux man-pages](https://man7.org/linux/man-pages/man7/namespaces.7.html)
   The kernel's own manual: definition, all 8 namespace types in one table, the clone/setns/unshare API. Use for: Module 2 — isolation ground truth. Verified live 2026-10-08.
 - [Docs: Control Group v2 — kernel.org](https://docs.kernel.org/admin-guide/cgroup-v2.html)
