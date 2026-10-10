@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docker Architecture — Reference</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.2rem; margin-bottom: 2.5rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2rem; font-weight: 700; margin: 0.4rem 0 0.3rem; line-height: 1.15; }
+  .sub { color: var(--faint); font-style: italic; margin: 0; }
+  h2 { font-size: 1.15rem; margin: 2.4rem 0 0.8rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.3rem; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.85rem; margin-right: 0.5rem; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  code { background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.85em; }
+  pre { background: var(--code-bg); padding: 1rem 1.2rem; border-radius: 5px; overflow-x: auto; font-size: 0.82rem; line-height: 1.6; }
+  pre .cm { color: #7a7a6e; } /* comment */
+  pre .hl { color: var(--accent); font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.45rem 0.6rem 0.45rem 0; }
+  td { border-bottom: 1px solid var(--rule); padding: 0.5rem 0.6rem 0.5rem 0; vertical-align: top; }
+  td:first-child { white-space: nowrap; font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; }
+  .chain { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; margin: 1.2rem 0 0.3rem; font-family: "SF Mono", Menlo, monospace; font-size: 0.74rem; }
+  .node { border: 1.5px solid var(--ink); border-radius: 5px; padding: 0.35rem 0.9rem; background: #fff; text-align: center; }
+  .node small { display: block; font-size: 0.6rem; color: var(--faint); }
+  .node.dashed { border-style: dashed; background: var(--code-bg); }
+  .chain .arr { color: var(--accent); font-size: 0.8rem; }
+  .cap { font-size: 0.85rem; color: var(--faint); font-style: italic; margin: 0.6rem 0 0; text-align: center; }
+  .note { border-left: 3px solid var(--accent); padding: 0.3rem 0 0.3rem 1rem; margin: 1.4rem 0; font-size: 0.95rem; }
+  ul { padding-left: 1.3rem; }
+  li { margin: 0.5rem 0; }
+  .back { font-size: 0.85rem; margin-top: 3.5rem; border-top: 1px solid var(--rule); padding-top: 1rem; color: var(--faint); }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  @media print {
+    .page { padding: 0.5in 0.5in; max-width: none; }
+    body { font-size: 11pt; }
+    .back { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Reference · Container Architecture</div>
+  <h1>Docker Architecture</h1>
+  <p class="sub">Client, daemon, socket, contexts — who talks, who works, where state lives.</p>
+</header>
+
+<h2><span class="no">01</span>The chain in one look</h2>
+
+<div class="chain">
+  <div class="node">docker CLI<small>your Mac · thin · stateless</small></div>
+  <div class="arr">│ REST API over a Unix socket (a file that acts as a door)</div>
+  <div class="node dashed">dockerd — the daemon<small>OrbStack's Linux VM · owns all state: /var/lib/docker</small></div>
+  <div class="arr">│ delegates starting containers</div>
+  <div class="node">containerd → runc<small>creates namespaces + cgroups</small></div>
+  <div class="arr">│</div>
+  <div class="node">the kernel<small>runs the processes — Lessons 0003–0004</small></div>
+</div>
+<p class="cap">Docker is a manager wrapped around kernel features.</p>
+
+<h2><span class="no">02</span>Who lives where</h2>
+<table>
+  <tr><th>thing</th><th>where</th><th>what it holds</th></tr>
+  <tr><td>docker CLI</td><td>your Mac</td><td>nothing — stateless messenger</td></tr>
+  <tr><td>dockerd</td><td>OrbStack's Linux VM</td><td>images, containers, volumes, networks, build cache</td></tr>
+  <tr><td>container processes</td><td>the VM's kernel</td><td>the actual running work</td></tr>
+  <tr><td>socket</td><td>~/.orbstack/run/docker.sock</td><td>the door between client and daemon</td></tr>
+</table>
+
+<h2><span class="no">03</span>Pointing the client: DOCKER_HOST and contexts</h2>
+<pre><span class="hl">docker context ls</span>          <span class="cm"># saved door addresses; * marks the one in use</span>
+<span class="hl">docker context show</span>        <span class="cm"># which one is active</span>
+<span class="hl">docker context use NAME</span>    <span class="cm"># switch daemons</span>
+<span class="hl">DOCKER_HOST=… docker ps</span>    <span class="cm"># one-off override, no switching</span></pre>
+<ul>
+  <li><strong>OrbStack door:</strong> <code>unix:///Users/&lt;you&gt;/.orbstack/run/docker.sock</code> (Docker Desktop's differs — check the list, don't guess)</li>
+  <li><strong>Remote daemons:</strong> <code>DOCKER_HOST=ssh://user@server</code> — same CLI, daemon in another city. This is how CI drives Docker.</li>
+  <li><strong>Speak the API by hand:</strong> <code>curl -s --unix-socket ~/.orbstack/run/docker.sock http://localhost/_ping</code> → <code>OK</code>. The CLI is just a formatted HTTP client.</li>
+</ul>
+
+<h2><span class="no">04</span>Reading the classic error</h2>
+<pre><span class="hl">failed to connect to the docker API at unix:///…;
+check if the path is correct and if the daemon is running</span></pre>
+<p>The client is fine. The door is closed. In order of likelihood: the daemon app is not running (start OrbStack — <code>open -a OrbStack</code>), the context points at the wrong socket (<code>docker context ls</code>), or <code>DOCKER_HOST</code> is set to a dead address (<code>echo $DOCKER_HOST</code>).</p>
+
+<h2><span class="no">05</span>Rules worth taping to the wall</h2>
+<ul>
+  <li><strong>The daemon manages; the kernel runs.</strong> If dockerd crashes, running containers keep running. Quitting OrbStack stops the whole VM — a different, bigger switch.</li>
+  <li><strong>All state is daemon-side.</strong> <code>docker system df</code> is the ledger; <code>docker info</code> shows where it lives (<code>/var/lib/docker</code> in the VM).</li>
+  <li><strong>One CLI, many daemons.</strong> Never assume the CLI on a machine talks to a daemon on that machine — check the context.</li>
+  <li><strong><code>docker version</code> is the split-o-meter.</strong> Client half describes this machine; Server half describes the machine doing the work. If Server is missing, see the classic error above.</li>
+</ul>
+
+<p class="back">Companion to <a href="../lessons/0005-the-docker-brain.html">Lesson 0005 — The Docker Brain</a> · See also <a href="isolation-namespaces.html">Isolation &amp; Namespaces</a>, <a href="cgroups-limits.html">Cgroups &amp; Limits</a>, <a href="image-anatomy.html">Image Anatomy</a> · Sources: <a href="https://docs.docker.com/get-started/overview/">Docker overview — Docker docs</a></p>
+
+</div>
+</body>
+</html>

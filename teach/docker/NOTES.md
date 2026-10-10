@@ -10,6 +10,7 @@
 - macOS, Apple Silicon
 - Docker provided by **OrbStack** (context `orbstack`), NOT Docker Desktop — `open -a Docker` fails; use `open -a OrbStack`
 - Docker CLI 29.4.0. Daemon was started and verified working during session 1
+- OrbStack does not auto-start at login (found stopped at session 7, 2026-10-08) — run `open -a OrbStack` and wait for ~/.orbstack/run/docker.sock before hands-on steps
 - Teaching implication: hands-on lessons must note that container processes run inside OrbStack's Linux VM and are not visible in macOS `ps` output
 
 ## Teaching preferences
@@ -24,3 +25,4 @@
 - Session 4 (2026-10-08): Lesson 0002 quiz aced 4/4 first pass — Module 1 closed clean (LR-0003). Lesson 0003 (Module 2: namespaces, UTS/PID/NET via =host flags) + reference/isolation-namespaces.html created; namespaces(7) man page verified live and added to RESOURCES; lesson opened. Next: cgroups.
 - Session 5 (2026-10-08): Lesson 0003 quiz aced 4/4 — third consecutive first-pass 4/4 (LR-0004). Plain-language preference (ISO 24495) recorded. Lesson 0004 (cgroups: memory kills / CPU slows, exit 137, /sys/fs/cgroup) + reference/cgroups-limits.html written in plain style; kernel.org cgroup-v2 doc verified live and added to RESOURCES; lesson opened. Next: client/daemon split (Module 2 wrap).
 - Session 6 (2026-10-08): Lesson 0004 quiz aced 4/4 — fourth consecutive first-pass. User hit a hang in lab step 4 (timeout-based CPU demo); root cause found by repro: busybox timeout execs PROG as PID 1 and its watcher TERMs the parent, which the kernel discards (PID 1 unhandled-signal rule); only docker kill (SIGKILL) worked; docker stop grace measured at 10.16 s live. Step 4 rewritten to a single-process dd demo (26.6 vs 2.7 GB/s), verified live; PID 1 field note added to lesson + cgroups reference; LR-0005 records the incident. Also found: pipe producer/consumer under --cpus=0.25 throttles far worse than 4x (not taught). Next: client/daemon split (Module 2 wrap).
+- Session 7 (2026-10-08): Lesson 0005 (The Docker Brain: client/daemon split, contexts, curl the REST API, DOCKER_HOST failure) + reference/docker-architecture.html created — first stretched lesson per LR-0004. All lab outputs captured live on this machine (docker version duality, context ls, curl _ping/OK, system df ledger). Docker overview docs page verified live and added to RESOURCES. OrbStack found not running at session start — started, noted in Environment. Module 2 complete. Next: Module 3, Dockerfiles — apply LR-0004 stretch clause: start the real-app mini-project.

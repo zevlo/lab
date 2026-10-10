@@ -4,6 +4,9 @@ All links verified live. Annotate when adding new ones; prune ruthlessly when so
 
 ## Knowledge
 
+- [Docs: Docker overview — Docker official](https://docs.docker.com/get-started/overview/)
+  The client-server architecture section: CLI, daemon, REST API over sockets, registries, in their own diagram. Use for: architecture, client/daemon lessons. Verified live 2026-10-08.
+
 - [Docs: "What is a container?" — Docker official](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/)
   Canonical definition, containers-vs-VMs, hands-on walkthrough. Use for: fundamentals, citations for what a container IS.
 - [Docs: "What is an image?" — Docker official](https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/what-is-an-image/)

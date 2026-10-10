@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 0005 — The Docker Brain</title>
+<style>
+  :root {
+    --paper: #fffff8;
+    --ink: #111111;
+    --faint: #6b6b60;
+    --rule: #d8d4c8;
+    --accent: #9a3324;
+    --good: #1e6b34;
+    --bad: #a12622;
+    --code-bg: #f4f2ec;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 17.5px; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Charter", "Bitstream Charter", "Sitaka Text", Cambria, Georgia, serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 720px; margin: 0 auto; padding: 4rem 1.5rem 5rem; }
+  header { border-bottom: 2px solid var(--ink); padding-bottom: 1.4rem; margin-bottom: 3rem; }
+  .eyebrow { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: 2.3rem; font-weight: 700; margin: 0.5rem 0 0.4rem; line-height: 1.12; letter-spacing: -0.01em; }
+  .sub { color: var(--faint); font-style: italic; font-size: 1.02rem; margin: 0; }
+  h2 { font-size: 1.35rem; font-weight: 700; margin: 3rem 0 0.8rem; line-height: 1.2; }
+  h2 .no { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 1rem; margin-right: 0.6rem; font-weight: 600; }
+  p { margin: 0.8rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(154,51,36,0.35); }
+  em { font-style: italic; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.08em 0.35em; border-radius: 3px; font-size: 0.84em; }
+  pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: #14120f; color: #e8e4d8; padding: 1.1rem 1.3rem; border-radius: 6px; overflow-x: auto; font-size: 0.8rem; line-height: 1.65; }
+  pre .cm { color: #8a857a; }
+  pre .cmd { color: #e3b341; font-weight: 600; }
+  .expected { border-left: 3px solid var(--good); background: #f2f6f0; padding: 0.7rem 1.1rem; margin: 0.6rem 0 1.4rem; border-radius: 0 4px 4px 0; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; white-space: pre-wrap; color: #2c352c; overflow-x: auto; }
+  .expected::before { content: "you should see"; display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--good); margin-bottom: 0.3rem; }
+  .why { font-size: 0.92rem; color: #3c3a30; margin-top: -0.6rem; padding-left: 1.1rem; border-left: 3px solid var(--rule); margin-bottom: 1.6rem; }
+  .why strong { color: var(--accent); font-style: normal; }
+  .sidenote { font-size: 0.85rem; color: #4a4840; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 0.7rem 0.2rem; margin: 1.6rem 0; }
+  .sidenote .tag { font-family: "SF Mono", Menlo, monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-right: 0.5rem; }
+  .diagram { display: flex; align-items: center; justify-content: center; gap: 0.7rem; flex-wrap: wrap; margin: 1.8rem 0 0.3rem; font-family: "SF Mono", Menlo, monospace; font-size: 0.76rem; }
+  .box { border: 1.5px solid var(--ink); border-radius: 6px; padding: 0.5rem 0.9rem; background: #fff; text-align: center; }
+  .box small { display: block; font-size: 0.62rem; color: var(--faint); letter-spacing: 0.05em; }
+  .box.dashed { border-style: dashed; background: var(--code-bg); }
+  .arr { color: var(--accent); font-size: 0.95rem; }
+  .cap { text-align: center; font-size: 0.85rem; color: var(--faint); font-style: italic; margin: 0.4rem 0 0; }
+  table.ns { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 1.2rem 0; }
+  table.ns th { text-align: left; font-family: "SF Mono", Menlo, monospace; font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); border-bottom: 2px solid var(--ink); padding: 0.4rem 0.5rem 0.4rem 0; }
+  table.ns td { border-bottom: 1px solid var(--rule); padding: 0.45rem 0.5rem 0.45rem 0; vertical-align: top; }
+  table.ns td:first-child { font-family: "SF Mono", Menlo, monospace; font-size: 0.78rem; white-space: nowrap; }
+  /* quiz */
+  .quiz { margin: 1.5rem 0 0; }
+  .q { border: 1px solid var(--rule); border-radius: 6px; padding: 1.2rem 1.3rem; margin: 1.1rem 0; background: #fffef9; }
+  .q p.stem { font-weight: 600; margin: 0 0 0.8rem; }
+  .q p.stem .qn { color: var(--accent); font-family: "SF Mono", Menlo, monospace; font-size: 0.8rem; font-weight: 600; margin-right: 0.5rem; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+  .opts button {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    cursor: pointer;
+    color: var(--ink);
+    transition: border-color 0.15s, background 0.15s;
+    line-height: 1.35;
+  }
+  .opts button:hover:not(:disabled) { border-color: var(--ink); }
+  .opts button.right { background: #e7f0e4; border-color: var(--good); color: var(--good); font-weight: 600; }
+  .opts button.wrong { background: #f6e5e4; border-color: var(--bad); color: var(--bad); }
+  .opts button:disabled { cursor: default; opacity: 0.75; }
+  .opts button.right:disabled, .opts button.wrong:disabled { opacity: 1; }
+  .fb { display: none; margin-top: 0.8rem; font-size: 0.88rem; padding: 0.6rem 0.9rem; border-radius: 5px; }
+  .fb.ok { display: block; background: #e7f0e4; color: var(--good); }
+  .fb.no { display: block; background: #f6e5e4; color: var(--bad); }
+  .score { font-family: "SF Mono", Menlo, monospace; font-size: 0.95rem; text-align: center; margin-top: 1.4rem; padding: 0.9rem; border-top: 2px solid var(--ink); display: none; }
+  .btnrow { text-align: center; margin-top: 1rem; }
+  .btnrow button { font-family: "SF Mono", Menlo, monospace; font-size: 0.75rem; padding: 0.5rem 1.1rem; background: var(--ink); color: var(--paper); border: none; border-radius: 5px; cursor: pointer; }
+  .box-ask { border: 2px solid var(--accent); border-radius: 6px; padding: 1.1rem 1.4rem; margin: 3rem 0 0; background: #fffdf6; }
+  .box-ask h3 { margin: 0 0 0.5rem; font-size: 1.02rem; }
+  .box-ask p { font-size: 0.93rem; margin: 0.4rem 0; }
+  .tomorrow { border: 1px dashed var(--faint); border-radius: 6px; padding: 1rem 1.3rem; margin: 2.5rem 0 0; font-size: 0.92rem; color: #3c3a30; }
+  .next { margin-top: 3rem; border-top: 1px solid var(--rule); padding-top: 1.2rem; font-size: 0.95rem; }
+  .src { margin-top: 1.5rem; font-size: 0.9rem; background: var(--code-bg); padding: 0.9rem 1.2rem; border-radius: 5px; }
+  ol.lab { padding-left: 1.4rem; }
+  ol.lab > li { margin: 1.8rem 0; }
+  ol.lab > li::marker { font-family: "SF Mono", Menlo, monospace; color: var(--accent); font-weight: 600; }
+  @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+  @media print {
+    .page { padding: 0.4in 0.4in; max-width: none; }
+    body { font-size: 11pt; }
+    .quiz, .btnrow, .tomorrow, .box-ask { display: none; }
+    a { color: var(--ink); border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="eyebrow">Lesson 0005 · Module 2 of 5 · Architecture &amp; Isolation</div>
+  <h1>The Docker Brain</h1>
+  <p class="sub">Who talks, who works, and where your containers really live.</p>
+</header>
+
+<h2><span class="no">§1</span>The split</h2>
+<p>You have never talked to a container. Not once. Here is what actually happens when you type <code>docker run</code>:</p>
+<p>Three parts. The <strong>docker CLI</strong> is the program named <code>docker</code> on your Mac. It is a thin client. It holds no images and no containers. It only sends requests. The <strong>Docker daemon</strong> (<code>dockerd</code>) receives them and does the work: it pulls images, creates containers, manages networks and volumes. Between them sits a <strong>REST API</strong>, spoken over a Unix socket — a special file that works like a door between two programs.</p>
+
+<div class="diagram">
+  <div class="box">docker CLI<small>your Mac · thin · no state</small></div>
+  <span class="arr">─ REST API over socket →</span>
+  <div class="box dashed">dockerd<small>inside OrbStack's Linux VM</small></div>
+  <span class="arr">→ containerd → runc →</span>
+  <div class="box">the kernel<small>namespaces + cgroups · Lessons 0003–0004</small></div>
+</div>
+<p class="cap">The chain behind every docker command you have ever typed.</p>
+
+<p>One line on the deepest links: the daemon does not start containers itself. It delegates to <code>containerd</code> and <code>runc</code>, which set up the namespaces and cgroups you already met. That is the whole magic revealed — Docker is a manager wrapped around kernel features.</p>
+
+<p class="sidenote"><span class="tag">source</span>Docker's own words: "The Docker client talks to the Docker daemon… using a REST API, over UNIX sockets or a network interface." — <a href="https://docs.docker.com/get-started/overview/">Docker overview — Docker docs</a>.</p>
+
+<h2><span class="no">§2</span>Where things live</h2>
+<table class="ns">
+  <tr><th>thing</th><th>where</th><th>what it holds</th></tr>
+  <tr><td>docker CLI</td><td>your Mac</td><td>nothing — stateless</td></tr>
+  <tr><td>dockerd + its data</td><td>OrbStack's Linux VM</td><td>all images, containers, volumes, networks (<code>/var/lib/docker</code>)</td></tr>
+  <tr><td>container processes</td><td>the VM's kernel</td><td>the actual running work (Lesson 0003)</td></tr>
+  <tr><td>the socket</td><td>~/.orbstack/run/docker.sock</td><td>the door between client and daemon</td></tr>
+</table>
+
+<p>Three consequences follow from this map.</p>
+<p><strong>1. All Docker state lives in the VM.</strong> Your twenty images and their 4.5 GB are files inside OrbStack's VM. Nothing important lives in the CLI.</p>
+<p><strong>2. The client can point anywhere.</strong> The CLI reads an address — the <code>DOCKER_HOST</code> variable or a saved <strong>context</strong> — and speaks HTTP to whatever daemon answers. Same laptop, daemon in another city. This is exactly how CI pipelines drive remote Docker.</p>
+<p><strong>3. "Cannot connect to the Docker daemon" means one thing.</strong> The door is closed. Either the daemon is not running, or the client is pointing at the wrong door. You will produce this error on purpose in the lab, and read it calmly forever after.</p>
+
+<h2><span class="no">§3</span>Lab — prove it to yourself <span style="font-weight:400; font-size:0.85rem; color:var(--faint)">(≈10 min, in your terminal)</span></h2>
+<p>Nothing gets created or destroyed today. You will watch the split, find the door, and speak the daemon's language by hand.</p>
+
+<ol class="lab">
+<li>
+<p>One command, two worlds:</p>
+<pre><span class="cmd">docker version</span></pre>
+<div class="expected">Client:
+ Version:           29.4.0
+ OS/Arch:           darwin/arm64      ← your Mac
+ Context:           orbstack
+
+Server: Docker Engine - Community
+ Engine:
+  Version:          29.4.0
+  OS/Arch:          linux/arm64       ← a Linux machine
+ containerd:
+  Version:          v2.2.2            ← the chain from §1
+ runc:
+  Version:          1.5.1</div>
+<p class="why"><strong>What happened:</strong> one command, two operating systems. The top half describes the CLI running on your Mac. The bottom half describes the daemon answering from inside OrbStack's Linux VM — and even lists <code>containerd</code> and <code>runc</code> from the chain. Your Mac never ran a container. It asked, and a Linux machine said yes.</p>
+</li>
+
+<li>
+<p>Find the door:</p>
+<pre><span class="cmd">docker context show</span>
+<span class="cmd">docker context inspect --format '{{.Endpoints.docker.Host}}'</span>
+<span class="cmd">docker context ls</span></pre>
+<div class="expected">orbstack
+unix:///Users/…/.orbstack/run/docker.sock     ← a file, inside your home
+
+NAME            DESCRIPTION                      DOCKER ENDPOINT
+default         Current DOCKER_HOST based con…  unix:///var/run/docker.sock
+desktop-linux   Docker Desktop                  unix:///Users/…/.docker/run/docker.sock
+orbstack *      OrbStack                        unix:///Users/…/.orbstack/run/docker.sock</div>
+<p class="why"><strong>What happened:</strong> a <strong>context</strong> is a saved door address. The star marks the one in use: <code>orbstack</code>, pointing at a socket file in your home directory. The list also shows the Docker Desktop door you are not using. Switching context switches which daemon hears your commands — remember this for your first remote server.</p>
+</li>
+
+<li>
+<p>Now speak to the daemon directly, no docker CLI at all:</p>
+<pre><span class="cmd">curl -s --unix-socket ~/.orbstack/run/docker.sock http://localhost/_ping</span>
+<span class="cmd">curl -s --unix-socket ~/.orbstack/run/docker.sock http://localhost/version | head -c 120</span></pre>
+<div class="expected">OK
+{"Platform":{"Name":"Docker Engine - Community"},"Version":"29.4.0","ApiVersion":"1.54","Os":"linux","Arch":"arm64",…</div>
+<p class="why"><strong>What happened:</strong> <code>curl</code> spoke plain HTTP through the socket file, and the daemon answered: <code>OK</code>, then JSON describing itself — note <code>"Os":"linux"</code>. The docker CLI does exactly what you just did. It is an HTTP client with nice formatting. The REST API is public and documented — every SDK, compose, and CI system drives Docker through this same door.</p>
+</li>
+
+<li>
+<p>Read the daemon's ledger:</p>
+<pre><span class="cmd">docker info --format 'Root={{.DockerRootDir}} Driver={{.Driver}} Cgroup={{.CgroupVersion}}'</span>
+<span class="cmd">docker system df</span></pre>
+<div class="expected">Root=/var/lib/docker Driver=overlayfs Cgroup=2
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          20        0         4.505GB   4.717GB (104%)
+Containers      0         0         0B        0B
+Local Volumes   2         0         64B       64B (100%)
+Build Cache     11        0         1.329GB   29.92MB</div>
+<p class="why"><strong>What happened:</strong> everything the daemon owns, in one place. <code>/var/lib/docker</code> is inside the VM. <code>Driver=overlayfs</code> is the layer-stacking filesystem from Lesson 0002. <code>Cgroup=2</code> is the version whose <code>memory.max</code> you catted in Lesson 0004. Your images are 4.5 GB of files on the VM's disk — the CLI just asked for the numbers. (Numbers will differ on your machine.)</p>
+</li>
+
+<li>
+<p>Break the door on purpose:</p>
+<pre><span class="cmd">DOCKER_HOST=unix:///nonexistent.sock docker ps</span>
+<span class="cmd">echo $?</span></pre>
+<div class="expected">failed to connect to the docker API at unix:///nonexistent.sock;
+check if the path is correct and if the daemon is running
+1</div>
+<p class="why"><strong>What happened:</strong> you pointed the client at a door that does not exist. The CLI did not hang, did not guess, did not fix. It reported a closed door and exited with code 1. When a CI log or a teammate's terminal shows this error, you now know: the client is fine, the address or the daemon is wrong. If OrbStack is not running, you get the same error with the real socket path.</p>
+</li>
+
+<li>
+<p>The manager is not the muscle:</p>
+<pre><span class="cmd">docker info --format 'Containers={{.Containers}} Running={{.ContainersRunning}}'</span></pre>
+<div class="expected">Containers=0 Running=0</div>
+<p class="why"><strong>What happened:</strong> the daemon's live bookkeeping — right now, nothing running. Now the key claim: if the daemon crashed this second, running containers would <em>keep running</em>. The kernel runs them (Lessons 0003–0004); the daemon only creates, tracks, and cleans up after them. A manager walking off the site does not stop the workers. (Quitting OrbStack stops the whole VM — that is a bigger switch, and different.)</p>
+</li>
+</ol>
+
+<h2><span class="no">§4</span>Check yourself</h2>
+<p>Recall from memory — no scrolling up. Wrong answers explain themselves.</p>
+
+<div class="quiz" id="quiz">
+  <div class="q" data-a="0">
+    <p class="stem"><span class="qn">Q1</span>The <code>docker</code> command on your Mac is:</p>
+    <div class="opts">
+      <button>A thin client with no state</button>
+      <button>The engine that runs containers</button>
+      <button>A manager process inside the daemon</button>
+      <button>A remote shell into the Linux kernel</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <p class="stem"><span class="qn">Q2</span><code>docker version</code> reports the server OS as <code>linux/arm64</code>. Why?</p>
+    <div class="opts">
+      <button>The CLI is secretly a Linux binary</button>
+      <button>Containers report their own OS upward</button>
+      <button>The daemon runs in OrbStack's VM</button>
+      <button>Docker always lists linux by default</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="1">
+    <p class="stem"><span class="qn">Q3</span><code>curl --unix-socket …/_ping</code> returned <code>OK</code>. That reply came from:</p>
+    <div class="opts">
+      <button>The container you started earlier</button>
+      <button>The daemon's REST API endpoint</button>
+      <button>OrbStack's Mac graphical application</button>
+      <button>The docker CLI listening locally</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="3">
+    <p class="stem"><span class="qn">Q4</span>The daemon crashes mid-flight. Your running containers:</p>
+    <div class="opts">
+      <button>Die; it is their parent process</button>
+      <button>Pause until a daemon returns</button>
+      <button>Restart on some other host</button>
+      <button>Keep running; the kernel runs them</button>
+    </div>
+    <div class="fb"></div>
+  </div>
+
+  <div class="score" id="score"></div>
+  <div class="btnrow"><button onclick="resetQuiz()">reset quiz</button></div>
+</div>
+
+<div class="src">
+  <strong>Primary source for this lesson</strong> — read after finishing (10 min):<br>
+  <a href="https://docs.docker.com/get-started/overview/">"Docker overview" — Docker official docs</a>. Read the "Docker architecture" section — client, daemon, registry, in their own diagram. Everything above, from the source.
+</div>
+
+<div class="tomorrow">
+  <strong>Before your next session</strong> (5 min, no notes): recall — (1) the three parts of the chain and where each lives, (2) what a context stores, (3) what "failed to connect to the Docker daemon" really means, (4) from Lesson 0004: why only <code>docker kill</code> could stop that container. Struggle is the point.
+</div>
+
+<div class="box-ask">
+  <h3>Your teacher is on call</h3>
+  <p>Anything unclear — "why a socket and not TCP?", "what does containerd add?", "how do I drive a daemon over SSH?" — <strong>ask the agent</strong> in your next session (or right now). Questions are the fastest part of the curriculum.</p>
+</div>
+
+<div class="next">
+  <strong>Next lesson — Module 3 begins: Dockerfiles.</strong> You know what an image is made of (layers) and who builds it (the daemon). Now you write the recipe yourself: your first Dockerfile, layer by layer, cache by cache. Module 2 is complete. Review anytime: <a href="0001-a-container-is-a-process.html">0001</a> · <a href="0002-the-anatomy-of-an-image.html">0002</a> · <a href="0003-how-the-kernel-lies.html">0003</a> · <a href="0004-cgroups-the-other-half.html">0004</a> · Reference shelf: <a href="../reference/docker-architecture.html">Docker Architecture</a>, <a href="../reference/isolation-namespaces.html">Isolation &amp; Namespaces</a>, <a href="../reference/cgroups-limits.html">Cgroups &amp; Limits</a>, <a href="../reference/image-anatomy.html">Image Anatomy</a>, <a href="../reference/docker-core-commands.html">Core Commands</a>.
+</div>
+
+</div>
+
+<script>
+  const explanations = [
+    ["Right. The CLI is a messenger. It holds no images, no containers, no state. Everything it knows, it has to ask the daemon."],
+    ["Correct. dockerd lives inside OrbStack's Linux VM. The client half runs on your Mac; the server half answers as linux/arm64 because it IS Linux."],
+    ["Exactly. The daemon serves a REST API on the socket. curl spoke HTTP straight to it — no docker CLI involved. Every docker command you run does the same, with nicer formatting."],
+    ["Correct — the kernel runs container processes (Lessons 0003–0004); the daemon only creates and tracks them. Manager down is not workers dead. Quitting OrbStack stops the whole VM, which is a different and bigger switch."]
+  ];
+  const quiz = document.getElementById('quiz');
+  let done = 0, right = 0;
+  function scored() {
+    if (done < 4) return;
+    const s = document.getElementById('score');
+    s.style.display = 'block';
+    const msg = right === 4 ? "4 / 4 — the brain mapped." : right + " / 4 — reread §1 and §2, try again tomorrow.";
+    s.textContent = msg;
+  }
+  quiz.querySelectorAll('.q').forEach((q, qi) => {
+    const ans = parseInt(q.dataset.a, 10);
+    const fb = q.querySelector('.fb');
+    q.querySelectorAll('.opts button').forEach((b, bi) => {
+      b.addEventListener('click', () => {
+        if (q.dataset.done) return;
+        q.dataset.done = "1"; done++;
+        const correct = bi === ans;
+        if (correct) { b.classList.add('right'); right++; fb.className = 'fb ok'; }
+        else { b.classList.add('wrong'); fb.className = 'fb no'; q.querySelectorAll('.opts button')[ans].classList.add('right'); }
+        fb.textContent = (correct ? "✔ " : "✘ ") + explanations[qi][0];
+        q.querySelectorAll('.opts button').forEach(x => x.disabled = true);
+        scored();
+      });
+    });
+  });
+  function resetQuiz() {
+    done = 0; right = 0;
+    document.getElementById('score').style.display = 'none';
+    quiz.querySelectorAll('.q').forEach(q => { delete q.dataset.done; q.querySelector('.fb').className = 'fb'; q.querySelectorAll('.opts button').forEach(b => { b.disabled = false; b.className = ''; } ); });
+  }
+</script>
+
+</body>
+</html>
