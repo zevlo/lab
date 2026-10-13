@@ -1,0 +1,5 @@
+FROM rust:1-alpine
+WORKDIR /src
+COPY . .
+RUN cargo build --release
+CMD ["./target/release/count_errors", "/logs"]
