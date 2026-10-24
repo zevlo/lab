@@ -1,0 +1,12 @@
+# Build stage
+FROM golang:1.22 AS builder
+WORKDIR /src
+COPY . .
+
+# Disable cgo so the binary is fully static
+RUN CGO_ENABLED=0 go build -o /app .
+
+# ---- Runtime: just the binary ----
+FROM scratch
+COPY --from=builder /app /app
+ENTRYPOINT [ "/app" ]
