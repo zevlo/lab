@@ -1,0 +1,9 @@
+{
+  "servers": [
+    {"name": "web-01",     "host": "127.0.0.1",     "env": "prod",    "cpu_usage": 72},
+    {"name": "web-02",     "host": "127.0.0.1",     "env": "prod",    "cpu_usage": 45},
+    {"name": "staging-01", "host": "localhost",     "env": "staging", "cpu_usage": 12},
+    {"name": "db-01",      "host": "localhost",     "env": "prod",    "cpu_usage": 91},
+    {"name": "db-02",      "host": "db-02.invalid", "env": "prod",    "cpu_usage": 8}
+  ]
+}

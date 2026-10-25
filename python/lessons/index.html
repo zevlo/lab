@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python for DevOps — Mini Lessons</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:#0d1117; color:#c9d1d9; font:16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width:860px; margin:0 auto; padding:0 24px 72px; }
+.top { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 0; border-bottom:1px solid #21262d; font-size:14px; flex-wrap:wrap; }
+.top .crumb { color:#8b949e; }
+a { color:#58a6ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+main { padding-top:44px; }
+h1 { color:#f0f6fc; font-size:34px; line-height:1.2; margin:6px 0 10px; }
+.tagline { color:#8b949e; font-size:17px; max-width:560px; }
+h2 { color:#f0f6fc; font-size:19px; margin:40px 0 4px; }
+p { margin:10px 0; }
+code { font-family:"SF Mono", SFMono-Regular, Consolas, Menlo, monospace; font-size:.9em; background:#1c2129; border:1px solid #2d333b; padding:1px 6px; border-radius:5px; color:#79c0ff; }
+.note { border:1px solid #30363d; border-left:4px solid #e3b341; background:#161b22; border-radius:8px; padding:12px 16px; margin:16px 0; font-size:15px; }
+.note strong { color:#e3b341; }
+.cards { display:grid; gap:14px; margin:20px 0 8px; }
+.card { display:block; border:1px solid #30363d; border-radius:10px; padding:16px 20px; background:#161b22; }
+.card:hover { border-color:#58a6ff; text-decoration:none; }
+.card .n { color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:.08em; }
+.card .t { color:#f0f6fc; font-size:18px; font-weight:600; margin:2px 0 4px; }
+.card:hover .t { color:#58a6ff; }
+.card .d { color:#8b949e; font-size:14px; }
+.chips { margin-top:10px; }
+.chip { display:inline-block; background:#1c2129; border:1px solid #2d333b; color:#79c0ff; font-family:"SF Mono", SFMono-Regular, Consolas, Menlo, monospace; font-size:12px; padding:2px 9px; border-radius:99px; margin:2px 6px 2px 0; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <span class="crumb">Python for DevOps</span>
+  <span class="crumb">6 lessons · ~10 min each</span>
+</nav>
+
+<main>
+  <div class="n" style="color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;">Mini lessons</div>
+  <h1>Python for DevOps</h1>
+  <p class="tagline">The fundamentals, one concept at a time, each lesson built around a hands-on exercise with DevOps-flavored scenarios.</p>
+
+  <div class="note"><strong>How to use:</strong> do the lessons in order — they build on each other, and Lesson 4 refactors Lesson 3. Type your answer in the editor under each exercise and press <strong>Run</strong> — it executes real Python right in your browser (first Run downloads the runtime, ~10 MB, once). Your answers save automatically. Solutions are hidden below the editor; peek only after attempting.</div>
+
+  <h2>Lessons</h2>
+  <div class="cards">
+    <a class="card" href="01-variables-types.html">
+      <div class="n">Lesson 1</div>
+      <div class="t">Variables &amp; Types</div>
+      <div class="d">Store data, format output with f-strings, convert between types.</div>
+      <div class="chips"><span class="chip">str</span><span class="chip">int / float</span><span class="chip">bool</span><span class="chip">f-strings</span></div>
+    </a>
+    <a class="card" href="02-lists-dicts.html">
+      <div class="n">Lesson 2</div>
+      <div class="t">Lists &amp; Dicts</div>
+      <div class="d">Collections that hold servers and logs — including the list-of-dicts shape every API returns.</div>
+      <div class="chips"><span class="chip">list</span><span class="chip">dict</span><span class="chip">.get()</span><span class="chip">comprehensions</span></div>
+    </a>
+    <a class="card" href="03-conditionals-loops.html">
+      <div class="n">Lesson 3</div>
+      <div class="t">Conditionals &amp; Loops</div>
+      <div class="d">Make decisions and process every line — parse and triage logs.</div>
+      <div class="chips"><span class="chip">if / elif</span><span class="chip">for</span><span class="chip">and / or</span><span class="chip">counting pattern</span></div>
+    </a>
+    <a class="card" href="04-functions.html">
+      <div class="n">Lesson 4</div>
+      <div class="t">Functions</div>
+      <div class="d">Package logic into reusable units; refactor Lesson 3 into a mini log analyzer.</div>
+      <div class="chips"><span class="chip">def</span><span class="chip">return</span><span class="chip">defaults</span><span class="chip">composition</span></div>
+    </a>
+    <a class="card" href="05-files-json.html">
+      <div class="n">Lesson 5</div>
+      <div class="t">Files &amp; JSON</div>
+      <div class="d">Read configs and write reports; parse a servers.json inventory file.</div>
+      <div class="chips"><span class="chip">with open()</span><span class="chip">json.load</span><span class="chip">json.dump</span><span class="chip">.ljust()</span></div>
+    </a>
+    <a class="card" href="06-subprocess.html">
+      <div class="n">Lesson 6</div>
+      <div class="t">Subprocess</div>
+      <div class="d">Run shell commands, handle exit codes and failures — capstone: a server health-check script.</div>
+      <div class="chips"><span class="chip">subprocess.run</span><span class="chip">returncode</span><span class="chip">check=True</span><span class="chip">try / except</span></div>
+    </a>
+  </div>
+
+  <p style="margin-top:28px; color:#8b949e;">After Lesson 6, natural next steps: <code>argparse</code> for CLI flags, <code>logging</code> for real logs, and <code>requests</code> for HTTP health endpoints.</p>
+</main>
+
+</body>
+</html>

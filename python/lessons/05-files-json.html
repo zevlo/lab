@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 5 · Files &amp; JSON — Python for DevOps</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:#0d1117; color:#c9d1d9; font:16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width:860px; margin:0 auto; padding:0 24px 72px; }
+.top { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 0; border-bottom:1px solid #21262d; font-size:14px; flex-wrap:wrap; }
+.top .crumb { color:#8b949e; }
+a { color:#58a6ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+main { padding-top:36px; }
+.kicker { color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+h1 { color:#f0f6fc; font-size:30px; line-height:1.25; margin:6px 0 10px; }
+.tagline { color:#8b949e; font-size:17px; margin-bottom:12px; }
+h2 { color:#f0f6fc; font-size:19px; margin:40px 0 12px; padding-bottom:8px; border-bottom:1px solid #21262d; }
+p { margin:10px 0; }
+ul, ol { margin:10px 0 10px 24px; }
+li { margin:4px 0; }
+code { font-family:"SF Mono", SFMono-Regular, Consolas, Menlo, monospace; font-size:.9em; background:#1c2129; border:1px solid #2d333b; padding:1px 6px; border-radius:5px; color:#79c0ff; }
+pre { background:#0a0e14; border:1px solid #30363d; border-radius:10px; padding:14px 18px; overflow-x:auto; margin:14px 0; line-height:1.6; }
+pre code { background:none; border:none; padding:0; color:#c9d1d9; font-size:13.5px; }
+pre.output { border-left:4px solid #3fb950; }
+pre.output code { color:#7ee787; }
+.note { border:1px solid #30363d; border-left:4px solid #e3b341; background:#161b22; border-radius:8px; padding:12px 16px; margin:16px 0; }
+.note strong { color:#e3b341; }
+.exercise { background:#161b22; border:1px solid #388bfd5e; border-left:4px solid #58a6ff; border-radius:10px; padding:20px 22px; margin:40px 0 14px; }
+.exercise .label { color:#58a6ff; font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase; }
+.exercise h2 { border:none; margin:4px 0 10px; padding:0; font-size:20px; }
+details { border:1px solid #30363d; background:#161b22; border-radius:10px; margin:12px 0; overflow:hidden; }
+details summary { cursor:pointer; padding:13px 18px; font-weight:600; color:#f0f6fc; }
+details summary:hover { color:#58a6ff; }
+details .body { padding:2px 18px 16px; }
+details.hint { border-left:4px solid #e3b341; }
+details.hint summary { color:#e3b341; }
+details.solution { border-left:4px solid #3fb950; }
+details.solution summary { color:#7ee787; }
+.next { display:flex; justify-content:space-between; gap:12px; margin-top:56px; padding-top:20px; border-top:1px solid #21262d; font-weight:600; }
+.next a { display:block; padding:10px 16px; border:1px solid #30363d; border-radius:8px; }
+.next a:hover { border-color:#58a6ff; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <a href="index.html">← Index</a>
+  <span class="crumb">Python for DevOps · Lesson 5 of 6</span>
+  <span><a href="04-functions.html">← Prev</a> &nbsp; <a href="06-subprocess.html">Next →</a></span>
+</nav>
+
+<main>
+  <div class="kicker">Lesson 5</div>
+  <h1>Files &amp; JSON</h1>
+  <p class="tagline">Read configs, write reports. Real scripts talk to disk, not just the terminal.</p>
+
+  <h2>Reading files</h2>
+  <p>Always use <code>with</code> — it closes the file automatically, even on errors.</p>
+<pre><code>with open("app.log") as f:        # "r" (read) is the default mode
+    content = f.read()           # whole file as one string
+
+with open("app.log") as f:
+    lines = f.readlines()        # list of lines (keepends=True → \n included)</code></pre>
+
+  <h2>Writing files</h2>
+  <p>Mode <code>"w"</code> writes — and <strong>overwrites</strong> the file if it exists. Use <code>"a"</code> to append.</p>
+<pre><code>with open("report.txt", "w") as f:
+    f.write("Server report\n")
+    f.write("============\n")</code></pre>
+
+  <h2>JSON — the DevOps file format</h2>
+  <p>Configs, API payloads, cloud CLI output: it's JSON everywhere. <code>json.load</code> turns a file into dicts and lists; <code>json.dump</code> writes them back.</p>
+<pre><code>import json
+
+with open("servers.json") as f:
+    data = json.load(f)              # file → dict/list
+
+servers = data["servers"]
+print(len(servers))                  # 5
+print(servers[0]["name"])            # web-01
+
+with open("backup.json", "w") as f:
+    json.dump(data, f, indent=2)     # write back, pretty-printed
+
+text = json.dumps(servers[0])        # obj → string (for logs/APIs)</code></pre>
+
+  <h2>Column alignment for reports</h2>
+  <p><code>.ljust(width)</code> pads a string with spaces to a fixed width — instant columns. (<code>.rjust()</code> right-aligns.)</p>
+<pre><code>print("web-01".ljust(12) + "cpu: 72%")
+print("db-01".ljust(12) + "cpu: 91%")</code></pre>
+<pre class="output"><code>web-01      cpu: 72%
+db-01       cpu: 91%</code></pre>
+
+  <section class="exercise">
+    <div class="label">Exercise</div>
+    <h2>Generate a prod report</h2>
+    <p>The file <a href="servers.json"><code>servers.json</code></a> is preloaded into the browser sandbox — or save your script next to it and run locally with <code>python3</code>.</p>
+    <ol>
+      <li>Load <code>servers.json</code> and print the total number of servers.</li>
+      <li>Build a list of only the servers where <code>env</code> is <code>"prod"</code>.</li>
+      <li>Write <code>prod_report.txt</code>: a header line <code>PROD SERVERS (N)</code>, a line of <code>=</code> signs, then one line per prod server:<br>
+        <code>name</code> (ljust 12) + <code>host</code> (ljust 16) + <code>cpu: N%</code> — and append <code>  &lt;-- HIGH CPU</code> when <code>cpu_usage</code> is 80 or more.</li>
+      <li>Print <code>Report written: prod_report.txt (5 total, 4 prod)</code>.</li>
+    </ol>
+
+    <div class="py-editor" data-id="ex5" data-setup="json">
+      <textarea id="code5" spellcheck="false" aria-label="Exercise code">import json
+
+# servers.json is in the current directory of the sandbox.
+
+# 1. Load it and print the total number of servers
+
+# 2. Collect the prod servers
+
+# 3. Write prod_report.txt (header, "=" line, one line per server)
+
+# 4. Print the confirmation line
+</textarea>
+      <div class="toolbar">
+        <button data-run type="button">Run &#9656;</button>
+        <button data-reset type="button">Reset</button>
+        <span class="meta">Runs real Python in your browser — your answer is saved automatically</span>
+      </div>
+      <pre class="console" id="out5"><code>Output appears here when you press Run.</code></pre>
+    </div>
+  </section>
+
+  <details class="hint">
+    <summary>Hint</summary>
+    <div class="body">
+      <p>Filter with a comprehension: <code>prod = [s for s in servers if s["env"] == "prod"]</code>. Build each line as a string first, append <code>"  &lt;-- HIGH CPU"</code> conditionally, then <code>f.write(line + "\n")</code>. <code>"=" * 24</code> repeats a string.</p>
+    </div>
+  </details>
+
+  <details class="solution">
+    <summary>Show solution</summary>
+    <div class="body">
+<pre><code>import json
+
+with open("servers.json") as f:
+    servers = json.load(f)["servers"]
+
+print(len(servers))
+
+prod = [s for s in servers if s["env"] == "prod"]
+
+with open("prod_report.txt", "w") as f:
+    f.write(f"PROD SERVERS ({len(prod)})\n")
+    f.write("=" * 24 + "\n")
+    for s in prod:
+        line = f"{s['name'].ljust(12)}{s['host'].ljust(16)}cpu: {s['cpu_usage']}%"
+        if s["cpu_usage"] &gt;= 80:
+            line += "  &lt;-- HIGH CPU"
+        f.write(line + "\n")
+
+print(f"Report written: prod_report.txt ({len(servers)} total, {len(prod)} prod)")</code></pre>
+      <p>Expected terminal output:</p>
+<pre class="output"><code>5
+Report written: prod_report.txt (5 total, 4 prod)</code></pre>
+      <p><code>prod_report.txt</code> contents:</p>
+<pre class="output"><code>PROD SERVERS (4)
+========================
+web-01      127.0.0.1       cpu: 72%
+web-02      127.0.0.1       cpu: 45%
+db-01       localhost       cpu: 91%  &lt;-- HIGH CPU
+db-02       db-02.invalid   cpu: 8%</code></pre>
+    </div>
+  </details>
+
+  <nav class="next">
+    <a href="04-functions.html">← Lesson 4: Functions</a>
+    <a href="06-subprocess.html">Lesson 6: Subprocess →</a>
+  </nav>
+</main>
+
+<script src="pyrunner.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 3 · Conditionals &amp; Loops — Python for DevOps</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:#0d1117; color:#c9d1d9; font:16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width:860px; margin:0 auto; padding:0 24px 72px; }
+.top { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 0; border-bottom:1px solid #21262d; font-size:14px; flex-wrap:wrap; }
+.top .crumb { color:#8b949e; }
+a { color:#58a6ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+main { padding-top:36px; }
+.kicker { color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+h1 { color:#f0f6fc; font-size:30px; line-height:1.25; margin:6px 0 10px; }
+.tagline { color:#8b949e; font-size:17px; margin-bottom:12px; }
+h2 { color:#f0f6fc; font-size:19px; margin:40px 0 12px; padding-bottom:8px; border-bottom:1px solid #21262d; }
+p { margin:10px 0; }
+ul, ol { margin:10px 0 10px 24px; }
+li { margin:4px 0; }
+code { font-family:"SF Mono", SFMono-Regular, Consolas, Menlo, monospace; font-size:.9em; background:#1c2129; border:1px solid #2d333b; padding:1px 6px; border-radius:5px; color:#79c0ff; }
+pre { background:#0a0e14; border:1px solid #30363d; border-radius:10px; padding:14px 18px; overflow-x:auto; margin:14px 0; line-height:1.6; }
+pre code { background:none; border:none; padding:0; color:#c9d1d9; font-size:13.5px; }
+pre.output { border-left:4px solid #3fb950; }
+pre.output code { color:#7ee787; }
+.note { border:1px solid #30363d; border-left:4px solid #e3b341; background:#161b22; border-radius:8px; padding:12px 16px; margin:16px 0; }
+.note strong { color:#e3b341; }
+.exercise { background:#161b22; border:1px solid #388bfd5e; border-left:4px solid #58a6ff; border-radius:10px; padding:20px 22px; margin:40px 0 14px; }
+.exercise .label { color:#58a6ff; font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase; }
+.exercise h2 { border:none; margin:4px 0 10px; padding:0; font-size:20px; }
+details { border:1px solid #30363d; background:#161b22; border-radius:10px; margin:12px 0; overflow:hidden; }
+details summary { cursor:pointer; padding:13px 18px; font-weight:600; color:#f0f6fc; }
+details summary:hover { color:#58a6ff; }
+details .body { padding:2px 18px 16px; }
+details.hint { border-left:4px solid #e3b341; }
+details.hint summary { color:#e3b341; }
+details.solution { border-left:4px solid #3fb950; }
+details.solution summary { color:#7ee787; }
+.next { display:flex; justify-content:space-between; gap:12px; margin-top:56px; padding-top:20px; border-top:1px solid #21262d; font-weight:600; }
+.next a { display:block; padding:10px 16px; border:1px solid #30363d; border-radius:8px; }
+.next a:hover { border-color:#58a6ff; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <a href="index.html">← Index</a>
+  <span class="crumb">Python for DevOps · Lesson 3 of 6</span>
+  <span><a href="02-lists-dicts.html">← Prev</a> &nbsp; <a href="04-functions.html">Next →</a></span>
+</nav>
+
+<main>
+  <div class="kicker">Lesson 3</div>
+  <h1>Conditionals &amp; Loops</h1>
+  <p class="tagline">Make decisions and process every item. This is how scripts read logs and check servers.</p>
+
+  <h2>if / elif / else</h2>
+  <p>Indentation (4 spaces) defines the block — there are no curly braces.</p>
+<pre><code>cpu = 91
+
+if cpu &gt;= 90:
+    print("critical")
+elif cpu &gt;= 70:
+    print("high")
+else:
+    print("ok")</code></pre>
+<pre class="output"><code>critical</code></pre>
+
+  <h2>Comparisons &amp; logic</h2>
+  <p>Compare with <code>==</code> (equality — one <code>=</code> is assignment!), <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>. Combine with <code>and</code>, <code>or</code>, <code>not</code>.</p>
+<pre><code>env = "prod"
+cpu = 85
+
+if env == "prod" and cpu &gt; 80:
+    print("page on-call")</code></pre>
+
+  <h2>for loops</h2>
+  <p>A <code>for</code> loop visits every item in a list — no counters needed.</p>
+<pre><code>hosts = ["web-01", "web-02", "db-01"]
+
+for host in hosts:
+    print(f"checking {host}...")
+
+for i, host in enumerate(hosts, start=1):
+    print(f"{i}. {host}")</code></pre>
+<pre class="output"><code>checking web-01...
+checking web-02...
+checking db-01...
+1. web-01
+2. web-02
+3. db-01</code></pre>
+
+  <h2>Useful string checks</h2>
+  <p><code>"db-01" in line</code> tests substrings; <code>line.startswith("ERROR")</code> checks the prefix. Log parsing in two primitives.</p>
+<pre><code>line = "ERROR db-01 disk full"
+
+line.startswith("ERROR")   # True
+"db-01" in line            # True</code></pre>
+
+  <div class="note"><strong>Counting pattern:</strong> <code>counts[key] = counts.get(key, 0) + 1</code> — read the old count (default 0), add one, store it back. Memorize this; you will use it constantly.</div>
+
+  <section class="exercise">
+    <div class="label">Exercise</div>
+    <h2>Log triage</h2>
+    <p>Given these log lines:</p>
+<pre><code>logs = [
+    "ERROR db-01 disk full",
+    "INFO web-01 deployed v2.1",
+    "WARN web-02 cpu at 85%",
+    "ERROR db-01 query timeout",
+    "INFO staging-01 backup done",
+    "DEBUG cache hit ratio 0.98",
+]</code></pre>
+    <ol>
+      <li>Print every line prefixed by its severity: <code>[ERROR]</code>, <code>[WARN]</code>, <code>[INFO]</code> — anything else gets <code>[???]</code>.</li>
+      <li>Count each severity into a dict (use the counting pattern) and print it.</li>
+      <li>Print only the lines that mention <code>db-01</code>, prefixed with <code>db-01 issue:</code>.</li>
+    </ol>
+
+    <div class="py-editor" data-id="ex3">
+      <textarea id="code3" spellcheck="false" aria-label="Exercise code">logs = [
+    "ERROR db-01 disk full",
+    "INFO web-01 deployed v2.1",
+    "WARN web-02 cpu at 85%",
+    "ERROR db-01 query timeout",
+    "INFO staging-01 backup done",
+    "DEBUG cache hit ratio 0.98",
+]
+
+# 1. Print each line prefixed by [ERROR] / [WARN] / [INFO] / [???]
+
+# 2. Count each severity in a dict, print it
+
+# 3. Print only the db-01 lines, prefixed "db-01 issue:"
+</textarea>
+      <div class="toolbar">
+        <button data-run type="button">Run &#9656;</button>
+        <button data-reset type="button">Reset</button>
+        <span class="meta">Runs real Python in your browser — your answer is saved automatically</span>
+      </div>
+      <pre class="console" id="out3"><code>Output appears here when you press Run.</code></pre>
+    </div>
+  </section>
+
+  <details class="hint">
+    <summary>Hint</summary>
+    <div class="body">
+      <p>Structure: one loop over <code>logs</code>. Inside, decide the severity with <code>if</code>/<code>elif</code> on <code>line.startswith(...)</code>, store it in a variable like <code>sev</code>, print the tagged line, then update <code>counts</code>. Step 3 is a second, separate loop.</p>
+    </div>
+  </details>
+
+  <details class="solution">
+    <summary>Show solution</summary>
+    <div class="body">
+<pre><code>logs = [
+    "ERROR db-01 disk full",
+    "INFO web-01 deployed v2.1",
+    "WARN web-02 cpu at 85%",
+    "ERROR db-01 query timeout",
+    "INFO staging-01 backup done",
+    "DEBUG cache hit ratio 0.98",
+]
+
+counts = {}
+for line in logs:
+    if line.startswith("ERROR"):
+        sev = "ERROR"
+    elif line.startswith("WARN"):
+        sev = "WARN"
+    elif line.startswith("INFO"):
+        sev = "INFO"
+    else:
+        sev = "???"
+    print(f"[{sev}] {line}")
+    counts[sev] = counts.get(sev, 0) + 1
+
+print(counts)
+
+for line in logs:
+    if "db-01" in line:
+        print("db-01 issue:", line)</code></pre>
+      <p>Expected output:</p>
+<pre class="output"><code>[ERROR] ERROR db-01 disk full
+[INFO] INFO web-01 deployed v2.1
+[WARN] WARN web-02 cpu at 85%
+[ERROR] ERROR db-01 query timeout
+[INFO] INFO staging-01 backup done
+[???] DEBUG cache hit ratio 0.98
+{'ERROR': 2, 'INFO': 2, 'WARN': 1, '???': 1}
+db-01 issue: ERROR db-01 disk full
+db-01 issue: ERROR db-01 query timeout</code></pre>
+    </div>
+  </details>
+
+  <nav class="next">
+    <a href="02-lists-dicts.html">← Lesson 2: Lists &amp; Dicts</a>
+    <a href="04-functions.html">Lesson 4: Functions →</a>
+  </nav>
+</main>
+
+<script src="pyrunner.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 4 · Functions — Python for DevOps</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:#0d1117; color:#c9d1d9; font:16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width:860px; margin:0 auto; padding:0 24px 72px; }
+.top { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 0; border-bottom:1px solid #21262d; font-size:14px; flex-wrap:wrap; }
+.top .crumb { color:#8b949e; }
+a { color:#58a6ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+main { padding-top:36px; }
+.kicker { color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+h1 { color:#f0f6fc; font-size:30px; line-height:1.25; margin:6px 0 10px; }
+.tagline { color:#8b949e; font-size:17px; margin-bottom:12px; }
+h2 { color:#f0f6fc; font-size:19px; margin:40px 0 12px; padding-bottom:8px; border-bottom:1px solid #21262d; }
+p { margin:10px 0; }
+ul, ol { margin:10px 0 10px 24px; }
+li { margin:4px 0; }
+code { font-family:"SF Mono", SFMono-Regular, Consolas, Menlo, monospace; font-size:.9em; background:#1c2129; border:1px solid #2d333b; padding:1px 6px; border-radius:5px; color:#79c0ff; }
+pre { background:#0a0e14; border:1px solid #30363d; border-radius:10px; padding:14px 18px; overflow-x:auto; margin:14px 0; line-height:1.6; }
+pre code { background:none; border:none; padding:0; color:#c9d1d9; font-size:13.5px; }
+pre.output { border-left:4px solid #3fb950; }
+pre.output code { color:#7ee787; }
+.note { border:1px solid #30363d; border-left:4px solid #e3b341; background:#161b22; border-radius:8px; padding:12px 16px; margin:16px 0; }
+.note strong { color:#e3b341; }
+.exercise { background:#161b22; border:1px solid #388bfd5e; border-left:4px solid #58a6ff; border-radius:10px; padding:20px 22px; margin:40px 0 14px; }
+.exercise .label { color:#58a6ff; font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase; }
+.exercise h2 { border:none; margin:4px 0 10px; padding:0; font-size:20px; }
+details { border:1px solid #30363d; background:#161b22; border-radius:10px; margin:12px 0; overflow:hidden; }
+details summary { cursor:pointer; padding:13px 18px; font-weight:600; color:#f0f6fc; }
+details summary:hover { color:#58a6ff; }
+details .body { padding:2px 18px 16px; }
+details.hint { border-left:4px solid #e3b341; }
+details.hint summary { color:#e3b341; }
+details.solution { border-left:4px solid #3fb950; }
+details.solution summary { color:#7ee787; }
+.next { display:flex; justify-content:space-between; gap:12px; margin-top:56px; padding-top:20px; border-top:1px solid #21262d; font-weight:600; }
+.next a { display:block; padding:10px 16px; border:1px solid #30363d; border-radius:8px; }
+.next a:hover { border-color:#58a6ff; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <a href="index.html">← Index</a>
+  <span class="crumb">Python for DevOps · Lesson 4 of 6</span>
+  <span><a href="03-conditionals-loops.html">← Prev</a> &nbsp; <a href="05-files-json.html">Next →</a></span>
+</nav>
+
+<main>
+  <div class="kicker">Lesson 4</div>
+  <h1>Functions</h1>
+  <p class="tagline">Package logic into reusable, testable units. This is what keeps scripts from becoming spaghetti.</p>
+
+  <h2>Define &amp; call</h2>
+  <p>A function takes inputs (parameters), does work, and hands back a result with <code>return</code>.</p>
+<pre><code>def cpu_status(cpu):
+    if cpu &gt;= 90:
+        return "critical"
+    return "ok"
+
+level = cpu_status(91)
+print(f"status: {level}")</code></pre>
+<pre class="output"><code>status: critical</code></pre>
+  <p><code>return</code> exits immediately. A function with no <code>return</code> gives back <code>None</code>.</p>
+
+  <h2>Default values</h2>
+  <p>Parameters can have defaults — callers only pass what differs. Very common in tooling: sensible defaults, full control when needed.</p>
+<pre><code>def deploy(app, env="staging", dry_run=False):
+    mode = "dry-run" if dry_run else "live"
+    print(f"deploying {app} to {env} ({mode})")
+
+deploy("api")                       # uses both defaults
+deploy("api", env="prod")
+deploy("api", env="prod", dry_run=True)</code></pre>
+<pre class="output"><code>deploying api to staging (live)
+deploying api to prod (live)
+deploying api to prod (dry-run)</code></pre>
+
+  <h2>Functions compose</h2>
+  <p>Small functions call each other. Each does one thing — easy to read, easy to test, easy to reuse.</p>
+<pre><code>def needs_page(sev_counts, threshold=2):
+    return sev_counts.get("ERROR", 0) &gt;= threshold
+
+print(needs_page({"ERROR": 3}))    # True
+print(needs_page({"ERROR": 1}))    # False</code></pre>
+
+  <div class="note"><strong>Rule of thumb:</strong> copy-pasted a block for the second time? Make it a function. DevOps scripts grow fast — functions are how they stay maintainable.</div>
+
+  <section class="exercise">
+    <div class="label">Exercise</div>
+    <h2>Refactor the log triage</h2>
+    <p>Take Lesson 3's logic and turn it into three functions:</p>
+    <ol>
+      <li><code>classify(line)</code> — returns the severity string: <code>"ERROR"</code>, <code>"WARN"</code>, <code>"INFO"</code>, or <code>"???"</code>.</li>
+      <li><code>count_severities(logs)</code> — loops, calls <code>classify()</code>, returns the counts dict.</li>
+      <li><code>print_report(logs, error_threshold=2)</code> — prints the counts; if the ERROR count reaches the threshold, also prints an alert line.</li>
+    </ol>
+    <p>Then call <code>print_report(logs)</code> on Lesson 3's six lines, and once more on <code>["INFO all good"]</code> — no alert should fire.</p>
+
+    <div class="py-editor" data-id="ex4">
+      <textarea id="code4" spellcheck="false" aria-label="Exercise code">logs = [
+    "ERROR db-01 disk full",
+    "INFO web-01 deployed v2.1",
+    "WARN web-02 cpu at 85%",
+    "ERROR db-01 query timeout",
+    "INFO staging-01 backup done",
+    "DEBUG cache hit ratio 0.98",
+]
+
+def classify(line):
+    # return "ERROR", "WARN", "INFO" or "???"
+    pass
+
+def count_severities(logs):
+    # loop, call classify(), return the counts dict
+    pass
+
+def print_report(logs, error_threshold=2):
+    # print counts; print an alert line if ERRORs reach the threshold
+    pass
+
+print_report(logs)
+print_report(["INFO all good"])
+</textarea>
+      <div class="toolbar">
+        <button data-run type="button">Run &#9656;</button>
+        <button data-reset type="button">Reset</button>
+        <span class="meta">Runs real Python in your browser — your answer is saved automatically</span>
+      </div>
+      <pre class="console" id="out4"><code>Output appears here when you press Run.</code></pre>
+    </div>
+  </section>
+
+  <details class="hint">
+    <summary>Hint</summary>
+    <div class="body">
+      <p><code>classify</code> is just the if/elif chain with <code>return</code> instead of <code>print</code>. <code>count_severities</code> is the counting loop, but the value comes from <code>classify(line)</code>, and the dict is <em>returned</em>, not printed. In <code>print_report</code>, use <code>counts.get("ERROR", 0)</code> — quiet logs may have no ERROR key at all.</p>
+    </div>
+  </details>
+
+  <details class="solution">
+    <summary>Show solution</summary>
+    <div class="body">
+<pre><code>def classify(line):
+    if line.startswith("ERROR"):
+        return "ERROR"
+    elif line.startswith("WARN"):
+        return "WARN"
+    elif line.startswith("INFO"):
+        return "INFO"
+    return "???"
+
+def count_severities(logs):
+    counts = {}
+    for line in logs:
+        sev = classify(line)
+        counts[sev] = counts.get(sev, 0) + 1
+    return counts
+
+def print_report(logs, error_threshold=2):
+    counts = count_severities(logs)
+    print(counts)
+    if counts.get("ERROR", 0) &gt;= error_threshold:
+        print(f"ALERT: {counts['ERROR']} errors (threshold {error_threshold})")
+
+logs = [
+    "ERROR db-01 disk full",
+    "INFO web-01 deployed v2.1",
+    "WARN web-02 cpu at 85%",
+    "ERROR db-01 query timeout",
+    "INFO staging-01 backup done",
+    "DEBUG cache hit ratio 0.98",
+]
+
+print_report(logs)
+print_report(["INFO all good"])</code></pre>
+      <p>Expected output:</p>
+<pre class="output"><code>{'ERROR': 2, 'INFO': 2, 'WARN': 1, '???': 1}
+ALERT: 2 errors (threshold 2)
+{'INFO': 1}</code></pre>
+    </div>
+  </details>
+
+  <nav class="next">
+    <a href="03-conditionals-loops.html">← Lesson 3: Conditionals &amp; Loops</a>
+    <a href="05-files-json.html">Lesson 5: Files &amp; JSON →</a>
+  </nav>
+</main>
+
+<script src="pyrunner.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 2 · Lists &amp; Dicts — Python for DevOps</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background:#0d1117; color:#c9d1d9; font:16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; max-width:860px; margin:0 auto; padding:0 24px 72px; }
+.top { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:16px 0; border-bottom:1px solid #21262d; font-size:14px; flex-wrap:wrap; }
+.top .crumb { color:#8b949e; }
+a { color:#58a6ff; text-decoration:none; }
+a:hover { text-decoration:underline; }
+main { padding-top:36px; }
+.kicker { color:#58a6ff; font-size:13px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+h1 { color:#f0f6fc; font-size:30px; line-height:1.25; margin:6px 0 10px; }
+.tagline { color:#8b949e; font-size:17px; margin-bottom:12px; }
+h2 { color:#f0f6fc; font-size:19px; margin:40px 0 12px; padding-bottom:8px; border-bottom:1px solid #21262d; }
+p { margin:10px 0; }
+ul, ol { margin:10px 0 10px 24px; }
+li { margin:4px 0; }
+code { font-family:"SF Mono", SFMono-Regular, Consolas, Menlo, monospace; font-size:.9em; background:#1c2129; border:1px solid #2d333b; padding:1px 6px; border-radius:5px; color:#79c0ff; }
+pre { background:#0a0e14; border:1px solid #30363d; border-radius:10px; padding:14px 18px; overflow-x:auto; margin:14px 0; line-height:1.6; }
+pre code { background:none; border:none; padding:0; color:#c9d1d9; font-size:13.5px; }
+pre.output { border-left:4px solid #3fb950; }
+pre.output code { color:#7ee787; }
+.note { border:1px solid #30363d; border-left:4px solid #e3b341; background:#161b22; border-radius:8px; padding:12px 16px; margin:16px 0; }
+.note strong { color:#e3b341; }
+.exercise { background:#161b22; border:1px solid #388bfd5e; border-left:4px solid #58a6ff; border-radius:10px; padding:20px 22px; margin:40px 0 14px; }
+.exercise .label { color:#58a6ff; font-weight:700; font-size:13px; letter-spacing:.1em; text-transform:uppercase; }
+.exercise h2 { border:none; margin:4px 0 10px; padding:0; font-size:20px; }
+details { border:1px solid #30363d; background:#161b22; border-radius:10px; margin:12px 0; overflow:hidden; }
+details summary { cursor:pointer; padding:13px 18px; font-weight:600; color:#f0f6fc; }
+details summary:hover { color:#58a6ff; }
+details .body { padding:2px 18px 16px; }
+details.hint { border-left:4px solid #e3b341; }
+details.hint summary { color:#e3b341; }
+details.solution { border-left:4px solid #3fb950; }
+details.solution summary { color:#7ee787; }
+.next { display:flex; justify-content:space-between; gap:12px; margin-top:56px; padding-top:20px; border-top:1px solid #21262d; font-weight:600; }
+.next a { display:block; padding:10px 16px; border:1px solid #30363d; border-radius:8px; }
+.next a:hover { border-color:#58a6ff; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <a href="index.html">← Index</a>
+  <span class="crumb">Python for DevOps · Lesson 2 of 6</span>
+  <span><a href="01-variables-types.html">← Prev</a> &nbsp; <a href="03-conditionals-loops.html">Next →</a></span>
+</nav>
+
+<main>
+  <div class="kicker">Lesson 2</div>
+  <h1>Lists &amp; Dicts</h1>
+  <p class="tagline">Collections hold your servers, logs, and config. These two types do almost all the work.</p>
+
+  <h2>Lists — ordered collections</h2>
+  <p>A list holds many values in order. Indexing starts at <strong>0</strong>; negatives count from the end.</p>
+<pre><code>hosts = ["web-01", "web-02", "db-01"]
+
+hosts[0]            # "web-01"  (first)
+hosts[-1]           # "db-01"   (last)
+len(hosts)          # 3
+hosts.append("cache-01")   # add to the end
+"db-01" in hosts    # True (membership test)
+sorted(hosts)       # new sorted list</code></pre>
+
+  <h2>Dicts — labeled data</h2>
+  <p>A dictionary maps keys to values. Think: one server's facts.</p>
+<pre><code>server = {"name": "web-01", "env": "prod", "cpu_usage": 72}
+
+server["name"]              # "web-01"
+server["cpu_usage"]         # 72
+server.get("os", "unknown") # "unknown" — safe access with default
+server["status"] = "up"     # add or update a key
+server.keys()               # all keys
+server.values()             # all values</code></pre>
+  <div class="note"><strong>Crash saver:</strong> <code>server["os"]</code> raises <code>KeyError</code> if the key is missing; <code>server.get("os")</code> returns <code>None</code> instead. Use <code>.get()</code> when a key might be absent.</div>
+
+  <h2>Lists of dicts — the DevOps shape</h2>
+  <p>Cloud APIs, CLI output, and JSON files all look like this: a list where each item is a dict describing one resource. Chain the lookups.</p>
+<pre><code>servers = [
+    {"name": "web-01", "env": "prod",    "cpu_usage": 72},
+    {"name": "web-02", "env": "prod",    "cpu_usage": 45},
+    {"name": "staging-01", "env": "staging", "cpu_usage": 12},
+]
+
+servers[0]["name"]        # "web-01"
+servers[2]["cpu_usage"]   # 12</code></pre>
+
+  <section class="exercise">
+    <div class="label">Exercise</div>
+    <h2>Manage the fleet</h2>
+    <p>Start with the <code>servers</code> list above (3 servers). Working only with indexing and dict methods:</p>
+    <ol>
+      <li>Print the <code>cpu_usage</code> of the <strong>first</strong> server.</li>
+      <li>Append a new server: <code>db-01</code>, env <code>prod</code>, <code>cpu_usage</code> 91.</li>
+      <li>Print how many servers now exist.</li>
+      <li>web-02 got patched — set its <code>cpu_usage</code> to 38, then print it to confirm.</li>
+      <li>Print db-01's operating system with <code>.get()</code>, defaulting to <code>"unknown"</code>.</li>
+      <li><strong>Bonus:</strong> build <code>names = [s["name"] for s in servers]</code> (a list comprehension — loop + collect in one line) and print it.</li>
+    </ol>
+
+    <div class="py-editor" data-id="ex2">
+      <textarea id="code2" spellcheck="false" aria-label="Exercise code">servers = [
+    {"name": "web-01",     "env": "prod",    "cpu_usage": 72},
+    {"name": "web-02",     "env": "prod",    "cpu_usage": 45},
+    {"name": "staging-01", "env": "staging", "cpu_usage": 12},
+]
+
+# 1. Print the cpu_usage of the first server
+
+# 2. Append db-01: env prod, cpu_usage 91
+
+# 3. Print how many servers now exist
+
+# 4. Set web-02's cpu_usage to 38, print it to confirm
+
+# 5. Print db-01's OS with .get(), default "unknown"
+
+# Bonus: collect all names into a list, print it
+</textarea>
+      <div class="toolbar">
+        <button data-run type="button">Run &#9656;</button>
+        <button data-reset type="button">Reset</button>
+        <span class="meta">Runs real Python in your browser — your answer is saved automatically</span>
+      </div>
+      <pre class="console" id="out2"><code>Output appears here when you press Run.</code></pre>
+    </div>
+  </section>
+
+  <details class="hint">
+    <summary>Hint</summary>
+    <div class="body">
+      <p>"web-02" is the second item: <code>servers[1]</code>. Update a nested value like any dict: <code>servers[1]["cpu_usage"] = 38</code>. For db-01 after appending, its index is <code>3</code>.</p>
+    </div>
+  </details>
+
+  <details class="solution">
+    <summary>Show solution</summary>
+    <div class="body">
+<pre><code>servers = [
+    {"name": "web-01",     "env": "prod",    "cpu_usage": 72},
+    {"name": "web-02",     "env": "prod",    "cpu_usage": 45},
+    {"name": "staging-01", "env": "staging", "cpu_usage": 12},
+]
+
+print(servers[0]["cpu_usage"])                              # 1
+servers.append({"name": "db-01", "env": "prod", "cpu_usage": 91})  # 2
+print(len(servers))                                         # 3
+servers[1]["cpu_usage"] = 38                                # 4
+print(servers[1]["cpu_usage"])
+print(servers[3].get("os", "unknown"))                      # 5
+
+names = [s["name"] for s in servers]                        # bonus
+print(names)</code></pre>
+      <p>Expected output:</p>
+<pre class="output"><code>72
+4
+38
+unknown
+['web-01', 'web-02', 'staging-01', 'db-01']</code></pre>
+    </div>
+  </details>
+
+  <nav class="next">
+    <a href="01-variables-types.html">← Lesson 1: Variables &amp; Types</a>
+    <a href="03-conditionals-loops.html">Lesson 3: Conditionals &amp; Loops →</a>
+  </nav>
+</main>
+
+<script src="pyrunner.js" defer></script>
+
+</body>
+</html>
