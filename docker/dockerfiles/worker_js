@@ -1,0 +1,15 @@
+# Build-time version pin, overridable with --build-arg
+ARG NODE_VERSION=20
+FROM node:${NODE_VERSION}-alpine
+
+ARG MODE=once
+ENV MODE=${MODE}
+
+WORKDIR /app
+COPY . .
+
+# Fixed executable — overriding it needs docker run --entrypoint
+ENTRYPOINT [ "node", "worker.js" ]
+
+# Default arguments — anything after the image name in docker run replaces these
+CMD [ "once" ]
