@@ -1,0 +1,24 @@
+---
+- name: Clean up managed files from the system
+  hosts: localhost
+  become: true
+  tasks:
+    - name: Remove the temporary info file
+      ansible.builtin.file:
+        path: /tmp/info.txt
+        state: absent
+
+    - name: Remove the custom MOTD file
+      ansible.builtin.file:
+        path: /etc/motd
+        state: absent
+
+    - name: Remove the custom issue file
+      ansible.builtin.file:
+        path: /etc/issue
+        state: absent
+
+    - name: Remove the issue.net symbolic link
+      ansible.builtin.file:
+        path: /etc/issue.net
+        state: absent
