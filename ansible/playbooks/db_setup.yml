@@ -1,0 +1,14 @@
+---
+- name: Configure Database Servers
+  hosts: dbservers
+  gather_facts: false
+  tasks:
+    - name: Install mariadb package
+      ansible.builtin.dnf:
+        name: mariadb
+        state: present
+      become: true
+
+    - name: Display a confirmation message
+      ansible.builtin.debug:
+        msg: "Database server {{ inventory_hostname }} configured."
