@@ -1,0 +1,30 @@
+---
+- name: Manage system boot targets
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Check current default target
+      ansible.builtin.command:
+        cmd: systemctl get-default
+      register: current_target
+      changed_when: false
+
+    - name: Display current boot target
+      ansible.builtin.debug:
+        msg: "Current default boot target: {{ current_target.stdout }}"
+
+    - name: Set default boot target to multi-user
+      ansible.builtin.systemd:
+        name: multi-user.target
+        enabled: yes
+      when: current_target.stdout != "multi-user.target"
+
+    - name: Verify the boot target change
+      ansible.builtin.command:
+        cmd: systemctl get-default
+      register: new_target
+      changed_when: false
+
+    - name: Display new boot target
+      ansible.builtin.debug:
+        msg: "New default boot target: {{ new_target.stdout }}"
