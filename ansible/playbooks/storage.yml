@@ -1,0 +1,134 @@
+---
+- name: Configure LVM storage and filesystems
+  hosts: webservers
+  become: true
+  vars:
+    storage_device: /dev/loop0
+    volume_group: apache-vg
+    content_lv: content-lv
+    logs_lv: logs-lv
+    backup_lv: backup-lv
+  tasks:
+    - name: Install LVM utilities
+      ansible.builtin.dnf:
+        name: lvm2
+        state: present
+
+    - name: Create physical volume
+      community.general.lvg:
+        vg: "{{ volume_group }}"
+        pvs: "{{ storage_device }}"
+        state: present
+
+    - name: Create logical volume for web content
+      community.general.lvol:
+        vg: "{{ volume_group }}"
+        lv: "{{ content_lv }}"
+        size: 256m
+        state: present
+
+    - name: Create logical volume for logs
+      community.general.lvol:
+        vg: "{{ volume_group }}"
+        lv: "{{ logs_lv }}"
+        size: 256m
+        state: present
+
+    - name: Create logical volume for backup
+      community.general.lvol:
+        vg: "{{ volume_group }}"
+        lv: "{{ backup_lv }}"
+        size: 256m
+        state: present
+
+    - name: Create XFS filesystem on content volume
+      community.general.filesystem:
+        fstype: xfs
+        dev: "/dev/{{ volume_group }}/{{ content_lv }}"
+        force: no
+
+    - name: Create XFS filesystem on logs volume
+      community.general.filesystem:
+        fstype: xfs
+        dev: "/dev/{{ volume_group }}/{{ logs_lv }}"
+        force: no
+
+    - name: Create ext4 filesystem on backup volume
+      community.general.filesystem:
+        fstype: ext4
+        dev: "/dev/{{ volume_group }}/{{ backup_lv }}"
+        force: no
+
+    - name: Create mount points
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - /var/www
+        - /var/log/httpd
+        - /backup
+
+    - name: Mount web content volume
+      ansible.posix.mount:
+        path: /var/www
+        src: "/dev/{{ volume_group }}/{{ content_lv }}"
+        fstype: xfs
+        opts: defaults
+        state: mounted
+
+    - name: Mount logs volume
+      ansible.posix.mount:
+        path: /var/log/httpd
+        src: "/dev/{{ volume_group }}/{{ logs_lv }}"
+        fstype: xfs
+        opts: defaults
+        state: mounted
+
+    - name: Mount backup volume
+      ansible.posix.mount:
+        path: /backup
+        src: "/dev/{{ volume_group }}/{{ backup_lv }}"
+        fstype: ext4
+        opts: defaults
+        state: mounted
+
+    - name: Set appropriate ownership for web content
+      ansible.builtin.file:
+        path: /var/www
+        owner: apache
+        group: apache
+        recurse: yes
+
+    - name: Set appropriate ownership for httpd logs
+      ansible.builtin.file:
+        path: /var/log/httpd
+        owner: apache
+        group: apache
+        recurse: yes
+
+    - name: Create html directory for web content
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        owner: apache
+        group: apache
+        mode: "0755"
+
+    - name: Create sample web content
+      ansible.builtin.copy:
+        content: |
+          <html>
+          <head><title>Storage Management Demo</title></head>
+          <body>
+          <h1>LVM Storage Configuration</h1>
+          <p>This content is served from an LVM logical volume managed by Ansible.</p>
+          <p>Volume Group: {{ volume_group }}</p>
+          <p>Logical Volume: {{ content_lv }}</p>
+          <p>Filesystem: XFS</p>
+          </body>
+          </html>
+        dest: /var/www/html/storage.html
+        owner: apache
+        group: apache
+        mode: "0644"
