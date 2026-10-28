@@ -1,0 +1,50 @@
+---
+- name: Repository Configuration and Software Management
+  hosts: all
+  become: true
+  vars:
+    custom_pkg: httpd
+  tasks:
+    - name: Gather Package Facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Show Package Facts for the custom package (initial check)
+      ansible.builtin.debug:
+        var: ansible_facts['packages'][custom_pkg]
+      when: custom_pkg in ansible_facts['packages']
+
+    - name: Ensure EPEL repository is configured
+      ansible.builtin.yum_repository:
+        name: epel
+        description: Extra Packages for Enterprise Linux 9
+        file: epel
+        baseurl: https://download.fedoraproject.org/pub/epel/9/Everything/x86_64/
+        gpgcheck: yes
+        gpgkey: https://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9
+        enabled: yes
+        state: present
+
+    - name: Import EPEL GPG key
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://download.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9
+
+    - name: Install the custom package
+      ansible.builtin.dnf:
+        name: "{{ custom_pkg }}"
+        state: present
+
+    - name: Gather Package Facts (after installation)
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Show Package Facts for the custom package (post-installation)
+      ansible.builtin.debug:
+        var: ansible_facts['packages'][custom_pkg]
+      when: custom_pkg in ansible_facts['packages']
+
+    - name: Display installed package version
+      ansible.builtin.debug:
+        msg: "{{ custom_pkg }} version {{ ansible_facts['packages'][custom_pkg][0]['version'] }} is installed"
+      when: custom_pkg in ansible_facts['packages']
