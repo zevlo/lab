@@ -1,0 +1,6 @@
+---
+- name: Import the web server configuration play
+  import_playbook: playbooks/web_configure.yml
+
+- name: Import the database server configuration play
+  import_playbook: playbooks/db_setup.yml
