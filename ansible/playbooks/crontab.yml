@@ -1,0 +1,42 @@
+---
+- name: Schedule recurring cron jobs
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Create labex user for cron jobs
+      ansible.builtin.user:
+        name: labex
+        state: present
+        create_home: yes
+
+    - name: Schedule system monitoring cron job
+      ansible.builtin.cron:
+        name: System monitoring log
+        job: "date >> /home/labex/system_monitor.log && df -h >> /home/labex/system_monitor.log"
+        minute: "*/5"
+        hour: "*"
+        user: labex
+        cron_file: system-monitoring
+        state: present
+
+    - name: Schedule daily log rotation
+      ansible.builtin.cron:
+        name: Daily log cleanup
+        job: "find /home/labex -name '*.log' -mtime +7 -delete"
+        minute: "0"
+        hour: "2"
+        weekday: "*"
+        user: labex
+        cron_file: log-cleanup
+        state: present
+
+    - name: Schedule weekly system update check
+      ansible.builtin.cron:
+        name: Weekly update check
+        job: "dnf check-update > /home/labex/update_check.log 2>&1"
+        minute: "0"
+        hour: "3"
+        weekday: "0"
+        user: labex
+        cron_file: update-check
+        state: present
