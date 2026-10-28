@@ -1,0 +1,35 @@
+---
+# Task 1: Create user accounts for each developer
+- name: Create developer user accounts
+  ansible.builtin.user: # Use the 'user' module
+    name: "{{ item.username }}" # Create user with this name
+    state: present # Ensure the user exists
+  loop: "{{ web_developers }}" # Do this for each developer in the list
+
+# Task 2: Create web directories for each developer
+- name: Create developer web root directories
+  ansible.builtin.file: # Use the 'file' module
+    path: "/var/www/{{ item.username }}" # Create this directory
+    state: directory # Ensure it's a directory
+    owner: "{{ item.username }}" # Set the owner
+    group: "{{ item.username }}" # Set the group
+    mode: "0755" # Set permissions (rwxr-xr-x)
+  loop: "{{ web_developers }}"
+
+# Task 3: Create a sample webpage for each developer
+- name: Create a sample index.html for each developer
+  ansible.builtin.copy: # Use the 'copy' module
+    content: "Welcome to {{ item.username }}'s dev space\n" # File content
+    dest: "/var/www/{{ item.username }}/index.html" # Where to put the file
+    owner: "{{ item.username }}" # File owner
+    group: "{{ item.username }}" # File group
+    mode: "0644" # File permissions (rw-r--r--)
+  loop: "{{ web_developers }}"
+
+# Task 4: Deploy the Apache configuration file
+- name: Deploy developer apache configs
+  ansible.builtin.template: # Use the 'template' module
+    src: developer.conf.j2 # Source template file
+    dest: /etc/httpd/conf.d/developer.conf # Destination on the server
+    mode: "0644" # File permissions
+  notify: restart apache # Trigger the restart handler when this changes
