@@ -1,0 +1,23 @@
+---
+- name: Configure Dev Web Server # Playbook name
+  hosts: localhost # Run on localhost
+  pre_tasks: # Tasks that run before roles
+    # Task 1: Configure SELinux mode
+    - name: Set SELinux to enforcing mode
+      ansible.posix.selinux: # Module from ansible.posix collection
+        policy: targeted # Use the 'targeted' SELinux policy
+        state: "{{ selinux_state }}" # Use the variable we defined
+      when: selinux_state is defined # Only run if the variable exists
+
+    # Task 2: Configure SELinux ports
+    - name: Configure SELinux ports for Apache
+      community.general.seport: # Module from community.general collection
+        ports: "{{ item.ports }}" # Port number
+        proto: "{{ item.proto }}" # Protocol (tcp)
+        setype: "{{ item.setype }}" # SELinux type (http_port_t)
+        state: "{{ item.state }}" # present or absent
+      loop: "{{ selinux_ports }}" # Loop through our port list
+      when: selinux_ports is defined # Only run if the variable exists
+
+  roles: # Roles to execute
+    - apache.developer_configs # Our custom role (which will trigger infra.apache)
