@@ -1,0 +1,10 @@
+---
+- name: Configure Web Servers
+  hosts: webservers
+  gather_facts: false
+  tasks:
+    - name: Import web server setup tasks
+      import_tasks: ../tasks/web_setup.yml
+
+    - name: Include verification tasks
+      include_tasks: ../tasks/verify_config.yml
