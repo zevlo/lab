@@ -1,0 +1,33 @@
+---
+- name: Manage Apache HTTP Server Service
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Start and enable httpd service
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Create a simple index.html
+      ansible.builtin.copy:
+        content: |
+          <html>
+          <head><title>Ansible Managed Server</title></head>
+          <body>
+          <h1>Welcome to Ansible Managed Apache Server</h1>
+          <p>This server is configured and managed by Ansible.</p>
+          <p>Service started at: $(date)</p>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: "0644"
+
+    - name: Verify httpd service is running
+      ansible.builtin.service_facts:
+
+    - name: Display httpd service status
+      ansible.builtin.debug:
+        var: ansible_facts.services['httpd.service']
