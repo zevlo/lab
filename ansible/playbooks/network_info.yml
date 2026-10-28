@@ -1,0 +1,54 @@
+---
+- name: Gather comprehensive system information
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Gather all system facts
+      ansible.builtin.setup:
+
+    - name: Create system report directory
+      ansible.builtin.file:
+        path: /tmp/system_reports
+        state: directory
+        mode: "0755"
+
+    - name: Generate system information report
+      ansible.builtin.template:
+        src: system_report.j2
+        dest: /tmp/system_reports/system_info_{{ ansible_facts['hostname'] }}.html
+        mode: "0644"
+
+    - name: Generate network configuration report
+      ansible.builtin.template:
+        src: network_report.j2
+        dest: /tmp/system_reports/network_info_{{ ansible_facts['hostname'] }}.html
+        mode: "0644"
+
+    - name: Collect network interface information
+      ansible.builtin.command:
+        cmd: ip addr show
+      register: ip_info
+      changed_when: false
+
+    - name: Collect routing information
+      ansible.builtin.command:
+        cmd: ip route show
+      register: route_info
+      changed_when: false
+
+    - name: Collect DNS configuration
+      ansible.builtin.command:
+        cmd: cat /etc/resolv.conf
+      register: dns_info
+      changed_when: false
+
+    - name: Display network summary
+      ansible.builtin.debug:
+        msg: |
+          System: {{ ansible_facts['hostname'] }}
+          OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+          Kernel: {{ ansible_facts['kernel'] }}
+          Default IPv4: {{ ansible_facts['default_ipv4']['address'] | default('N/A') }}
+          Default Interface: {{ ansible_facts['default_ipv4']['interface'] | default('N/A') }}
+          Total Memory: {{ ansible_facts['memtotal_mb'] }}MB
+          CPU Cores: {{ ansible_facts['processor_vcpus'] }}
