@@ -1,0 +1,58 @@
+---
+- name: Create and manage user accounts
+  hosts: webservers
+  become: true
+  vars_files:
+    - vars/users_vars.yml
+  tasks:
+    - name: Create webadmin group
+      ansible.builtin.group:
+        name: webadmin
+        state: present
+
+    - name: Create user accounts
+      ansible.builtin.user:
+        name: "{{ item['username'] }}"
+        groups: "{{ item['groups'] }}"
+        shell: /bin/bash
+        create_home: yes
+        state: present
+      loop: "{{ users }}"
+
+    - name: Set up SSH authorized keys
+      ansible.posix.authorized_key:
+        user: "{{ item['username'] }}"
+        key: "{{ lookup('file', 'files/' + item['username'] + '.key.pub') }}"
+        state: present
+      loop: "{{ users }}"
+
+    - name: Configure sudo access for webadmin group
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers.d/webadmin
+        state: present
+        create: yes
+        mode: "0440"
+        line: "%webadmin ALL=(ALL) NOPASSWD: ALL"
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Configure SSH to disable root login
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
+        backup: yes
+      notify: restart sshd
+
+    - name: Configure SSH to disable password authentication
+      ansible.builtin.lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        backup: yes
+      notify: restart sshd
+
+  handlers:
+    - name: restart sshd
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
