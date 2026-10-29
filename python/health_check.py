@@ -1,15 +1,31 @@
+import os
 import shutil
+import sys
 
-usage = shutil.disk_usage("/")
+def check_disk(path, threshold):
+    usage = shutil.disk_usage(path)
+    percent_used = (usage.used / usage.total) * 100
+    if percent_used > threshold:
+        return False
+    else:
+        return True
 
-total_gb = usage.total / (1024 ** 3)
-used_gb = usage.used / (1024 ** 3)
-percent_used = (used_gb / total_gb) * 100  # or keep as ratio for f-string
+def check_cpu(threshold_percent=80):
+    load1, _, _ = os.getloadavg()
+    cores = os.cpu_count()
+    usage_percent = (load1 / cores) * 100
+    if usage_percent > threshold_percent:
+        return False
+    else:
+        return True
 
-print(f"Total: {total_gb:.2f} GB")
-print(f"Used:  {used_gb:.2f} GB")
+# --- Run checks ---
+disk_ok = check_disk("/", 80)
+cpu_ok = check_cpu(80)
 
-if percent_used > 80:
-    print("Warning: Low disk space")
+if disk_ok and cpu_ok:
+    print("SUCCESS: System is healthy")
+    sys.exit(0)
 else:
-    print("Disk space is healthy")
+    print("WARNING: Health check failed")
+    sys.exit(1)
