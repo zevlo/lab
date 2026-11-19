@@ -1,1 +1,0 @@
-ERROR i am not a .log file
