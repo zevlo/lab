@@ -1,0 +1,18 @@
+stages:
+  - test
+
+test:
+  stage: test
+  image: node:20
+  script:
+    - npm ci
+    - npm test
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
