@@ -1,0 +1,14 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+default:
+  image: node:20
+  before_script:
+    - npm ci
+
+lint:
+  stage: test
+  script:
+    - npm run lint
