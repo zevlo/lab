@@ -1,0 +1,11 @@
+nightly_report:
+  stage: test
+  image: node:20
+  # Run only in scheduled pipelines (cron configured in Build > Pipeline schedules)
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  timeout: 1h
+  script:
+    - npm run report
+  after_script:
+    - rm -rf /tmp/nightly-cache
