@@ -1,0 +1,22 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  image: node:20
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+deploy:
+  stage: deploy
+  environment: production
+  script:
+    - ./scripts/deploy.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
